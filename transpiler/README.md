@@ -94,7 +94,7 @@ In order to install the FHE C++ Transpiler on your Linux machine:
     and run
 
     ```shell
-    docker build image -t google-fhe-transpiler .
+    docker build -t google-fhe-transpiler .
     ```
     This may take around 1 hour, depending on your system configuration.
 
