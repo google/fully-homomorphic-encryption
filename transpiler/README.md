@@ -74,7 +74,7 @@ In order to install the FHE C++ Transpiler on your Linux machine:
     your local machine using the following command:
 
     ```shell
-    git clone https://github.com/google/fully-homomorphic-encryption.git`
+    git clone https://github.com/google/fully-homomorphic-encryption.git
     ```
 
 #### Option B: Use Docker to install the transpiler
@@ -87,7 +87,7 @@ In order to install the FHE C++ Transpiler on your Linux machine:
     also use `git` to clone the repository using the following command:
 
     ```shell
-    git clone https://github.com/google/fully-homomorphic-encryption.git`
+    git clone https://github.com/google/fully-homomorphic-encryption.git
     ```
 
 3.  Navigate to the root of this repository, which contains the `Dockerfile`
@@ -118,7 +118,7 @@ This will automatically build the core FHE C++ Transpiler library, which may
 take a long time (i.e., over an hour) when building the first time. Once the
 demo is running, a game of
 [Hangman](https://en.wikipedia.org/wiki/Hangman_(game)) will be playable,
-illustrating that the player's letter guesses and game progress are is unknown
+illustrating that the player's letter guesses and game progress are unknown
 to the server.
 
 ### Transpiling your code
