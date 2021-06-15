@@ -74,7 +74,7 @@ In order to install the FHE C++ Transpiler on your Linux machine:
     your local machine using the following command:
 
     ```shell
-    git clone https://github.com/google/fully-homomorphic-encryption.git`
+    git clone https://github.com/google/fully-homomorphic-encryption.git
     ```
 
 #### Option B: Use Docker to install the transpiler
@@ -87,7 +87,7 @@ In order to install the FHE C++ Transpiler on your Linux machine:
     also use `git` to clone the repository using the following command:
 
     ```shell
-    git clone https://github.com/google/fully-homomorphic-encryption.git`
+    git clone https://github.com/google/fully-homomorphic-encryption.git
     ```
 
 3.  Navigate to the root of this repository, which contains the `Dockerfile`
