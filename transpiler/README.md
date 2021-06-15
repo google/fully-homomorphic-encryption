@@ -118,7 +118,7 @@ This will automatically build the core FHE C++ Transpiler library, which may
 take a long time (i.e., over an hour) when building the first time. Once the
 demo is running, a game of
 [Hangman](https://en.wikipedia.org/wiki/Hangman_(game)) will be playable,
-illustrating that the player's letter guesses and game progress are is unknown
+illustrating that the player's letter guesses and game progress are unknown
 to the server.
 
 ### Transpiling your code
