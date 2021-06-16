@@ -115,6 +115,6 @@ top_func_proto {
   ASSERT_THAT(actual, HasSubstr("::Decrypt(data, key, encoded_third);"));
 }
 
-}  // namespace
+}  // C|.1
 
 }  // namespace fully_homomorphic_encryption::transpiler
