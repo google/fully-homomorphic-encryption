@@ -24,19 +24,15 @@ RUN apt-get update && apt-get install -y \
 	python3-pip \
 	wget
 
-# Install bazelisk.
-RUN wget -O bazelisk "https://github.com/bazelbuild/bazelisk/releases/download/v1.8.0/bazelisk-linux-amd64" \
-	&& test "cde5b2769d0633bb4fdc3e41800a1b2c867b68bd724b1dd23258e0ae0ac86cd6  bazelisk" = "$(sha256sum bazelisk)" \
-	&& chmod +x bazelisk \
-	&& mv bazelisk /bin/bazelisk
+# Install bazel
+RUN wget -O bazel "https://github.com/bazelbuild/bazel/releases/download/4.0.0/bazel-4.0.0-linux-x86_64" \
+	&& test "7bee349a626281fc8b8d04a7a0b0358492712377400ab12533aeb39c2eb2b901  bazel" = "$(sha256sum bazel)" \
+	&& chmod +x bazel \
+	&& mv bazel /bin/bazel
 
 WORKDIR /usr/src/fhe/
-
-# Let bazelisk fetch bazel.
-COPY .bazelversion .
-RUN bazelisk version
 
 COPY . .
 
 # Build all targets.
-RUN bazelisk build ...
+RUN bazel build ...

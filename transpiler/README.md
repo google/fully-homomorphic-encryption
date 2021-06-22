@@ -99,10 +99,8 @@ In order to install the FHE C++ Transpiler on your Linux machine:
     This may take around 1 hour, depending on your system configuration.
 
 4.  Execute `docker run --rm -i -t google-fhe-transpiler bash` to connect to
-    a fresh instance that has the transpiler installed. You have to run
-    `bazelisk` (which is automatically installed by the `Dockerfile`),
-    rather than `bazel`, to build and run the examples in the following
-    steps.
+    a fresh instance that has the transpiler installed.  You can then run the
+    examples as described in the following section.
 
 ### Running the FHE C++ Transpiler
 
