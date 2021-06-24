@@ -90,7 +90,20 @@ In order to install the FHE C++ Transpiler on your Linux machine:
     git clone https://github.com/google/fully-homomorphic-encryption.git
     ```
 
-3.  Navigate to the root of this repository, which contains the `Dockerfile`
+3.  **(macOS only)** Ensure sufficient Docker system resources for macOS:
+    Navigate to `Preferences` > `Resources` > `Advanced` and set the runtime
+    memory limit to at least 6GB. The default settings for other system
+    resources (swap, disk size, etc.) should be sufficient. In our tests on a
+    2017 MacBook Pro, these defaults were set to:
+    * CPU: 4 cores
+    * Swap: 1GB
+    * Disk image: 60GB
+
+    Note that increases to these other system resources may help improve image
+    build times and container performance. See more about setting resource
+    limits in Docker Desktop [here](https://docs.docker.com/docker-for-mac/#resources).
+
+4.  Navigate to the root of this repository, which contains the `Dockerfile`
     and run
 
     ```shell
@@ -98,7 +111,7 @@ In order to install the FHE C++ Transpiler on your Linux machine:
     ```
     This may take around 1 hour, depending on your system configuration.
 
-4.  Execute `docker run --rm -i -t google-fhe-transpiler bash` to connect to
+5.  Execute `docker run --rm -i -t google-fhe-transpiler bash` to connect to
     a fresh instance that has the transpiler installed.  You can then run the
     examples as described in the following section.
 
