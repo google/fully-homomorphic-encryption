@@ -310,6 +310,24 @@ where `PLAYER_A` and `PLAYER_B` are the choice `R` (rock), `P` (paper), or `S`
 (scissors). The server will return the winning player (i.e., either `A` or `B`)
 or `=` in the case of a tie.
 
+### Structs & Templates
+
+These subdirectories include examples of programming using structs and
+templates, respectively: how structs can be used both inside and outside the FHE
+environment and how templates can be used within the FHE environment to tailor
+code to more precise specifications. Since they are not functional examples, we
+only provide a TFHE testbenches, e.g.:
+
+```shell
+bazel run -c opt //transpiler/examples/structs:struct_with_struct_array_tfhe_testbench
+```
+
+and
+
+```shell
+bazel run -c opt //transpiler/examples/templates:mul_interpreted_tfhe_testbench
+```
+
 ## Design
 
 The FHE C++ Transpiler is designed to run sequentially through each of the

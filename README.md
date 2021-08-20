@@ -5,17 +5,49 @@ homomorphic encryption (FHE) operations on an encrypted data set.
 
 **About Fully Homomorphic Encryption**
 
-Fully Homomorphic Encryption (FHE) is an emerging data processing paradigm that
-allows developers to perform transformations on encrypted data. FHE can change
-the way computations are performed by preserving privacy end-to-end, thereby
-giving users even greater confidence that their information will remain private
-and secure.
+Fully Homomorphic Encryption (FHE) is an emerging cryptographic technique that
+allows developers to perform computations on encrypted data. This represents a
+paradigm shift in how data processing and data privacy relate to each other.
+
+Previously, if an application had to perform some computation on data that was
+encrypted, this application would necessarily need to decrypt the data first,
+perform the desired computations on the clear data, and then re-encrypt the
+data. FHE, on the other hand, simply removes the need for this
+decryption-encryption steps by the application, all at once.
+
+In practice, for an application that needs to perform some computation F on data
+that is encrypted, the FHE scheme would provide some alternative computation F'
+which when applied directly over the encrypted data will result in the
+encryption of the application of F over the data in the clear. More formally:
+F(unencrypted_data) = Decrypt(F'(encrypted_data)).
+
+As a result, FHE can have an enormous impact to our society. It can change the
+way computations are performed by preserving end-to-end privacy. For example,
+users would be able to offload expensive computations to cloud providers in a
+way that cloud providers will not have access to the users' data at all.
+
+The main hindrance for the adoption of FHE has been its very poor performance.
+Despite significant scientific improvements, performing computations on
+encrypted data using FHE is still orders of magnitude slower than performing the
+computation on the plaintext. On top of that, converting a program that operates
+on unencrypted data to one that FHE-operates on encrypted data is far from being
+a trivial translation. If not properly done, this translation can significantly
+increase the performance gap between computing on unencrypted data and the 
+FHE-computation on encrypted data, thus precluding wide FHE adoption.
 
 ## FHE C++ Transpiler
 
 The FHE C++ Transpiler is a general purpose library that converts C++ into
-FHE-C++ that works on encrypted input. The code, examples, and more information
-is in the [`transpiler`](./transpiler/) subdirectory.
+FHE-C++ that works on encrypted input.
+
+The transpiler has a modular architecture that allows varying the underlying FHE
+library, the high-level program description and the output language as well. We
+hope that this flexibility will allow researchers from different fields to work
+together on this exciting goal of making FHE more efficient and broadly
+applicable.
+
+The code, examples, and more information is in the [`transpiler`](./transpiler/)
+subdirectory.
 
 ## Support
 
@@ -65,6 +97,7 @@ The contributors to this project are (sorted by last name):
 - Sasha Kulankhina
 - [William Lam](https://www.linkedin.com/in/william-m-lam)
 - [David Marn](http://dmarn.org)
+- [Rafael Misoczki](https://www.linkedin.com/in/rafael-misoczki-phd-24b33013)
 - Bernat Guillén Pegueroles
 - [Milinda Perera](https://milinda-perera.com)
 - [Sean Purser-Haskell](https://www.linkedin.com/in/sean-purser-haskell-30b5268)
