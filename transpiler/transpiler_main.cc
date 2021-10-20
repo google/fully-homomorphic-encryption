@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Takes an booleanified xls ir file and produces an FHE C++ file that uses
-// TFHE api.
+// Takes an booleanified xls ir file and produces an FHE C++ file that uses an
+// FHE api.
 #include <filesystem>
 #include <iostream>
 #include <memory>
@@ -62,8 +62,8 @@ ABSL_FLAG(std::string, cc_path, "-",
 ABSL_FLAG(int, opt_passes, 2, "Number of optimization passes to run.");
 ABSL_FLAG(std::string, transpiler_type, "tfhe",
           "Sets the transpiler type; must be one of {tfhe, interpreted_tfhe, "
-          "bool}. 'bool' uses native Boolean operations on plaintext rather "
-          "than an FHE library, so is mostly useful for debugging.");
+          "bool}. 'bool' uses native Boolean operations on plaintext "
+          "rather than an FHE library, so is mostly useful for debugging.");
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {
@@ -81,40 +81,31 @@ absl::Status OptimizeAndBooleanify(
     const std::filesystem::path& booleanifier_path,
     const std::filesystem::path& optimizer_path,
     const std::filesystem::path& booleanized_ir_path) {
-  if (opt_passes == 0) {
+  XLS_ASSIGN_OR_RETURN(TempFile optimized, TempFile::Create());
+  int i = 0;
+  do {
+    // Even when num_passes == 0, we need to run the optimizer with only the
+    // inlining pass.  The booleanifier cannot handle function invocation.
     XLS_ASSIGN_OR_RETURN(
         auto out_err,
-        InvokeSubprocess(
-            {GetRunfilePath(booleanifier_path),
-             absl::StrCat("--ir_path=",
-                          static_cast<std::string>(input_ir_path)),
-             absl::StrCat("--function=", function_name),
-             absl::StrCat("--output_function_name=", function_name)}));
+        InvokeSubprocess({GetRunfilePath(optimizer_path),
+                          i == 0 ? input_ir_path : booleanized_ir_path,
+                          opt_passes ? "" : "--run_only_passes=inlining"}));
+    XLS_RETURN_IF_ERROR(
+        xls::SetFileContents(optimized.path(), std::get<0>(out_err)));
+
+    XLS_ASSIGN_OR_RETURN(
+        out_err, InvokeSubprocess(
+                     {GetRunfilePath(booleanifier_path),
+                      absl::StrCat("--ir_path=",
+                                   static_cast<std::string>(optimized.path())),
+                      absl::StrCat("--function=", function_name),
+                      absl::StrCat("--output_function_name=", function_name)}));
+
     XLS_RETURN_IF_ERROR(
         xls::SetFileContents(booleanized_ir_path, std::get<0>(out_err)));
-  } else {
-    XLS_ASSIGN_OR_RETURN(TempFile optimized, TempFile::Create());
-    for (int i = 0; i < opt_passes; i++) {
-      XLS_ASSIGN_OR_RETURN(
-          auto out_err,
-          InvokeSubprocess({GetRunfilePath(optimizer_path),
-                            i == 0 ? input_ir_path : booleanized_ir_path}));
-      XLS_RETURN_IF_ERROR(
-          xls::SetFileContents(optimized.path(), std::get<0>(out_err)));
-
-      XLS_ASSIGN_OR_RETURN(
-          out_err,
-          InvokeSubprocess(
-              {GetRunfilePath(booleanifier_path),
-               absl::StrCat("--ir_path=",
-                            static_cast<std::string>(optimized.path())),
-               absl::StrCat("--function=", function_name),
-               absl::StrCat("--output_function_name=", function_name)}));
-
-      XLS_RETURN_IF_ERROR(
-          xls::SetFileContents(booleanized_ir_path, std::get<0>(out_err)));
-    }
-  }
+    i++;
+  } while (i < opt_passes);
 
   return absl::OkStatus();
 }

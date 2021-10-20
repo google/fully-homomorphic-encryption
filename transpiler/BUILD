@@ -66,6 +66,7 @@ cc_library(
     srcs = ["tfhe_runner.cc"],
     hdrs = ["tfhe_runner.h"],
     deps = [
+        ":abstract_xls_transpiler",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",

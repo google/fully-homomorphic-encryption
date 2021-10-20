@@ -26,6 +26,7 @@
 #include "google/protobuf/text_format.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
+#include "transpiler/abstract_xls_transpiler.h"
 #include "xls/common/file/filesystem.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
@@ -82,81 +83,59 @@ absl::Status TfheRunner::HandleBitSlice(
     const absl::flat_hash_map<std::string, LweSample*> args,
     const TFheGateBootstrappingCloudKeySet* bk) {
   xls::Node* operand = bit_slice->operand(0);
-  int slice_idx = 0;
 
-  if (operand->Is<xls::ArrayIndex>()) {
-    // If we're slicing into an array index, then we just need to get
-    // the bit offset of index in the bit vector that represents the array
-    // (in booleanified space).
-    const xls::ArrayIndex* array_index = operand->As<xls::ArrayIndex>();
-    XLS_ASSIGN_OR_RETURN(const xls::ArrayType* array_type,
-                         array_index->array()->GetType()->AsArray());
+  int slice_idx = bit_slice->start();
 
-    // TODO: Only literal indices into single-dimensional arrays
-    // are currently supported. To extend past 1-d, we'll need to walk up the
-    // array index chain, determining at each step the offset from element 0,
-    // and pass that back down here.
-    absl::Span<xls::Node* const> indices = array_index->indices();
-    if (indices.size() != 1) {
-      return absl::InvalidArgumentError(
-          "Only single-dimensional arrays/array indices are supported.");
-    }
-    if (!indices[0]->Is<xls::Literal>()) {
-      return absl::InvalidArgumentError(
-          "Only literal indexes into arrays are supported.");
-    }
-    xls::Literal* literal = indices[0]->As<xls::Literal>();
-
-    XLS_ASSIGN_OR_RETURN(int64_t concrete_index,
-                         literal->value().bits().ToUint64());
-    slice_idx = array_type->element_type()->GetFlatBitCount() * concrete_index;
-    slice_idx += bit_slice->start();
-
-    while (!operand->Is<xls::Param>()) {
-      operand = operand->operand(0);
-      // Verify that the only things allowed in a BitSlice chain are array
-      // indexes, tuple indexes, other bit slices, and the eventual params.
-      XLS_CHECK(operand->Is<xls::ArrayIndex>() ||
-                operand->Is<xls::BitSlice>() || operand->Is<xls::Param>() ||
-                operand->Is<xls::TupleIndex>())
-          << "Invalid BitSlice operand: " << operand->ToString();
-    }
-  } else {
-    // TODO: Only single-dimensional indexes are supported at the
-    // moment.
-    auto is_special_node = [](xls::Node* operand) {
-      return operand->Is<xls::Param>() || operand->Is<xls::TupleIndex>();
-    };
-    if (is_special_node(operand)) {
-      slice_idx = bit_slice->start();
-    } else {
-      // Walk up the tree until a param is found.
-      while (!is_special_node(operand)) {
-        slice_idx++;
-        // Assuming SHR.
-        operand = operand->operand(0);
-
-        // Verify that the only things allowed in a BitSlice chain are array
-        // indexes, tuple indexes, other bit slices, and the eventual params.
-        XLS_CHECK(operand->Is<xls::ArrayIndex>() ||
-                  operand->Is<xls::BitSlice>() || operand->Is<xls::Param>() ||
-                  operand->Is<xls::TupleIndex>())
-            << "Invalid BitSlice operand: " << operand->ToString();
+  for (; !operand->Is<xls::Param>(); operand = operand->operand(0)) {
+    if (operand->Is<xls::TupleIndex>()) {
+      int slice_idx_adj = 0;
+      xls::TupleIndex* tuple_index = operand->As<xls::TupleIndex>();
+      int64_t actual_tuple_index = tuple_index->index();
+      xls::TupleType* tuple =
+          tuple_index->operand(0)->GetType()->AsTupleOrDie();
+      for (int i = 0; i < actual_tuple_index; i++) {
+        slice_idx_adj += tuple->element_type(i)->GetFlatBitCount();
       }
-    }
-  }
+      slice_idx += slice_idx_adj;
+    } else if (operand->Is<xls::ArrayIndex>()) {
+      // If we're slicing into an array index, then we just need to get
+      // the bit offset of index in the bit vector that represents the array
+      // (in booleanified space).
+      const xls::ArrayIndex* array_index = operand->As<xls::ArrayIndex>();
+      XLS_ASSIGN_OR_RETURN(const xls::ArrayType* array_type,
+                           array_index->array()->GetType()->AsArray());
 
-  // Overflow SHR, can be ignored.
-  if (operand->GetType()->GetFlatBitCount() == slice_idx) {
-    return absl::OkStatus();
+      // TODO: Only literal indices into single-dimensional arrays
+      // are currently supported. To extend past 1-d, we'll need to walk up the
+      // array index chain, determining at each step the offset from element 0,
+      // and pass that back down here.
+      absl::Span<xls::Node* const> indices = array_index->indices();
+      // TODO: Only single-dimensional indexes are supported at the
+      // moment.
+      if (indices.size() != 1) {
+        return absl::InvalidArgumentError(
+            "Only single-dimensional arrays/array indices are supported.");
+      }
+      if (!indices[0]->Is<xls::Literal>()) {
+        return absl::InvalidArgumentError(
+            "Only literal indexes into arrays are supported.");
+      }
+      xls::Literal* literal = indices[0]->As<xls::Literal>();
+
+      XLS_ASSIGN_OR_RETURN(int64_t concrete_index,
+                           literal->value().bits().ToUint64());
+      slice_idx +=
+          array_type->element_type()->GetFlatBitCount() * concrete_index;
+    }
+
+    // Verify that the only things allowed in a BitSlice chain are array
+    // indexes, tuple indexes, other bit slices, and the eventual params.
+    XLS_CHECK(operand->Is<xls::ArrayIndex>() || operand->Is<xls::BitSlice>() ||
+              operand->Is<xls::Param>() || operand->Is<xls::TupleIndex>())
+        << "Invalid BitSlice operand: " << operand->ToString();
   }
 
   std::string param_name = operand->GetName();
-  if (operand->GetType()->GetFlatBitCount() == 1) {
-    if (operand->Is<xls::TupleIndex>() || operand->Is<xls::ArrayIndex>()) {
-      param_name = operand->operand(0)->GetName();
-    }
-  }
   auto found_arg = args.find(param_name);
   XLS_CHECK(found_arg != args.end());
   bootsCOPY(result, &found_arg->second[slice_idx], bk);
@@ -243,9 +222,42 @@ absl::Status TfheRunner::CollectOutputs(
 
   std::vector<const xls::Node*> elements;
   const xls::Type* type = return_value->GetType();
+
+  // The return value can be a tuple in two cases:
+  //
+  // Case A:
+  //    StructA foo(StructB in)
+  //    void foo(Struct &in)
+  // Case B:
+  //    StructR foo(StructA a, StructB &b)
+  //    StructR foo(StructA &a, StructB b)
+  //    void foo(StructA &a, StructB &b)
+  //
+  // IOW, Case A is when a function returns a single struct (either explicitly
+  // or as an non-const reference, this struct is represented as a tuple in the
+  // return type.  CaseB is when multiple values are returned (via some
+  // combination of a return value and one or more non-const references, or a
+  // void return and two or more non-const references.
+  //
+  // Thus in case A we want to append to elements, while in case B we want to
+  // splice the results tuple in.
+  //
+  // In both cases, type->kind() will be a kTuple, so we need an additional
+  // check to tell cases A and B apart.
+
+  auto top_func_proto = metadata_.top_func_proto();
+  auto params = top_func_proto.params();
+  auto return_type = top_func_proto.return_type();
+
+  int num_out_params = xlscc_metadata::GetNumOutParams(metadata_);
+
   if (type->kind() == xls::TypeKind::kTuple) {
-    elements.insert(elements.begin(), return_value->operands().begin(),
-                    return_value->operands().end());
+    if (num_out_params != 1) {
+      elements.insert(elements.begin(), return_value->operands().begin(),
+                      return_value->operands().end());
+    } else {
+      elements.push_back(return_value);
+    }
   } else {
     elements.push_back(return_value);
   }
@@ -261,6 +273,10 @@ absl::Status TfheRunner::CollectOutputs(
           "return value requested for a void-returning function");
     }
   } else {
+    if (result == nullptr) {
+      return absl::FailedPreconditionError(
+          "missing return value for a value-returning function");
+    }
     XLS_RETURN_IF_ERROR(
         CollectNodeValue(elements[output_idx++], result, 0, values, bk));
   }
@@ -270,14 +286,19 @@ absl::Status TfheRunner::CollectOutputs(
   for (; output_idx < elements.size(); output_idx++) {
     const xlscc_metadata::FunctionParameter* param;
     while (true) {
+      if (param_idx == fn_params.size()) {
+        return absl::InternalError(absl::StrCat(
+            "No matching in/out param for output %d: ", output_idx));
+      }
+
       param = &fn_params[param_idx++];
       if (!param->is_const() && param->is_reference()) {
         break;
       }
 
-      if (param_idx == fn_params.size()) {
-        return absl::InternalError(absl::StrCat(
-            "No matching in/out param for function param: ", param->name()));
+      if (!param->has_type()) {
+        return absl::InternalError(
+            absl::StrCat("Parameter %s has no type.", param->name()));
       }
     }
 

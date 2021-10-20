@@ -15,10 +15,15 @@
 #include <cstdint>
 #include <iostream>
 
-#include "tfhe/tfhe.h"
+#include "xls/common/logging/logging.h"
+#ifdef USE_INTERPRETED_TFHE
+#include "transpiler/examples/structs/struct_with_array_interpreted_tfhe.h"
+#include "transpiler/examples/structs/struct_with_array_interpreted_tfhe.types.h"
+#else
 #include "transpiler/examples/structs/struct_with_array_tfhe.h"
 #include "transpiler/examples/structs/struct_with_array_tfhe.types.h"
-#include "xls/common/logging/logging.h"
+#endif
+#include "tfhe/tfhe.h"
 
 const int main_minimum_lambda = 120;
 
@@ -37,41 +42,90 @@ int main(int argc, char** argv) {
   const TFheGateBootstrappingCloudKeySet* cloud_key = &key->cloud;
 
   StructWithArray input;
-  for (int i = 0; i < A_COUNT; i++) {
+  input.c = 11;
+  input.i.q = 44;
+  input.i.c[0] = 33;
+  for (int i = 1; i < C_COUNT; i++) {
+    input.i.c[i] = i * 1000;
+  }
+  input.a[0] = 11;
+  for (int i = 1; i < A_COUNT; i++) {
     input.a[i] = i * 100;
   }
-  for (int i = 0; i < B_COUNT; i++) {
+  input.b[0] = -22;
+  for (int i = 1; i < B_COUNT; i++) {
     input.b[i] = -i * 100;
   }
-  input.c = 1024;
+  input.z = 99;
+
+  int other = 55;
+  Inner inner;
+  inner.q = 66;
+  inner.c[0] = 77;
+  for (int i = 1; i < C_COUNT; i++) {
+    inner.c[i] = i * 1111;
+  }
 
   FheStructWithArray fhe_struct_with_array(params);
   fhe_struct_with_array.SetEncrypted(input, key);
 
-  std::cout << "Initial round-trip check: " << std::endl;
+  FheInt fhe_other(params);
+  fhe_other.SetEncrypted(other, key);
+
+  FheInner fhe_inner(params);
+  fhe_inner.SetEncrypted(inner, key);
+
+  std::cout << "Initial round-trip check: " << std::endl << std::endl;
   StructWithArray round_trip = fhe_struct_with_array.Decrypt(key);
+  std::cout << "  c: " << (signed)round_trip.c << std::endl;
+  for (int i = 0; i < C_COUNT; i++) {
+    std::cout << "  i.c[" << i << "]: " << round_trip.i.c[i] << std::endl;
+  }
+  std::cout << "  i.q: " << round_trip.i.q << std::endl;
   for (int i = 0; i < A_COUNT; i++) {
     std::cout << "  a[" << i << "]: " << round_trip.a[i] << std::endl;
   }
   for (int i = 0; i < B_COUNT; i++) {
     std::cout << "  b[" << i << "]: " << round_trip.b[i] << std::endl;
   }
-  std::cout << "  c: " << round_trip.c << std::endl << std::endl;
+  std::cout << "  z: " << (signed)round_trip.z << std::endl << std::endl;
+  int other_round_trip = fhe_other.Decrypt(key);
+  std::cout << "  other: " << other_round_trip << std::endl << std::endl;
+  Inner inner_round_trip = fhe_inner.Decrypt(key);
+  for (int i = 0; i < C_COUNT; i++) {
+    std::cout << "  inner.c[" << i << "]: " << inner_round_trip.c[i]
+              << std::endl;
+  }
+  std::cout << "  inner.q: " << inner_round_trip.q << std::endl;
+  std::cout << std::endl;
 
-  std::cout << "Starting computation." << std::endl;
-  FheStructWithArray fhe_result(params);
-  XLS_CHECK_OK(NegateStructWithArray(fhe_result.get(),
-                                     fhe_struct_with_array.get(), cloud_key));
+  std::cout << "Starting computation." << std::endl << std::endl;
+  XLS_CHECK_OK(NegateStructWithArray(fhe_struct_with_array.get(),
+                                     fhe_other.get(), fhe_inner.get(),
+                                     cloud_key));
 
-  StructWithArray result = fhe_result.Decrypt(key);
+  StructWithArray result = fhe_struct_with_array.Decrypt(key);
   std::cout << "Done. Result: " << std::endl;
+  std::cout << "  c: " << (signed)result.c << std::endl;
+  for (int i = 0; i < C_COUNT; i++) {
+    std::cout << "  i.c[" << i << "]: " << result.i.c[i] << std::endl;
+  }
+  std::cout << "  i.q: " << result.i.q << std::endl;
   for (int i = 0; i < A_COUNT; i++) {
     std::cout << "  a[" << i << "]: " << result.a[i] << std::endl;
   }
   for (int i = 0; i < B_COUNT; i++) {
     std::cout << "  b[" << i << "]: " << result.b[i] << std::endl;
   }
-  std::cout << "  c: " << result.c << std::endl << std::endl;
+  std::cout << "  z: " << (signed)result.z << std::endl << std::endl;
+  int other_result = fhe_other.Decrypt(key);
+  std::cout << " other: " << other_result << std::endl << std::endl;
+  Inner inner_result = fhe_inner.Decrypt(key);
+  for (int i = 0; i < C_COUNT; i++) {
+    std::cout << "  inner.c[" << i << "]: " << inner_result.c[i] << std::endl;
+  }
+  std::cout << "  inner.q: " << inner_result.q << std::endl;
+  std::cout << std::endl;
 
   return 0;
 }

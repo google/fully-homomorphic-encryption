@@ -38,6 +38,28 @@
 #include "xls/ir/node_iterator.h"
 #include "xls/ir/nodes.h"
 
+namespace xlscc_metadata {
+
+// We need to know the number of out params when collecting outputs, because
+// otherwise we can't tell the difference between returning one three-element
+// tuple or three one-element quantities.
+static inline int GetNumOutParams(const MetadataOutput& metadata) {
+  int num_out_params = 0;
+  if (!metadata.top_func_proto().return_type().has_as_void()) {
+    num_out_params++;
+  }
+
+  for (const auto& param : metadata.top_func_proto().params()) {
+    if (!param.is_const() && param.is_reference()) {
+      num_out_params++;
+    }
+  }
+
+  return num_out_params;
+}
+
+}  // namespace xlscc_metadata
+
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 
@@ -98,24 +120,6 @@ class AbstractXLSTranspiler {
     return header_guard;
   }
 
-  // We need to know the number of out params when collecting outputs, because
-  // otherwise we can't tell the difference between returning one three-element
-  // tuple or three one-element quantities.
-  static int GetNumOutParams(const xlscc_metadata::MetadataOutput& metadata) {
-    int num_out_params = 0;
-    if (!metadata.top_func_proto().return_type().has_as_void()) {
-      num_out_params++;
-    }
-
-    for (const auto& param : metadata.top_func_proto().params()) {
-      if (!param.is_const() && param.is_reference()) {
-        num_out_params++;
-      }
-    }
-
-    return num_out_params;
-  }
-
   // Walks the type elements comprising `function`'s output type and generates
   // FHE copy operations to extract the data corresponding to each.
   //
@@ -133,7 +137,7 @@ class AbstractXLSTranspiler {
 
     std::vector<const xls::Node*> elements;
     const xls::Type* type = return_value->GetType();
-    int num_out_params = GetNumOutParams(metadata);
+    int num_out_params = xlscc_metadata::GetNumOutParams(metadata);
     if (type->kind() == xls::TypeKind::kTuple) {
       if (num_out_params != 1) {
         elements.insert(elements.begin(), return_value->operands().begin(),

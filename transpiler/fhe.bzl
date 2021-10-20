@@ -189,8 +189,8 @@ fhe_transpile = rule(
         ),
         "transpiler_type": attr.string(
             doc = """
-            Type of FHE library to transpile to. Choices are {tfhe, interpreted_tfhe, bool}.
-            'bool' doesn't depend on any FHE libraries.
+            Type of FHE library to transpile to. Choices are {tfhe, interpreted_tfhe,
+            bool}. 'bool' doesn't depend on any FHE libraries.
             """,
             values = ["tfhe", "interpreted_tfhe", "bool"],
         ),
@@ -206,6 +206,7 @@ def fhe_cc_library(
         name,
         src,
         hdrs,
+        copts = [],
         num_opt_passes = 1,
         transpiler_type = "tfhe",
         **kwargs):
@@ -301,11 +302,12 @@ def fhe_cc_library(
             "@tfhe//:libtfhe",
             "@com_google_xls//xls/common/status:status_macros",
         ])
+
     native.cc_library(
         name = name,
         srcs = [":" + transpiled_source],
         hdrs = [":" + transpiled_headers] + hdrs,
-        copts = ["-O0"],
+        copts = ["-O0"] + copts,
         tags = tags,
         deps = deps,
         **kwargs

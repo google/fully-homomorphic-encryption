@@ -56,30 +56,46 @@ int main(int argc, char** argv) {
   std::string input = argv[1];
   input.resize(MAX_LENGTH, '\0');
   // generate a keyset
+  std::cout << "Starting key generation..." << std::endl;
+  const absl::Time key_gen_start = absl::Now();
   TFHEParameters params(kMainMinimumLambda);
 
   // generate a random key
   // Note: In real applications, a cryptographically secure seed needs to be
   // used.
-  std::array<uint32_t, 3> seed = {314, 1592, 657};
+  std::array<uint32_t, 0> seed = {};
   TFHESecretKeySet key(params, seed);
+  std::cout << "Completed key generation ("
+            << absl::ToDoubleSeconds(absl::Now() - key_gen_start) << " secs)"
+            << std::endl;
 
   std::string plaintext(input);
   std::cout << "plaintext: '" << plaintext << "'" << std::endl;
 
+  std::cout << "Encrypting inputs..." << std::endl;
+  const absl::Time encryption_start = absl::Now();
+
   // Encrypt data
   auto ciphertext = FheString::Encrypt(plaintext, key);
-  std::cout << "Encryption done" << std::endl;
+  std::cout << "Encryption done (" << ciphertext.bit_width() << " bits, "
+            << absl::ToDoubleSeconds(absl::Now() - encryption_start) << " secs)"
+            << std::endl;
 
   std::cout << "Initial state check by decryption: " << std::endl;
-  std::cout << ciphertext.Decrypt(key) << "\n";
-  std::cout << "\n";
+  const absl::Time initial_decryption_start = absl::Now();
+  std::cout << ciphertext.Decrypt(key) << std::endl;
+  std::cout << "(took "
+            << absl::ToDoubleSeconds(absl::Now() - initial_decryption_start)
+            << " secs)" << std::endl;
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform string capitalization
   FheStringCap(ciphertext, key.cloud());
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 
+  const absl::Time decryption_start = absl::Now();
   std::cout << "Decrypted result: " << ciphertext.Decrypt(key) << "\n";
-  std::cout << "Decryption done" << std::endl;
+  std::cout << "Decryption done ("
+            << absl::ToDoubleSeconds(absl::Now() - decryption_start) << " secs)"
+            << std::endl;
 }
