@@ -327,6 +327,33 @@ and
 ```shell
 bazel run -c opt //transpiler/examples/templates:mul_interpreted_tfhe_testbench
 ```
+### Mail spam detection
+
+This demo simulates a service that checks if a mail is spam without the server
+seeing the mail or the result. If a mail contains "evil.url", it will be classified
+as spam.
+
+Reference: https://vitalik.ca/general/2020/07/20/homomorphic.html
+
+*  Baseline FHE-C++ translation command:
+   ```shell
+   bazel run //transpiler/examples/is_mail_spam:is_mail_spam_tfhe_testbench "click evil.url!"
+   ```
+*  Multi-core interpreter command:
+   ```shell
+   bazel run //transpiler/examples/is_mail_spam:is_mail_spam_interpreted_tfhe_testbench "click evil.url!"
+   ```
+
+Sample output:
+```
+[Client] Mail to be checked for spam: "click evil.url!"
+[Client] Mail encryption done
+
+                                                        [Server] Computing...
+                                                        [Server] Computation done
+[Client] Decrypted result: 1
+[Client] Mail is spam!
+```
 
 ## Design
 
