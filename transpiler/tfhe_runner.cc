@@ -20,6 +20,7 @@
 #include <utility>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
@@ -428,7 +429,7 @@ absl::Status TfheRunner::Run(LweSample* result,
   // Map of intermediate LweSample, indexed by node id.
   absl::flat_hash_map<uint64_t, LweSample*> values;
 
-  std::set<xls::Node*> unevaluated;
+  absl::flat_hash_set<xls::Node*> unevaluated;
   unevaluated.insert(entry->nodes().begin(), entry->nodes().end());
 
   while (!unevaluated.empty()) {
