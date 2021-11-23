@@ -75,7 +75,7 @@ TEST(StringCapCharTest, CorrectlyCapitalizesLongPhraseEncrypted) {
   auto ciphertext = FheString::Encrypt(plaintext, key);
   FheString cipher_result = {data_size, params};
 
-  FheBit state(true, key.cloud());
+  FheBit state = FheBit::Unencrypted(true, key.cloud());
   for (int i = 0; i < data_size; i++) {
     XLS_ASSERT_OK(my_package(cipher_result[i].get(), state.get(),
                              ciphertext[i].get(), key.cloud()));

@@ -89,41 +89,6 @@ struct LweSampleSingletonDeleter {
   }
 };
 
-// FHE representation of a single bit.
-class FheBit {
- public:
-  FheBit(const TFheGateBootstrappingParameterSet* params)
-      : value_(new_gate_bootstrapping_ciphertext(params)) {}
-
-  FheBit(bool value, const TFheGateBootstrappingCloudKeySet* key)
-      : FheBit(key->params) {
-    Set(value, key);
-  }
-  FheBit(bool value, const TFheGateBootstrappingSecretKeySet* key)
-      : FheBit(key->params) {
-    Encrypt(value, key);
-  }
-
-  void Set(bool value, const TFheGateBootstrappingCloudKeySet* key) {
-    bootsCONSTANT(value_.get(), value, key);
-  }
-
-  void Encrypt(bool value, const TFheGateBootstrappingSecretKeySet* key) {
-    bootsSymEncrypt(value_.get(), value, key);
-  }
-
-  bool Decrypt(const TFheGateBootstrappingSecretKeySet* key) {
-    return bootsSymDecrypt(value_.get(), key) > 0;
-  }
-
-  LweSample* get() { return value_.get(); }
-  const LweSample* get() const { return value_.get(); }
-
- private:
-  // Pointer to a single value.
-  std::unique_ptr<LweSample, LweSampleSingletonDeleter> value_;
-};
-
 struct LweSampleArrayDeleter {
   int width_;
 
@@ -167,20 +132,17 @@ inline void Decrypt(LweSample* ciphertext,
 }
 
 template <typename ValueType,
-          std::enable_if_t<std::is_integral_v<ValueType> &&
-                           !std::is_same_v<ValueType, bool>>* = nullptr>
+          std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>
 class FheValueRef;
 
 // FHE representation of a single object encoded as a bit array.
 template <typename ValueType,
-          std::enable_if_t<std::is_integral_v<ValueType> &&
-                           !std::is_same_v<ValueType, bool>>* = nullptr>
+          std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>
 class FheValue {
  public:
   FheValue(const TFheGateBootstrappingParameterSet* params)
-      : width_(8 * sizeof(ValueType)),
-        array_(new_gate_bootstrapping_ciphertext_array(width_, params),
-               LweSampleArrayDeleter(width_)),
+      : array_(new_gate_bootstrapping_ciphertext_array(kBitWidth, params),
+               LweSampleArrayDeleter(kBitWidth)),
         params_(params) {}
 
   static FheValue<ValueType> Unencrypted(
@@ -221,24 +183,24 @@ class FheValue {
   LweSample* get() { return array_.get(); }
   const LweSample* get() const { return array_.get(); }
 
-  int32_t size() { return width_; }
+  int32_t size() { return kBitWidth; }
 
   const TFheGateBootstrappingParameterSet* params() { return params_; }
 
  private:
-  int32_t width_;
+  static constexpr size_t kBitWidth =
+      std::is_same_v<ValueType, bool> ? 1 : 8 * sizeof(ValueType);
+
   std::unique_ptr<LweSample, LweSampleArrayDeleter> array_;
   const TFheGateBootstrappingParameterSet* params_;
 };
 
 // Reference to an FHE representation of a single object encoded as a bit array.
-template <typename ValueType,
-          std::enable_if_t<std::is_integral_v<ValueType> &&
-                           !std::is_same_v<ValueType, bool>>*>
+template <typename ValueType, std::enable_if_t<std::is_integral_v<ValueType>>*>
 class FheValueRef {
  public:
   FheValueRef(LweSample* array, const TFheGateBootstrappingParameterSet* params)
-      : params_(params), width_(8 * sizeof(ValueType)), array_(array) {}
+      : params_(params), array_(array) {}
   FheValueRef(const FheValue<ValueType>& value)
       : FheValueRef(value.get(), value.params()) {}
 
@@ -266,12 +228,14 @@ class FheValueRef {
   LweSample* get() { return array_; }
   const LweSample* get() const { return array_; }
 
-  int32_t size() { return width_; }
+  int32_t size() { return kBitWidth; }
 
   const TFheGateBootstrappingParameterSet* params() { return params_; }
 
  private:
-  int32_t width_;
+  static constexpr size_t kBitWidth =
+      std::is_same_v<ValueType, bool> ? 1 : 8 * sizeof(ValueType);
+
   LweSample* array_;
   const TFheGateBootstrappingParameterSet* params_;
 };
@@ -279,8 +243,7 @@ class FheValueRef {
 // FHE representation of an array of objects of a single type, encoded as
 // a bit array.
 template <typename ValueType,
-          std::enable_if_t<std::is_integral_v<ValueType> &&
-                           !std::is_same_v<ValueType, bool>>* = nullptr>
+          std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>
 class FheArray {
  public:
   FheArray(size_t length, const TFheGateBootstrappingParameterSet* params)
@@ -339,7 +302,8 @@ class FheArray {
   const TFheGateBootstrappingParameterSet* params() { return params_; }
 
  private:
-  static constexpr size_t kValueWidth = 8 * sizeof(ValueType);
+  static constexpr size_t kValueWidth =
+      std::is_same_v<ValueType, bool> ? 1 : 8 * sizeof(ValueType);
 
   size_t length_;
   std::unique_ptr<LweSample, LweSampleArrayDeleter> array_;
@@ -388,5 +352,8 @@ using FheInt = FheValue<int>;
 using FheShort = FheValue<short>;
 // Corresponds to char
 using FheChar = FheValue<char>;
+// Corresponds to bool
+using FheBit = FheValue<bool>;
+using FheBool = FheValue<bool>;
 
 #endif  // FHE_DATA_H_

@@ -57,7 +57,7 @@ void calculate(short x, short y, char op, TFHEParameters& params,
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform computation
   FheShort encryptedResult(params);
-  FheBit state(true, key.cloud());
+  FheBit state = FheBit::Unencrypted(true, key.cloud());
 
   absl::Time start_time = absl::Now();
   double cpu_start_time = clock();

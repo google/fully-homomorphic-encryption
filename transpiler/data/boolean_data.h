@@ -27,33 +27,38 @@
 #include "absl/types/span.h"
 
 template <typename T>
-void Encode(const T& value, absl::Span<bool> out) {
-  const auto unsigned_value = absl::bit_cast<std::make_unsigned_t<T>>(value);
-  for (int j = 0; j < 8 * sizeof(T); ++j) {
-    out[j] = ((unsigned_value >> j) & 1) != 0;
+inline void Encode(const T& value, absl::Span<bool> out) {
+  if constexpr (std::is_same_v<T, bool>) {
+    out[0] = value;
+  } else {
+    const auto unsigned_value = absl::bit_cast<std::make_unsigned_t<T>>(value);
+    for (int j = 0; j < 8 * sizeof(T); ++j) {
+      out[j] = ((unsigned_value >> j) & 1) != 0;
+    }
   }
 }
 
 template <typename T>
-T Decode(absl::Span<bool> value) {
-  using UnsignedT = std::make_unsigned_t<T>;
+inline T Decode(absl::Span<bool> value) {
+  if constexpr (std::is_same_v<T, bool>) {
+    return value[0];
+  } else {
+    using UnsignedT = std::make_unsigned_t<T>;
 
-  UnsignedT unsigned_value = 0;
-  for (int j = 0; j < 8 * sizeof(T); j++) {
-    unsigned_value |= static_cast<UnsignedT>(value[j]) << j;
+    UnsignedT unsigned_value = 0;
+    for (int j = 0; j < 8 * sizeof(T); j++) {
+      unsigned_value |= static_cast<UnsignedT>(value[j]) << j;
+    }
+    return absl::bit_cast<T>(unsigned_value);
   }
-  return absl::bit_cast<T>(unsigned_value);
 }
 
-template <typename ValueType, typename Enable = void>
-class EncodedValue;
-
-template <typename ValueType>
-class EncodedValue<ValueType,
-                   std::enable_if_t<std::is_integral_v<ValueType> &&
-                                    !std::is_same_v<ValueType, bool>>> {
+template <typename ValueType,
+          std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>
+class EncodedValue {
  public:
-  EncodedValue() : array_(8 * sizeof(ValueType)) {}
+  EncodedValue()
+      : array_(std::is_same_v<ValueType, bool> ? 1 : 8 * sizeof(ValueType)) {}
   EncodedValue(ValueType value) : EncodedValue() { Encode(value); }
 
   void Encode(const ValueType& value) { ::Encode(value, get()); }
@@ -70,33 +75,10 @@ class EncodedValue<ValueType,
   absl::FixedArray<bool> array_;
 };
 
-// "Specialization" of EncodedValue for bools, for interface consistency with
-// other native/integral types.
-template <>
-class EncodedValue<bool> {
- public:
-  EncodedValue() : value_(false) {}
-  EncodedValue(bool value) : value_(value) {}
-
-  void Encode(bool value) { value_ = value; }
-
-  bool Decode() { return value_; }
-
-  absl::Span<bool> get() { return absl::MakeSpan(&value_, 1); }
-  operator absl::Span<bool>() { return absl::MakeSpan(&value_, 1); }
-  operator absl::Span<const bool>() { return absl::MakeSpan(&value_, 1); }
-
-  int32_t size() { return 1; }
-
- private:
-  bool value_;
-};
-
 // FHE representation of an array of objects of a single type, encoded as
 // a bit array.
 template <typename ValueType,
-          std::enable_if_t<std::is_integral_v<ValueType> &&
-                           !std::is_same_v<ValueType, bool>>* = nullptr>
+          std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>
 class EncodedArray {
  public:
   EncodedArray(size_t length) : length_(length), array_(kValueWidth * length) {}
@@ -136,7 +118,8 @@ class EncodedArray {
 
  private:
   using UnsignedType = std::make_unsigned_t<ValueType>;
-  static constexpr size_t kValueWidth = 8 * sizeof(ValueType);
+  static constexpr size_t kValueWidth =
+      std::is_same_v<ValueType, bool> ? 1 : 8 * sizeof(ValueType);
 
   size_t length_;
   absl::FixedArray<bool> array_;
