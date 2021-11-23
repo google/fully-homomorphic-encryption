@@ -70,7 +70,7 @@ TEST(StringCapCharTest, CorrectlyCapitalizesLongPhraseEncrypted) {
   TFHESecretKeySet key(params, seed);
 
   std::string plaintext("do or do not; there is no try!.!");
-  size_t data_size = plaintext.size();
+  int32_t data_size = plaintext.size();
 
   auto ciphertext = FheString::Encrypt(plaintext, key);
   FheString cipher_result = {data_size, params};

@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
   TFHESecretKeySet key(params, seed);
 
   std::string plaintext(input);
-  size_t data_size = plaintext.size();
+  int32_t data_size = plaintext.size();
   std::cout << "plaintext(" << data_size << "):" << plaintext << std::endl;
 
   // Encrypt data
