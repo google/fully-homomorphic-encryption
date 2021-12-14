@@ -58,8 +58,6 @@ std::string TfheTranspiler::ParamBitReference(const Node* param, int offset) {
   if (param_bits == 1) {
     if (param->Is<xls::TupleIndex>() || param->Is<xls::ArrayIndex>()) {
       return param->operand(0)->GetName();
-    } else {
-      return param->GetName();
     }
   }
   return absl::StrFormat("&%s[%d]", param->GetName(), offset);

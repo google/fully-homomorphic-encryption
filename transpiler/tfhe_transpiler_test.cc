@@ -638,7 +638,7 @@ TEST(FheIrTranspilerLibTest, ParamBitReference_SingleBit) {
   xls::BValue param = builder.Param(absl::StrCat("param_", 0), value_type);
 
   std::string actual = TfheTranspiler::ParamBitReference(param.node(), 0);
-  EXPECT_EQ(actual, "param_0");
+  EXPECT_EQ(actual, "&param_0[0]");
 }
 
 TEST(FheIrTranspilerLibTest, ParamBitReference_MultipleBits) {
