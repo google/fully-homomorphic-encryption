@@ -19,8 +19,9 @@ _STRUCT_HEADER_GENERATOR = "//transpiler/struct_transpiler:struct_transpiler"
 _XLSCC = "@com_google_xls//xls/contrib/xlscc:xlscc"
 _XLS_BOOLEANIFY = "@com_google_xls//xls/tools:booleanify_main"
 _XLS_OPT = "@com_google_xls//xls/tools:opt_main"
+_GET_TOP_FUNC_FROM_PROTO = "@com_google_xls//xls/contrib/xlscc:get_top_func_from_proto"
 
-def _run(ctx, inputs, out_ext, tool, args):
+def _run(ctx, inputs, out_ext, tool, args, entry = None):
     """A helper to run a shell script and capture the output.
 
     ctx:  The blaze context.
@@ -28,19 +29,35 @@ def _run(ctx, inputs, out_ext, tool, args):
     out_ext: An extension to add to the current label for the output file.
     tool: What tool to run.
     args: A list of arguments to pass to the tool.
+    entry: If specified, it points to a file contianing the entry point; that
+           information is extracted and provided as value to the --entry
+           command-line switch.
 
     Returns:
       The File output.
     """
     library_name = ctx.attr.library_name or ctx.label.name
     out = ctx.actions.declare_file("%s%s" % (library_name, out_ext))
+    arguments = " ".join(args)
+    if entry != None:
+        arguments += " --entry $(cat {})".format(entry.path)
     ctx.actions.run_shell(
         inputs = inputs,
         outputs = [out],
         tools = [tool],
-        command = "%s %s > %s" % (tool.path, " ".join(args), out.path),
+        command = "%s %s > %s" % (tool.path, arguments, out.path),
     )
     return out
+
+def _get_top_func(ctx, metadata_file):
+    """Extract the name of the entry function from the metadata file."""
+    return _run(
+        ctx,
+        [metadata_file],
+        ".entry",
+        ctx.executable._get_top_func_from_proto,
+        [metadata_file.path],
+    )
 
 def _build_ir(ctx):
     """Build the XLS IR from a C++ source.
@@ -66,13 +83,17 @@ def _build_ir(ctx):
             ir_file.path,
         ),
     )
-    return (ir_file, metadata_file)
+    return (ir_file, metadata_file, _get_top_func(ctx, metadata_file))
 
-def _optimize_ir(ctx, src, extension):
+def _optimize_ir(ctx, src, extension, entry):
     """Optimize XLS IR."""
-    return _run(ctx, [src], extension, ctx.executable._xls_opt, [src.path])
+    return _run(ctx, [src, entry], extension, ctx.executable._xls_opt, [src.path], entry)
 
-def _fhe_transpile_ir(ctx, src, metadata):
+def _booleanify_ir(ctx, src, extension, entry):
+    """Optimize XLS IR."""
+    return _run(ctx, [src, entry], extension, ctx.executable._xls_booleanify, ["--ir_path", src.path], entry)
+
+def _fhe_transpile_ir(ctx, src, metadata, entry):
     """Transpile XLS IR into C++ source."""
     library_name = ctx.attr.library_name or ctx.label.name
     out_ir = ctx.actions.declare_file("%s.bool.ir" % library_name)
@@ -132,16 +153,18 @@ def _generate_struct_header(ctx, metadata):
     return struct_h
 
 def _fhe_transpile_impl(ctx):
-    ir_file, metadata_file = _build_ir(ctx)
+    ir_file, metadata_file, metadata_entry_file = _build_ir(ctx)
+    optimized_ir_file = _optimize_ir(ctx, ir_file, ".opt.ir", metadata_entry_file)
+    booleanified_ir_file = _booleanify_ir(ctx, optimized_ir_file, ".opt.bool.ir", metadata_entry_file)
 
     hdrs = []
     if ctx.attr.transpiler_type != "bool":
         hdrs.append(_generate_struct_header(ctx, metadata_file))
 
-    bool_ir, out_cc, out_h = _fhe_transpile_ir(ctx, ir_file, metadata_file)
+    bool_ir, out_cc, out_h = _fhe_transpile_ir(ctx, ir_file, metadata_file, metadata_entry_file)
     hdrs.append(out_h)
     return [
-        DefaultInfo(files = depset([ir_file, metadata_file, bool_ir, out_cc] + hdrs)),
+        DefaultInfo(files = depset([ir_file, optimized_ir_file, booleanified_ir_file, metadata_file, metadata_entry_file, bool_ir, out_cc] + hdrs)),
         OutputGroupInfo(
             sources = depset([out_cc]),
             headers = depset(hdrs),
@@ -199,6 +222,11 @@ fhe_transpile = rule(
         "_xls_opt": _executable_attr(_XLS_OPT),
         "_fhe_transpiler": _executable_attr(_FHE_TRANSPILER),
         "_struct_header_generator": _executable_attr(_STRUCT_HEADER_GENERATOR),
+        "_get_top_func_from_proto": attr.label(
+            default = Label(_GET_TOP_FUNC_FROM_PROTO),
+            executable = True,
+            cfg = "exec",
+        ),
     },
 )
 
