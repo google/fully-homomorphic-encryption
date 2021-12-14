@@ -145,6 +145,8 @@ class EncodedBasicString : public EncodedArray<CharT> {
 // Corresponds to std::string
 using EncodedString = EncodedBasicString<char>;
 
+using EncodedBool = EncodedValue<bool>;
+
 using EncodedInt = EncodedValue<int>;
 
 using EncodedChar = EncodedValue<char>;
