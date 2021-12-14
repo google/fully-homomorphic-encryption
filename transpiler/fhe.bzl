@@ -85,18 +85,54 @@ def _build_ir(ctx):
     )
     return (ir_file, metadata_file, _get_top_func(ctx, metadata_file))
 
-def _optimize_ir(ctx, src, extension, entry):
+def _optimize_ir(ctx, src, extension, entry, options = []):
     """Optimize XLS IR."""
-    return _run(ctx, [src, entry], extension, ctx.executable._xls_opt, [src.path], entry)
+    return _run(ctx, [src, entry], extension, ctx.executable._xls_opt, [src.path] + options, entry)
 
 def _booleanify_ir(ctx, src, extension, entry):
     """Optimize XLS IR."""
     return _run(ctx, [src, entry], extension, ctx.executable._xls_booleanify, ["--ir_path", src.path], entry)
 
+def _optimize(ctx, ir_file, entry):
+    """Runs several passes of optimization followed by booleanification.
+
+    Returns [%.opt.ir, %.opt.bool.ir, %.opt.bool.opt.ir, %.opt.bool.opt.bool.ir, ...]
+    """
+    results = [ir_file]
+    suffix = ""
+
+    # With zero optimization passes, we still want to run the optimizer with an
+    # inlining pass, as the booleanifier expects a single function.
+    if ctx.attr.num_opt_passes == 0:
+        suffix += ".opt"
+        results.append(_optimize_ir(ctx, results[-1], suffix + ".ir", entry, ["--run_only_passes=inlining"]))
+        suffix += ".bool"
+        results.append(_booleanify_ir(ctx, results[-1], suffix + ".ir", entry))
+    else:
+        for i in range(ctx.attr.num_opt_passes):
+            suffix += ".opt"
+            results.append(_optimize_ir(ctx, results[-1], suffix + ".ir", entry))
+            suffix += ".bool"
+            results.append(_booleanify_ir(ctx, results[-1], suffix + ".ir", entry))
+    return results[1:]
+
+def _pick_last_bool_file(optimized_files):
+    """ Pick the last booleanifed IR file from a list of file produced by _optimize().
+
+    The last %.*.bool.ir file may or may not be the smallest one.  For some IR
+    inputs, an additional optimization/booleanification pass results in a
+    larger file.  This is why we have num_opt_passes.
+    """
+
+    # structure is [%.opt.ir, %.opt.bool.ir, %.opt.bool.opt.ir,
+    # %.opt.bool.opt.bool.ir, ...], so every other file is the result of an
+    # optimization + booleanification pass.
+    inspect = optimized_files[1::2]
+    return optimized_files[-1]
+
 def _fhe_transpile_ir(ctx, src, metadata, entry):
     """Transpile XLS IR into C++ source."""
     library_name = ctx.attr.library_name or ctx.label.name
-    out_ir = ctx.actions.declare_file("%s.bool.ir" % library_name)
     out_cc = ctx.actions.declare_file("%s.cc" % library_name)
     out_h = ctx.actions.declare_file("%s.h" % library_name)
 
@@ -105,24 +141,16 @@ def _fhe_transpile_ir(ctx, src, metadata, entry):
         src.path,
         "-metadata_path",
         metadata.path,
-        "-output_ir_path",
-        out_ir.path,
         "-cc_path",
         out_cc.path,
         "-header_path",
         out_h.path,
-        "-opt_passes",
-        str(ctx.attr.num_opt_passes),
-        "-booleanify_main_path",
-        ctx.executable._xls_booleanify.path,
-        "-opt_main_path",
-        ctx.executable._xls_opt.path,
         "-transpiler_type",
         ctx.attr.transpiler_type,
     ]
     ctx.actions.run(
         inputs = [src, metadata],
-        outputs = [out_ir, out_cc, out_h],
+        outputs = [out_cc, out_h],
         executable = ctx.executable._fhe_transpiler,
         arguments = args,
         tools = [
@@ -130,7 +158,7 @@ def _fhe_transpile_ir(ctx, src, metadata, entry):
             ctx.executable._xls_opt,
         ],
     )
-    return [out_ir, out_cc, out_h]
+    return [out_cc, out_h]
 
 def _generate_struct_header(ctx, metadata):
     """Transpile XLS IR into C++ source."""
@@ -154,22 +182,21 @@ def _generate_struct_header(ctx, metadata):
 
 def _fhe_transpile_impl(ctx):
     ir_file, metadata_file, metadata_entry_file = _build_ir(ctx)
-    optimized_ir_file = _optimize_ir(ctx, ir_file, ".opt.ir", metadata_entry_file)
-    booleanified_ir_file = _booleanify_ir(ctx, optimized_ir_file, ".opt.bool.ir", metadata_entry_file)
+
+    optimized_files = _optimize(ctx, ir_file, metadata_entry_file)
 
     hdrs = []
     if ctx.attr.transpiler_type != "bool":
         hdrs.append(_generate_struct_header(ctx, metadata_file))
 
-    bool_ir, out_cc, out_h = _fhe_transpile_ir(ctx, ir_file, metadata_file, metadata_entry_file)
+    booleanified_ir_file = _pick_last_bool_file(optimized_files)
+    out_cc, out_h = _fhe_transpile_ir(ctx, booleanified_ir_file, metadata_file, metadata_entry_file)
     hdrs.append(out_h)
     return [
-        DefaultInfo(files = depset([ir_file, optimized_ir_file, booleanified_ir_file, metadata_file, metadata_entry_file, bool_ir, out_cc] + hdrs)),
+        DefaultInfo(files = depset([ir_file, metadata_file, metadata_entry_file, out_cc] + optimized_files + hdrs)),
         OutputGroupInfo(
             sources = depset([out_cc]),
             headers = depset(hdrs),
-            bool_ir = depset([bool_ir]),
-            metadata = depset([metadata_file]),
         ),
     ]
 
@@ -295,22 +322,6 @@ def fhe_cc_library(
         name = transpiled_headers,
         srcs = [":" + transpiled_files],
         output_group = "headers",
-        tags = tags,
-    )
-
-    transpiled_ir = "{}.bool_ir".format(name)
-    native.filegroup(
-        name = transpiled_ir,
-        srcs = [":" + transpiled_files],
-        output_group = "bool_ir",
-        tags = tags,
-    )
-
-    transpiled_metadata = "{}.metadata".format(name)
-    native.filegroup(
-        name = transpiled_metadata,
-        srcs = [":" + transpiled_files],
-        output_group = "metadata",
         tags = tags,
     )
 

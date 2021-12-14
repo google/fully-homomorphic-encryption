@@ -41,25 +41,17 @@
 #include "xls/ir/ir_parser.h"
 #include "xls/ir/package.h"
 
-ABSL_FLAG(std::string, booleanify_main_path, "",
-          "Path to the XLS IR booleanifier binary.");
-ABSL_FLAG(std::string, opt_main_path, "",
-          "Path to the XLS IR optimizer binary. "
-          "Not needed if --opt_passes is 0.");
-ABSL_FLAG(std::string, ir_path, "", "Path to the XLS IR to process.");
+ABSL_FLAG(std::string, ir_path, "",
+          "Path to the booleanified XLS IR to process.");
 ABSL_FLAG(std::string, metadata_path, "",
           "Path to a [binary-format] xlscc MetadataOutput protobuf "
           "containing data about the function to transpile.");
-ABSL_FLAG(std::string, output_ir_path, "",
-          "Path to place the processed XLS IR (booleanified and, if requested, "
-          "optimized).");
 ABSL_FLAG(std::string, header_path, "-",
           "Path to generate the C++ header file. If unspecified, output to "
           "stdout");
 ABSL_FLAG(std::string, cc_path, "-",
           "Path to generate the C++ source file. If unspecified, output to "
           "stdout after the header file.");
-ABSL_FLAG(int, opt_passes, 2, "Number of optimization passes to run.");
 ABSL_FLAG(std::string, transpiler_type, "tfhe",
           "Sets the transpiler type; must be one of {tfhe, interpreted_tfhe, "
           "bool}. 'bool' uses native Boolean operations on plaintext "
@@ -67,59 +59,11 @@ ABSL_FLAG(std::string, transpiler_type, "tfhe",
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {
-namespace {
 
-// This is _definitely_ oversimplified for many purposes, but it seems to
-// suffice for right here and right now.
-std::filesystem::path GetRunfilePath(const std::filesystem::path& base) {
-  return std::filesystem::path(getcwd(NULL, 0)) / base;
-}
-
-absl::Status OptimizeAndBooleanify(
-    int opt_passes, const std::string& function_name,
-    const std::filesystem::path& input_ir_path,
-    const std::filesystem::path& booleanifier_path,
-    const std::filesystem::path& optimizer_path,
-    const std::filesystem::path& booleanized_ir_path) {
-  XLS_ASSIGN_OR_RETURN(TempFile optimized, TempFile::Create());
-  int i = 0;
-  do {
-    // Even when num_passes == 0, we need to run the optimizer with only the
-    // inlining pass.  The booleanifier cannot handle function invocation.
-    XLS_ASSIGN_OR_RETURN(
-        auto out_err,
-        InvokeSubprocess({GetRunfilePath(optimizer_path),
-                          i == 0 ? input_ir_path : booleanized_ir_path,
-                          opt_passes ? "" : "--run_only_passes=inlining"}));
-    XLS_RETURN_IF_ERROR(
-        xls::SetFileContents(optimized.path(), std::get<0>(out_err)));
-
-    XLS_ASSIGN_OR_RETURN(
-        out_err, InvokeSubprocess(
-                     {GetRunfilePath(booleanifier_path),
-                      absl::StrCat("--ir_path=",
-                                   static_cast<std::string>(optimized.path())),
-                      absl::StrCat("--function=", function_name),
-                      absl::StrCat("--output_function_name=", function_name)}));
-
-    XLS_RETURN_IF_ERROR(
-        xls::SetFileContents(booleanized_ir_path, std::get<0>(out_err)));
-    i++;
-  } while (i < opt_passes);
-
-  return absl::OkStatus();
-}
-
-}  // namespace
-
-absl::Status RealMain(const std::filesystem::path& ir_path,
-                      absl::optional<std::filesystem::path> output_ir_path,
+absl::Status RealMain(const std::filesystem::path& booleanized_path,
                       const std::filesystem::path& header_path,
                       const std::filesystem::path& cc_path,
-                      const std::filesystem::path& booleanify_main_path,
-                      const std::filesystem::path& opt_main_path,
-                      const std::filesystem::path& metadata_path,
-                      int opt_passes) {
+                      const std::filesystem::path& metadata_path) {
   XLS_ASSIGN_OR_RETURN(std::string proto_text,
                        xls::GetFileContents(metadata_path));
   xlscc_metadata::MetadataOutput metadata;
@@ -128,19 +72,6 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
         "Could not parse function metadata proto.");
   }
   const std::string& function_name = metadata.top_func_proto().name().name();
-
-  // Opt/booleanify loop!
-  std::filesystem::path booleanized_path;
-  absl::optional<TempFile> temp_booleanized;
-  if (output_ir_path.has_value()) {
-    booleanized_path = output_ir_path.value();
-  } else {
-    XLS_ASSIGN_OR_RETURN(temp_booleanized, TempFile::Create());
-    booleanized_path = temp_booleanized->path();
-  }
-  XLS_RETURN_IF_ERROR(OptimizeAndBooleanify(opt_passes, function_name, ir_path,
-                                            booleanify_main_path, opt_main_path,
-                                            booleanized_path));
 
   XLS_ASSIGN_OR_RETURN(std::string ir_text,
                        xls::GetFileContents(booleanized_path));
@@ -199,17 +130,9 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  absl::optional<std::filesystem::path> output_ir_path;
-  if (!absl::GetFlag(FLAGS_output_ir_path).empty()) {
-    output_ir_path = absl::GetFlag(FLAGS_output_ir_path);
-  }
-
   absl::Status status = fully_homomorphic_encryption::transpiler::RealMain(
-      absl::GetFlag(FLAGS_ir_path), output_ir_path,
-      absl::GetFlag(FLAGS_header_path), absl::GetFlag(FLAGS_cc_path),
-      absl::GetFlag(FLAGS_booleanify_main_path),
-      absl::GetFlag(FLAGS_opt_main_path), metadata_path,
-      absl::GetFlag(FLAGS_opt_passes));
+      absl::GetFlag(FLAGS_ir_path), absl::GetFlag(FLAGS_header_path),
+      absl::GetFlag(FLAGS_cc_path), metadata_path);
   if (!status.ok()) {
     std::cerr << status.ToString() << std::endl;
     return 1;
