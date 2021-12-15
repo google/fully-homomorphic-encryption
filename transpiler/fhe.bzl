@@ -151,6 +151,9 @@ def _fhe_transpile_ir(ctx, src, metadata, entry, transpiler):
         "-transpiler_type",
         transpiler,
     ]
+    if ctx.attr.transpiler_type == "yosys_plaintext":
+        args += ["-liberty_path", ctx.file.cell_library.path]
+
     ctx.actions.run(
         inputs = [src, metadata],
         outputs = [out_cc, out_h],
@@ -344,7 +347,8 @@ fhe_transpile = rule(
         "transpiler_type": attr.string(
             doc = """
             Type of FHE library to transpile to. Choices are {tfhe, interpreted_tfhe,
-            bool, yosys_plaintext}. 'bool' and 'yosys_plaintext' do not depend on any FHE libraries.
+            bool, yosys_plaintext}. 'bool' and 'yosys_plaintext' do not depend on any FHE
+            libraries.
             """,
             values = ["tfhe", "interpreted_tfhe", "bool", "yosys_plaintext"],
         ),

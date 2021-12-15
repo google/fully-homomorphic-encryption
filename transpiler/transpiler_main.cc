@@ -54,8 +54,12 @@ ABSL_FLAG(std::string, cc_path, "-",
           "stdout after the header file.");
 ABSL_FLAG(std::string, transpiler_type, "tfhe",
           "Sets the transpiler type; must be one of {tfhe, interpreted_tfhe, "
-          "bool}. 'bool' uses native Boolean operations on plaintext "
-          "rather than an FHE library, so is mostly useful for debugging.");
+          "bool, yosys_plaintext}. 'bool' and 'yosys_plaintext' use  "
+          "native Boolean "
+          "operations on plaintext rather than an FHE library, so is mostly "
+          "useful for debugging.");
+ABSL_FLAG(std::string, liberty_path, "",
+          "Path to cell-definition library in Liberty format.");
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {
@@ -71,6 +75,14 @@ absl::Status RealMain(const std::filesystem::path& booleanized_path,
     return absl::InvalidArgumentError(
         "Could not parse function metadata proto.");
   }
+
+  std::string transpiler_type = absl::GetFlag(FLAGS_transpiler_type);
+  std::string liberty_path = absl::GetFlag(FLAGS_liberty_path);
+  if (transpiler_type == "yosys_plaintext" && liberty_path.empty()) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "--transpiler_type %s requires --liberty_path.", transpiler_type));
+  }
+
   const std::string& function_name = metadata.top_func_proto().name().name();
 
   XLS_ASSIGN_OR_RETURN(std::string ir_text,
@@ -80,7 +92,6 @@ absl::Status RealMain(const std::filesystem::path& booleanized_path,
                        package->GetFunction(function_name));
 
   std::string fn_body, fn_header;
-  std::string transpiler_type = absl::GetFlag(FLAGS_transpiler_type);
   if (transpiler_type == "bool") {
     XLS_ASSIGN_OR_RETURN(fn_body, CcTranspiler::Translate(function, metadata));
     XLS_ASSIGN_OR_RETURN(fn_header,
