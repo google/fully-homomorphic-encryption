@@ -176,6 +176,10 @@ def _generate_struct_header(ctx, metadata):
         "-output_path",
         generic_struct_h.path,
     ]
+    if ctx.attr.transpiler_type == "yosys_plaintext":
+        args.extend([
+            "-struct_fields_in_declaration_order",
+        ])
     ctx.actions.run(
         inputs = [metadata],
         outputs = [generic_struct_h],

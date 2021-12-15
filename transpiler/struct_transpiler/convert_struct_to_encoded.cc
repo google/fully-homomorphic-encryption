@@ -332,13 +332,17 @@ absl::StatusOr<std::string> GenerateSetOrEncryptStructElement(
 }
 
 absl::StatusOr<std::string> GenerateSetOrEncryptFunction(
-    const IdToType& id_to_type, const StructType& struct_type, bool encrypt) {
+    const IdToType& id_to_type, const StructType& struct_type, bool encrypt,
+    bool reverse) {
   std::vector<std::string> lines;
   for (int i = 0; i < struct_type.fields_size(); i++) {
     XLS_ASSIGN_OR_RETURN(std::string line,
                          GenerateSetOrEncryptOneElement(
                              id_to_type, struct_type.fields(i), encrypt));
     lines.push_back(line);
+  }
+  if (reverse) {
+    std::reverse(lines.begin(), lines.end());
   }
   return absl::StrJoin(lines, "\n");
 }
@@ -465,7 +469,7 @@ absl::StatusOr<std::string> GenerateDecryptStruct(
 }
 
 absl::StatusOr<std::string> GenerateDecryptFunction(
-    const IdToType& id_to_type, const StructType& struct_type) {
+    const IdToType& id_to_type, const StructType& struct_type, bool reverse) {
   std::vector<std::string> lines;
   for (int i = 0; i < struct_type.fields_size(); i++) {
     const StructField& field = struct_type.fields(i);
@@ -473,6 +477,9 @@ absl::StatusOr<std::string> GenerateDecryptFunction(
                          GenerateDecryptOneElement(
                              id_to_type, field, struct_type.fields(i).name()));
     lines.push_back(line);
+  }
+  if (reverse) {
+    std::reverse(lines.begin(), lines.end());
   }
 
   return absl::StrJoin(lines, "\n");
@@ -601,20 +608,21 @@ $4
 };)";
 
 absl::StatusOr<std::string> ConvertStructToEncoded(const IdToType& id_to_type,
-                                                   int64_t id) {
+                                                   int64_t id, bool reverse) {
   const StructType& struct_type = id_to_type.at(id).type;
 
   int64_t bit_width = GetStructWidth(id_to_type, struct_type);
 
   xlscc_metadata::CPPName struct_name = struct_type.name().as_inst().name();
-  XLS_ASSIGN_OR_RETURN(std::string set_fn,
-                       GenerateSetOrEncryptFunction(id_to_type, struct_type,
-                                                    /*encrypt=*/false));
+  XLS_ASSIGN_OR_RETURN(std::string set_fn, GenerateSetOrEncryptFunction(
+                                               id_to_type, struct_type,
+                                               /*encrypt=*/false, reverse));
   XLS_ASSIGN_OR_RETURN(std::string encrypt_fn,
                        GenerateSetOrEncryptFunction(id_to_type, struct_type,
-                                                    /*encrypt=*/true));
-  XLS_ASSIGN_OR_RETURN(std::string decrypt_fn,
-                       GenerateDecryptFunction(id_to_type, struct_type));
+                                                    /*encrypt=*/true, reverse));
+  XLS_ASSIGN_OR_RETURN(
+      std::string decrypt_fn,
+      GenerateDecryptFunction(id_to_type, struct_type, reverse));
   std::string result = absl::Substitute(
       kClassTemplate, struct_name.name(), struct_name.fully_qualified_name(),
       set_fn, encrypt_fn, decrypt_fn, bit_width);
@@ -626,19 +634,21 @@ absl::StatusOr<std::string> ConvertStructToEncoded(const IdToType& id_to_type,
 absl::StatusOr<std::string> ConvertStructsToEncodedTemplate(
     const xlscc_metadata::MetadataOutput& metadata,
     const std::vector<std::string>& original_headers,
-    absl::string_view output_path) {
+    absl::string_view output_path, bool struct_fields_in_declaration_order) {
   if (metadata.structs_size() == 0) {
     return "";
   }
 
   std::string header_guard = GenerateHeaderGuard(output_path);
 
+  bool reverse = struct_fields_in_declaration_order;
+
   std::vector<int64_t> struct_order = GetTypeReferenceOrder(metadata);
   IdToType id_to_type = PopulateTypeData(metadata, struct_order);
   std::vector<std::string> generated;
   for (int64_t id : struct_order) {
     XLS_ASSIGN_OR_RETURN(std::string struct_text,
-                         ConvertStructToEncoded(id_to_type, id));
+                         ConvertStructToEncoded(id_to_type, id, reverse));
     generated.push_back(struct_text);
   }
 

@@ -38,6 +38,8 @@ ABSL_FLAG(std::string, transpiler_type, "",
 ABSL_FLAG(std::string, generic_header_path, "",
           "Path to which to the previously-generated template header file. "
           "Must be provided when --transpiler_type is used.");
+ABSL_FLAG(bool, struct_fields_in_declaration_order, false,
+          "When false, struct fields are encoded in reverse order.");
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {
@@ -46,7 +48,8 @@ absl::Status RealMain(absl::string_view metadata_path,
                       absl::string_view original_headers,
                       absl::string_view output_path,
                       absl::string_view transpiler_type,
-                      absl::string_view generic_header_path) {
+                      absl::string_view generic_header_path,
+                      bool struct_fields_in_declaration_order) {
   XLS_ASSIGN_OR_RETURN(std::string proto_data,
                        xls::GetFileContents(metadata_path));
   xlscc_metadata::MetadataOutput metadata;
@@ -59,7 +62,8 @@ absl::Status RealMain(absl::string_view metadata_path,
         absl::StrSplit(original_headers, ',');
     XLS_ASSIGN_OR_RETURN(
         std::string generic_result,
-        ConvertStructsToEncodedTemplate(metadata, split_headers, output_path));
+        ConvertStructsToEncodedTemplate(metadata, split_headers, output_path,
+                                        struct_fields_in_declaration_order));
     if (!output_path.empty()) {
       return xls::SetFileContents(output_path, generic_result);
     }
@@ -111,9 +115,12 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
+  bool struct_fields_in_declaration_order =
+      absl::GetFlag(FLAGS_struct_fields_in_declaration_order);
+
   absl::Status status = fully_homomorphic_encryption::transpiler::RealMain(
       metadata_path, original_headers, output_path, transpiler_type,
-      generic_header_path);
+      generic_header_path, struct_fields_in_declaration_order);
   if (!status.ok()) {
     std::cerr << status.message() << std::endl;
     return 1;

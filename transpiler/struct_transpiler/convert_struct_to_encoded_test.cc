@@ -92,9 +92,11 @@ top_func_proto {
   )";
   xlscc_metadata::MetadataOutput metadata;
   google::protobuf::TextFormat::ParseFromString(kMetadataStr, &metadata);
-  XLS_ASSERT_OK_AND_ASSIGN(
-      std::string actual,
-      ConvertStructsToEncodedTemplate(metadata, /*original_headers=*/{}, ""));
+  XLS_ASSERT_OK_AND_ASSIGN(std::string actual,
+                           ConvertStructsToEncodedTemplate(
+                               metadata, /*original_headers=*/{},
+                               /*original_headers=*/"",
+                               /*struct_fields_in_declaration_order=*/false));
 
   // Rather than do line-by-line equality checks, let's just make sure that a
   // few key lines are present. Since we're generating compilable code,
