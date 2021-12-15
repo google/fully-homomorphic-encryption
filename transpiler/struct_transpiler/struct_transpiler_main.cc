@@ -16,6 +16,7 @@
 #include "absl/flags/parse.h"
 #include "absl/flags/usage.h"
 #include "absl/status/status.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/string_view.h"
 #include "transpiler/struct_transpiler/convert_struct_to_encoded.h"
@@ -29,15 +30,23 @@ ABSL_FLAG(std::string, original_headers, "",
           "Path to the original header file{s} being transpiled. "
           "Comma-separated if more than one.");
 ABSL_FLAG(std::string, output_path, "",
-          "Path to which to write the generated file. "
+          "Path to which to write the generated header file. "
           "If unspecified, output will be written to stdout.");
+ABSL_FLAG(std::string, transpiler_type, "",
+          "Transpiler type: could be empty, or 'tfhe'. "
+          "If unspecified, the generic template is created.");
+ABSL_FLAG(std::string, generic_header_path, "",
+          "Path to which to the previously-generated template header file. "
+          "Must be provided when --transpiler_type is used.");
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 
 absl::Status RealMain(absl::string_view metadata_path,
                       absl::string_view original_headers,
-                      absl::string_view output_path) {
+                      absl::string_view output_path,
+                      absl::string_view transpiler_type,
+                      absl::string_view generic_header_path) {
   XLS_ASSIGN_OR_RETURN(std::string proto_data,
                        xls::GetFileContents(metadata_path));
   xlscc_metadata::MetadataOutput metadata;
@@ -45,15 +54,38 @@ absl::Status RealMain(absl::string_view metadata_path,
     return absl::InvalidArgumentError("Unable to parse input metadata proto.");
   }
 
-  std::vector<std::string> split_headers =
-      absl::StrSplit(original_headers, ',');
-  XLS_ASSIGN_OR_RETURN(std::string result,
-                       ConvertStructsToEncoded(metadata, split_headers));
-  if (!output_path.empty()) {
-    return xls::SetFileContents(output_path, result);
+  if (transpiler_type.empty()) {
+    std::vector<std::string> split_headers =
+        absl::StrSplit(original_headers, ',');
+    XLS_ASSIGN_OR_RETURN(
+        std::string generic_result,
+        ConvertStructsToEncodedTemplate(metadata, split_headers, output_path));
+    if (!output_path.empty()) {
+      return xls::SetFileContents(output_path, generic_result);
+    }
+    std::cout << generic_result << std::endl;
+  } else if (transpiler_type == "tfhe" ||
+             transpiler_type == "interpreted_tfhe") {
+    XLS_ASSIGN_OR_RETURN(std::string specific_result,
+                         ConvertStructsToEncodedTfhe(generic_header_path,
+                                                     metadata, output_path));
+    if (!output_path.empty()) {
+      return xls::SetFileContents(output_path, specific_result);
+    }
+    std::cout << specific_result << std::endl;
+  } else if (transpiler_type == "bool") {
+    XLS_ASSIGN_OR_RETURN(std::string specific_result,
+                         ConvertStructsToEncodedBool(generic_header_path,
+                                                     metadata, output_path));
+    if (!output_path.empty()) {
+      return xls::SetFileContents(output_path, specific_result);
+    }
+    std::cout << specific_result << std::endl;
+  } else {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Unsupported transpiler type %s.", transpiler_type));
   }
 
-  std::cout << result << std::endl;
   return absl::OkStatus();
 }
 
@@ -71,9 +103,17 @@ int main(int argc, char* argv[]) {
   }
   std::string original_headers = absl::GetFlag(FLAGS_original_headers);
   std::string output_path = absl::GetFlag(FLAGS_output_path);
+  std::string transpiler_type = absl::GetFlag(FLAGS_transpiler_type);
+  std::string generic_header_path = absl::GetFlag(FLAGS_generic_header_path);
+  if (!transpiler_type.empty() && generic_header_path.empty()) {
+    std::cout << "--transpiler_type requires --generic_header_path."
+              << std::endl;
+    return 1;
+  }
 
   absl::Status status = fully_homomorphic_encryption::transpiler::RealMain(
-      metadata_path, original_headers, output_path);
+      metadata_path, original_headers, output_path, transpiler_type,
+      generic_header_path);
   if (!status.ok()) {
     std::cerr << status.message() << std::endl;
     return 1;

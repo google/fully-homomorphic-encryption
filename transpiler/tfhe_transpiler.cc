@@ -135,6 +135,7 @@ absl::StatusOr<std::string> TfheTranspiler::TranslateHeader(
 #define $1
 
 #include "absl/status/status.h"
+#include "absl/types/span.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
 
@@ -150,10 +151,11 @@ absl::StatusOr<std::string> TfheTranspiler::FunctionSignature(
     const Function* function, const xlscc_metadata::MetadataOutput& metadata) {
   std::vector<std::string> param_signatures;
   if (!metadata.top_func_proto().return_type().has_as_void()) {
-    param_signatures.push_back("LweSample* result");
+    param_signatures.push_back("absl::Span<LweSample> result");
   }
   for (Param* param : function->params()) {
-    param_signatures.push_back(absl::StrCat("LweSample* ", param->name()));
+    param_signatures.push_back(
+        absl::StrCat("absl::Span<LweSample> ", param->name()));
   }
 
   constexpr absl::string_view key_param =
@@ -174,6 +176,7 @@ absl::StatusOr<std::string> TfheTranspiler::Prelude(
       R"(#include <unordered_map>
 
 #include "absl/status/status.h"
+#include "absl/types/span.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
 

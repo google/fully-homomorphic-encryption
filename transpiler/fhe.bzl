@@ -165,22 +165,42 @@ def _fhe_transpile_ir(ctx, src, metadata, entry, transpiler):
 def _generate_struct_header(ctx, metadata):
     """Transpile XLS IR into C++ source."""
     library_name = ctx.attr.library_name or ctx.label.name
-    struct_h = ctx.actions.declare_file("%s.types.h" % library_name)
+    generic_struct_h = ctx.actions.declare_file("%s.generic.types.h" % library_name)
+    specific_struct_h = ctx.actions.declare_file("%s.types.h" % library_name)
+
     args = [
         "-metadata_path",
         metadata.path,
         "-original_headers",
         ",".join([hdr.path for hdr in ctx.files.hdrs]),
         "-output_path",
-        struct_h.path,
+        generic_struct_h.path,
     ]
     ctx.actions.run(
         inputs = [metadata],
-        outputs = [struct_h],
+        outputs = [generic_struct_h],
         executable = ctx.executable._struct_header_generator,
         arguments = args,
     )
-    return struct_h
+
+    args = [
+        "-metadata_path",
+        metadata.path,
+        "-output_path",
+        specific_struct_h.path,
+        "-generic_header_path",
+        generic_struct_h.path,
+        "-transpiler_type",
+        ctx.attr.transpiler_type,
+    ]
+    ctx.actions.run(
+        inputs = [metadata, generic_struct_h],
+        outputs = [specific_struct_h],
+        executable = ctx.executable._struct_header_generator,
+        arguments = args,
+    )
+
+    return [generic_struct_h, specific_struct_h]
 
 def _generate_verilog(ctx, src, extension, entry):
     """Convert optimized XLS IR to Verilog."""
@@ -274,8 +294,9 @@ def _fhe_transpile_impl(ctx):
         extras = [verilog_ir_file, netlist_file, yosys_script_file]
 
     hdrs = []
-    if ctx.attr.transpiler_type != "bool" and ctx.attr.transpiler_type != "yosys_plaintext":
-        hdrs.append(_generate_struct_header(ctx, metadata_file))
+
+    if ctx.attr.transpiler_type != "yosys_plaintext":
+        hdrs.extend(_generate_struct_header(ctx, metadata_file))
 
     if ctx.attr.transpiler_type == "yosys_plaintext":
         # TODO: actually pass netlist and cell_library to transpiler.
@@ -445,18 +466,28 @@ def fhe_cc_library(
 
     deps = ["@com_google_absl//absl/status"]
     if transpiler_type == "bool":
-        deps.append("@com_google_absl//absl/types:span")
+        deps.extend([
+            "@com_google_absl//absl/types:span",
+            "//transpiler/data:boolean_data",
+        ])
     elif transpiler_type == "yosys_plaintext":
+        deps.extend([
+            "@com_google_absl//absl/types:span",
+        ])
         pass
     elif transpiler_type == "tfhe":
         deps.extend([
+            "@com_google_absl//absl/types:span",
             "@tfhe//:libtfhe",
+            "//transpiler/data:boolean_data",
             "//transpiler/data:fhe_data",
         ])
     elif transpiler_type == "interpreted_tfhe":
         deps.extend([
             "@com_google_absl//absl/status:statusor",
+            "@com_google_absl//absl/types:span",
             "//transpiler:tfhe_runner",
+            "//transpiler/data:boolean_data",
             "//transpiler/data:fhe_data",
             "@tfhe//:libtfhe",
             "@com_google_xls//xls/common/status:status_macros",

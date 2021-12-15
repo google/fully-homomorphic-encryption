@@ -27,6 +27,7 @@ cc_library(
         "//transpiler/data:fhe_data",
         "@com_google_absl//absl/memory",
         "@com_google_absl//absl/status",
+        "@com_google_absl//absl/types:span",
         "@tfhe//:libtfhe",
     ],
 )
@@ -41,6 +42,7 @@ cc_library(
         "//transpiler/data:fhe_data",
         "@com_google_absl//absl/memory",
         "@com_google_absl//absl/status",
+        "@com_google_absl//absl/types:span",
         "@tfhe//:libtfhe",
     ],
 )

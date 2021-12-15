@@ -463,7 +463,7 @@ TEST(FheIrTranspilerLibTest, FunctionSignature_OnlyPure) {
       TfheTranspiler::FunctionSignature(function, metadata));
 
   static constexpr absl::string_view expected_signature =
-      R"(absl::Status test_fn(LweSample* result,
+      R"(absl::Status test_fn(absl::Span<LweSample> result,
   const TFheGateBootstrappingCloudKeySet* bk))";
   EXPECT_EQ(function_signature, expected_signature);
 }
@@ -494,10 +494,11 @@ TEST(FheIrTranspilerLibTest, Prelude_OnlyPure) {
       R"(#include <unordered_map>
 
 #include "absl/status/status.h"
+#include "absl/types/span.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
 
-absl::Status test_fn(LweSample* result,
+absl::Status test_fn(absl::Span<LweSample> result,
   const TFheGateBootstrappingCloudKeySet* bk) {
   std::unordered_map<int, LweSample*> temp_nodes;
 
@@ -541,6 +542,7 @@ TEST(FheIrTranspilerLibTest, TranslateHeader_NoParam) {
 #define TEST_H_
 
 #include "absl/status/status.h"
+#include "absl/types/span.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
 
@@ -573,10 +575,11 @@ TEST(FheIrTranspilerLibTest, TranslateHeader_Param) {
 #define TEST_H_
 
 #include "absl/status/status.h"
+#include "absl/types/span.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
 
-absl::Status test_fn(LweSample* param,
+absl::Status test_fn(absl::Span<LweSample> param,
   const TFheGateBootstrappingCloudKeySet* bk);
 #endif  // TEST_H_
 )";
@@ -611,6 +614,7 @@ TEST(FheIrTranspilerLibTest, TranslateHeader_MultipleParams) {
 #define TEST_H_
 
 #include "absl/status/status.h"
+#include "absl/types/span.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
 
@@ -620,7 +624,8 @@ absl::Status test_fn($0,
 )";
   std::vector<std::string> expected_params;
   for (int param_index = 0; param_index < kParamNum; param_index++) {
-    expected_params.push_back(absl::StrCat("LweSample* param_", param_index));
+    expected_params.push_back(
+        absl::StrCat("absl::Span<LweSample> param_", param_index));
   }
   std::string expected_header = absl::Substitute(
       expected_header_template, absl::StrJoin(expected_params, ", "));

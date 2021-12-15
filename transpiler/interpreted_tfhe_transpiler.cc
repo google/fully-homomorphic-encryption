@@ -1,4 +1,3 @@
-// Copyright 2021 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -41,6 +40,7 @@ absl::StatusOr<std::string> InterpretedTfheTranspiler::Translate(
   static constexpr absl::string_view kSourceTemplate =
       R"(#include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/types/span.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
 #include "transpiler/tfhe_runner.h"
@@ -70,11 +70,12 @@ $2 {
                        FunctionSignature(function, metadata));
   std::string return_param = "nullptr";
   if (!metadata.top_func_proto().return_type().has_as_void()) {
-    return_param = "result";
+    return_param = "result.data()";
   }
   std::vector<std::string> param_entries;
   for (xls::Param* param : function->params()) {
-    param_entries.push_back(absl::Substitute(R"({"$0", $0})", param->name()));
+    param_entries.push_back(
+        absl::Substitute(R"({"$0", $0.data()})", param->name()));
   }
 
   // Serialize the metadata, removing the trailing null.
@@ -98,6 +99,7 @@ absl::StatusOr<std::string> InterpretedTfheTranspiler::TranslateHeader(
 #define $1
 
 #include "absl/status/status.h"
+#include "absl/types/span.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
 
@@ -114,10 +116,11 @@ absl::StatusOr<std::string> InterpretedTfheTranspiler::FunctionSignature(
     const xlscc_metadata::MetadataOutput& metadata) {
   std::vector<std::string> param_signatures;
   if (!metadata.top_func_proto().return_type().has_as_void()) {
-    param_signatures.push_back("LweSample* result");
+    param_signatures.push_back("absl::Span<LweSample> result");
   }
   for (xls::Param* param : function->params()) {
-    param_signatures.push_back(absl::StrCat("LweSample* ", param->name()));
+    param_signatures.push_back(
+        absl::StrCat("absl::Span<LweSample> ", param->name()));
   }
 
   constexpr absl::string_view key_param =

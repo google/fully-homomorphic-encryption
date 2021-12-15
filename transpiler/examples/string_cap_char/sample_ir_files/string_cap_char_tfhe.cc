@@ -123,7 +123,7 @@ absl::Status my_package(LweSample* result, LweSample* st, LweSample* c,
   bootsAND(temp_nodes[1011], temp_nodes[1010], temp_nodes[974], bk);
 
   temp_nodes[997] = new_gate_bootstrapping_ciphertext(bk->params);
-  bootsCOPY(temp_nodes[997], st, bk);
+  bootsCOPY(temp_nodes[997], &st[0], bk);
 
   temp_nodes[1002] = new_gate_bootstrapping_ciphertext(bk->params);
   bootsNOT(temp_nodes[1002], temp_nodes[999], bk);

@@ -23,9 +23,20 @@
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 
-absl::StatusOr<std::string> ConvertStructsToEncoded(
+absl::StatusOr<std::string> ConvertStructsToEncodedTemplate(
     const xlscc_metadata::MetadataOutput& metadata,
-    const std::vector<std::string>& original_headers);
+    const std::vector<std::string>& original_headers,
+    absl::string_view output_path);
+
+absl::StatusOr<std::string> ConvertStructsToEncodedTfhe(
+    absl::string_view generic_header,
+    const xlscc_metadata::MetadataOutput& metadata,
+    absl::string_view output_path);
+
+absl::StatusOr<std::string> ConvertStructsToEncodedBool(
+    absl::string_view generic_header,
+    const xlscc_metadata::MetadataOutput& metadata,
+    absl::string_view output_path);
 
 }  // namespace transpiler
 }  // namespace fully_homomorphic_encryption

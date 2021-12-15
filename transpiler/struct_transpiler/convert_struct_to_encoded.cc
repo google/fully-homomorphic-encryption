@@ -12,15 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// TODO: Fix get() method to not pass mutable pointer from data_, or stop
+// pretending that data_ is a std::unique_ptr.
+
 #include "transpiler/struct_transpiler/convert_struct_to_encoded.h"
 
+#include <cctype>
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
 #include "absl/status/status.h"
+#include "absl/strings/ascii.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_replace.h"
 #include "absl/strings/string_view.h"
 #include "absl/strings/substitute.h"
 #include "xls/common/status/status_macros.h"
@@ -283,7 +289,8 @@ absl::StatusOr<std::string> GenerateSetOrEncryptArrayElement(
 absl::StatusOr<std::string> GenerateSetOrEncryptBoolElement(
     absl::string_view source, bool encrypt) {
   std::vector<std::string> lines;
-  std::string op = encrypt ? "Encrypt" : "Unencrypted";
+  std::string op =
+      encrypt ? "Encrypt<Sample,SecretKey>" : "Unencrypted<Sample,PublicKey>";
   lines.push_back(absl::Substitute(
       "    ::$0(EncodedValue<bool>(value.$1), key, data);", op, source));
   lines.push_back("    data += 1;");
@@ -313,9 +320,12 @@ absl::StatusOr<std::string> GenerateSetOrEncryptStructElement(
   std::string op = encrypt ? "SetEncrypted" : "SetUnencrypted";
 
   TypeData type_data = id_to_type.at(instance_type.name().id());
-  std::string struct_name = absl::StrCat("Fhe", instance_type.name().name());
-  lines.push_back(absl::Substitute("    $2::Borrowed$0(value.$1, key, data);",
-                                   op, source_var, struct_name));
+  std::string struct_name =
+      absl::StrCat("GenericEncoded", instance_type.name().name());
+  lines.push_back(
+      absl::Substitute("    $2<Sample, SampleArrayDeleter, SecretKey, "
+                       "PublicKey>::Borrowed$0(value.$1, data, key);",
+                       op, source_var, struct_name));
   lines.push_back(absl::StrCat("    data += ", type_data.bit_width, ";"));
 
   return absl::StrJoin(lines, "\n");
@@ -416,8 +426,8 @@ absl::StatusOr<std::string> GenerateDecryptBool(const IdToType& id_to_type,
   std::vector<std::string> lines;
   lines.push_back(
       absl::StrCat("    EncodedValue<bool> encoded_", temp_name, ";"));
-  lines.push_back(
-      absl::StrCat("    ::Decrypt(data, key, encoded_", temp_name, ");"));
+  lines.push_back(absl::StrCat(
+      "    ::Decrypt<Sample, SecretKey>(data, key, encoded_", temp_name, ");"));
   lines.push_back("    data += 1;");
   lines.push_back(absl::Substitute("    result->$0 = encoded_$1.Decode();",
                                    output_loc, temp_name));
@@ -431,8 +441,8 @@ absl::StatusOr<std::string> GenerateDecryptIntegral(
                        XlsccToNativeIntegerType(int_type));
   lines.push_back(absl::Substitute("    EncodedValue<$0> encoded_$1;",
                                    int_type_name, temp_name));
-  lines.push_back(
-      absl::Substitute("    ::Decrypt(data, key, encoded_$0);", temp_name));
+  lines.push_back(absl::Substitute(
+      "    ::Decrypt<Sample, SecretKey>(data, key, encoded_$0);", temp_name));
   lines.push_back(absl::StrCat("    data += ", int_type.width(), ";"));
   lines.push_back(absl::Substitute("    result->$0 = encoded_$1.Decode();",
                                    output_loc, temp_name));
@@ -444,9 +454,11 @@ absl::StatusOr<std::string> GenerateDecryptStruct(
     absl::string_view output_loc) {
   std::vector<std::string> lines;
   TypeData type_data = id_to_type.at(instance_type.name().id());
-  std::string struct_name = absl::StrCat("Fhe", instance_type.name().name());
+  std::string struct_name =
+      absl::StrCat("GenericEncoded", instance_type.name().name());
   lines.push_back(
-      absl::Substitute("    $0::BorrowedDecrypt(key, data, &result->$1);",
+      absl::Substitute("    $0<Sample, SampleArrayDeleter, SecretKey, "
+                       "PublicKey>::BorrowedDecrypt(data, &result->$1, key);",
                        struct_name, output_loc));
   lines.push_back(absl::StrCat("    data += ", type_data.bit_width, ";"));
   return absl::StrJoin(lines, "\n");
@@ -466,7 +478,50 @@ absl::StatusOr<std::string> GenerateDecryptFunction(
   return absl::StrJoin(lines, "\n");
 }
 
+static std::string GenerateHeaderGuard(absl::string_view header) {
+  std::string header_guard = absl::AsciiStrToUpper(header);
+  std::transform(header_guard.begin(), header_guard.end(), header_guard.begin(),
+                 [](unsigned char c) -> unsigned char {
+                   if (std::isalnum(c)) {
+                     return c;
+                   } else {
+                     return '_';
+                   }
+                 });
+  return absl::StrCat("GENERATED_", header_guard);
+}
+
 // The big honkin' header file template. Substitution params:
+//  0: The header from which we're transpiling. The root struct source.
+//  1: The name of the struct we're transpiling.
+//  2: The header guard.
+constexpr const char kFileTemplate[] = R"(#ifndef $2
+#define $2
+
+#include <cstdint>
+#include <memory>
+
+#include "absl/types/span.h"
+
+$0
+#include "transpiler/data/boolean_data.h"
+
+template <class Sample, class PublicKey>
+void Unencrypted(absl::Span<const bool> value, const PublicKey* key, Sample* out);
+
+template <class Sample, class SecretKey>
+void Encrypt(absl::Span<const bool> value, const SecretKey* key, Sample* out);
+
+template <class Sample, class SecretKey>
+void Decrypt(Sample* ciphertext, const SecretKey* key, absl::Span<bool> plaintext);
+
+template <class Sample, class SampleArrayDeleter>
+  using SampleArrayT = std::unique_ptr<Sample[], SampleArrayDeleter>;
+
+$1
+#endif//$2)";
+
+// The template for each individual struct. Substitution params:
 //  0: The header from which we're transpiling. The root struct source.
 //  1: The name of the struct we're transpiling.
 //  2: The fully-qualified name of the struct we're transpiling.
@@ -474,26 +529,13 @@ absl::StatusOr<std::string> GenerateDecryptFunction(
 //  4: The body of the internal "Encrypt" routine.
 //  5: The body of the internal "Decrypt" routine.
 //  6: The [packed] bit width of the structure.
-//
-// TODO: Add header guards.
-constexpr const char kFileTemplate[] = R"(
-#include <cstdint>
-#include <memory>
-
-$0
-
-#include "tfhe/tfhe.h"
-#include "transpiler/data/fhe_data.h"
-
-$1
-)";
-
 constexpr const char kClassTemplate[] = R"(
-class Fhe$0 {
+template <class Sample, class SampleArrayDeleter, class SecretKey, class PublicKey>
+class GenericEncoded$0 {
  public:
-  Fhe$0(const TFheGateBootstrappingParameterSet* params)
-      : data_(new_gate_bootstrapping_ciphertext_array(bit_width_, params),
-              LweSampleArrayDeleter(bit_width_)) { }
+  GenericEncoded$0(Sample *data, SampleArrayDeleter deleter)
+      : data_(data, deleter) {}
+  GenericEncoded$0(GenericEncoded$0 &&) = default;
 
   // We set values here directly, instead of using FheValue, since FheValue
   // types own their arrays, whereas we'd need to own them here as
@@ -501,66 +543,62 @@ class Fhe$0 {
   // but it'd be more work than this). For structure types, though, we do
   // enable setting on "borrowed" data to enable recursive setting.
   void SetUnencrypted(const $1& value,
-                      const TFheGateBootstrappingCloudKeySet* key) {
+                      const PublicKey* key) {
     SetUnencryptedInternal(value, key, data_.get());
   }
 
   void SetEncrypted(const $1& value,
-                    const TFheGateBootstrappingSecretKeySet* key) {
+                    const SecretKey* key) {
     SetEncryptedInternal(value, key, data_.get());
   }
 
-  $1 Decrypt(const TFheGateBootstrappingSecretKeySet* key) {
+  $1 Decrypt(const SecretKey* key) {
     $1 result;
     DecryptInternal(key, data_.get(), &result);
     return result;
   }
 
   static void BorrowedSetUnencrypted(
-      const $1& value, const TFheGateBootstrappingCloudKeySet* key,
-      LweSample* data) {
+      const $1& value, Sample* data, const PublicKey* key) {
     SetUnencryptedInternal(value, key, data);
   }
 
   static void BorrowedSetEncrypted(
-      const $1& value, const TFheGateBootstrappingSecretKeySet* key,
-      LweSample* data) {
+      const $1& value, Sample* data, const SecretKey* key) {
     SetEncryptedInternal(value, key, data);
   }
 
   static void BorrowedDecrypt(
-      const TFheGateBootstrappingSecretKeySet* key,
-      LweSample* data, $1* result) {
+      Sample* data, $1* result, const SecretKey* key) {
     DecryptInternal(key, data, result);
   }
 
-  LweSample* get() { return data_.get(); }
-  size_t bit_width() { return bit_width_; }
+  absl::Span<Sample> get() { return absl::MakeSpan(data_.get(), bit_width()); }
+  static constexpr size_t bit_width() { return bit_width_; }
 
  private:
-  size_t bit_width_ = $5;
+  static constexpr const size_t bit_width_ = $5;
 
   static void SetUnencryptedInternal(
-      const $1& value, const TFheGateBootstrappingCloudKeySet* key,
-      LweSample* data) {
+      const $1& value, const PublicKey* key,
+      Sample* data) {
 $2
   }
 
   static void SetEncryptedInternal(
-      const $1& value, const TFheGateBootstrappingSecretKeySet* key,
-      LweSample* data) {
+      const $1& value, const SecretKey* key,
+      Sample* data) {
 $3
   }
 
   static void DecryptInternal(
-      const TFheGateBootstrappingSecretKeySet* key, LweSample* data,
+      const SecretKey* key, Sample* data,
       $1* result) {
 $4
   }
 
-  std::unique_ptr<LweSample, LweSampleArrayDeleter> data_;
-};
-)";
+  SampleArrayT<Sample, SampleArrayDeleter> data_;
+};)";
 
 absl::StatusOr<std::string> ConvertStructToEncoded(const IdToType& id_to_type,
                                                    int64_t id) {
@@ -585,12 +623,15 @@ absl::StatusOr<std::string> ConvertStructToEncoded(const IdToType& id_to_type,
 
 }  // namespace
 
-absl::StatusOr<std::string> ConvertStructsToEncoded(
+absl::StatusOr<std::string> ConvertStructsToEncodedTemplate(
     const xlscc_metadata::MetadataOutput& metadata,
-    const std::vector<std::string>& original_headers) {
+    const std::vector<std::string>& original_headers,
+    absl::string_view output_path) {
   if (metadata.structs_size() == 0) {
     return "";
   }
+
+  std::string header_guard = GenerateHeaderGuard(output_path);
 
   std::vector<int64_t> struct_order = GetTypeReferenceOrder(metadata);
   IdToType id_to_type = PopulateTypeData(metadata, struct_order);
@@ -609,6 +650,165 @@ absl::StatusOr<std::string> ConvertStructsToEncoded(
   std::string extra_includes = absl::StrJoin(original_includes, "\n");
 
   return absl::Substitute(kFileTemplate, extra_includes,
+                          absl::StrJoin(generated, "\n\n"), header_guard);
+}
+
+// Tfhe header template
+//  0: Header guard
+//  1: Generic header
+//  2: Class definitions
+constexpr const char kTfheFileTemplate[] = R"(#ifndef $0
+#define $0
+
+#include <memory>
+
+#include "$1"
+#include "absl/types/span.h"
+#include "tfhe/tfhe.h"
+#include "transpiler/data/fhe_data.h"
+
+template<>
+void Unencrypted<LweSample, TFheGateBootstrappingCloudKeySet>(absl::Span<const bool> value, const TFheGateBootstrappingCloudKeySet* key, LweSample* out) {
+  ::Unencrypted(value, key, out);
+}
+
+template<>
+void Encrypt<LweSample, TFheGateBootstrappingSecretKeySet>(absl::Span<const bool> value, const TFheGateBootstrappingSecretKeySet* key, LweSample* out) {
+  ::Encrypt(value, key, out);
+}
+
+template<>
+void Decrypt<LweSample, TFheGateBootstrappingSecretKeySet>(LweSample* ciphertext, const TFheGateBootstrappingSecretKeySet* key, absl::Span<bool> plaintext) {
+  ::Decrypt(ciphertext, key, plaintext);
+}
+
+$2
+#endif//$0)";
+
+// Tfhe struct template
+//  0: Header guard
+//  1: Type name
+constexpr const char kTfheStructTemplate[] = R"(
+using FheBase$0 = GenericEncoded$0<LweSample, LweSampleArrayDeleter, TFheGateBootstrappingSecretKeySet, TFheGateBootstrappingCloudKeySet>;
+class Fhe$0 : public FheBase$0 {
+public:
+  Fhe$0(const TFheGateBootstrappingParameterSet* params) :
+      FheBase$0(new_gate_bootstrapping_ciphertext_array(Fhe$0::bit_width(), params),
+                LweSampleArrayDeleter(Fhe$0::bit_width())) {}
+};)";
+
+absl::StatusOr<std::string> ConvertStructsToEncodedTfhe(
+    absl::string_view generic_header,
+    const xlscc_metadata::MetadataOutput& metadata,
+    absl::string_view output_path) {
+  if (metadata.structs_size() == 0) {
+    return "";
+  }
+  std::string header_guard = GenerateHeaderGuard(output_path);
+  std::vector<int64_t> struct_order = GetTypeReferenceOrder(metadata);
+  IdToType id_to_type = PopulateTypeData(metadata, struct_order);
+  std::vector<std::string> generated;
+  for (int64_t id : struct_order) {
+    const StructType& struct_type = id_to_type.at(id).type;
+    xlscc_metadata::CPPName struct_name = struct_type.name().as_inst().name();
+    std::string struct_text =
+        absl::Substitute(kTfheStructTemplate, struct_name.name());
+    generated.push_back(struct_text);
+  }
+
+  return absl::Substitute(kTfheFileTemplate, header_guard, generic_header,
+                          absl::StrJoin(generated, "\n\n"));
+}
+
+// Bool header template
+//  0: Header guard
+//  1: Generic header
+//  2: Class definitions
+constexpr const char kBoolFileTemplate[] = R"(#ifndef $0
+#define $0
+
+#include <memory>
+
+#include "$1"
+#include "absl/types/span.h"
+
+struct DummyPublicKey {};
+struct DummySecretKey {};
+
+template<>
+void Unencrypted<bool, DummyPublicKey>(absl::Span<const bool> value, const DummyPublicKey* key, bool* out) {
+  for (int j = 0; j < value.size(); ++j) {
+    out[j] = value[j];
+  }
+}
+
+template<>
+void Encrypt<bool, DummySecretKey>(absl::Span<const bool> value, const DummySecretKey* key, bool* out) {
+  for (int j = 0; j < value.size(); ++j) {
+    out[j] = value[j];
+  }
+}
+
+template<>
+void Decrypt<bool, DummySecretKey>(bool* ciphertext, const DummySecretKey* key, absl::Span<bool> plaintext) {
+  for (int j = 0; j < plaintext.size(); j++) {
+    plaintext[j] = ciphertext[j];
+  }
+}
+
+$2
+#endif//$0)";
+
+// Bool struct template
+//  0: Header guard
+//  1: Type name
+constexpr const char kBoolStructTemplate[] = R"(
+using EncodedBase$0 = GenericEncoded$0<bool, std::default_delete<bool[]>, DummySecretKey, DummyPublicKey>;
+class Encoded$0 : public EncodedBase$0 {
+public:
+  Encoded$0() :
+      EncodedBase$0(new bool[Encoded$0::bit_width()],
+                 std::default_delete<bool[]>()) {}
+
+  void Encode(const $0& value) {
+      SetEncrypted(value, nullptr);
+  }
+
+  $0 Decode() {
+      return Decrypt(nullptr);
+  }
+
+private:
+  using EncodedBase$0::Decrypt;
+  using EncodedBase$0::SetUnencrypted;
+  using EncodedBase$0::SetEncrypted;
+  using EncodedBase$0::BorrowedSetUnencrypted;
+  using EncodedBase$0::BorrowedSetEncrypted;
+  using EncodedBase$0::BorrowedDecrypt;
+};
+
+)";
+
+absl::StatusOr<std::string> ConvertStructsToEncodedBool(
+    absl::string_view generic_header,
+    const xlscc_metadata::MetadataOutput& metadata,
+    absl::string_view output_path) {
+  if (metadata.structs_size() == 0) {
+    return "";
+  }
+  std::string header_guard = GenerateHeaderGuard(output_path);
+  std::vector<int64_t> struct_order = GetTypeReferenceOrder(metadata);
+  IdToType id_to_type = PopulateTypeData(metadata, struct_order);
+  std::vector<std::string> generated;
+  for (int64_t id : struct_order) {
+    const StructType& struct_type = id_to_type.at(id).type;
+    xlscc_metadata::CPPName struct_name = struct_type.name().as_inst().name();
+    std::string struct_text =
+        absl::Substitute(kBoolStructTemplate, struct_name.name());
+    generated.push_back(struct_text);
+  }
+
+  return absl::Substitute(kBoolFileTemplate, header_guard, generic_header,
                           absl::StrJoin(generated, "\n\n"));
 }
 

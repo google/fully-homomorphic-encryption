@@ -187,8 +187,10 @@ class FheValue {
     return plaintext.Decode();
   }
 
-  LweSample* get() { return array_.get(); }
-  const LweSample* get() const { return array_.get(); }
+  absl::Span<LweSample> get() { return absl::MakeSpan(array_.get(), size()); }
+  absl::Span<const LweSample> get() const {
+    return absl::MakeConstSpan(array_.get(), size());
+  }
 
   int32_t size() { return kBitWidth; }
 
@@ -210,7 +212,7 @@ class FheValueRef {
       : array_(array), params_(params) {}
 
   FheValueRef& operator=(const FheValueRef<ValueType>& value) {
-    ::Copy(value.get(), size(), params(), this->get());
+    ::Copy(value.get().data(), size(), params(), this->get().data());
     return *this;
   }
 
@@ -230,10 +232,12 @@ class FheValueRef {
     return plaintext.Decode();
   }
 
-  LweSample* get() { return array_; }
-  const LweSample* get() const { return array_; }
+  int32_t size() const { return kBitWidth; }
 
-  int32_t size() { return kBitWidth; }
+  absl::Span<LweSample> get() { return absl::MakeSpan(array_, size()); }
+  absl::Span<const LweSample> get() const {
+    return absl::MakeConstSpan(array_, size());
+  }
 
   const TFheGateBootstrappingParameterSet* params() { return params_; }
 
@@ -303,15 +307,17 @@ class FheArray {
     return encoded.Decode();
   }
 
-  LweSample* get() { return array_.get(); }
-  const LweSample* get() const { return array_.get(); }
+  absl::Span<LweSample> get() { return absl::MakeSpan(array_.get(), size()); }
+  absl::Span<const LweSample> get() const {
+    return absl::MakeConstSpan(array_.get(), size());
+  }
 
   FheValueRef<ValueType> operator[](int32_t pos) {
     return {&(array_.get())[pos * kValueWidth], params()};
   }
 
   int32_t length() const { return length_; }
-  int32_t size() const { return length_; }
+  int32_t size() const { return bit_width(); }
 
   int32_t bit_width() const { return kValueWidth * length_; }
 
@@ -359,8 +365,10 @@ class FheArrayRef {
     return encoded.Decode();
   }
 
-  LweSample* get() { return array_; }
-  const LweSample* get() const { return array_; }
+  absl::Span<LweSample> get() { return absl::MakeSpan(array_, size()); }
+  absl::Span<const LweSample> get() const {
+    return absl::MakeConstSpan(array_, size());
+  }
 
   FheValueRef<ValueType> operator[](int32_t pos) {
     return {&(this->get())[pos * kValueWidth], params()};
@@ -387,10 +395,10 @@ class FheCharRef : public FheValueRef<char> {
   using FheValueRef<char>::FheValueRef;
 
   operator FheValueRef<signed char>() {
-    return FheValueRef<signed char>(this->get(), this->params());
+    return FheValueRef<signed char>(this->get().data(), this->params());
   }
   operator FheValueRef<unsigned char>() {
-    return FheValueRef<unsigned char>(this->get(), this->params());
+    return FheValueRef<unsigned char>(this->get().data(), this->params());
   }
 };
 
@@ -414,7 +422,9 @@ class FheChar : public FheValue<char> {
     return plaintext;
   }
 
-  operator FheCharRef() & { return FheCharRef(this->get(), this->params()); }
+  operator FheCharRef() & {
+    return FheCharRef(this->get().data(), this->params());
+  }
   operator FheValueRef<signed char>() & { return ((FheCharRef) * this); }
   operator FheValueRef<unsigned char>() & { return ((FheCharRef) * this); }
 };
@@ -463,7 +473,7 @@ class FheBasicString : public FheArray<CharT> {
   template <std::enable_if_t<std::is_same_v<CharT, char>, void>* = nullptr>
   FheCharRef operator[](int32_t pos) {
     FheValueRef<CharT> ref = FheArray<CharT>::operator[](pos);
-    return {ref.get(), ref.params()};
+    return {ref.get().data(), ref.params()};
   }
 };
 

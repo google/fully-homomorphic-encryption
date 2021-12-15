@@ -15,6 +15,7 @@
 #include "transpiler/examples/pir/pir_cloud_service.h"
 
 #include "absl/status/status.h"
+#include "absl/types/span.h"
 
 #ifdef USE_INTERPRETED_TFHE
 #include "transpiler/examples/pir/pir_api_interpreted_tfhe.h"
@@ -25,7 +26,7 @@
 namespace fully_homomorphic_encryption {
 
 absl::Status CloudService::QueryRecord(
-    LweSample* result, LweSample* index,
+    absl::Span<LweSample> result, absl::Span<LweSample> index,
     const TFheGateBootstrappingCloudKeySet* bk) {
   return ::QueryRecord(result, index, database_.get(), bk);
 }

@@ -94,7 +94,7 @@ top_func_proto {
   google::protobuf::TextFormat::ParseFromString(kMetadataStr, &metadata);
   XLS_ASSERT_OK_AND_ASSIGN(
       std::string actual,
-      ConvertStructsToEncoded(metadata, /*original_headers=*/{}));
+      ConvertStructsToEncodedTemplate(metadata, /*original_headers=*/{}, ""));
 
   // Rather than do line-by-line equality checks, let's just make sure that a
   // few key lines are present. Since we're generating compilable code,
@@ -112,7 +112,9 @@ top_func_proto {
   ASSERT_THAT(
       actual,
       HasSubstr("::Encrypt(EncodedValue<uint8_t>(value.second), key, data);"));
-  ASSERT_THAT(actual, HasSubstr("::Decrypt(data, key, encoded_third);"));
+  ASSERT_THAT(
+      actual,
+      HasSubstr("::Decrypt<Sample, SecretKey>(data, key, encoded_third);"));
 }
 
 }  // namespace
