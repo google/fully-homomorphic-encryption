@@ -189,3 +189,5 @@ cc_test(
         "@com_google_xls//xls/public:function_builder",
     ],
 )
+
+exports_files(glob(["*.liberty"]))

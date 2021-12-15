@@ -75,6 +75,28 @@ load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 
 grpc_deps()
 
+# Install ABC
+http_archive(
+    name = "abc",
+    build_file = "//patches:abc.BUILD",
+    sha256 = "7fa5a448a4309fb4d6cf856c3fe4cc4be46b09dd552a05d5cfacd75f8d9504ad",
+    strip_prefix = "abc-eb44a80bf2eb8723231e72bb095c97d1e4834d56",
+    urls = [
+        "https://github.com/berkeley-abc/abc/archive/eb44a80bf2eb8723231e72bb095c97d1e4834d56.zip",
+    ],
+)
+
+# Install Yosys
+http_archive(
+    name = "yosys",
+    build_file = "//patches:yosys.BUILD",
+    strip_prefix = "yosys-cdb57118758f855518ad416d12728d72bff58c10",
+    sha256 = "ee4a78a4e321615c0f2228ad169c7fd39eb4d3b987ff8ba9b10d937f09366121",
+    urls = [
+        "https://github.com/YosysHQ/yosys/archive/cdb57118758f855518ad416d12728d72bff58c10.zip",
+    ],
+)
+
 load("@com_google_xls//dependency_support:initialize_external.bzl", "initialize_external_repositories")
 
 initialize_external_repositories()

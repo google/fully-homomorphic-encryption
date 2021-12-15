@@ -20,6 +20,9 @@ _XLSCC = "@com_google_xls//xls/contrib/xlscc:xlscc"
 _XLS_BOOLEANIFY = "@com_google_xls//xls/tools:booleanify_main"
 _XLS_OPT = "@com_google_xls//xls/tools:opt_main"
 _GET_TOP_FUNC_FROM_PROTO = "@com_google_xls//xls/contrib/xlscc:get_top_func_from_proto"
+_XLS_CODEGEN = "@com_google_xls//xls/tools:codegen_main"
+_YOSYS = "@yosys//:yosys_bin"
+_TFHE_CELLS_LIBERTY = "//transpiler:tfhe_cells.liberty"
 
 def _run(ctx, inputs, out_ext, tool, args, entry = None):
     """A helper to run a shell script and capture the output.
@@ -130,7 +133,7 @@ def _pick_last_bool_file(optimized_files):
     inspect = optimized_files[1::2]
     return optimized_files[-1]
 
-def _fhe_transpile_ir(ctx, src, metadata, entry):
+def _fhe_transpile_ir(ctx, src, metadata, entry, transpiler):
     """Transpile XLS IR into C++ source."""
     library_name = ctx.attr.library_name or ctx.label.name
     out_cc = ctx.actions.declare_file("%s.cc" % library_name)
@@ -146,17 +149,13 @@ def _fhe_transpile_ir(ctx, src, metadata, entry):
         "-header_path",
         out_h.path,
         "-transpiler_type",
-        ctx.attr.transpiler_type,
+        transpiler,
     ]
     ctx.actions.run(
         inputs = [src, metadata],
         outputs = [out_cc, out_h],
         executable = ctx.executable._fhe_transpiler,
         arguments = args,
-        tools = [
-            ctx.executable._xls_booleanify,
-            ctx.executable._xls_opt,
-        ],
     )
     return [out_cc, out_h]
 
@@ -180,25 +179,130 @@ def _generate_struct_header(ctx, metadata):
     )
     return struct_h
 
+def _generate_verilog(ctx, src, extension, entry):
+    """Convert optimized XLS IR to Verilog."""
+    return _run(
+        ctx,
+        [src, entry],
+        extension,
+        ctx.executable._xls_codegen,
+        [
+            src.path,
+            "--delay_model=unit",
+            "--clock_period_ps=1000",
+            "--generator=combinational",
+            "--use_system_verilog=false",  # edit the YS script if this changes
+        ],
+        entry,
+    )
+
+def _generate_yosys_script(ctx, verilog, netlist_path, entry, cell_library):
+    library_name = ctx.attr.library_name or ctx.label.name
+    ys_script = ctx.actions.declare_file("%s.ys" % library_name)
+    sh_cmd = """cat>{script}<<EOF
+# read_verilog -sv {verilog} # if we want to use SV
+read_verilog {verilog}
+hierarchy -check -top $(cat {entry})
+proc; opt;
+flatten; opt;
+fsm; opt;
+memory; opt
+techmap; opt
+dfflibmap -liberty {cell_library}
+abc -liberty {cell_library}
+opt_clean -purge
+clean
+write_verilog {netlist_path}
+EOF
+    """.format(
+        script = ys_script.path,
+        verilog = verilog.path,
+        entry = entry.path,
+        cell_library = cell_library.path,
+        netlist_path = netlist_path,
+    )
+
+    ctx.actions.run_shell(
+        inputs = [entry],
+        outputs = [ys_script],
+        command = sh_cmd,
+    )
+
+    return ys_script
+
+def _generate_netlist(ctx, verilog, entry):
+    library_name = ctx.attr.library_name or ctx.label.name
+    netlist = ctx.actions.declare_file("%s.netlist.v" % library_name)
+    script = _generate_yosys_script(ctx, verilog, netlist.path, entry, ctx.file.cell_library)
+
+    yosys_runfiles_dir = ctx.executable._yosys.path + ".runfiles"
+
+    args = ctx.actions.args()
+    args.add("-q")  # quiet mode only errors printed to stderr
+    args.add("-q")  # second q don't print warnings
+    args.add("-Q")  # Don't print header
+    args.add("-T")  # Don't print footer
+    args.add_all("-s", [script.path])  # command execution
+
+    ctx.actions.run(
+        inputs = [verilog, script],
+        outputs = [netlist],
+        arguments = [args],
+        tools = [ctx.file.cell_library],
+        executable = ctx.executable._yosys,
+        env = {
+            "YOSYS_DATDIR": yosys_runfiles_dir + "/google3/third_party/yosys/share/",
+            "ABC": yosys_runfiles_dir + "/google3/third_party/abc/abc",
+        },
+    )
+
+    return (netlist, script)
+
 def _fhe_transpile_impl(ctx):
     ir_file, metadata_file, metadata_entry_file = _build_ir(ctx)
 
     optimized_files = _optimize(ctx, ir_file, metadata_entry_file)
 
+    extras = []
+    if ctx.attr.transpiler_type == "yosys_plaintext":
+        optimized_ir_file = optimized_files[0]
+        verilog_ir_file = _generate_verilog(ctx, optimized_ir_file, ".v", metadata_entry_file)
+        netlist_file, yosys_script_file = _generate_netlist(ctx, verilog_ir_file, metadata_entry_file)
+        extras = [verilog_ir_file, netlist_file, yosys_script_file]
+
     hdrs = []
-    if ctx.attr.transpiler_type != "bool":
+    if ctx.attr.transpiler_type != "bool" and ctx.attr.transpiler_type != "yosys_plaintext":
         hdrs.append(_generate_struct_header(ctx, metadata_file))
 
-    booleanified_ir_file = _pick_last_bool_file(optimized_files)
-    out_cc, out_h = _fhe_transpile_ir(ctx, booleanified_ir_file, metadata_file, metadata_entry_file)
+    if ctx.attr.transpiler_type == "yosys_plaintext":
+        # TODO: actually pass netlist and cell_library to transpiler.
+        # ir_input = netlist_file
+        ir_input = _pick_last_bool_file(optimized_files)
+        transpiler = "bool"
+    else:
+        ir_input = _pick_last_bool_file(optimized_files)
+        transpiler = ctx.attr.transpiler_type
+    out_cc, out_h = _fhe_transpile_ir(ctx, ir_input, metadata_file, metadata_entry_file, transpiler)
     hdrs.append(out_h)
-    return [
-        DefaultInfo(files = depset([ir_file, metadata_file, metadata_entry_file, out_cc] + optimized_files + hdrs)),
-        OutputGroupInfo(
-            sources = depset([out_cc]),
-            headers = depset(hdrs),
-        ),
-    ]
+
+    common = [ir_file, metadata_file, metadata_entry_file, out_cc] + optimized_files + hdrs
+
+    if ctx.attr.transpiler_type == "yosys_plaintext":
+        return [
+            DefaultInfo(files = depset(common + extras)),
+            OutputGroupInfo(
+                sources = depset([out_cc]),
+                headers = depset(hdrs),
+            ),
+        ]
+    else:
+        return [
+            DefaultInfo(files = depset(common)),
+            OutputGroupInfo(
+                sources = depset([out_cc]),
+                headers = depset(hdrs),
+            ),
+        ]
 
 def _executable_attr(label):
     """A helper for declaring internal executable dependencies."""
@@ -240,9 +344,13 @@ fhe_transpile = rule(
         "transpiler_type": attr.string(
             doc = """
             Type of FHE library to transpile to. Choices are {tfhe, interpreted_tfhe,
-            bool}. 'bool' doesn't depend on any FHE libraries.
+            bool, yosys_plaintext}. 'bool' and 'yosys_plaintext' do not depend on any FHE libraries.
             """,
-            values = ["tfhe", "interpreted_tfhe", "bool"],
+            values = ["tfhe", "interpreted_tfhe", "bool", "yosys_plaintext"],
+        ),
+        "cell_library": attr.label(
+            doc = "A single cell-definition library in Liberty format.",
+            allow_single_file = [".liberty"],
         ),
         "_xlscc": _executable_attr(_XLSCC),
         "_xls_booleanify": _executable_attr(_XLS_BOOLEANIFY),
@@ -254,6 +362,8 @@ fhe_transpile = rule(
             executable = True,
             cfg = "exec",
         ),
+        "_yosys": _executable_attr(_YOSYS),
+        "_xls_codegen": _executable_attr(_XLS_CODEGEN),
     },
 )
 
@@ -289,11 +399,14 @@ def fhe_cc_library(
       name: The name of the cc_library target.
       src: The transpiler-compatible C++ file that are processed to create the library.
       hdrs: The list of header files required while transpiling the `src`.
+      copts: The list of options to the C++ compilation command.
       num_opt_passes: The number of optimization passes to run on XLS IR (default 1).
             Values <= 0 will skip optimization altogether.
       transpiler_type: Defaults to "tfhe"; Type of FHE library to transpile to. Choices are
-            {tfhe, interpreted_tfhe, bool}. 'bool' does Boolean operations on plaintext, and
-            doesn't depend on any FHE libraries; mostly useful for debugging.
+            {tfhe, interpreted_tfhe, bool, yosys_plaintext}. 'bool' does Boolean operations on plaintext,
+            and doesn't depend on any FHE libraries; mostly useful for debugging. Like 'bool',
+            'yosys_plaintext' does not depend on an FHE libraries, doing operations on plaintext (whether
+            they are boolean depends on the cell-library definition in use.)
       **kwargs: Keyword arguments to pass through to the cc_library target.
     """
     tags = kwargs.pop("tags", None)
@@ -307,6 +420,7 @@ def fhe_cc_library(
         num_opt_passes = num_opt_passes,
         transpiler_type = transpiler_type,
         tags = tags,
+        cell_library = _TFHE_CELLS_LIBERTY,
     )
 
     transpiled_source = "{}.srcs".format(name)
@@ -328,6 +442,8 @@ def fhe_cc_library(
     deps = ["@com_google_absl//absl/status"]
     if transpiler_type == "bool":
         deps.append("@com_google_absl//absl/types:span")
+    elif transpiler_type == "yosys_plaintext":
+        pass
     elif transpiler_type == "tfhe":
         deps.extend([
             "@tfhe//:libtfhe",
