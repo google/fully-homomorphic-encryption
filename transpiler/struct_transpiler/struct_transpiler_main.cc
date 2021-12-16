@@ -69,7 +69,8 @@ absl::Status RealMain(absl::string_view metadata_path,
     }
     std::cout << generic_result << std::endl;
   } else if (transpiler_type == "tfhe" ||
-             transpiler_type == "interpreted_tfhe") {
+             transpiler_type == "interpreted_tfhe" ||
+             transpiler_type == "yosys_interpreted_tfhe") {
     XLS_ASSIGN_OR_RETURN(std::string specific_result,
                          ConvertStructsToEncodedTfhe(generic_header_path,
                                                      metadata, output_path));

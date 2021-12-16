@@ -89,13 +89,16 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
 
   XLS_ASSIGN_OR_RETURN(std::string ir_text, xls::GetFileContents(ir_path));
   std::string fn_body, fn_header;
-  if (transpiler_type == "yosys_plaintext") {
-    XLS_ASSIGN_OR_RETURN(fn_header, YosysTranspiler::TranslateHeader(
-                                        metadata, header_path.string()));
+  if (transpiler_type == "yosys_plaintext" ||
+      transpiler_type == "yosys_interpreted_tfhe") {
+    XLS_ASSIGN_OR_RETURN(fn_header,
+                         YosysTranspiler::TranslateHeader(
+                             metadata, header_path.string(), transpiler_type));
     XLS_ASSIGN_OR_RETURN(std::string cell_library_text,
                          xls::GetFileContents(liberty_path));
-    XLS_ASSIGN_OR_RETURN(fn_body, YosysTranspiler::Translate(
-                                      metadata, cell_library_text, ir_text));
+    XLS_ASSIGN_OR_RETURN(fn_body,
+                         YosysTranspiler::Translate(metadata, cell_library_text,
+                                                    ir_text, transpiler_type));
   } else {
     XLS_ASSIGN_OR_RETURN(auto package, xls::Parser::ParsePackage(ir_text));
     XLS_ASSIGN_OR_RETURN(xls::Function * function,

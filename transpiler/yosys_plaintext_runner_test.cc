@@ -666,10 +666,10 @@ TEST(YosysRunnerTest, IfThenElseTrue) {
   auto _then = EncodedChar('t');
   auto _else = EncodedChar('e');
   EncodedChar result;
-
-  XLS_ASSERT_OK(YosysRunner::CreateAndRun(
-      std::string(kNetlist), std::string(kMetadata), std::string(kLiberty),
-      result.get(), {_if.get(), _then.get(), _else.get()}));
+  YosysRunner runner{std::string(kLiberty), std::string(kNetlist),
+                     std::string(kMetadata)};
+  XLS_ASSERT_OK(
+      runner.Run(result.get(), {_if.get(), _then.get(), _else.get()}));
   auto r = result.Decode();
   EXPECT_EQ(r, 't');
 }
@@ -679,10 +679,10 @@ TEST(YosysRunnerTest, IfThenElseFalse) {
   auto _then = EncodedChar('t');
   auto _else = EncodedChar('e');
   EncodedChar result;
-
-  XLS_ASSERT_OK(YosysRunner::CreateAndRun(
-      std::string(kNetlist), std::string(kMetadata), std::string(kLiberty),
-      result.get(), {_if.get(), _then.get(), _else.get()}));
+  YosysRunner runner{std::string(kLiberty), std::string(kNetlist),
+                     std::string(kMetadata)};
+  XLS_ASSERT_OK(
+      runner.Run(result.get(), {_if.get(), _then.get(), _else.get()}));
   auto r = result.Decode();
   EXPECT_EQ(r, 'e');
 }

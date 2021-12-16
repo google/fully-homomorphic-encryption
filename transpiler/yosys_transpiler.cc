@@ -34,13 +34,15 @@ namespace transpiler {
 absl::StatusOr<std::string> YosysTranspiler::Translate(
     const xlscc_metadata::MetadataOutput& metadata,
     const absl::string_view cell_library_text,
-    const absl::string_view netlist_text) {
+    const absl::string_view netlist_text,
+    const absl::string_view transpiler_type) {
   static constexpr absl::string_view kSourceTemplate =
-      R"(#include "absl/status/status.h"
+      R"source(#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/types/span.h"
-#include "transpiler/yosys_plaintext_runner.h"
 #include "xls/common/status/status_macros.h"
+
+$6
 
 namespace {
 
@@ -54,17 +56,24 @@ static constexpr char kCellDefinitions[] = R"cd(
 $2
 )cd";
 
+static fully_homomorphic_encryption::transpiler::Yosys$7Runner runner(
+                            kCellDefinitions,
+                            kNetlistPackage,
+                            kFunctionMetadata);
+
 }  // namespace
 
 $3 {
-  return fully_homomorphic_encryption::transpiler::YosysRunner::CreateAndRun(
-                                    kNetlistPackage, kFunctionMetadata, kCellDefinitions,
-                                    $4, {$5});
-})";
+  return runner.Run($4, {$5}$8);
+})source";
 
   XLS_ASSIGN_OR_RETURN(const std::string signature,
-                       FunctionSignature(metadata));
-  std::string return_param = "absl::Span<bool>()";
+                       FunctionSignature(metadata, transpiler_type));
+  std::string template_type =
+      transpiler_type == "yosys_plaintext" ? "bool" : "LweSample";
+  std::string return_param =
+      absl::Substitute("absl::Span<$0>()", template_type);
+
   if (!metadata.top_func_proto().return_type().has_as_void()) {
     return_param = "result";
   }
@@ -78,16 +87,22 @@ $3 {
   XLS_CHECK(
       google::protobuf::TextFormat::PrintToString(metadata, &metadata_text));
 
-  return absl::Substitute(kSourceTemplate, netlist_text, metadata_text,
-                          cell_library_text, signature, return_param,
-                          absl::StrJoin(param_entries, ", "));
+  return absl::Substitute(
+      kSourceTemplate, netlist_text, metadata_text, cell_library_text,
+      signature, return_param, absl::StrJoin(param_entries, ", "),
+      absl::Substitute(R"hdr(#include "transpiler/yosys_$0runner.h")hdr",
+                       transpiler_type == "yosys_plaintext"
+                           ? "plaintext_"
+                           : "interpreted_tfhe_"),
+      transpiler_type == "yosys_plaintext" ? "" : "Tfhe",
+      transpiler_type == "yosys_plaintext" ? "" : ", bk");
 }
 
 absl::StatusOr<std::string> YosysTranspiler::TranslateHeader(
     const xlscc_metadata::MetadataOutput& metadata,
-    absl::string_view header_path) {
+    absl::string_view header_path, const absl::string_view transpiler_type) {
   XLS_ASSIGN_OR_RETURN(const std::string header_guard,
-                       PathToHeaderGuard(header_path));
+                       PathToHeaderGuard(header_path, transpiler_type));
   static constexpr absl::string_view kHeaderTemplate =
       R"(#ifndef $1
 #define $1
@@ -95,36 +110,52 @@ absl::StatusOr<std::string> YosysTranspiler::TranslateHeader(
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 
+$2
+
 $0;
 
 #endif  // $1
 )";
-  XLS_ASSIGN_OR_RETURN(std::string signature, FunctionSignature(metadata));
-  return absl::Substitute(kHeaderTemplate, signature, header_guard);
+  XLS_ASSIGN_OR_RETURN(std::string signature,
+                       FunctionSignature(metadata, transpiler_type));
+  return absl::Substitute(kHeaderTemplate, signature, header_guard,
+                          transpiler_type == "yosys_plaintext" ? "" : R"hdr(
+#include "tfhe/tfhe.h"
+#include "tfhe/tfhe_io.h"
+#include "transpiler/data/fhe_data.h"
+                          )hdr");
 }
 
 absl::StatusOr<std::string> YosysTranspiler::FunctionSignature(
-    const xlscc_metadata::MetadataOutput& metadata) {
+    const xlscc_metadata::MetadataOutput& metadata,
+    const absl::string_view transpiler_type) {
   std::vector<std::string> param_signatures;
+  std::string type =
+      transpiler_type == "yosys_plaintext" ? "bool" : "LweSample";
   if (!metadata.top_func_proto().return_type().has_as_void()) {
-    param_signatures.push_back("absl::Span<bool> result");
+    param_signatures.push_back(absl::Substitute("absl::Span<$0> result", type));
   }
   for (auto& param : metadata.top_func_proto().params()) {
-    param_signatures.push_back(absl::StrCat("absl::Span<bool> ", param.name()));
+    param_signatures.push_back(
+        absl::StrCat(absl::Substitute("absl::Span<$0> ", type), param.name()));
+  }
+
+  if (transpiler_type == "yosys_interpreted_tfhe") {
+    param_signatures.push_back("const TFheGateBootstrappingCloudKeySet* bk");
   }
 
   std::string function_name = metadata.top_func_proto().name().name();
-  if (param_signatures.empty()) {
-    return absl::Substitute("absl::Status $0()", function_name);
-  } else {
-    return absl::Substitute("absl::Status $0($1)", function_name,
-                            absl::StrJoin(param_signatures, ", "));
-  }
+  return absl::Substitute("absl::Status $0($1)", function_name,
+                          absl::StrJoin(param_signatures, ", "));
 }
 
 absl::StatusOr<std::string> YosysTranspiler::PathToHeaderGuard(
-    absl::string_view header_path) {
-  if (header_path == "-") return "YOSYS_GENERATE_H_";
+    absl::string_view header_path, const absl::string_view transpiler_type) {
+  std::string stem = absl::Substitute("YOSYS_$0GENERATE_H_",
+                                      transpiler_type == "yosys_plaintext"
+                                          ? "PLAINTEXT_"
+                                          : "INTERPRETED_TFHE_");
+  if (header_path == "-") return stem;
   std::string header_guard = absl::AsciiStrToUpper(header_path);
   std::transform(header_guard.begin(), header_guard.end(), header_guard.begin(),
                  [](unsigned char c) -> unsigned char {
@@ -134,7 +165,7 @@ absl::StatusOr<std::string> YosysTranspiler::PathToHeaderGuard(
                      return '_';
                    }
                  });
-  return absl::StrCat("YOSYS_GENERATE_H_", header_guard);
+  return absl::StrCat(stem, header_guard);
 }
 
 }  // namespace transpiler

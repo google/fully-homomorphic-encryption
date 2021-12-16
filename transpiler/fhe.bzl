@@ -151,7 +151,7 @@ def _fhe_transpile_ir(ctx, src, metadata, entry, transpiler):
         "-transpiler_type",
         transpiler,
     ]
-    if ctx.attr.transpiler_type == "yosys_plaintext":
+    if ctx.attr.transpiler_type == "yosys_plaintext" or ctx.attr.transpiler_type == "yosys_interpreted_tfhe":
         args += ["-liberty_path", ctx.file.cell_library.path]
 
     ctx.actions.run(
@@ -176,7 +176,7 @@ def _generate_struct_header(ctx, metadata):
         "-output_path",
         generic_struct_h.path,
     ]
-    if ctx.attr.transpiler_type == "yosys_plaintext":
+    if ctx.attr.transpiler_type == "yosys_plaintext" or ctx.attr.transpiler_type == "yosys_interpreted_tfhe":
         args.extend([
             "-struct_fields_in_declaration_order",
         ])
@@ -288,10 +288,12 @@ def _generate_netlist(ctx, verilog, entry):
 def _fhe_transpile_impl(ctx):
     ir_file, metadata_file, metadata_entry_file = _build_ir(ctx)
 
+    transpiler = ctx.attr.transpiler_type
+
     extras = []
     optimized_files = []
     netlist_file = None
-    if ctx.attr.transpiler_type == "yosys_plaintext":
+    if transpiler in ("yosys_plaintext", "yosys_interpreted_tfhe"):
         optimized_ir_file = _optimize_ir(ctx, ir_file, ".opt.ir", metadata_entry_file)
         optimized_files.append(optimized_ir_file)
         verilog_ir_file = _generate_verilog(ctx, optimized_ir_file, ".v", metadata_entry_file)
@@ -304,8 +306,7 @@ def _fhe_transpile_impl(ctx):
 
     hdrs.extend(_generate_struct_header(ctx, metadata_file))
 
-    transpiler = ctx.attr.transpiler_type
-    if transpiler == "yosys_plaintext":
+    if transpiler in ("yosys_plaintext", "yosys_interpreted_tfhe"):
         ir_input = netlist_file
     else:
         ir_input = _pick_last_bool_file(optimized_files)
@@ -314,7 +315,7 @@ def _fhe_transpile_impl(ctx):
 
     common = [ir_file, metadata_file, metadata_entry_file, out_cc] + optimized_files + hdrs
 
-    if ctx.attr.transpiler_type == "yosys_plaintext":
+    if transpiler in ("yosys_plaintext", "yosys_interpreted_tfhe"):
         return [
             DefaultInfo(files = depset(common + extras)),
             OutputGroupInfo(
@@ -371,8 +372,8 @@ fhe_transpile = rule(
         "transpiler_type": attr.string(
             doc = """
             Type of FHE library to transpile to. Choices are {tfhe, interpreted_tfhe,
-            bool, yosys_plaintext}. 'bool' and 'yosys_plaintext' do not depend on any FHE
-            libraries.
+            bool, yosys_plaintext, yosys_interpreted_tfhe}. 'bool'
+            and 'yosys_plaintext' do not depend on any FHE libraries.
             """,
             values = ["tfhe", "interpreted_tfhe", "bool", "yosys_plaintext"],
         ),
@@ -475,6 +476,15 @@ def fhe_cc_library(
         deps.extend([
             "//transpiler/data:boolean_data",
         ])
+    elif transpiler_type == "yosys_interpreted_tfhe":
+        deps.extend([
+            "@com_google_absl//absl/status:statusor",
+            "//transpiler:yosys_interpreted_tfhe_runner",
+            "//transpiler/data:boolean_data",
+            "//transpiler/data:fhe_data",
+            "@tfhe//:libtfhe",
+            "@com_google_xls//xls/common/status:status_macros",
+        ])
     elif transpiler_type == "yosys_plaintext":
         deps.extend([
             "@com_google_absl//absl/status:statusor",
@@ -482,7 +492,6 @@ def fhe_cc_library(
             "//transpiler/data:boolean_data",
             "@com_google_xls//xls/common/status:status_macros",
         ])
-        pass
     elif transpiler_type == "tfhe":
         deps.extend([
             "@tfhe//:libtfhe",

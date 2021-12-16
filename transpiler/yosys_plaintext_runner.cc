@@ -15,7 +15,6 @@
 #include "transpiler/yosys_plaintext_runner.h"
 
 #include "absl/strings/substitute.h"
-#include "google/protobuf/text_format.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
 #include "xls/ir/bits.h"
@@ -24,34 +23,117 @@
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 
-using NetRef = xls::netlist::rtl::NetRef;
-using NetlistParser = xls::netlist::rtl::Parser;
+using NetRef = xls::netlist::rtl::AbstractNetRef<OpaqueValue>;
 
-absl::Status YosysRunner::CreateAndRun(const std::string& netlist_text,
-                                       const std::string& metadata_text,
-                                       const std::string& liberty_text,
-                                       absl::Span<bool> result,
-                                       std::vector<absl::Span<bool>> args) {
-  XLS_ASSIGN_OR_RETURN(
-      auto char_stream,
-      xls::netlist::cell_lib::CharStream::FromText(liberty_text));
-  XLS_ASSIGN_OR_RETURN(auto lib_proto,
-                       xls::netlist::function::ExtractFunctions(&char_stream));
-  XLS_ASSIGN_OR_RETURN(auto cell_library, xls::netlist::CellLibrary::FromProto(
-                                              lib_proto, false, true));
-  xls::netlist::rtl::Scanner scanner(netlist_text);
-  XLS_ASSIGN_OR_RETURN(auto netlist, NetlistParser::ParseNetlist(
-                                         &cell_library, &scanner, false, true));
+using EvalFn = xls::netlist::rtl::CellOutputEvalFn<OpaqueValue>;
 
-  xlscc_metadata::MetadataOutput metadata;
-  if (!google::protobuf::TextFormat::ParseFromString(metadata_text,
-                                                     &metadata)) {
-    return absl::InvalidArgumentError(
-        "Could not parse function metadata proto.");
+// NOTE: The input order to methods YosysTfheRunner::TfheOp_* is the same as the
+// order in which the pins are declared in the Liberty file.  This is mostly as
+// you expect, but note that in the case of imux2, the pin order is "A", "B",
+// and "Y", with "Y" being the output, while bootsMUX, which handles the
+// operation, expects the control ("Y") to come first, then the inputs "A" and
+// "B".
+
+#define IMPL1(cell, OP)                                 \
+  absl::StatusOr<BoolValue> YosysRunner::TfheOp_##cell( \
+      const std::vector<BoolValue>& args) {             \
+    XLS_CHECK(args.size() == 1);                        \
+    OpaqueValue result = OP(args[0]);                   \
+    return BoolValue(result);                           \
   }
 
-  std::string function_name = metadata.top_func_proto().name().name();
-  XLS_ASSIGN_OR_RETURN(auto module, netlist->GetModule(function_name));
+#define IMPL2(cell, OP)                                 \
+  absl::StatusOr<BoolValue> YosysRunner::TfheOp_##cell( \
+      const std::vector<BoolValue>& args) {             \
+    XLS_CHECK(args.size() == 2);                        \
+    OpaqueValue result = OP(args[0], args[1]);          \
+    return BoolValue(result);                           \
+  }
+
+IMPL1(inv, [](auto a) { return !a; });
+IMPL1(buffer, [](auto a) { return a; });
+IMPL2(and2, [](auto a, auto b) { return a & b; });
+IMPL2(nand2, [](auto a, auto b) { return !(a & b); });
+IMPL2(or2, [](auto a, auto b) { return a | b; });
+IMPL2(andyn2, [](auto a, auto b) { return a & !b; });
+IMPL2(andny2, [](auto a, auto b) { return !a & b; });
+IMPL2(oryn2, [](auto a, auto b) { return a | !b; });
+IMPL2(orny2, [](auto a, auto b) { return !a | b; });
+IMPL2(nor2, [](auto a, auto b) { return !(a | b); });
+IMPL2(xor2, [](auto a, auto b) { return a ^ b; });
+IMPL2(xnor2, [](auto a, auto b) { return !(a ^ b); });
+#undef IMPL1
+#undef IMPL2
+
+absl::StatusOr<BoolValue> YosysRunner::TfheOp_imux2(
+    const std::vector<BoolValue>& args) {
+  XLS_CHECK(args.size() == 3);
+  OpaqueValue result = (args[0] & args[2]) | (args[1] & !args[2]);
+  return BoolValue(result);
+}
+
+absl::Status YosysRunner::InitializeOnce(
+    const xls::netlist::rtl::CellToOutputEvalFns<BoolValue>& eval_fns) {
+  if (state_ == nullptr) {
+    state_ = std::make_unique<YosysRunnerState>(
+        *xls::netlist::cell_lib::CharStream::FromText(liberty_text_),
+        xls::netlist::rtl::Scanner(netlist_text_));
+
+    std::cout << "Parsing netlist..." << std::endl;
+    auto start_time = absl::Now();
+    state_->netlist_ =
+        std::move(*xls::netlist::rtl::AbstractParser<BoolValue>::ParseNetlist(
+            &state_->cell_library_, &state_->scanner_, state_->zero_,
+            state_->one_));
+    std::cout << "Parsing netlist took "
+              << absl::ToDoubleSeconds(absl::Now() - start_time) << " secs"
+              << std::endl;
+
+    std::cout << "Adding cell-evaluation functions." << std::endl;
+    XLS_RETURN_IF_ERROR(state_->netlist_->AddCellEvaluationFns(eval_fns));
+    std::cout << "Done adding cell-evaluation functions." << std::endl;
+
+    std::cout << "Parsing metadata." << std::endl;
+    XLS_CHECK(google::protobuf::TextFormat::ParseFromString(
+        metadata_text_, &state_->metadata_));
+    std::cout << "Done parsing metadata." << std::endl;
+  }
+  return absl::OkStatus();
+}
+
+absl::Status YosysRunner::Run(absl::Span<OpaqueValue> result,
+                              std::vector<absl::Span<OpaqueValue>> args) {
+#define OP(name)                                       \
+  {                                                    \
+#name, {                                           \
+      {                                                \
+        "Y",                                           \
+            [this](const std::vector<BoolValue>& args) \
+                -> absl::StatusOr<BoolValue> {         \
+              return this->TfheOp_##name(args);        \
+            }                                          \
+      }                                                \
+    }                                                  \
+  }
+  if (state_ == nullptr) {
+    xls::netlist::rtl::CellToOutputEvalFns<BoolValue> tfhe_eval_map{
+        OP(inv),    OP(buffer), OP(and2),  OP(nand2), OP(or2),
+        OP(andyn2), OP(andny2), OP(oryn2), OP(orny2), OP(nor2),
+        OP(xor2),   OP(xnor2),  OP(imux2),
+    };
+
+    XLS_RETURN_IF_ERROR(InitializeOnce(tfhe_eval_map));
+  }
+#undef OP
+
+  return state_->Run(result, args);
+}
+
+absl::Status YosysRunner::YosysRunnerState::Run(
+    absl::Span<OpaqueValue> result, std::vector<absl::Span<OpaqueValue>> args) {
+  std::cout << "Setting up inputs." << std::endl;
+  std::string function_name = metadata_.top_func_proto().name().name();
+  XLS_ASSIGN_OR_RETURN(auto module, netlist_->GetModule(function_name));
 
   xls::Bits input_bits;
   for (auto arg : args) {
@@ -60,7 +142,7 @@ absl::Status YosysRunner::CreateAndRun(const std::string& netlist_text,
   }
   input_bits = xls::bits_ops::Reverse(input_bits);
 
-  absl::flat_hash_map<const NetRef, bool> input_nets;
+  absl::flat_hash_map<const NetRef, OpaqueValue> input_nets;
   const std::vector<NetRef>& module_inputs = module->inputs();
   XLS_CHECK(module_inputs.size() == input_bits.bit_count());
 
@@ -68,13 +150,17 @@ absl::Status YosysRunner::CreateAndRun(const std::string& netlist_text,
     const NetRef in = module_inputs[i];
     XLS_CHECK(!input_nets.contains(in));
     input_nets[in] = input_bits.Get(module->GetInputPortOffset(in->name()));
-    //    std::cout << "in->name(): " << in->name() << std::endl;
   }
 
-  xls::netlist::Interpreter interpreter(netlist.get(), false, true);
+  std::cout << "Interpreting module." << std::endl;
+  BoolValue zero{OpaqueValue{false}};
+  BoolValue one{OpaqueValue{true}};
+  xls::netlist::AbstractInterpreter<OpaqueValue> interpreter(netlist_.get(),
+                                                             zero, one);
   XLS_ASSIGN_OR_RETURN(auto output_nets,
                        interpreter.InterpretModule(module, input_nets, {}));
 
+  std::cout << "Collecting outputs." << std::endl;
   // Time to map the outputs returned by the netlist interpreter to the outputs
   // and in/out parameters of the source function.  We start by converting the
   // output nets to output_bit_vector--a vector of individual bit values.
@@ -96,7 +182,7 @@ absl::Status YosysRunner::CreateAndRun(const std::string& netlist_text,
   out += result.size();
 
   // The remaining output wires in the netlist follow the declaration order of
-  // the input wires in the verilog file.  Support you have the following
+  // the input wires in the verilog file.  Suppose you have the following
   // netlist:
   //
   // module foo(a, b, c, out);
@@ -120,59 +206,57 @@ absl::Status YosysRunner::CreateAndRun(const std::string& netlist_text,
   // Therefore, we have to identify which parts of the output wires correspond
   // to each of the input arguments.
   size_t copied = result.size();
-  for (int i = 0; i < module_inputs.size();) {
+  for (int i = 0; i < module_inputs.size(); i++) {
     // Start by pulling off the first input net wire.  Following the example
     // above, it will have the name "c[0]".  (When we get to the single-wire "a"
     // next, the name will simply be "a".).
     std::vector<std::string> name_and_idx =
         absl::StrSplit(module_inputs[i]->name(), '[');
-    // Look for the non-indexed name ("c") in the example above in the list of
+    // Look for the non-indexed name ("c" in the example above) in the list of
     // function arguments, which we can access from the metadata.
     auto found = std::find_if(
-        metadata.top_func_proto().params().cbegin(),
-        metadata.top_func_proto().params().cend(),
+        metadata_.top_func_proto().params().cbegin(),
+        metadata_.top_func_proto().params().cend(),
         [&name_and_idx](const xlscc_metadata::FunctionParameter& arg) {
           return arg.name() == name_and_idx[0];
         });
     // We must be able to find that parameter--failing to is a bug, as we
     // autogenerate both the netlist and the metadata from the same source file,
     // and provide these parameters to this method.
-    XLS_CHECK(found != metadata.top_func_proto().params().cend());
-    // Find the index of the argument for our match.  In our example, it will be
-    // 2, since args[2] is the span for the encoded form of argument "c".
-    size_t params_i =
-        std::distance(metadata.top_func_proto().params().begin(), found);
-    // Get the bit size of the argument (e.g., 8 since "c" is defined to be a
-    // byte.)
-    auto arg_size = args[params_i].size();
+    XLS_CHECK(found != metadata_.top_func_proto().params().cend());
 
     if (found->is_reference() && !found->is_const()) {
-      // Now, the out[i] is the return value for c[0], out[i+1] the return value
-      // for c[1], and so on.  Copy that range directly into the span
-      // representing argument "c", which is exactly args[2].
-      //
-      // NOTE: We make a big assumption here, which is that the remaining wires
-      // will follow the order 0, 1, 2, ... and so on rather than some random
-      // order.  If that assumption does not hold, then we can replace this copy
-      // with a single bit and run this loop for each input wire.
-      std::copy_n(out + i, arg_size, args[params_i].begin());
-      // Consistency check: if we saw an indexed name, e.g. "c[?]", then assert
-      // that ? == 0.  This does not fully enforce the assumption we make above,
-      // but helps a bit.
+      // Find the index of the argument for our match.  In our example, it will
+      // be 2, since args[2] is the span for the encoded form of argument "c".
+      size_t params_i =
+          std::distance(metadata_.top_func_proto().params().begin(), found);
+      // Get the bit size of the argument (e.g., 8 since "c" is defined to be a
+      // byte.)
+      size_t arg_size = args[params_i].size();
+
+      // Now read out the index of the parameter itself (e.g., the 0 in "c[0]").
+      size_t params_i_idx = 0;
       if (name_and_idx.size() == 2) {
         absl::string_view idx = absl::StripSuffix(name_and_idx[1], "]");
-        int64_t idx_out;
-        XLS_CHECK(absl::SimpleAtoi(idx, &idx_out));
-        XLS_CHECK(idx_out == 0);
+        XLS_CHECK(absl::SimpleAtoi(idx, &params_i_idx));
       }
-      copied += arg_size;
+      // The i'th parameter subscript must be within range (e.g., 0 must be less
+      // than 8, since c is a byte in out example.)
+      XLS_CHECK(params_i_idx < arg_size);
+      // Now, the out[i] is the return value for c[0] from the example above.
+      // More generally, out[i] is the write-back value of the param_i'th
+      // argument at index param_i_idx.  Copy that bit directly into the output.
+      // In our example, this represents argument "c" at index 0, which is
+      // exactly args[2].
+      const auto* src = (out + i);
+      auto* dest = args[params_i].data() + params_i_idx;
+      *dest = *src;
+      copied++;
     }
-
-    // Now that we've handled (either copied or skipped) the result into the
-    // argument, skip ahead by the bit size of the argument.
-    i += arg_size;
   }
   XLS_CHECK(copied == output_bit_vector.size());
+
+  std::cout << "Done." << std::endl;
 
   return absl::OkStatus();
 }
