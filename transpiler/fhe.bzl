@@ -304,7 +304,8 @@ def _fhe_transpile_impl(ctx):
 
     hdrs = []
 
-    hdrs.extend(_generate_struct_header(ctx, metadata_file))
+    if transpiler != "palisade":
+        hdrs.extend(_generate_struct_header(ctx, metadata_file))
 
     if transpiler in ("yosys_plaintext", "yosys_interpreted_tfhe"):
         ir_input = netlist_file
@@ -372,10 +373,10 @@ fhe_transpile = rule(
         "transpiler_type": attr.string(
             doc = """
             Type of FHE library to transpile to. Choices are {tfhe, interpreted_tfhe,
-            bool, yosys_plaintext, yosys_interpreted_tfhe}. 'bool'
+            palisade, bool, yosys_plaintext, yosys_interpreted_tfhe}. 'bool'
             and 'yosys_plaintext' do not depend on any FHE libraries.
             """,
-            values = ["tfhe", "interpreted_tfhe", "bool", "yosys_plaintext"],
+            values = ["tfhe", "interpreted_tfhe", "palisade", "bool", "yosys_plaintext", "yosys_interpreted_tfhe"],
         ),
         "cell_library": attr.label(
             doc = "A single cell-definition library in Liberty format.",
@@ -506,6 +507,12 @@ def fhe_cc_library(
             "//transpiler/data:fhe_data",
             "@tfhe//:libtfhe",
             "@com_google_xls//xls/common/status:status_macros",
+        ])
+    elif transpiler_type == "palisade":
+        deps.extend([
+            "//transpiler/data:boolean_data",
+            "//transpiler/data:fhe_data",
+            "@palisade//:binfhe",
         ])
 
     native.cc_library(

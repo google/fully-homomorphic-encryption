@@ -2,14 +2,21 @@
 
 workspace(name = "com_google_fully_homomorphic_encryption")
 
+load(
+    "@bazel_tools//tools/build_defs/repo:git.bzl",
+    "new_git_repository",
+)
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 # Install TFHE
 http_archive(
     name = "rules_foreign_cc",
-    sha256 = "e60cfd0a8426fa4f5fd2156e768493ca62b87d125cb35e94c44e79a3f0d8635f",
-    strip_prefix = "rules_foreign_cc-0.2.0",
-    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.2.0.zip",
+    sha256 = "e2753b15ca6384d8f3afbe3d92375dfbec3545caff91001d6713bbefeb1ca5fa",
+    strip_prefix = "rules_foreign_cc-40b03b42eb2d3ac65b58e95e6c7fce7e8c902117",
+    # We need to use a pre-release version of rules_foreign_cc, as our PALISADE
+    # integration requires the `includes` parameter... which was added to
+    # rules_foreign_cc just *after* the 0.7.0 release closed.
+    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/40b03b42eb2d3ac65b58e95e6c7fce7e8c902117.zip",
 )
 
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
@@ -22,6 +29,18 @@ http_archive(
     sha256 = "7ad88b70b389bfdb871488a90372b0cecd9ba731183ba02c3cd0ce86c9adcc93",
     strip_prefix = "tfhe-a085efe91314f994285fcb06ab8bdae3d55e4505",
     url = "https://github.com/tfhe/tfhe/archive/a085efe91314f994285fcb06ab8bdae3d55e4505.tar.gz",
+)
+
+# Install PALISADE
+
+new_git_repository(
+    name = "palisade",
+    build_file = "//patches:palisade.BUILD",
+    remote = "https://gitlab.com/palisade/palisade-release.git",
+    # tag: v1.11.5
+    commit = "d76213499af44558170cca6c72c5314755fec23c",
+    init_submodules = True,
+    shallow_since = "1631909486 +0000",
 )
 
 # Install XLS with transitive dependencies.

@@ -31,6 +31,7 @@
 #include "absl/strings/string_view.h"
 #include "transpiler/cc_transpiler.h"
 #include "transpiler/interpreted_tfhe_transpiler.h"
+#include "transpiler/palisade_transpiler.h"
 #include "transpiler/tfhe_transpiler.h"
 #include "transpiler/util/subprocess.h"
 #include "transpiler/util/temp_file.h"
@@ -56,10 +57,9 @@ ABSL_FLAG(std::string, cc_path, "-",
           "stdout after the header file.");
 ABSL_FLAG(std::string, transpiler_type, "tfhe",
           "Sets the transpiler type; must be one of {tfhe, interpreted_tfhe, "
-          "bool, yosys_plaintext}. 'bool' and 'yosys_plaintext' use  "
-          "native Boolean "
-          "operations on plaintext rather than an FHE library, so is mostly "
-          "useful for debugging.");
+          "palisade, bool, yosys_plaintext}. 'bool' and 'yosys_plaintext' use "
+          "native Boolean operations on plaintext rather than an FHE library, "
+          "so are mostly useful for debugging.");
 ABSL_FLAG(std::string, liberty_path, "",
           "Path to cell-definition library in Liberty format.");
 
@@ -122,6 +122,12 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
       XLS_ASSIGN_OR_RETURN(
           fn_header, TfheTranspiler::TranslateHeader(function, metadata,
                                                      header_path.string()));
+    } else if (transpiler_type == "palisade") {
+      XLS_ASSIGN_OR_RETURN(fn_body,
+                           PalisadeTranspiler::Translate(function, metadata));
+      XLS_ASSIGN_OR_RETURN(
+          fn_header, PalisadeTranspiler::TranslateHeader(function, metadata,
+                                                         header_path.string()));
     } else {
       return absl::InvalidArgumentError(
           absl::StrCat("Invalid transpiler type: ", transpiler_type));

@@ -216,6 +216,23 @@ cc_test(
     ],
 )
 
+cc_library(
+    name = "palisade_transpiler",
+    srcs = ["palisade_transpiler.cc"],
+    hdrs = ["palisade_transpiler.h"],
+    deps = [
+        ":abstract_xls_transpiler",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings:str_format",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@com_google_xls//xls/ir",
+        "@com_google_xls//xls/public:value",
+    ],
+)
+
 cc_binary(
     name = "transpiler",
     srcs = ["transpiler_main.cc"],
@@ -226,6 +243,7 @@ cc_binary(
     deps = [
         ":cc_transpiler",
         ":interpreted_tfhe_transpiler",
+        ":palisade_transpiler",
         ":tfhe_transpiler",
         ":yosys_transpiler",
         "//transpiler/util:subprocess",

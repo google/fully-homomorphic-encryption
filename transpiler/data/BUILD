@@ -25,3 +25,15 @@ cc_library(
         "@tfhe//:libtfhe",
     ],
 )
+
+cc_library(
+    name = "palisade_data",
+    hdrs = ["palisade_data.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":boolean_data",
+        "@com_google_absl//absl/container:fixed_array",
+        "@com_google_absl//absl/types:span",
+        "@palisade//:binfhe",
+    ],
+)
