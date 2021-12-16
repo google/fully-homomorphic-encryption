@@ -62,6 +62,60 @@ cc_library(
 )
 
 cc_library(
+    name = "yosys_transpiler",
+    srcs = ["yosys_transpiler.cc"],
+    hdrs = ["yosys_transpiler.h"],
+    deps = [
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings:str_format",
+        "@com_google_protobuf//:protobuf",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
+    ],
+)
+
+cc_library(
+    name = "yosys_plaintext_runner",
+    srcs = ["yosys_plaintext_runner.cc"],
+    hdrs = ["yosys_plaintext_runner.h"],
+    deps = [
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+        "@com_google_protobuf//:protobuf",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
+        "@com_google_xls//xls/ir:bits",
+        "@com_google_xls//xls/ir:bits_ops",
+        "@com_google_xls//xls/netlist:cell_library",
+        "@com_google_xls//xls/netlist:function_extractor",
+        "@com_google_xls//xls/netlist:interpreter",
+        "@com_google_xls//xls/netlist:lib_parser",
+        "@com_google_xls//xls/netlist:netlist_parser",
+    ],
+)
+
+cc_test(
+    name = "yosys_plaintext_runner_test",
+    srcs = ["yosys_plaintext_runner_test.cc"],
+    deps = [
+        ":yosys_plaintext_runner",
+        "//transpiler/data:boolean_data",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_xls//xls/common/status:matchers",
+        "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
+    ],
+)
+
+cc_library(
     name = "tfhe_runner",
     srcs = ["tfhe_runner.cc"],
     hdrs = ["tfhe_runner.h"],
@@ -147,6 +201,7 @@ cc_binary(
         ":cc_transpiler",
         ":interpreted_tfhe_transpiler",
         ":tfhe_transpiler",
+        ":yosys_transpiler",
         "//transpiler/util:subprocess",
         "//transpiler/util:temp_file",
         "@com_google_absl//absl/flags:flag",
@@ -158,6 +213,7 @@ cc_binary(
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
         "@com_google_xls//xls/ir",
+        "@com_google_xls//xls/ir:bits",
         "@com_google_xls//xls/ir:ir_parser",
     ],
 )

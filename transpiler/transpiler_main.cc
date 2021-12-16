@@ -34,9 +34,11 @@
 #include "transpiler/tfhe_transpiler.h"
 #include "transpiler/util/subprocess.h"
 #include "transpiler/util/temp_file.h"
+#include "transpiler/yosys_transpiler.h"
 #include "xls/common/file/filesystem.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
+#include "xls/ir/bits.h"
 #include "xls/ir/function.h"
 #include "xls/ir/ir_parser.h"
 #include "xls/ir/package.h"
@@ -64,7 +66,7 @@ ABSL_FLAG(std::string, liberty_path, "",
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 
-absl::Status RealMain(const std::filesystem::path& booleanized_path,
+absl::Status RealMain(const std::filesystem::path& ir_path,
                       const std::filesystem::path& header_path,
                       const std::filesystem::path& cc_path,
                       const std::filesystem::path& metadata_path) {
@@ -85,33 +87,42 @@ absl::Status RealMain(const std::filesystem::path& booleanized_path,
 
   const std::string& function_name = metadata.top_func_proto().name().name();
 
-  XLS_ASSIGN_OR_RETURN(std::string ir_text,
-                       xls::GetFileContents(booleanized_path));
-  XLS_ASSIGN_OR_RETURN(auto package, xls::Parser::ParsePackage(ir_text));
-  XLS_ASSIGN_OR_RETURN(xls::Function * function,
-                       package->GetFunction(function_name));
-
+  XLS_ASSIGN_OR_RETURN(std::string ir_text, xls::GetFileContents(ir_path));
   std::string fn_body, fn_header;
-  if (transpiler_type == "bool") {
-    XLS_ASSIGN_OR_RETURN(fn_body, CcTranspiler::Translate(function, metadata));
-    XLS_ASSIGN_OR_RETURN(fn_header,
-                         CcTranspiler::TranslateHeader(function, metadata,
-                                                       header_path.string()));
-  } else if (transpiler_type == "interpreted_tfhe") {
-    XLS_ASSIGN_OR_RETURN(
-        fn_body, InterpretedTfheTranspiler::Translate(function, metadata));
-    XLS_ASSIGN_OR_RETURN(fn_header,
-                         InterpretedTfheTranspiler::TranslateHeader(
-                             function, metadata, header_path.string()));
-  } else if (transpiler_type == "tfhe") {
-    XLS_ASSIGN_OR_RETURN(fn_body,
-                         TfheTranspiler::Translate(function, metadata));
-    XLS_ASSIGN_OR_RETURN(fn_header,
-                         TfheTranspiler::TranslateHeader(function, metadata,
-                                                         header_path.string()));
+  if (transpiler_type == "yosys_plaintext") {
+    XLS_ASSIGN_OR_RETURN(fn_header, YosysTranspiler::TranslateHeader(
+                                        metadata, header_path.string()));
+    XLS_ASSIGN_OR_RETURN(std::string cell_library_text,
+                         xls::GetFileContents(liberty_path));
+    XLS_ASSIGN_OR_RETURN(fn_body, YosysTranspiler::Translate(
+                                      metadata, cell_library_text, ir_text));
   } else {
-    return absl::InvalidArgumentError(
-        absl::StrCat("Invalid transpiler type: ", transpiler_type));
+    XLS_ASSIGN_OR_RETURN(auto package, xls::Parser::ParsePackage(ir_text));
+    XLS_ASSIGN_OR_RETURN(xls::Function * function,
+                         package->GetFunction(function_name));
+
+    if (transpiler_type == "bool") {
+      XLS_ASSIGN_OR_RETURN(fn_body,
+                           CcTranspiler::Translate(function, metadata));
+      XLS_ASSIGN_OR_RETURN(fn_header,
+                           CcTranspiler::TranslateHeader(function, metadata,
+                                                         header_path.string()));
+    } else if (transpiler_type == "interpreted_tfhe") {
+      XLS_ASSIGN_OR_RETURN(
+          fn_body, InterpretedTfheTranspiler::Translate(function, metadata));
+      XLS_ASSIGN_OR_RETURN(fn_header,
+                           InterpretedTfheTranspiler::TranslateHeader(
+                               function, metadata, header_path.string()));
+    } else if (transpiler_type == "tfhe") {
+      XLS_ASSIGN_OR_RETURN(fn_body,
+                           TfheTranspiler::Translate(function, metadata));
+      XLS_ASSIGN_OR_RETURN(
+          fn_header, TfheTranspiler::TranslateHeader(function, metadata,
+                                                     header_path.string()));
+    } else {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Invalid transpiler type: ", transpiler_type));
+    }
   }
 
   if (header_path == "-") {

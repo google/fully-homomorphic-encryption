@@ -96,7 +96,7 @@ def _booleanify_ir(ctx, src, extension, entry):
     """Optimize XLS IR."""
     return _run(ctx, [src, entry], extension, ctx.executable._xls_booleanify, ["--ir_path", src.path], entry)
 
-def _optimize(ctx, ir_file, entry):
+def _optimize_and_booleanify_repeatedly(ctx, ir_file, entry):
     """Runs several passes of optimization followed by booleanification.
 
     Returns [%.opt.ir, %.opt.bool.ir, %.opt.bool.opt.ir, %.opt.bool.opt.bool.ir, ...]
@@ -120,7 +120,7 @@ def _optimize(ctx, ir_file, entry):
     return results[1:]
 
 def _pick_last_bool_file(optimized_files):
-    """ Pick the last booleanifed IR file from a list of file produced by _optimize().
+    """ Pick the last booleanifed IR file from a list of file produced by _optimize_and_booleanify_repeatedly().
 
     The last %.*.bool.ir file may or may not be the smallest one.  For some IR
     inputs, an additional optimization/booleanification pass results in a
@@ -155,7 +155,7 @@ def _fhe_transpile_ir(ctx, src, metadata, entry, transpiler):
         args += ["-liberty_path", ctx.file.cell_library.path]
 
     ctx.actions.run(
-        inputs = [src, metadata],
+        inputs = [src, metadata, ctx.file.cell_library],
         outputs = [out_cc, out_h],
         executable = ctx.executable._fhe_transpiler,
         arguments = args,
@@ -288,28 +288,27 @@ def _generate_netlist(ctx, verilog, entry):
 def _fhe_transpile_impl(ctx):
     ir_file, metadata_file, metadata_entry_file = _build_ir(ctx)
 
-    optimized_files = _optimize(ctx, ir_file, metadata_entry_file)
-
     extras = []
+    optimized_files = []
+    netlist_file = None
     if ctx.attr.transpiler_type == "yosys_plaintext":
-        optimized_ir_file = optimized_files[0]
+        optimized_ir_file = _optimize_ir(ctx, ir_file, ".opt.ir", metadata_entry_file)
+        optimized_files.append(optimized_ir_file)
         verilog_ir_file = _generate_verilog(ctx, optimized_ir_file, ".v", metadata_entry_file)
         netlist_file, yosys_script_file = _generate_netlist(ctx, verilog_ir_file, metadata_entry_file)
         extras = [verilog_ir_file, netlist_file, yosys_script_file]
+    else:
+        optimized_files = _optimize_and_booleanify_repeatedly(ctx, ir_file, metadata_entry_file)
 
     hdrs = []
 
-    if ctx.attr.transpiler_type != "yosys_plaintext":
-        hdrs.extend(_generate_struct_header(ctx, metadata_file))
+    hdrs.extend(_generate_struct_header(ctx, metadata_file))
 
-    if ctx.attr.transpiler_type == "yosys_plaintext":
-        # TODO: actually pass netlist and cell_library to transpiler.
-        # ir_input = netlist_file
-        ir_input = _pick_last_bool_file(optimized_files)
-        transpiler = "bool"
+    transpiler = ctx.attr.transpiler_type
+    if transpiler == "yosys_plaintext":
+        ir_input = netlist_file
     else:
         ir_input = _pick_last_bool_file(optimized_files)
-        transpiler = ctx.attr.transpiler_type
     out_cc, out_h = _fhe_transpile_ir(ctx, ir_input, metadata_file, metadata_entry_file, transpiler)
     hdrs.append(out_h)
 
@@ -468,20 +467,24 @@ def fhe_cc_library(
         tags = tags,
     )
 
-    deps = ["@com_google_absl//absl/status"]
+    deps = [
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/types:span",
+    ]
     if transpiler_type == "bool":
         deps.extend([
-            "@com_google_absl//absl/types:span",
             "//transpiler/data:boolean_data",
         ])
     elif transpiler_type == "yosys_plaintext":
         deps.extend([
-            "@com_google_absl//absl/types:span",
+            "@com_google_absl//absl/status:statusor",
+            "//transpiler:yosys_plaintext_runner",
+            "//transpiler/data:boolean_data",
+            "@com_google_xls//xls/common/status:status_macros",
         ])
         pass
     elif transpiler_type == "tfhe":
         deps.extend([
-            "@com_google_absl//absl/types:span",
             "@tfhe//:libtfhe",
             "//transpiler/data:boolean_data",
             "//transpiler/data:fhe_data",
@@ -489,7 +492,6 @@ def fhe_cc_library(
     elif transpiler_type == "interpreted_tfhe":
         deps.extend([
             "@com_google_absl//absl/status:statusor",
-            "@com_google_absl//absl/types:span",
             "//transpiler:tfhe_runner",
             "//transpiler/data:boolean_data",
             "//transpiler/data:fhe_data",

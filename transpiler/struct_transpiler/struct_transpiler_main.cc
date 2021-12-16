@@ -77,7 +77,8 @@ absl::Status RealMain(absl::string_view metadata_path,
       return xls::SetFileContents(output_path, specific_result);
     }
     std::cout << specific_result << std::endl;
-  } else if (transpiler_type == "bool") {
+  } else if (transpiler_type == "bool" ||
+             transpiler_type == "yosys_plaintext") {
     XLS_ASSIGN_OR_RETURN(std::string specific_result,
                          ConvertStructsToEncodedBool(generic_header_path,
                                                      metadata, output_path));
