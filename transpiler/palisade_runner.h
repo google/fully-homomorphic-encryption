@@ -62,7 +62,7 @@ class PalisadeRunner
     lbcrypto::LWECiphertext Constant(bool value) override;
 
     void Copy(const lbcrypto::LWECiphertext src,
-              lbcrypto::LWECiphertext dst) override;
+              lbcrypto::LWECiphertext& dst) override;
 
     lbcrypto::LWECiphertext CopyOf(const lbcrypto::LWECiphertext src) override;
 

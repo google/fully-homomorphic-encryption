@@ -48,7 +48,7 @@ lbcrypto::LWECiphertext PalisadeRunner::PalisadeOperations::Constant(
 }
 
 void PalisadeRunner::PalisadeOperations::Copy(const lbcrypto::LWECiphertext src,
-                                              lbcrypto::LWECiphertext dst) {
+                                              lbcrypto::LWECiphertext& dst) {
   dst = src;
 }
 

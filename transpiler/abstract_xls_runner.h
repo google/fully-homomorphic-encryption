@@ -75,7 +75,7 @@ class AbstractXlsRunner {
 
     virtual EncodedBit Constant(bool value) = 0;
 
-    virtual void Copy(const EncodedBitRef src, EncodedBitRef dst) = 0;
+    virtual void Copy(const EncodedBitRef src, EncodedBitRef& dst) = 0;
 
     virtual EncodedBit CopyOf(const EncodedBitRef in) = 0;
   };

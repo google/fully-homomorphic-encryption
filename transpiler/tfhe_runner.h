@@ -94,7 +94,7 @@ class TfheRunner
 
     TfheCiphertext Constant(bool value) override;
 
-    void Copy(const TfheCiphertextRef src, TfheCiphertextRef dst) override;
+    void Copy(const TfheCiphertextRef src, TfheCiphertextRef& dst) override;
 
     TfheCiphertext CopyOf(TfheCiphertextRef src) override;
 

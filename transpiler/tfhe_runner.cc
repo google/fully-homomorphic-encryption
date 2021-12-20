@@ -60,13 +60,13 @@ TfheCiphertext TfheRunner::TfheOperations::Constant(bool value) {
 }
 
 void TfheRunner::TfheOperations::Copy(const TfheCiphertextRef src,
-                                      TfheCiphertextRef dst) {
+                                      TfheCiphertextRef& dst) {
   bootsCOPY(dst.get(), src.get(), bk_);
 }
 
 TfheCiphertext TfheRunner::TfheOperations::CopyOf(TfheCiphertextRef src) {
   TfheCiphertext dst(bk_->params);
-  Copy(src, dst);
+  bootsCOPY(dst.get(), src.get(), bk_);
   return dst;
 }
 
