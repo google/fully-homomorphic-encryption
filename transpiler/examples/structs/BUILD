@@ -53,9 +53,37 @@ cc_library(
 )
 
 fhe_cc_library(
+    name = "return_struct_bool",
+    src = "return_struct.cc",
+    hdrs = ["return_struct.h"],
+    transpiler_type = "bool",
+)
+
+fhe_cc_library(
+    name = "return_struct_yosys_plaintext",
+    src = "return_struct.cc",
+    hdrs = ["return_struct.h"],
+    transpiler_type = "yosys_plaintext",
+)
+
+fhe_cc_library(
     name = "return_struct_tfhe",
     src = "return_struct.cc",
     hdrs = ["return_struct.h"],
+)
+
+fhe_cc_library(
+    name = "return_struct_yosys_interpreted_tfhe",
+    src = "return_struct.cc",
+    hdrs = ["return_struct.h"],
+    transpiler_type = "yosys_interpreted_tfhe",
+)
+
+fhe_cc_library(
+    name = "return_struct_interpreted_tfhe",
+    src = "return_struct.cc",
+    hdrs = ["return_struct.h"],
+    transpiler_type = "interpreted_tfhe",
 )
 
 cc_binary(
@@ -67,6 +95,55 @@ cc_binary(
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "return_struct_interpreted_tfhe_testbench",
+    srcs = ["return_struct_tfhe_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_TFHE"],
+    deps = [
+        ":return_struct_interpreted_tfhe",
+        "//transpiler/data:fhe_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "return_struct_yosys_interpreted_tfhe_testbench",
+    srcs = ["return_struct_tfhe_testbench.cc"],
+    copts = ["-DUSE_YOSYS_INTERPRETED_TFHE"],
+    deps = [
+        ":return_struct_yosys_interpreted_tfhe",
+        "//transpiler/data:fhe_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "return_struct_bool_testbench",
+    srcs = ["return_struct_bool_testbench.cc"],
+    deps = [
+        ":return_struct_bool",
+        "//transpiler/data:boolean_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+    ],
+)
+
+cc_binary(
+    name = "return_struct_yosys_plaintext_testbench",
+    srcs = ["return_struct_bool_testbench.cc"],
+    copts = ["-DUSE_YOSYS_PLAINTEXT"],
+    deps = [
+        ":return_struct_yosys_plaintext",
+        "//transpiler/data:boolean_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
     ],
 )
 
@@ -130,11 +207,69 @@ fhe_cc_library(
     hdrs = ["struct_of_structs.h"],
 )
 
+fhe_cc_library(
+    name = "struct_of_structs_bool",
+    src = "struct_of_structs.cc",
+    hdrs = ["struct_of_structs.h"],
+    transpiler_type = "bool",
+)
+
+fhe_cc_library(
+    name = "struct_of_structs_yosys_plaintext",
+    src = "struct_of_structs.cc",
+    hdrs = ["struct_of_structs.h"],
+    transpiler_type = "yosys_plaintext",
+)
+
+fhe_cc_library(
+    name = "struct_of_structs_yosys_interpreted_tfhe",
+    src = "struct_of_structs.cc",
+    hdrs = ["struct_of_structs.h"],
+    transpiler_type = "yosys_interpreted_tfhe",
+)
+
+cc_binary(
+    name = "struct_of_structs_bool_testbench",
+    srcs = ["struct_of_structs_bool_testbench.cc"],
+    deps = [
+        ":struct_of_structs_bool",
+        "//transpiler/data:boolean_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "struct_of_structs_yosys_plaintext_testbench",
+    srcs = ["struct_of_structs_bool_testbench.cc"],
+    copts = ["-DUSE_YOSYS_PLAINTEXT"],
+    deps = [
+        ":struct_of_structs_yosys_plaintext",
+        "//transpiler/data:boolean_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+    ],
+)
+
 cc_binary(
     name = "struct_of_structs_tfhe_testbench",
     srcs = ["struct_of_structs_tfhe_testbench.cc"],
     deps = [
         ":struct_of_structs_tfhe",
+        "//transpiler/data:fhe_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "struct_of_structs_yosys_interpreted_tfhe_testbench",
+    srcs = ["struct_of_structs_tfhe_testbench.cc"],
+    copts = ["-DUSE_YOSYS_INTERPRETED_TFHE"],
+    deps = [
+        ":struct_of_structs_yosys_interpreted_tfhe",
         "//transpiler/data:fhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
@@ -154,6 +289,34 @@ fhe_cc_library(
     hdrs = ["struct_with_array.h"],
 )
 
+fhe_cc_library(
+    name = "struct_with_array_interpreted_tfhe",
+    src = "struct_with_array.cc",
+    hdrs = ["struct_with_array.h"],
+    transpiler_type = "interpreted_tfhe",
+)
+
+fhe_cc_library(
+    name = "struct_with_array_bool",
+    src = "struct_with_array.cc",
+    hdrs = ["struct_with_array.h"],
+    transpiler_type = "bool",
+)
+
+fhe_cc_library(
+    name = "struct_with_array_yosys_plaintext",
+    src = "struct_with_array.cc",
+    hdrs = ["struct_with_array.h"],
+    transpiler_type = "yosys_plaintext",
+)
+
+fhe_cc_library(
+    name = "struct_with_array_yosys_interpreted_tfhe",
+    src = "struct_with_array.cc",
+    hdrs = ["struct_with_array.h"],
+    transpiler_type = "yosys_interpreted_tfhe",
+)
+
 cc_binary(
     name = "struct_with_array_tfhe_testbench",
     srcs = ["struct_with_array_tfhe_testbench.cc"],
@@ -163,6 +326,53 @@ cc_binary(
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "struct_with_array_interpreted_tfhe_testbench",
+    srcs = ["struct_with_array_tfhe_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_TFHE"],
+    deps = [
+        ":struct_with_array_interpreted_tfhe",
+        "//transpiler/data:fhe_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "struct_with_array_yosys_interpreted_tfhe_testbench",
+    srcs = ["struct_with_array_tfhe_testbench.cc"],
+    copts = ["-DUSE_YOSYS_INTERPRETED_TFHE"],
+    deps = [
+        ":struct_with_array_yosys_interpreted_tfhe",
+        "//transpiler/data:fhe_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "struct_with_array_bool_testbench",
+    srcs = ["struct_with_array_bool_testbench.cc"],
+    deps = [
+        ":struct_with_array_bool",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+    ],
+)
+
+cc_binary(
+    name = "struct_with_array_yosys_plaintext_testbench",
+    srcs = ["struct_with_array_bool_testbench.cc"],
+    copts = ["-DUSE_YOSYS_PLAINTEXT"],
+    deps = [
+        ":struct_with_array_yosys_plaintext",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
     ],
 )
 
@@ -178,31 +388,11 @@ fhe_cc_library(
     hdrs = ["struct_with_struct_array.h"],
 )
 
-fhe_cc_library(
-    name = "struct_with_array_interpreted_tfhe",
-    src = "struct_with_array.cc",
-    hdrs = ["struct_with_array.h"],
-    transpiler_type = "interpreted_tfhe",
-)
-
 cc_binary(
     name = "struct_with_struct_array_tfhe_testbench",
     srcs = ["struct_with_struct_array_tfhe_testbench.cc"],
     deps = [
         ":struct_with_struct_array_tfhe",
-        "//transpiler/data:fhe_data",
-        "@com_google_xls//xls/common/logging",
-        "@com_google_xls//xls/common/status:status_macros",
-        "@tfhe//:libtfhe",
-    ],
-)
-
-cc_binary(
-    name = "struct_with_array_interpreted_tfhe_testbench",
-    srcs = ["struct_with_array_tfhe_testbench.cc"],
-    copts = ["-DUSE_INTERPRETED_TFHE"],
-    deps = [
-        ":struct_with_array_interpreted_tfhe",
         "//transpiler/data:fhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",

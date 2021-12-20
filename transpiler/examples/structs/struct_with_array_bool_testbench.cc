@@ -15,35 +15,17 @@
 #include <cstdint>
 #include <iostream>
 
-#include "xls/common/logging/logging.h"
-#ifdef USE_INTERPRETED_TFHE
-#include "transpiler/examples/structs/struct_with_array_interpreted_tfhe.h"
-#include "transpiler/examples/structs/struct_with_array_interpreted_tfhe.types.h"
-#elif USE_YOSYS_INTERPRETED_TFHE
-#include "transpiler/examples/structs/struct_with_array_yosys_interpreted_tfhe.h"
-#include "transpiler/examples/structs/struct_with_array_yosys_interpreted_tfhe.types.h"
+#ifdef USE_YOSYS_PLAINTEXT
+#include "transpiler/examples/structs/struct_with_array_yosys_plaintext.h"
+#include "transpiler/examples/structs/struct_with_array_yosys_plaintext.types.h"
 #else
-#include "transpiler/examples/structs/struct_with_array_tfhe.h"
-#include "transpiler/examples/structs/struct_with_array_tfhe.types.h"
+#include "transpiler/examples/structs/struct_with_array_bool.h"
+#include "transpiler/examples/structs/struct_with_array_bool.types.h"
 #endif
-#include "tfhe/tfhe.h"
 
-const int main_minimum_lambda = 120;
+#include "xls/common/logging/logging.h"
 
 int main(int argc, char** argv) {
-  // Generate a keyset.
-  TFheGateBootstrappingParameterSet* params =
-      new_default_gate_bootstrapping_parameters(main_minimum_lambda);
-
-  // Generate a "random" key.
-  // Note: In real applications, a cryptographically secure seed needs to be
-  // used.
-  uint32_t seed[] = {314, 1592, 657};
-  tfhe_random_generator_setSeed(seed, 3);
-  TFheGateBootstrappingSecretKeySet* key =
-      new_random_gate_bootstrapping_secret_keyset(params);
-  const TFheGateBootstrappingCloudKeySet* cloud_key = &key->cloud;
-
   StructWithArray input;
   input.c = 11;
   input.i.q = 44;
@@ -69,17 +51,17 @@ int main(int argc, char** argv) {
     inner.c[i] = i * 1111;
   }
 
-  FheStructWithArray fhe_struct_with_array(params);
-  fhe_struct_with_array.SetEncrypted(input, key);
+  EncodedStructWithArray encoded_struct_with_array;
+  encoded_struct_with_array.Encode(input);
 
-  FheInt fhe_other(params);
-  fhe_other.SetEncrypted(other, key);
+  EncodedInt encoded_other;
+  encoded_other.Encode(other);
 
-  FheInner fhe_inner(params);
-  fhe_inner.SetEncrypted(inner, key);
+  EncodedInner encoded_inner;
+  encoded_inner.Encode(inner);
 
   std::cout << "Initial round-trip check: " << std::endl << std::endl;
-  StructWithArray round_trip = fhe_struct_with_array.Decrypt(key);
+  StructWithArray round_trip = encoded_struct_with_array.Decode();
   std::cout << "  c: " << (signed)round_trip.c << std::endl;
   for (int i = 0; i < C_COUNT; i++) {
     std::cout << "  i.c[" << i << "]: " << round_trip.i.c[i] << std::endl;
@@ -92,9 +74,9 @@ int main(int argc, char** argv) {
     std::cout << "  b[" << i << "]: " << round_trip.b[i] << std::endl;
   }
   std::cout << "  z: " << (signed)round_trip.z << std::endl << std::endl;
-  int other_round_trip = fhe_other.Decrypt(key);
+  int other_round_trip = encoded_other.Decode();
   std::cout << "  other: " << other_round_trip << std::endl << std::endl;
-  Inner inner_round_trip = fhe_inner.Decrypt(key);
+  Inner inner_round_trip = encoded_inner.Decode();
   for (int i = 0; i < C_COUNT; i++) {
     std::cout << "  inner.c[" << i << "]: " << inner_round_trip.c[i]
               << std::endl;
@@ -103,11 +85,10 @@ int main(int argc, char** argv) {
   std::cout << std::endl;
 
   std::cout << "Starting computation." << std::endl << std::endl;
-  XLS_CHECK_OK(NegateStructWithArray(fhe_struct_with_array.get(),
-                                     fhe_other.get(), fhe_inner.get(),
-                                     cloud_key));
+  XLS_CHECK_OK(NegateStructWithArray(encoded_struct_with_array.get(),
+                                     encoded_other.get(), encoded_inner.get()));
 
-  StructWithArray result = fhe_struct_with_array.Decrypt(key);
+  StructWithArray result = encoded_struct_with_array.Decode();
   std::cout << "Done. Result: " << std::endl;
   std::cout << "  c: " << (signed)result.c << std::endl;
   for (int i = 0; i < C_COUNT; i++) {
@@ -121,9 +102,9 @@ int main(int argc, char** argv) {
     std::cout << "  b[" << i << "]: " << result.b[i] << std::endl;
   }
   std::cout << "  z: " << (signed)result.z << std::endl << std::endl;
-  int other_result = fhe_other.Decrypt(key);
+  int other_result = encoded_other.Decode();
   std::cout << " other: " << other_result << std::endl << std::endl;
-  Inner inner_result = fhe_inner.Decrypt(key);
+  Inner inner_result = encoded_inner.Decode();
   for (int i = 0; i < C_COUNT; i++) {
     std::cout << "  inner.c[" << i << "]: " << inner_result.c[i] << std::endl;
   }

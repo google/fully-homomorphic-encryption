@@ -15,10 +15,18 @@
 #include <cstdint>
 #include <iostream>
 
-#include "tfhe/tfhe.h"
+#include "xls/common/logging/logging.h"
+#ifdef USE_INTERPRETED_TFHE
+#include "transpiler/examples/structs/return_struct_interpreted_tfhe.h"
+#include "transpiler/examples/structs/return_struct_interpreted_tfhe.types.h"
+#elif USE_YOSYS_INTERPRETED_TFHE
+#include "transpiler/examples/structs/return_struct_yosys_interpreted_tfhe.h"
+#include "transpiler/examples/structs/return_struct_yosys_interpreted_tfhe.types.h"
+#else
 #include "transpiler/examples/structs/return_struct_tfhe.h"
 #include "transpiler/examples/structs/return_struct_tfhe.types.h"
-#include "xls/common/logging/logging.h"
+#endif
+#include "tfhe/tfhe.h"
 
 const int main_minimum_lambda = 120;
 

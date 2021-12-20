@@ -16,34 +16,16 @@
 #include <iostream>
 
 #include "xls/common/logging/logging.h"
-#ifdef USE_INTERPRETED_TFHE
-#include "transpiler/examples/structs/struct_of_structs_interpreted_tfhe.h"
-#include "transpiler/examples/structs/struct_of_structs_interpreted_tfhe.types.h"
-#elif USE_YOSYS_INTERPRETED_TFHE
-#include "transpiler/examples/structs/struct_of_structs_yosys_interpreted_tfhe.h"
-#include "transpiler/examples/structs/struct_of_structs_yosys_interpreted_tfhe.types.h"
+#ifdef USE_YOSYS_PLAINTEXT
+#include "transpiler/examples/structs/struct_of_structs_yosys_plaintext.h"
+#include "transpiler/examples/structs/struct_of_structs_yosys_plaintext.types.h"
 #else
-#include "transpiler/examples/structs/struct_of_structs_tfhe.h"
-#include "transpiler/examples/structs/struct_of_structs_tfhe.types.h"
+#include "transpiler/examples/structs/struct_of_structs_bool.h"
+#include "transpiler/examples/structs/struct_of_structs_bool.types.h"
 #endif
-#include "tfhe/tfhe.h"
-
-const int main_minimum_lambda = 120;
+#include "transpiler/data/boolean_data.h"
 
 int main(int argc, char** argv) {
-  // Generate a keyset.
-  TFheGateBootstrappingParameterSet* params =
-      new_default_gate_bootstrapping_parameters(main_minimum_lambda);
-
-  // Generate a "random" key.
-  // Note: In real applications, a cryptographically secure seed needs to be
-  // used.
-  uint32_t seed[] = {314, 1592, 657};
-  tfhe_random_generator_setSeed(seed, 3);
-  TFheGateBootstrappingSecretKeySet* key =
-      new_random_gate_bootstrapping_secret_keyset(params);
-  const TFheGateBootstrappingCloudKeySet* cloud_key = &key->cloud;
-
   StructOfStructs sos;
   sos.x = 1;
   sos.a.a = 2;
@@ -58,11 +40,11 @@ int main(int argc, char** argv) {
   sos.d.x = 11;
   sos.i.h.g.f.e.d.x = 12;
 
-  FheStructOfStructs fhe_sos(params);
-  fhe_sos.SetEncrypted(sos, key);
+  EncodedStructOfStructs encoded_sos;
+  encoded_sos.Encode(sos);
 
   std::cout << "Initial round-trip check: " << std::endl;
-  StructOfStructs round_trip = fhe_sos.Decrypt(key);
+  StructOfStructs round_trip = encoded_sos.Decode();
   std::cout << "  x          : " << static_cast<int>(round_trip.x) << std::endl;
   std::cout << "  a.a        : " << static_cast<int>(round_trip.a.a)
             << std::endl;
@@ -88,10 +70,10 @@ int main(int argc, char** argv) {
             << std::endl;
 
   std::cout << "Starting computation." << std::endl;
-  FheInt fhe_result(params);
-  XLS_CHECK_OK(SumStructOfStructs(fhe_result.get(), fhe_sos.get(), cloud_key));
+  EncodedInt encoded_result;
+  XLS_CHECK_OK(SumStructOfStructs(encoded_result.get(), encoded_sos.get()));
 
-  int result = fhe_result.Decrypt(key);
+  int result = encoded_result.Decode();
   std::cout << "Done. Result: " << result << std::endl;
   return 0;
 }

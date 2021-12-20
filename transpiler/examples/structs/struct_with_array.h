@@ -20,6 +20,6 @@ struct StructWithArray {
   short z;
 };
 
-void NegateStructWithArray(StructWithArray &input, int &other, Inner &inner);
+void NegateStructWithArray(StructWithArray &outer, int &other, Inner &inner);
 
 #endif  // TRANSPILER_EXAMPLES_STRUCTS_STRUCT_WITH_ARRAY_H_
