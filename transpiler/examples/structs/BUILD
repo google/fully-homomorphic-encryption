@@ -15,6 +15,13 @@ fhe_cc_library(
     hdrs = ["array_of_array_of_structs.h"],
 )
 
+fhe_cc_library(
+    name = "array_of_array_of_structs_palisade",
+    src = "array_of_array_of_structs.cc",
+    hdrs = ["array_of_array_of_structs.h"],
+    transpiler_type = "palisade",
+)
+
 cc_binary(
     name = "array_of_array_of_structs_tfhe_testbench",
     srcs = ["array_of_array_of_structs_tfhe_testbench.cc"],
@@ -24,6 +31,18 @@ cc_binary(
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "array_of_array_of_structs_palisade_testbench",
+    srcs = ["array_of_array_of_structs_palisade_testbench.cc"],
+    deps = [
+        ":array_of_array_of_structs_palisade",
+        "//transpiler/data:palisade_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@palisade//:binfhe",
     ],
 )
 

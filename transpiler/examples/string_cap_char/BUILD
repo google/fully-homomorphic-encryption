@@ -19,6 +19,14 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
+    name = "string_cap_char_palisade",
+    src = "string_cap_char.cc",
+    hdrs = ["string_cap_char.h"],
+    num_opt_passes = 2,
+    transpiler_type = "palisade",
+)
+
+fhe_cc_library(
     name = "string_cap_char_bool",
     src = "string_cap_char.cc",
     hdrs = ["string_cap_char.h"],
@@ -58,6 +66,23 @@ cc_binary(
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "string_cap_char_palisade_testbench",
+    srcs = [
+        "string_cap_char_palisade_testbench.cc",
+    ],
+    deps = [
+        ":string_cap_char",
+        ":string_cap_char_palisade",
+        "//transpiler/data:palisade_data",
+        "@com_google_absl//absl/base",
+        "@com_google_absl//absl/time",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@palisade//:binfhe",
     ],
 )
 

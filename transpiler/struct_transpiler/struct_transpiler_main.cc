@@ -32,9 +32,10 @@ ABSL_FLAG(std::string, original_headers, "",
 ABSL_FLAG(std::string, output_path, "",
           "Path to which to write the generated header file. "
           "If unspecified, output will be written to stdout.");
-ABSL_FLAG(std::string, transpiler_type, "",
-          "Transpiler type: could be empty, or 'tfhe'. "
-          "If unspecified, the generic template is created.");
+ABSL_FLAG(
+    std::string, transpiler_type, "",
+    "Transpiler type: could be empty, 'bool', 'plaintext', 'tfhe', or "
+    "'palisade'. If unspecified or empty, the generic template is created.");
 ABSL_FLAG(std::string, generic_header_path, "",
           "Path to which to the previously-generated template header file. "
           "Must be provided when --transpiler_type is used.");
@@ -68,9 +69,7 @@ absl::Status RealMain(absl::string_view metadata_path,
       return xls::SetFileContents(output_path, generic_result);
     }
     std::cout << generic_result << std::endl;
-  } else if (transpiler_type == "tfhe" ||
-             transpiler_type == "interpreted_tfhe" ||
-             transpiler_type == "yosys_interpreted_tfhe") {
+  } else if (transpiler_type == "tfhe") {
     XLS_ASSIGN_OR_RETURN(std::string specific_result,
                          ConvertStructsToEncodedTfhe(generic_header_path,
                                                      metadata, output_path));
@@ -78,11 +77,18 @@ absl::Status RealMain(absl::string_view metadata_path,
       return xls::SetFileContents(output_path, specific_result);
     }
     std::cout << specific_result << std::endl;
-  } else if (transpiler_type == "bool" ||
-             transpiler_type == "yosys_plaintext") {
+  } else if (transpiler_type == "bool" || transpiler_type == "plaintext") {
     XLS_ASSIGN_OR_RETURN(std::string specific_result,
                          ConvertStructsToEncodedBool(generic_header_path,
                                                      metadata, output_path));
+    if (!output_path.empty()) {
+      return xls::SetFileContents(output_path, specific_result);
+    }
+    std::cout << specific_result << std::endl;
+  } else if (transpiler_type == "palisade") {
+    XLS_ASSIGN_OR_RETURN(std::string specific_result,
+                         ConvertStructsToEncodedPalisade(
+                             generic_header_path, metadata, output_path));
     if (!output_path.empty()) {
       return xls::SetFileContents(output_path, specific_result);
     }

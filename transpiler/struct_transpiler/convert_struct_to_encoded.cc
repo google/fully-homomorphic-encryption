@@ -523,7 +523,7 @@ template <class Sample, class SecretKey>
 void Decrypt(Sample* ciphertext, const SecretKey* key, absl::Span<bool> plaintext);
 
 template <class Sample, class SampleArrayDeleter>
-  using SampleArrayT = std::unique_ptr<Sample[], SampleArrayDeleter>;
+using SampleArrayT = std::unique_ptr<Sample[], SampleArrayDeleter>;
 
 $1
 #endif//$2)";
@@ -663,73 +663,6 @@ absl::StatusOr<std::string> ConvertStructsToEncodedTemplate(
                           absl::StrJoin(generated, "\n\n"), header_guard);
 }
 
-// Tfhe header template
-//  0: Header guard
-//  1: Generic header
-//  2: Class definitions
-constexpr const char kTfheFileTemplate[] = R"(#ifndef $0
-#define $0
-
-#include <memory>
-
-#include "$1"
-#include "absl/types/span.h"
-#include "tfhe/tfhe.h"
-#include "transpiler/data/fhe_data.h"
-
-template<>
-void Unencrypted<LweSample, TFheGateBootstrappingCloudKeySet>(absl::Span<const bool> value, const TFheGateBootstrappingCloudKeySet* key, LweSample* out) {
-  ::Unencrypted(value, key, out);
-}
-
-template<>
-void Encrypt<LweSample, TFheGateBootstrappingSecretKeySet>(absl::Span<const bool> value, const TFheGateBootstrappingSecretKeySet* key, LweSample* out) {
-  ::Encrypt(value, key, out);
-}
-
-template<>
-void Decrypt<LweSample, TFheGateBootstrappingSecretKeySet>(LweSample* ciphertext, const TFheGateBootstrappingSecretKeySet* key, absl::Span<bool> plaintext) {
-  ::Decrypt(ciphertext, key, plaintext);
-}
-
-$2
-#endif//$0)";
-
-// Tfhe struct template
-//  0: Header guard
-//  1: Type name
-constexpr const char kTfheStructTemplate[] = R"(
-using FheBase$0 = GenericEncoded$0<LweSample, LweSampleArrayDeleter, TFheGateBootstrappingSecretKeySet, TFheGateBootstrappingCloudKeySet>;
-class Fhe$0 : public FheBase$0 {
-public:
-  Fhe$0(const TFheGateBootstrappingParameterSet* params) :
-      FheBase$0(new_gate_bootstrapping_ciphertext_array(Fhe$0::bit_width(), params),
-                LweSampleArrayDeleter(Fhe$0::bit_width())) {}
-};)";
-
-absl::StatusOr<std::string> ConvertStructsToEncodedTfhe(
-    absl::string_view generic_header,
-    const xlscc_metadata::MetadataOutput& metadata,
-    absl::string_view output_path) {
-  if (metadata.structs_size() == 0) {
-    return "";
-  }
-  std::string header_guard = GenerateHeaderGuard(output_path);
-  std::vector<int64_t> struct_order = GetTypeReferenceOrder(metadata);
-  IdToType id_to_type = PopulateTypeData(metadata, struct_order);
-  std::vector<std::string> generated;
-  for (int64_t id : struct_order) {
-    const StructType& struct_type = id_to_type.at(id).type;
-    xlscc_metadata::CPPName struct_name = struct_type.name().as_inst().name();
-    std::string struct_text =
-        absl::Substitute(kTfheStructTemplate, struct_name.name());
-    generated.push_back(struct_text);
-  }
-
-  return absl::Substitute(kTfheFileTemplate, header_guard, generic_header,
-                          absl::StrJoin(generated, "\n\n"));
-}
-
 // Bool header template
 //  0: Header guard
 //  1: Generic header
@@ -819,6 +752,156 @@ absl::StatusOr<std::string> ConvertStructsToEncodedBool(
   }
 
   return absl::Substitute(kBoolFileTemplate, header_guard, generic_header,
+                          absl::StrJoin(generated, "\n\n"));
+}
+
+// Tfhe header template
+//  0: Header guard
+//  1: Generic header
+//  2: Class definitions
+constexpr const char kTfheFileTemplate[] = R"(#ifndef $0
+#define $0
+
+#include <memory>
+
+#include "$1"
+#include "absl/types/span.h"
+#include "tfhe/tfhe.h"
+#include "transpiler/data/fhe_data.h"
+
+template<>
+void Unencrypted<LweSample, TFheGateBootstrappingCloudKeySet>(absl::Span<const bool> value, const TFheGateBootstrappingCloudKeySet* key, LweSample* out) {
+  ::Unencrypted(value, key, out);
+}
+
+template<>
+void Encrypt<LweSample, TFheGateBootstrappingSecretKeySet>(absl::Span<const bool> value, const TFheGateBootstrappingSecretKeySet* key, LweSample* out) {
+  ::Encrypt(value, key, out);
+}
+
+template<>
+void Decrypt<LweSample, TFheGateBootstrappingSecretKeySet>(LweSample* ciphertext, const TFheGateBootstrappingSecretKeySet* key, absl::Span<bool> plaintext) {
+  ::Decrypt(ciphertext, key, plaintext);
+}
+
+$2
+#endif//$0)";
+
+// Tfhe struct template
+//  0: Header guard
+//  1: Type name
+constexpr const char kTfheStructTemplate[] = R"(
+using FheBase$0 = GenericEncoded$0<LweSample, LweSampleArrayDeleter, TFheGateBootstrappingSecretKeySet, TFheGateBootstrappingCloudKeySet>;
+class Fhe$0 : public FheBase$0 {
+public:
+  Fhe$0(const TFheGateBootstrappingParameterSet* params) :
+      FheBase$0(new_gate_bootstrapping_ciphertext_array(Fhe$0::bit_width(), params),
+                LweSampleArrayDeleter(Fhe$0::bit_width())) {}
+};)";
+
+absl::StatusOr<std::string> ConvertStructsToEncodedTfhe(
+    absl::string_view generic_header,
+    const xlscc_metadata::MetadataOutput& metadata,
+    absl::string_view output_path) {
+  if (metadata.structs_size() == 0) {
+    return "";
+  }
+  std::string header_guard = GenerateHeaderGuard(output_path);
+  std::vector<int64_t> struct_order = GetTypeReferenceOrder(metadata);
+  IdToType id_to_type = PopulateTypeData(metadata, struct_order);
+  std::vector<std::string> generated;
+  for (int64_t id : struct_order) {
+    const StructType& struct_type = id_to_type.at(id).type;
+    xlscc_metadata::CPPName struct_name = struct_type.name().as_inst().name();
+    std::string struct_text =
+        absl::Substitute(kTfheStructTemplate, struct_name.name());
+    generated.push_back(struct_text);
+  }
+
+  return absl::Substitute(kTfheFileTemplate, header_guard, generic_header,
+                          absl::StrJoin(generated, "\n\n"));
+}
+
+// PALISADE header template
+//  0: Header guard
+//  1: Generic header
+//  2: Class definitions
+constexpr const char kPalisadeFileTemplate[] = R"(#ifndef $0
+#define $0
+
+#include <memory>
+
+#include "$1"
+#include "absl/types/span.h"
+#include "palisade/binfhe/binfhecontext.h"
+#include "transpiler/data/palisade_data.h"
+
+template<>
+void Unencrypted<lbcrypto::LWECiphertext, lbcrypto::BinFHEContext>(absl::Span<const bool> value, const lbcrypto::BinFHEContext* cc, lbcrypto::LWECiphertext* out) {
+  ::Unencrypted(value, *cc, out);
+}
+
+template<>
+void Encrypt<lbcrypto::LWECiphertext, PalisadePrivateKeySet>(absl::Span<const bool> value, const PalisadePrivateKeySet* key, lbcrypto::LWECiphertext* out) {
+  ::Encrypt(value, key, out);
+}
+
+template<>
+void Decrypt<lbcrypto::LWECiphertext, PalisadePrivateKeySet>(lbcrypto::LWECiphertext* ciphertext, const PalisadePrivateKeySet* key, absl::Span<bool> plaintext) {
+  ::Decrypt(ciphertext, key, plaintext);
+}
+
+$2
+#endif//$0)";
+
+// PALISADE struct template
+//  0: Header guard
+//  1: Type name
+constexpr const char kPalisadeStructTemplate[] = R"(
+using PalisadeBase$0 = GenericEncoded$0<lbcrypto::LWECiphertext, std::default_delete<lbcrypto::LWECiphertext[]>, PalisadePrivateKeySet, lbcrypto::BinFHEContext>;
+class Palisade$0 : public PalisadeBase$0 {
+ public:
+  Palisade$0(lbcrypto::BinFHEContext cc)
+      : PalisadeBase$0(
+            new lbcrypto::LWECiphertext[Palisade$0::bit_width()],
+            std::default_delete<lbcrypto::LWECiphertext[]>()), cc_(cc) {}
+
+  void SetEncrypted(const $1& value,
+                    lbcrypto::LWEPrivateKey sk) {
+    PalisadePrivateKeySet key{cc_, sk};
+    PalisadeBase$0::SetEncrypted(value, &key);
+  }
+
+  $1 Decrypt(lbcrypto::LWEPrivateKey sk) {
+    PalisadePrivateKeySet key{cc_, sk};
+    return PalisadeBase$0::Decrypt(&key);
+  }
+
+ private:
+  lbcrypto::BinFHEContext cc_;
+};)";
+
+absl::StatusOr<std::string> ConvertStructsToEncodedPalisade(
+    absl::string_view generic_header,
+    const xlscc_metadata::MetadataOutput& metadata,
+    absl::string_view output_path) {
+  if (metadata.structs_size() == 0) {
+    return "";
+  }
+  std::string header_guard = GenerateHeaderGuard(output_path);
+  std::vector<int64_t> struct_order = GetTypeReferenceOrder(metadata);
+  IdToType id_to_type = PopulateTypeData(metadata, struct_order);
+  std::vector<std::string> generated;
+  for (int64_t id : struct_order) {
+    const StructType& struct_type = id_to_type.at(id).type;
+    xlscc_metadata::CPPName struct_name = struct_type.name().as_inst().name();
+    std::string struct_text =
+        absl::Substitute(kPalisadeStructTemplate, struct_name.name(),
+                         struct_name.fully_qualified_name());
+    generated.push_back(struct_text);
+  }
+
+  return absl::Substitute(kPalisadeFileTemplate, header_guard, generic_header,
                           absl::StrJoin(generated, "\n\n"));
 }
 

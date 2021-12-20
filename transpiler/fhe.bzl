@@ -176,10 +176,10 @@ def _generate_struct_header(ctx, metadata):
         "-output_path",
         generic_struct_h.path,
     ]
-    if ctx.attr.transpiler_type == "yosys_plaintext" or ctx.attr.transpiler_type == "yosys_interpreted_tfhe":
-        args.extend([
-            "-struct_fields_in_declaration_order",
-        ])
+    transpiler_type = ctx.attr.transpiler_type
+    if transpiler_type.startswith("yosys_"):
+        transpiler_type = transpiler_type[len("yosys_"):]
+        args.append("-struct_fields_in_declaration_order")
     ctx.actions.run(
         inputs = [metadata],
         outputs = [generic_struct_h],
@@ -187,6 +187,8 @@ def _generate_struct_header(ctx, metadata):
         arguments = args,
     )
 
+    if transpiler_type.startswith("interpreted_"):
+        transpiler_type = transpiler_type[len("interpreted_"):]
     args = [
         "-metadata_path",
         metadata.path,
@@ -195,7 +197,7 @@ def _generate_struct_header(ctx, metadata):
         "-generic_header_path",
         generic_struct_h.path,
         "-transpiler_type",
-        ctx.attr.transpiler_type,
+        transpiler_type,
     ]
     ctx.actions.run(
         inputs = [metadata, generic_struct_h],
@@ -302,10 +304,7 @@ def _fhe_transpile_impl(ctx):
     else:
         optimized_files = _optimize_and_booleanify_repeatedly(ctx, ir_file, metadata_entry_file)
 
-    hdrs = []
-
-    if transpiler != "palisade":
-        hdrs.extend(_generate_struct_header(ctx, metadata_file))
+    hdrs = _generate_struct_header(ctx, metadata_file)
 
     if transpiler in ("yosys_plaintext", "yosys_interpreted_tfhe"):
         ir_input = netlist_file
@@ -511,7 +510,7 @@ def fhe_cc_library(
     elif transpiler_type == "palisade":
         deps.extend([
             "//transpiler/data:boolean_data",
-            "//transpiler/data:fhe_data",
+            "//transpiler/data:palisade_data",
             "@palisade//:binfhe",
         ])
 

@@ -15,9 +15,11 @@
 #ifndef THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_STRUCT_TRANSPILER_CONVERT_STRUCT_TO_ENCODED_H_
 #define THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_STRUCT_TRANSPILER_CONVERT_STRUCT_TO_ENCODED_H_
 
+#include <string>
 #include <vector>
 
 #include "absl/status/statusor.h"
+#include "absl/strings/string_view.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
 
 namespace fully_homomorphic_encryption {
@@ -28,12 +30,17 @@ absl::StatusOr<std::string> ConvertStructsToEncodedTemplate(
     const std::vector<std::string>& original_headers,
     absl::string_view output_path, bool struct_fields_in_declaration_order);
 
+absl::StatusOr<std::string> ConvertStructsToEncodedBool(
+    absl::string_view generic_header,
+    const xlscc_metadata::MetadataOutput& metadata,
+    absl::string_view output_path);
+
 absl::StatusOr<std::string> ConvertStructsToEncodedTfhe(
     absl::string_view generic_header,
     const xlscc_metadata::MetadataOutput& metadata,
     absl::string_view output_path);
 
-absl::StatusOr<std::string> ConvertStructsToEncodedBool(
+absl::StatusOr<std::string> ConvertStructsToEncodedPalisade(
     absl::string_view generic_header,
     const xlscc_metadata::MetadataOutput& metadata,
     absl::string_view output_path);

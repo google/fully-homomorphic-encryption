@@ -29,6 +29,11 @@
 #include "palisade/binfhe/binfhecontext.h"
 #include "transpiler/data/boolean_data.h"
 
+struct PalisadePrivateKeySet {
+  lbcrypto::BinFHEContext cc;
+  lbcrypto::LWEPrivateKey sk;
+};
+
 inline void Copy(absl::Span<const lbcrypto::LWECiphertext> value,
                  absl::Span<lbcrypto::LWECiphertext> out) {
   for (int j = 0; j < value.size(); ++j) {
@@ -44,12 +49,29 @@ inline void Unencrypted(absl::Span<const bool> value,
   }
 }
 
+inline void Unencrypted(absl::Span<const bool> value,
+                        lbcrypto::BinFHEContext cc,
+                        lbcrypto::LWECiphertext* out) {
+  return Unencrypted(value, cc, absl::MakeSpan(out, value.size()));
+}
+
 inline void Encrypt(absl::Span<const bool> value, lbcrypto::BinFHEContext cc,
                     lbcrypto::LWEPrivateKey sk,
                     absl::Span<lbcrypto::LWECiphertext> out) {
   for (int j = 0; j < value.size(); ++j) {
     out[j] = cc.Encrypt(sk, value[j], lbcrypto::FRESH);
   }
+}
+
+inline void Encrypt(absl::Span<const bool> value, lbcrypto::BinFHEContext cc,
+                    lbcrypto::LWEPrivateKey sk, lbcrypto::LWECiphertext* out) {
+  return Encrypt(value, cc, sk, absl::MakeSpan(out, value.size()));
+}
+
+inline void Encrypt(absl::Span<const bool> value,
+                    const PalisadePrivateKeySet* key,
+                    lbcrypto::LWECiphertext* out) {
+  return Encrypt(value, key->cc, key->sk, absl::MakeSpan(out, value.size()));
 }
 
 inline void Decrypt(absl::Span<const lbcrypto::LWECiphertext> ciphertext,
@@ -60,6 +82,20 @@ inline void Decrypt(absl::Span<const lbcrypto::LWECiphertext> ciphertext,
     cc.Decrypt(sk, ciphertext[j], &bit);
     plaintext[j] = bit != 0;
   }
+}
+
+inline void Decrypt(lbcrypto::LWECiphertext* ciphertext,
+                    lbcrypto::BinFHEContext cc, lbcrypto::LWEPrivateKey sk,
+                    absl::Span<bool> plaintext) {
+  return Decrypt(absl::MakeSpan(ciphertext, plaintext.size()), cc, sk,
+                 plaintext);
+}
+
+inline void Decrypt(lbcrypto::LWECiphertext* ciphertext,
+                    const PalisadePrivateKeySet* key,
+                    absl::Span<bool> plaintext) {
+  return Decrypt(absl::MakeSpan(ciphertext, plaintext.size()), key->cc, key->sk,
+                 plaintext);
 }
 
 template <typename ValueType,
