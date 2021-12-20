@@ -30,6 +30,7 @@
 #include "absl/strings/str_split.h"
 #include "absl/strings/string_view.h"
 #include "transpiler/cc_transpiler.h"
+#include "transpiler/interpreted_palisade_transpiler.h"
 #include "transpiler/interpreted_tfhe_transpiler.h"
 #include "transpiler/palisade_transpiler.h"
 #include "transpiler/tfhe_transpiler.h"
@@ -122,6 +123,12 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
       XLS_ASSIGN_OR_RETURN(
           fn_header, TfheTranspiler::TranslateHeader(function, metadata,
                                                      header_path.string()));
+    } else if (transpiler_type == "interpreted_palisade") {
+      XLS_ASSIGN_OR_RETURN(fn_body, InterpretedPalisadeTranspiler::Translate(
+                                        function, metadata));
+      XLS_ASSIGN_OR_RETURN(fn_header,
+                           InterpretedPalisadeTranspiler::TranslateHeader(
+                               function, metadata, header_path.string()));
     } else if (transpiler_type == "palisade") {
       XLS_ASSIGN_OR_RETURN(fn_body,
                            PalisadeTranspiler::Translate(function, metadata));

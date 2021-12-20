@@ -25,8 +25,13 @@
 #include "palisade/binfhe/binfhecontext.h"
 #include "transpiler/data/palisade_data.h"
 #include "transpiler/examples/string_cap/string_cap.h"
-#include "transpiler/examples/string_cap/string_cap_palisade.h"
 #include "xls/common/logging/logging.h"
+
+#ifdef USE_INTERPRETED_PALISADE
+#include "transpiler/examples/string_cap/string_cap_interpreted_palisade.h"
+#else
+#include "transpiler/examples/string_cap/string_cap_palisade.h"
+#endif
 
 constexpr int kMainMinimumLambda = 120;
 
@@ -44,7 +49,7 @@ void FheStringCap(PalisadeString& ciphertext, lbcrypto::BinFHEContext cc) {
 
 int main(int argc, char** argv) {
   if (argc < 2) {
-    fprintf(stderr, "Usage: string_cap_fhe_testbench string_input\n\n");
+    fprintf(stderr, "Usage: string_cap_palisade_testbench string_input\n\n");
     return 1;
   }
 

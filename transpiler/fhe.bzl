@@ -372,10 +372,18 @@ fhe_transpile = rule(
         "transpiler_type": attr.string(
             doc = """
             Type of FHE library to transpile to. Choices are {tfhe, interpreted_tfhe,
-            palisade, bool, yosys_plaintext, yosys_interpreted_tfhe}. 'bool'
-            and 'yosys_plaintext' do not depend on any FHE libraries.
+            palisade, interpreted_palisade, bool, yosys_plaintext, yosys_interpreted_tfhe}.
+            'bool' and 'yosys_plaintext' do not depend on any FHE libraries.
             """,
-            values = ["tfhe", "interpreted_tfhe", "palisade", "bool", "yosys_plaintext", "yosys_interpreted_tfhe"],
+            values = [
+                "tfhe",
+                "interpreted_tfhe",
+                "palisade",
+                "interpreted_palisade",
+                "bool",
+                "yosys_plaintext",
+                "yosys_interpreted_tfhe",
+            ],
         ),
         "cell_library": attr.label(
             doc = "A single cell-definition library in Liberty format.",
@@ -432,7 +440,7 @@ def fhe_cc_library(
       num_opt_passes: The number of optimization passes to run on XLS IR (default 1).
             Values <= 0 will skip optimization altogether.
       transpiler_type: Defaults to "tfhe"; Type of FHE library to transpile to. Choices are
-            {tfhe, interpreted_tfhe, bool, yosys_plaintext}. 'bool' does Boolean operations on plaintext,
+            {tfhe, interpreted_tfhe, palisade, interpreted_palisade, bool, yosys_plaintext}. 'bool' does Boolean operations on plaintext,
             and doesn't depend on any FHE libraries; mostly useful for debugging. Like 'bool',
             'yosys_plaintext' does not depend on an FHE libraries, doing operations on plaintext (whether
             they are boolean depends on the cell-library definition in use.)
@@ -512,6 +520,14 @@ def fhe_cc_library(
             "//transpiler/data:boolean_data",
             "//transpiler/data:palisade_data",
             "@palisade//:binfhe",
+        ])
+    elif transpiler_type == "interpreted_palisade":
+        deps.extend([
+            "@com_google_absl//absl/status:statusor",
+            "//transpiler:palisade_runner",
+            "//transpiler/data:palisade_data",
+            "@palisade//:binfhe",
+            "@com_google_xls//xls/common/status:status_macros",
         ])
 
     native.cc_library(
