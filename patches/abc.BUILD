@@ -9,15 +9,15 @@ make(
     args = [
         "-j16",
     ],
-    env = {
-        "CMAKE_C_FLAGS": "-Dredacted=0",
-    },
-    targets = [ "abc" ],
-    out_binaries = [ "abc" ],
+    copts = [
+        "-Dredacted=0",
+    ],
+    lib_source = ":abc_srcs",
+    out_binaries = ["abc"],
     out_include_dir = "",
     out_lib_dir = "",
-    lib_source = ":abc_srcs",
-    postfix_script = "cp $EXT_BUILD_ROOT/external/abc/abc $INSTALLDIR/bin/abc",
+    postfix_script = "cp abc $INSTALLDIR/bin/abc",
+    targets = ["abc"],
     visibility = ["//visibility:public"],
 )
 
@@ -30,5 +30,8 @@ filegroup(
 
 filegroup(
     name = "abc_srcs",
-    srcs = glob(["*", "**/*"])
+    srcs = glob([
+        "*",
+        "**/*",
+    ]),
 )

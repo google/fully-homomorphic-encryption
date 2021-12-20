@@ -21,7 +21,9 @@ _XLS_BOOLEANIFY = "@com_google_xls//xls/tools:booleanify_main"
 _XLS_OPT = "@com_google_xls//xls/tools:opt_main"
 _GET_TOP_FUNC_FROM_PROTO = "@com_google_xls//xls/contrib/xlscc:get_top_func_from_proto"
 _XLS_CODEGEN = "@com_google_xls//xls/tools:codegen_main"
+
 _YOSYS = "@yosys//:yosys_bin"
+_ABC = "@abc//:abc_bin"
 _TFHE_CELLS_LIBERTY = "//transpiler:tfhe_cells.liberty"
 
 def _run(ctx, inputs, out_ext, tool, args, entry = None):
@@ -151,7 +153,8 @@ def _fhe_transpile_ir(ctx, src, metadata, entry, transpiler):
         "-transpiler_type",
         transpiler,
     ]
-    if ctx.attr.transpiler_type == "yosys_plaintext" or ctx.attr.transpiler_type == "yosys_interpreted_tfhe":
+
+    if ctx.attr.transpiler_type.startswith("yosys_"):
         args += ["-liberty_path", ctx.file.cell_library.path]
 
     ctx.actions.run(
@@ -277,11 +280,10 @@ def _generate_netlist(ctx, verilog, entry):
         inputs = [verilog, script],
         outputs = [netlist],
         arguments = [args],
-        tools = [ctx.file.cell_library],
         executable = ctx.executable._yosys,
+        tools = [ctx.file.cell_library, ctx.executable._abc],
         env = {
-            "YOSYS_DATDIR": yosys_runfiles_dir + "/google3/third_party/yosys/share/",
-            "ABC": yosys_runfiles_dir + "/google3/third_party/abc/abc",
+            "YOSYS_DATDIR": yosys_runfiles_dir + "/yosys/share/yosys",
         },
     )
 
@@ -295,7 +297,7 @@ def _fhe_transpile_impl(ctx):
     extras = []
     optimized_files = []
     netlist_file = None
-    if transpiler in ("yosys_plaintext", "yosys_interpreted_tfhe"):
+    if transpiler.startswith("yosys_"):
         optimized_ir_file = _optimize_ir(ctx, ir_file, ".opt.ir", metadata_entry_file)
         optimized_files.append(optimized_ir_file)
         verilog_ir_file = _generate_verilog(ctx, optimized_ir_file, ".v", metadata_entry_file)
@@ -306,7 +308,7 @@ def _fhe_transpile_impl(ctx):
 
     hdrs = _generate_struct_header(ctx, metadata_file)
 
-    if transpiler in ("yosys_plaintext", "yosys_interpreted_tfhe"):
+    if transpiler.startswith("yosys_"):
         ir_input = netlist_file
     else:
         ir_input = _pick_last_bool_file(optimized_files)
@@ -315,7 +317,7 @@ def _fhe_transpile_impl(ctx):
 
     common = [ir_file, metadata_file, metadata_entry_file, out_cc] + optimized_files + hdrs
 
-    if transpiler in ("yosys_plaintext", "yosys_interpreted_tfhe"):
+    if transpiler.startswith("yosys_"):
         return [
             DefaultInfo(files = depset(common + extras)),
             OutputGroupInfo(
@@ -400,6 +402,7 @@ fhe_transpile = rule(
             cfg = "exec",
         ),
         "_yosys": _executable_attr(_YOSYS),
+        "_abc": _executable_attr(_ABC),
         "_xls_codegen": _executable_attr(_XLS_CODEGEN),
     },
 )
