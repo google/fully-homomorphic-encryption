@@ -33,112 +33,83 @@
 #ifndef THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TFHE_RUNNER_H_
 #define THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TFHE_RUNNER_H_
 
-#include <pthread.h>
-#include <semaphore.h>
-
-#include <memory>
-#include <queue>
-#include <string>
-#include <utility>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
-#include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "absl/strings/string_view.h"
+#include "absl/types/optional.h"
 #include "tfhe/tfhe.h"
-#include "tfhe/tfhe_io.h"
-#include "xls/contrib/xlscc/metadata_output.pb.h"
-#include "xls/ir/function.h"
-#include "xls/ir/package.h"
+#include "transpiler/abstract_xls_runner.h"
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 
-class TfheRunner {
+class TfheCiphertextRef {
  public:
-  TfheRunner(std::unique_ptr<xls::Package> package,
-             xlscc_metadata::MetadataOutput metadata);
-  ~TfheRunner();
+  TfheCiphertextRef(LweSample* value) : value_(value) {}
 
-  absl::Status Run(LweSample* result,
-                   absl::flat_hash_map<std::string, LweSample*> args,
-                   const TFheGateBootstrappingCloudKeySet* bk);
-
-  static absl::StatusOr<std::unique_ptr<TfheRunner>> CreateFromFile(
-      absl::string_view ir_path, absl::string_view metadata_path);
-
-  static absl::StatusOr<std::unique_ptr<TfheRunner>> CreateFromStrings(
-      absl::string_view xls_package, absl::string_view metadata_text);
+  LweSample* get() { return value_; }
+  const LweSample* get() const { return value_; }
 
  private:
-  absl::StatusOr<xls::Function*> GetEntry() {
-    return package_->GetFunction(metadata_.top_func_proto().name().name());
+  LweSample* value_;
+};
+
+class TfheCiphertext {
+ public:
+  TfheCiphertext(const TFheGateBootstrappingParameterSet* params)
+      : value_(new_gate_bootstrapping_ciphertext(params)) {}
+
+  LweSample* get() { return value_.get(); }
+  const LweSample* get() const { return value_.get(); }
+
+  operator TfheCiphertextRef() { return TfheCiphertextRef(value_.get()); }
+  operator const TfheCiphertextRef() const {
+    return TfheCiphertextRef(value_.get());
   }
 
-  // This method copies the relevant bit from input params into the result.
-  static absl::Status HandleBitSlice(
-      LweSample* result, const xls::BitSlice* bit_slice,
-      absl::flat_hash_map<std::string, LweSample*> args,
-      const TFheGateBootstrappingCloudKeySet* bk);
+ private:
+  struct LweSampleSingletonDeleter {
+    void operator()(LweSample* lwe_sample) const {
+      delete_gate_bootstrapping_ciphertext(lwe_sample);
+    }
+  };
 
-  // Array support will need to be updated when structs are added: it could be
-  // possible that there is padding present between subsequent elements in an
-  // array of these structs that is not captured by the corresponding XLS type -
-  // for example, a 56-byte struct will likely be padded out to 64 bytes
-  // internally. This code would assume that struct data is all packed, and thus
-  // the output would be garbled. Host layout will need to be considered here.
-  absl::Status CollectNodeValue(
-      const xls::Node* node, LweSample* output_arg, int output_offset,
-      const absl::flat_hash_map</*id=*/uint64_t, LweSample*>& values,
-      const TFheGateBootstrappingCloudKeySet* bk);
+  std::unique_ptr<LweSample, LweSampleSingletonDeleter> value_;
+};
 
-  // Walks the type elements comprising `function`'s output type and generates
-  // FHE copy operations to extract the data corresponding to each.
-  //
-  // At present, `function`'s output must be of the form (A, B), where A is
-  // bits- or array-typed, and B must be a tuple containing only bits- or
-  // array-typed elements. A corresponds to the output from the original C++
-  // function itself, and the elements of B are the in/out params to the
-  // function. We don't currently have the ability to traverse the definition of
-  // any given [C/C++] struct, so struct/tuple types are not _currently_
-  // supported, though this is intended to change in the near future.
-  absl::Status CollectOutputs(
-      LweSample* result, absl::flat_hash_map<std::string, LweSample*> args,
-      const absl::flat_hash_map</*id=*/uint64_t, LweSample*>& values,
-      const TFheGateBootstrappingCloudKeySet* bk);
+class TfheRunner
+    : public AbstractXlsRunner<TfheRunner, TfheCiphertext, TfheCiphertextRef> {
+ private:
+  using Base = AbstractXlsRunner<TfheRunner, TfheCiphertext, TfheCiphertextRef>;
 
-  static void* ThreadBodyStatic(void* runner);
-  absl::Status ThreadBody();
+  class TfheOperations : public BitOperations {
+   public:
+    TfheOperations(const TFheGateBootstrappingCloudKeySet* bk) : bk_(bk) {}
+    virtual ~TfheOperations() {}
 
-  // This is static to ensure no access to lock-protected state
-  // Can return nullptr for no-ops
-  static absl::StatusOr<LweSample*> EvalSingleOp(
-      xls::Node* n, std::vector<LweSample*> operands,
-      const absl::flat_hash_map<std::string, LweSample*> args,
-      const TFheGateBootstrappingCloudKeySet* bk);
+    TfheCiphertext And(const TfheCiphertextRef lhs,
+                       const TfheCiphertextRef rhs) override;
+    TfheCiphertext Or(TfheCiphertextRef lhs, TfheCiphertextRef rhs) override;
+    TfheCiphertext Not(TfheCiphertextRef in) override;
 
-  absl::flat_hash_map<std::string, LweSample*> const_args_;
-  const TFheGateBootstrappingCloudKeySet* const_bk_;
+    TfheCiphertext Constant(bool value) override;
 
-  typedef std::tuple<xls::Node*, std::vector<LweSample*>> NodeToEval;
+    void Copy(const TfheCiphertextRef src, TfheCiphertextRef dst) override;
 
-  pthread_mutex_t lock_;  // Only used by worker threads
+    TfheCiphertext CopyOf(TfheCiphertextRef src) override;
 
-  sem_t input_sem_;
-  std::queue<NodeToEval> input_queue_;  // Protected by lock_ in worker threads
+   private:
+    const TFheGateBootstrappingCloudKeySet* bk_;
+  };
 
-  typedef std::tuple<xls::Node*, LweSample*> NodeFromEval;
-  sem_t output_sem_;
-  std::queue<NodeFromEval>
-      output_queue_;  // Protected by lock_ in worker threads
+ public:
+  using Base::AbstractXlsRunner;
+  using Base::CreateFromFile;
+  using Base::CreateFromStrings;
 
-  std::atomic<bool> threads_should_exit_;
-
-  std::unique_ptr<xls::Package> package_;
-  std::string function_name_;
-  std::vector<pthread_t> threads_;
-  xlscc_metadata::MetadataOutput metadata_;
+  absl::Status Run(absl::Span<LweSample> result,
+                   absl::flat_hash_map<std::string, absl::Span<LweSample>> args,
+                   const TFheGateBootstrappingCloudKeySet* bk);
 };
 
 }  // namespace transpiler

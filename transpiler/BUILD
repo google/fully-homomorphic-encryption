@@ -146,19 +146,10 @@ cc_library(
     srcs = ["tfhe_runner.cc"],
     hdrs = ["tfhe_runner.h"],
     deps = [
-        ":abstract_xls_transpiler",
+        ":abstract_xls_runner",
         "@com_google_absl//absl/container:flat_hash_map",
-        "@com_google_absl//absl/container:flat_hash_set",
-        "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
-        "@com_google_protobuf//:protobuf",
-        "@com_google_xls//xls/common/file:filesystem",
-        "@com_google_xls//xls/common/status:status_macros",
-        "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
-        "@com_google_xls//xls/ir",
-        "@com_google_xls//xls/ir:ir_parser",
-        "@com_google_xls//xls/ir:type",
+        "@com_google_absl//absl/types:optional",
         "@tfhe//:libtfhe",
     ],
 )
@@ -182,9 +173,8 @@ cc_test(
 )
 
 cc_library(
-    name = "palisade_runner",
-    srcs = ["palisade_runner.cc"],
-    hdrs = ["palisade_runner.h"],
+    name = "abstract_xls_runner",
+    hdrs = ["abstract_xls_runner.h"],
     deps = [
         ":abstract_xls_transpiler",
         "@com_google_absl//absl/container:flat_hash_map",
@@ -192,6 +182,7 @@ cc_library(
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:optional",
         "@com_google_protobuf//:protobuf",
         "@com_google_xls//xls/common/file:filesystem",
         "@com_google_xls//xls/common/status:status_macros",
@@ -199,6 +190,17 @@ cc_library(
         "@com_google_xls//xls/ir",
         "@com_google_xls//xls/ir:ir_parser",
         "@com_google_xls//xls/ir:type",
+    ],
+)
+
+cc_library(
+    name = "palisade_runner",
+    srcs = ["palisade_runner.cc"],
+    hdrs = ["palisade_runner.h"],
+    deps = [
+        ":abstract_xls_runner",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/types:optional",
         "@palisade//:binfhe",
     ],
 )

@@ -68,14 +68,13 @@ $2 {
 )";
   XLS_ASSIGN_OR_RETURN(const std::string signature,
                        FunctionSignature(function, metadata));
-  std::string return_param = "nullptr";
+  std::string return_param = "{}";
   if (!metadata.top_func_proto().return_type().has_as_void()) {
-    return_param = "result.data()";
+    return_param = "result";
   }
   std::vector<std::string> param_entries;
   for (xls::Param* param : function->params()) {
-    param_entries.push_back(
-        absl::Substitute(R"({"$0", $0.data()})", param->name()));
+    param_entries.push_back(absl::Substitute(R"({"$0", $0})", param->name()));
   }
 
   // Serialize the metadata, removing the trailing null.
