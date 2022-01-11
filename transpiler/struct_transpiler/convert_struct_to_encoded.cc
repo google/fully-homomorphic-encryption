@@ -766,8 +766,8 @@ constexpr const char kTfheFileTemplate[] = R"(#ifndef $0
 
 #include "$1"
 #include "absl/types/span.h"
-#include "tfhe/tfhe.h"
 #include "transpiler/data/fhe_data.h"
+#include "tfhe/tfhe.h"
 
 template<>
 void Unencrypted<LweSample, TFheGateBootstrappingCloudKeySet>(absl::Span<const bool> value, const TFheGateBootstrappingCloudKeySet* key, LweSample* out) {
@@ -833,8 +833,8 @@ constexpr const char kPalisadeFileTemplate[] = R"(#ifndef $0
 
 #include "$1"
 #include "absl/types/span.h"
-#include "palisade/binfhe/binfhecontext.h"
 #include "transpiler/data/palisade_data.h"
+#include "palisade/binfhe/binfhecontext.h"
 
 template<>
 void Unencrypted<lbcrypto::LWECiphertext, lbcrypto::BinFHEContext>(absl::Span<const bool> value, const lbcrypto::BinFHEContext* cc, lbcrypto::LWECiphertext* out) {

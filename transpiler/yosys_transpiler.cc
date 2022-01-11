@@ -120,9 +120,9 @@ $0;
                        FunctionSignature(metadata, transpiler_type));
   return absl::Substitute(kHeaderTemplate, signature, header_guard,
                           transpiler_type == "yosys_plaintext" ? "" : R"hdr(
+#include "transpiler/data/fhe_data.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
-#include "transpiler/data/fhe_data.h"
                           )hdr");
 }
 

@@ -107,7 +107,11 @@ template <typename ValueType,
           std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>
 class PalisadeValue {
  public:
-  PalisadeValue(lbcrypto::BinFHEContext cc) : cc_(cc) {}
+  PalisadeValue(lbcrypto::BinFHEContext cc) : cc_(cc) {
+    for (auto& bit : ciphertext_) {
+      bit = cc.EvalConstant(false);
+    }
+  }
 
   static PalisadeValue<ValueType> Unencrypted(ValueType value,
                                               lbcrypto::BinFHEContext cc) {
@@ -210,7 +214,11 @@ template <typename ValueType,
 class PalisadeArray {
  public:
   PalisadeArray(size_t length, lbcrypto::BinFHEContext cc)
-      : length_(length), ciphertext_(bit_width()), cc_(cc) {}
+      : length_(length), ciphertext_(bit_width()), cc_(cc) {
+    for (auto& bit : ciphertext_) {
+      bit = cc.EvalConstant(false);
+    }
+  }
 
   static PalisadeArray<ValueType> Unencrypted(
       absl::Span<const ValueType> plaintext, lbcrypto::BinFHEContext cc) {

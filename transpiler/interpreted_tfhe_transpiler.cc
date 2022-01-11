@@ -41,9 +41,9 @@ absl::StatusOr<std::string> InterpretedTfheTranspiler::Translate(
       R"(#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/types/span.h"
+#include "transpiler/tfhe_runner.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
-#include "transpiler/tfhe_runner.h"
 #include "xls/common/status/status_macros.h"
 
 namespace {

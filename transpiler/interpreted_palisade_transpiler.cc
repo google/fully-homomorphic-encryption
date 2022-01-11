@@ -41,8 +41,8 @@ absl::StatusOr<std::string> InterpretedPalisadeTranspiler::Translate(
       R"(#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/types/span.h"
-#include "palisade/binfhe/binfhecontext.h"
 #include "transpiler/palisade_runner.h"
+#include "palisade/binfhe/binfhecontext.h"
 #include "xls/common/status/status_macros.h"
 
 namespace {

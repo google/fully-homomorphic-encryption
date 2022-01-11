@@ -49,12 +49,12 @@ lbcrypto::LWECiphertext PalisadeRunner::PalisadeOperations::Constant(
 
 void PalisadeRunner::PalisadeOperations::Copy(const lbcrypto::LWECiphertext src,
                                               lbcrypto::LWECiphertext& dst) {
-  dst = src;
+  *dst = *src;
 }
 
 lbcrypto::LWECiphertext PalisadeRunner::PalisadeOperations::CopyOf(
     const lbcrypto::LWECiphertext src) {
-  return src;
+  return std::make_shared<lbcrypto::LWECiphertextImpl>(*src);
 }
 
 absl::Status PalisadeRunner::Run(
