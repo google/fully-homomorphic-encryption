@@ -209,8 +209,10 @@ absl::Status YosysTfheRunner::YosysTfheRunnerState::Run(
   std::cout << "Interpreting." << std::endl;
   TfheBoolValue zero(false, bk_);
   TfheBoolValue one(true, bk_);
-  xls::netlist::AbstractInterpreter<TfheBoolValue> interpreter(netlist_.get(),
-                                                               zero, one);
+  // *2 for hyperthreading opportunities
+  const int num_threads = sysconf(_SC_NPROCESSORS_ONLN) * 2;
+  xls::netlist::AbstractInterpreter<TfheBoolValue> interpreter(
+      netlist_.get(), zero, one, num_threads);
   XLS_ASSIGN_OR_RETURN(auto output_nets,
                        interpreter.InterpretModule(module, input_nets, {}));
 
