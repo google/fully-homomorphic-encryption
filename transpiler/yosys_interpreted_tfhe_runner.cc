@@ -193,7 +193,7 @@ absl::Status YosysTfheRunner::YosysTfheRunnerState::Run(
   }
   std::reverse(input_bits.begin(), input_bits.end());
 
-  absl::flat_hash_map<const NetRef, TfheBoolValue> input_nets;
+  xls::netlist::AbstractNetRef2Value<TfheBoolValue> input_nets;
   const std::vector<NetRef>& module_inputs = module->inputs();
   XLS_CHECK(module_inputs.size() == input_bits.size());
 

@@ -142,7 +142,7 @@ absl::Status YosysRunner::YosysRunnerState::Run(
   }
   input_bits = xls::bits_ops::Reverse(input_bits);
 
-  absl::flat_hash_map<const NetRef, OpaqueValue> input_nets;
+  xls::netlist::AbstractNetRef2Value<OpaqueValue> input_nets;
   const std::vector<NetRef>& module_inputs = module->inputs();
   XLS_CHECK(module_inputs.size() == input_bits.bit_count());
 
