@@ -69,13 +69,13 @@ int main(int argc, char** argv) {
     inner.c[i] = i * 1111;
   }
 
-  FheStructWithArray fhe_struct_with_array(params);
+  TfheStructWithArray fhe_struct_with_array(params);
   fhe_struct_with_array.SetEncrypted(input, key);
 
-  FheInt fhe_other(params);
+  TfheInt fhe_other(params);
   fhe_other.SetEncrypted(other, key);
 
-  FheInner fhe_inner(params);
+  TfheInner fhe_inner(params);
   fhe_inner.SetEncrypted(inner, key);
 
   std::cout << "Initial round-trip check: " << std::endl << std::endl;

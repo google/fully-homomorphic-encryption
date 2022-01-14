@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
   simple_struct.b = -4;
   simple_struct.c = 8;
 
-  FheSimpleStruct fhe_simple_struct(params);
+  TfheSimpleStruct fhe_simple_struct(params);
   fhe_simple_struct.SetEncrypted(simple_struct, key);
 
   std::cout << "Initial round-trip check: " << std::endl;
@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
             << std::endl;
 
   std::cout << "Starting computation." << std::endl;
-  FheInt fhe_result(params);
+  TfheInt fhe_result(params);
   XLS_CHECK_OK(
       SumSimpleStruct(fhe_result.get(), fhe_simple_struct.get(), cloud_key));
 

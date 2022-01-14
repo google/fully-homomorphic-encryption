@@ -27,7 +27,7 @@ cc_binary(
     srcs = ["rock_paper_scissor_tfhe_testbench.cc"],
     deps = [
         ":rock_paper_scissor_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
@@ -40,7 +40,7 @@ cc_binary(
     copts = ["-DUSE_INTERPRETED_TFHE"],
     deps = [
         ":rock_paper_scissor_interpreted_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",

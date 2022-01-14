@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
   embedded.b = 2;
   embedded.c = -4;
 
-  FheEmbedded fhe_embedded(params);
+  TfheEmbedded fhe_embedded(params);
   fhe_embedded.SetEncrypted(embedded, key);
 
   std::cout << "Initial round-trip check: " << std::endl;
@@ -59,9 +59,9 @@ int main(int argc, char** argv) {
   std::cout << "  C: " << static_cast<int>(round_trip.c) << std::endl;
 
   std::cout << "Starting computation." << std::endl;
-  FheReturnStruct fhe_result(params);
-  auto fhe_a = FheValue<unsigned char>::Encrypt(8, key);
-  auto fhe_c = FheValue<unsigned char>::Encrypt(16, key);
+  TfheReturnStruct fhe_result(params);
+  auto fhe_a = TfheValue<unsigned char>::Encrypt(8, key);
+  auto fhe_c = TfheValue<unsigned char>::Encrypt(16, key);
   XLS_CHECK_OK(ConstructReturnStruct(fhe_result.get(), fhe_a.get(),
                                      fhe_embedded.get(), fhe_c.get(),
                                      cloud_key));

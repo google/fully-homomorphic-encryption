@@ -87,7 +87,7 @@ xls::BValue CreateOutputElement(xls::FunctionBuilder* builder,
 }
 
 // Extremely basic "does anything work" test.
-TEST(FheIrTranspilerLibTest, CollectOutputValuesSmoke) {
+TEST(TfheIrTranspilerLibTest, CollectOutputValuesSmoke) {
   constexpr int kPureReturnWidth = 8;
   constexpr int kInOutWidth = 16;
 
@@ -135,7 +135,7 @@ TEST(FheIrTranspilerLibTest, CollectOutputValuesSmoke) {
 
 // This test verifies that CollectOutputValues still works when there's no
 // output at all - no formal, and no in/out.
-TEST(FheIrTranspilerLibTest, CollectOutputValues_NoOutput) {
+TEST(TfheIrTranspilerLibTest, CollectOutputValues_NoOutput) {
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
 
@@ -150,7 +150,7 @@ TEST(FheIrTranspilerLibTest, CollectOutputValues_NoOutput) {
 
 // This test verifies that CollectOutputValues still works when there's a pure
 // output but no in/out.
-TEST(FheIrTranspilerLibTest, CollectOutputValues_OnlyPure) {
+TEST(TfheIrTranspilerLibTest, CollectOutputValues_OnlyPure) {
   constexpr int kPureReturnWidth = 64;
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
@@ -174,7 +174,7 @@ TEST(FheIrTranspilerLibTest, CollectOutputValues_OnlyPure) {
 
 // This test verifies that CollectOutputValues still works when there's only
 // in/out params.
-TEST(FheIrTranspilerLibTest, CollectOutputValues_OnlyInOut) {
+TEST(TfheIrTranspilerLibTest, CollectOutputValues_OnlyInOut) {
   constexpr int kInOutWidth = 64;
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
@@ -203,7 +203,7 @@ TEST(FheIrTranspilerLibTest, CollectOutputValues_OnlyInOut) {
               UnorderedElementsAreArray(expected_lines));
 }
 
-TEST(FheIrTranspilerLibTest, CollectOutputValues_MultipleInOut) {
+TEST(TfheIrTranspilerLibTest, CollectOutputValues_MultipleInOut) {
   constexpr int kPureWidth = 8;
   constexpr int kNumInOutParams = 3;
   constexpr int kInOutWidth = 8;
@@ -254,7 +254,7 @@ TEST(FheIrTranspilerLibTest, CollectOutputValues_MultipleInOut) {
 
 // This test verifies that CollectOutputValues can properly handle an
 // array-valued output.
-TEST(FheIrTranspilerLibTest, CollectOutputValues_PureArray) {
+TEST(TfheIrTranspilerLibTest, CollectOutputValues_PureArray) {
   constexpr int kPureWidth = 8;
   constexpr int kPureElements = 4;
 
@@ -299,7 +299,7 @@ TEST(FheIrTranspilerLibTest, CollectOutputValues_PureArray) {
 
 // This test verifies that CollectOutputs correctly skips over const and
 // non-reference params.
-TEST(FheIrTranspilerLibTest, CollectOutputValues_SkipsConstAndNonRefs) {
+TEST(TfheIrTranspilerLibTest, CollectOutputValues_SkipsConstAndNonRefs) {
   constexpr int kArrayElements = 4;
   constexpr int kElementBits = 8;
   constexpr int kPureWidth = 8;
@@ -382,7 +382,7 @@ TEST(FheIrTranspilerLibTest, CollectOutputValues_SkipsConstAndNonRefs) {
 
 // This test verifies that CollectOutputValues can properly handle an
 // 2D array-valued output.
-TEST(FheIrTranspilerLibTest, CollectOutputValues_Pure2DArray) {
+TEST(TfheIrTranspilerLibTest, CollectOutputValues_Pure2DArray) {
   constexpr int kPureWidth = 8;
   constexpr int kTopElements = 4;
   constexpr int kSubElements = 4;
@@ -441,7 +441,7 @@ TEST(FheIrTranspilerLibTest, CollectOutputValues_Pure2DArray) {
 
 // This test verifies that `TfheTranspiler::FunctionSignature` produces the
 // correct value when provided a function with output but no in/out parameters.
-TEST(FheIrTranspilerLibTest, FunctionSignature_OnlyPure) {
+TEST(TfheIrTranspilerLibTest, FunctionSignature_OnlyPure) {
   constexpr int kPureReturnWidth = 64;
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
@@ -470,7 +470,7 @@ TEST(FheIrTranspilerLibTest, FunctionSignature_OnlyPure) {
 
 // This test verifies that `TfheTranspiler::Prelude` produces the correct value
 // when provided a function with output but no in/out parameters.
-TEST(FheIrTranspilerLibTest, Prelude_OnlyPure) {
+TEST(TfheIrTranspilerLibTest, Prelude_OnlyPure) {
   constexpr int kPureReturnWidth = 64;
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
@@ -509,7 +509,7 @@ absl::Status test_fn(absl::Span<LweSample> result,
 
 // This test verifies that `TfheTranspiler::Conclusion` produces the correct
 // value.
-TEST(FheIrTranspilerLibTest, Conclusion) {
+TEST(TfheIrTranspilerLibTest, Conclusion) {
   XLS_ASSERT_OK_AND_ASSIGN(std::string conclusion,
                            TfheTranspiler::Conclusion());
 
@@ -524,7 +524,7 @@ TEST(FheIrTranspilerLibTest, Conclusion) {
 }
 
 // This test verifies that TranslateHeader works when there's no parameters.
-TEST(FheIrTranspilerLibTest, TranslateHeader_NoParam) {
+TEST(TfheIrTranspilerLibTest, TranslateHeader_NoParam) {
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
 
@@ -556,7 +556,7 @@ absl::Status test_fn(const TFheGateBootstrappingCloudKeySet* bk);
 }
 
 // This test verifies that TranslateHeader works when there's one parameter.
-TEST(FheIrTranspilerLibTest, TranslateHeader_Param) {
+TEST(TfheIrTranspilerLibTest, TranslateHeader_Param) {
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
   xls::BitsType* value_type = package.GetBitsType(32);
@@ -591,7 +591,7 @@ absl::Status test_fn(absl::Span<LweSample> param,
 
 // This test verifies that TranslateHeader works when there are multiple
 // parameters.
-TEST(FheIrTranspilerLibTest, TranslateHeader_MultipleParams) {
+TEST(TfheIrTranspilerLibTest, TranslateHeader_MultipleParams) {
   constexpr int kParamNum = 5;
   xls::Package package("test_package");
   xlscc_metadata::MetadataOutput metadata;
@@ -636,7 +636,7 @@ absl::Status test_fn($0,
   EXPECT_EQ(actual, expected_header);
 }
 
-TEST(FheIrTranspilerLibTest, ParamBitReference_SingleBit) {
+TEST(TfheIrTranspilerLibTest, ParamBitReference_SingleBit) {
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
   xls::BitsType* value_type = package.GetBitsType(1);  // Single bit
@@ -646,7 +646,7 @@ TEST(FheIrTranspilerLibTest, ParamBitReference_SingleBit) {
   EXPECT_EQ(actual, "&param_0[0]");
 }
 
-TEST(FheIrTranspilerLibTest, ParamBitReference_MultipleBits) {
+TEST(TfheIrTranspilerLibTest, ParamBitReference_MultipleBits) {
   constexpr int kInOutWidth = 8;
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
@@ -659,7 +659,7 @@ TEST(FheIrTranspilerLibTest, ParamBitReference_MultipleBits) {
   }
 }
 
-TEST(FheIrTranspilerLibTest, InitializeNode) {
+TEST(TfheIrTranspilerLibTest, InitializeNode) {
   constexpr int kInOutWidth = 8;
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
@@ -674,7 +674,7 @@ TEST(FheIrTranspilerLibTest, InitializeNode) {
           param.node()->id()));
 }
 
-TEST(FheIrTranspilerLibTest, Execute_AndOp) {
+TEST(TfheIrTranspilerLibTest, Execute_AndOp) {
   constexpr int kInOutWidth = 8;
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
@@ -694,7 +694,7 @@ TEST(FheIrTranspilerLibTest, Execute_AndOp) {
           and_op.node()->id(), lhs.node()->id(), rhs.node()->id()));
 }
 
-TEST(FheIrTranspilerLibTest, Execute_OrOp) {
+TEST(TfheIrTranspilerLibTest, Execute_OrOp) {
   constexpr int kInOutWidth = 32;
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
@@ -714,7 +714,7 @@ TEST(FheIrTranspilerLibTest, Execute_OrOp) {
           or_op.node()->id(), lhs.node()->id(), rhs.node()->id()));
 }
 
-TEST(FheIrTranspilerLibTest, Execute_NotOp) {
+TEST(TfheIrTranspilerLibTest, Execute_NotOp) {
   constexpr int kInOutWidth = 64;
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
@@ -729,7 +729,7 @@ TEST(FheIrTranspilerLibTest, Execute_NotOp) {
                         not_op.node()->id(), param.node()->id()));
 }
 
-TEST(FheIrTranspilerLibTest, Execute_InvalidOp) {
+TEST(TfheIrTranspilerLibTest, Execute_InvalidOp) {
   constexpr int kInOutWidth = 16;
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
@@ -744,7 +744,7 @@ TEST(FheIrTranspilerLibTest, Execute_InvalidOp) {
               StatusIs(absl::StatusCode::kInvalidArgument));
 }
 
-TEST(FheIrTranspilerLibTest, Execute_LiteralOne) {
+TEST(TfheIrTranspilerLibTest, Execute_LiteralOne) {
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
 
@@ -758,7 +758,7 @@ TEST(FheIrTranspilerLibTest, Execute_LiteralOne) {
                              literal.node()->id()));
 }
 
-TEST(FheIrTranspilerLibTest, Execute_LiteralZero) {
+TEST(TfheIrTranspilerLibTest, Execute_LiteralZero) {
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
 
@@ -772,7 +772,7 @@ TEST(FheIrTranspilerLibTest, Execute_LiteralZero) {
                              literal.node()->id()));
 }
 
-TEST(FheIrTranspilerLibTest, Execute_UnsupportedLiteral) {
+TEST(TfheIrTranspilerLibTest, Execute_UnsupportedLiteral) {
   constexpr int kInOutWidth = 16;
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
@@ -787,7 +787,7 @@ TEST(FheIrTranspilerLibTest, Execute_UnsupportedLiteral) {
 // two-dimensional array_index.
 // Takes in a bits[2][3][4][5] and outputs a bits[2].
 #if 0
-TEST(FheIrTranspilerLibTest, Handles2dInputArray) {
+TEST(TfheIrTranspilerLibTest, Handles2dInputArray) {
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
 

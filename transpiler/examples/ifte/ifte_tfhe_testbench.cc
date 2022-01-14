@@ -16,7 +16,7 @@
 #include <iostream>
 
 #include "tfhe/tfhe.h"
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_TFHE
@@ -58,9 +58,9 @@ int main(int argc, char** argv) {
   std::cout << "e: " << e << std::endl;
 
   // Encrypt data
-  auto ciphertext_i = FheBool::Encrypt(i, key);
-  auto ciphertext_t = FheChar::Encrypt(t, key);
-  auto ciphertext_e = FheChar::Encrypt(e, key);
+  auto ciphertext_i = TfheBool::Encrypt(i, key);
+  auto ciphertext_t = TfheChar::Encrypt(t, key);
+  auto ciphertext_e = TfheChar::Encrypt(e, key);
 
   std::cout << "Encryption done" << std::endl;
 
@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform addition
-  FheChar cipher_result(params);
+  TfheChar cipher_result(params);
   XLS_CHECK_OK(ifte(cipher_result.get(), ciphertext_i.get(), ciphertext_t.get(),
                     ciphertext_e.get(), cloud_key));
 

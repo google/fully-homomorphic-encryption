@@ -2,16 +2,16 @@
 #include <memory>
 
 #include "tfhe/tfhe.h"
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #include "transpiler/examples/string_cap_char/string_cap_char.h"
 
-class FheState {
+class TfheState {
  public:
-  FheState(const TFheGateBootstrappingParameterSet* params)
+  TfheState(const TFheGateBootstrappingParameterSet* params)
       : data_(new_gate_bootstrapping_ciphertext_array(bit_width_, params),
               LweSampleArrayDeleter(bit_width_)) {}
 
-  // We set values here directly, instead of using FheValue, since FheValue
+  // We set values here directly, instead of using TfheValue, since TfheValue
   // types own their arrays, whereas we'd need to own them here as
   // contiguously-allocated chunks. (We could modify them to use borrowed data,
   // but it'd be more work than this). For structure types, though, we do

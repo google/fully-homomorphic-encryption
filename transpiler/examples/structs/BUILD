@@ -27,7 +27,7 @@ cc_binary(
     srcs = ["array_of_array_of_structs_tfhe_testbench.cc"],
     deps = [
         ":array_of_array_of_structs_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
@@ -91,7 +91,7 @@ cc_binary(
     srcs = ["return_struct_tfhe_testbench.cc"],
     deps = [
         ":return_struct_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
@@ -104,7 +104,7 @@ cc_binary(
     copts = ["-DUSE_INTERPRETED_TFHE"],
     deps = [
         ":return_struct_interpreted_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
@@ -117,7 +117,7 @@ cc_binary(
     copts = ["-DUSE_YOSYS_INTERPRETED_TFHE"],
     deps = [
         ":return_struct_yosys_interpreted_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
@@ -164,7 +164,7 @@ cc_binary(
     srcs = ["return_struct_with_inout_tfhe_testbench.cc"],
     deps = [
         ":return_struct_with_inout_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
@@ -188,7 +188,7 @@ cc_binary(
     srcs = ["simple_struct_tfhe_testbench.cc"],
     deps = [
         ":simple_struct_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
@@ -257,7 +257,7 @@ cc_binary(
     srcs = ["struct_of_structs_tfhe_testbench.cc"],
     deps = [
         ":struct_of_structs_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
@@ -270,7 +270,7 @@ cc_binary(
     copts = ["-DUSE_YOSYS_INTERPRETED_TFHE"],
     deps = [
         ":struct_of_structs_yosys_interpreted_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
@@ -322,7 +322,7 @@ cc_binary(
     srcs = ["struct_with_array_tfhe_testbench.cc"],
     deps = [
         ":struct_with_array_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
@@ -335,7 +335,7 @@ cc_binary(
     copts = ["-DUSE_INTERPRETED_TFHE"],
     deps = [
         ":struct_with_array_interpreted_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
@@ -348,7 +348,7 @@ cc_binary(
     copts = ["-DUSE_YOSYS_INTERPRETED_TFHE"],
     deps = [
         ":struct_with_array_yosys_interpreted_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
@@ -393,7 +393,7 @@ cc_binary(
     srcs = ["struct_with_struct_array_tfhe_testbench.cc"],
     deps = [
         ":struct_with_struct_array_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",

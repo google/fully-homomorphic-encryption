@@ -21,7 +21,7 @@
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "absl/types/span.h"
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #include "transpiler/examples/pir/pir_api.h"
 #include "transpiler/examples/pir/pir_cloud_service.h"
 #include "xls/common/logging/logging.h"
@@ -36,8 +36,8 @@ using ::fully_homomorphic_encryption::CloudService;
 using ::fully_homomorphic_encryption::Index;
 using ::fully_homomorphic_encryption::RecordT;
 
-using FheIndex = FheValue<Index>;
-using FheRecordT = FheValue<RecordT>;
+using TfheIndex = TfheValue<Index>;
+using TfheRecordT = TfheValue<RecordT>;
 
 int main() {
   TFHEParameters params(kMainMinimumLambda);
@@ -67,7 +67,7 @@ int main() {
   // Pass encrypted "database" to CloudService, which retains ownership
   std::cout << "Establishing connection." << std::endl;
   auto database_ciphertext =
-      FheArray<RecordT>::Encrypt(database_plaintext, key);
+      TfheArray<RecordT>::Encrypt(database_plaintext, key);
   CloudService service(std::move(database_ciphertext));
 
   while (true) {
@@ -90,8 +90,8 @@ int main() {
 
     // Encrypt and query
     std::cout << "Querying the database..." << std::endl;
-    auto index_ciphertext = FheIndex::Encrypt(static_cast<Index>(index), key);
-    FheRecordT result_ciphertext(params);
+    auto index_ciphertext = TfheIndex::Encrypt(static_cast<Index>(index), key);
+    TfheRecordT result_ciphertext(params);
     XLS_CHECK_OK(service.QueryRecord(result_ciphertext.get(),
                                      index_ciphertext.get(), key.cloud()));
 

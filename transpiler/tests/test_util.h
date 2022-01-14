@@ -21,7 +21,7 @@
 
 #include "absl/memory/memory.h"
 #include "gtest/gtest.h"
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 
 constexpr int kMainMinimumLambda = 120;
 

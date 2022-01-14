@@ -8,7 +8,7 @@
 #include "absl/status/statusor.h"
 #include "absl/types/span.h"
 #include "google/protobuf/text_format.h"
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
 #include "xls/netlist/cell_library.h"
 #include "xls/netlist/function_extractor.h"

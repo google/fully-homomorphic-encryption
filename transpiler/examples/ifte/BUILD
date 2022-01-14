@@ -60,7 +60,7 @@ cc_binary(
     srcs = ["ifte_tfhe_testbench.cc"],
     deps = [
         ":ifte_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
@@ -74,7 +74,7 @@ cc_binary(
     copts = ["-DUSE_YOSYS_INTERPRETED_TFHE"],
     deps = [
         ":ifte_yosys_interpreted_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",

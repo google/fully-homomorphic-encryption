@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Helper functions and fixtures for TFHE tests.
+// Helper functions and fixtures for PALISADE tests.
 
 #ifndef THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TESTS_PALISADE_TEST_UTIL_H_
 #define THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TESTS_PALISADE_TEST_UTIL_H_

@@ -18,7 +18,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #include "transpiler/examples/string_cap/string_cap.h"
 #include "xls/common/status/matchers.h"
 
@@ -54,7 +54,7 @@ TEST(StringCapTest, CorrectlyCapitalizesLongPhraseEncrypted) {
   TFHESecretKeySet key(params, seed);
 
   char input[] = "do or do not; there is no try!.!";
-  auto ciphertext = FheString::Encrypt(input, key);
+  auto ciphertext = TfheString::Encrypt(input, key);
   XLS_ASSERT_OK(CapitalizeString(ciphertext.get(), key.cloud()));
 
   std::string result = ciphertext.Decrypt(key);

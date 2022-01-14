@@ -22,7 +22,7 @@
 #include <type_traits>
 #include <vector>
 
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #include "transpiler/examples/string_cap/string_cap.h"
 #include "xls/common/logging/logging.h"
 
@@ -34,8 +34,8 @@
 
 constexpr int kMainMinimumLambda = 120;
 
-void FheStringCap(FheString& ciphertext,
-                  const TFheGateBootstrappingCloudKeySet* bk) {
+void TfheStringCap(TfheString& ciphertext,
+                   const TFheGateBootstrappingCloudKeySet* bk) {
   absl::Time start_time = absl::Now();
   double cpu_start_time = clock();
   std::cout << "Starting!" << std::endl;
@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
   const absl::Time encryption_start = absl::Now();
 
   // Encrypt data
-  auto ciphertext = FheString::Encrypt(plaintext, key);
+  auto ciphertext = TfheString::Encrypt(plaintext, key);
   std::cout << "Encryption done (" << ciphertext.bit_width() << " bits, "
             << absl::ToDoubleSeconds(absl::Now() - encryption_start) << " secs)"
             << std::endl;
@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform string capitalization
-  FheStringCap(ciphertext, key.cloud());
+  TfheStringCap(ciphertext, key.cloud());
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 
   const absl::Time decryption_start = absl::Now();

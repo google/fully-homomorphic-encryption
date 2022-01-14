@@ -15,8 +15,8 @@ cc_library(
 )
 
 cc_library(
-    name = "fhe_data",
-    hdrs = ["fhe_data.h"],
+    name = "tfhe_data",
+    hdrs = ["tfhe_data.h"],
     visibility = ["//visibility:public"],
     deps = [
         ":boolean_data",

@@ -45,7 +45,7 @@ cc_binary(
     srcs = ["simple_sum_tfhe_testbench.cc"],
     deps = [
         ":simple_sum_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
@@ -58,7 +58,7 @@ cc_binary(
     copts = ["-DUSE_INTERPRETED_TFHE"],
     deps = [
         ":simple_sum_interpreted_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",

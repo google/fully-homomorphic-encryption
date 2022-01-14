@@ -16,7 +16,7 @@
 #include <iostream>
 
 #include "tfhe/tfhe.h"
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_TFHE
@@ -65,8 +65,8 @@ int main(int argc, char** argv) {
   std::cout << "Player A selected " << player_a << " and Player B selected "
             << player_b << std::endl;
   // Encrypt data
-  auto ciphertext_x = FheInt::Encrypt(player_a, key);
-  auto ciphertext_y = FheInt::Encrypt(player_b, key);
+  auto ciphertext_x = TfheInt::Encrypt(player_a, key);
+  auto ciphertext_y = TfheInt::Encrypt(player_b, key);
 
   std::cout << "Encryption done" << std::endl;
 
@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform addition
-  FheInt cipher_result(params);
+  TfheInt cipher_result(params);
   XLS_CHECK_OK(rock_paper_scissor(cipher_result.get(), ciphertext_x.get(),
                                   ciphertext_y.get(), cloud_key));
 

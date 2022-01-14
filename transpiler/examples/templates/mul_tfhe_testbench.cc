@@ -19,7 +19,7 @@
 #include "absl/strings/string_view.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #ifdef USE_INTERPRETED_TFHE
 #include "transpiler/examples/templates/mul16_interpreted_tfhe.h"
 #include "transpiler/examples/templates/mul8_interpreted_tfhe.h"
@@ -42,10 +42,10 @@ absl::Status RealMain() {
   int a = rand();
   int b = rand();
   int c = rand();
-  auto x_a = FheInt::Encrypt(a, key);
-  auto x_b = FheInt::Encrypt(b, key);
-  auto x_c = FheInt::Encrypt(c, key);
-  auto x_result = FheInt(params);
+  auto x_a = TfheInt::Encrypt(a, key);
+  auto x_b = TfheInt::Encrypt(b, key);
+  auto x_c = TfheInt::Encrypt(c, key);
+  auto x_result = TfheInt(params);
 
   absl::Time start_time = absl::Now();
   absl::Status status =

@@ -22,7 +22,7 @@
 #include <locale>
 #include <string>
 
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #include "transpiler/examples/hangman/hangman_api_tfhe.h"
 #include "transpiler/examples/hangman/hangman_client.h"
 #include "xls/common/logging/logging.h"
@@ -70,7 +70,7 @@ int main() {
       continue;
     }
     // Encrypt the input.
-    auto ciphertext = FheString::Encrypt(input, key);
+    auto ciphertext = TfheString::Encrypt(input, key);
     std::cout << "Encryption done" << std::endl;
 
     std::cout << "Initial state check by decryption: " << std::endl;
@@ -78,7 +78,7 @@ int main() {
     std::cout << "\n";
 
     // Make a move.
-    FheInt cipher_result(params);
+    TfheInt cipher_result(params);
 
     XLS_CHECK_OK(
         hangmanMakeMove(cipher_result.get(), ciphertext.get(), key.cloud()));

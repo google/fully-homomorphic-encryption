@@ -21,7 +21,7 @@
 #include "absl/status/statusor.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #include "xls/common/status/matchers.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
 #include "xls/ir/ir_parser.h"
@@ -107,8 +107,8 @@ TEST(TfheRunnerTest, EndToEnd) {
   std::array<uint32_t, 3> seed = {314, 1592, 657};
   TFHESecretKeySet key(params, seed);
 
-  auto ciphertext = FheValue<char>::Encrypt('a', key);
-  FheValue<char> result(key.params());
+  auto ciphertext = TfheValue<char>::Encrypt('a', key);
+  TfheValue<char> result(key.params());
   absl::flat_hash_map<std::string, absl::Span<LweSample>> args = {
       {"x", ciphertext.get()}};
 

@@ -67,7 +67,7 @@ cc_binary(
     deps = [
         ":mul16_tfhe",
         ":mul8_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/time",
@@ -81,7 +81,7 @@ cc_binary(
     deps = [
         ":mul16_interpreted_tfhe",
         ":mul8_interpreted_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/time",

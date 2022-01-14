@@ -38,7 +38,7 @@ cc_library(
         "//:__subpackages__",
     ],
     deps = [
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest",
         "@com_google_xls//xls/common/status:matchers",
@@ -73,7 +73,7 @@ cc_test(
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/strings",
         "@com_google_xls//xls/common/status:matchers",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@tfhe//:libtfhe",
     ],
 )
@@ -133,7 +133,7 @@ cc_test(
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/strings",
         "@com_google_xls//xls/common/status:matchers",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@tfhe//:libtfhe",
     ],
 )

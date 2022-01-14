@@ -492,7 +492,7 @@ def fhe_cc_library(
             "@com_google_absl//absl/status:statusor",
             "//transpiler:yosys_interpreted_tfhe_runner",
             "//transpiler/data:boolean_data",
-            "//transpiler/data:fhe_data",
+            "//transpiler/data:tfhe_data",
             "@tfhe//:libtfhe",
             "@com_google_xls//xls/common/status:status_macros",
         ])
@@ -507,14 +507,14 @@ def fhe_cc_library(
         deps.extend([
             "@tfhe//:libtfhe",
             "//transpiler/data:boolean_data",
-            "//transpiler/data:fhe_data",
+            "//transpiler/data:tfhe_data",
         ])
     elif transpiler_type == "interpreted_tfhe":
         deps.extend([
             "@com_google_absl//absl/status:statusor",
             "//transpiler:tfhe_runner",
             "//transpiler/data:boolean_data",
-            "//transpiler/data:fhe_data",
+            "//transpiler/data:tfhe_data",
             "@tfhe//:libtfhe",
             "@com_google_xls//xls/common/status:status_macros",
         ])

@@ -16,7 +16,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #include "transpiler/tests/for_tfhe.h"
 #include "transpiler/tests/function_tfhe.h"
 #include "transpiler/tests/if_tfhe.h"
@@ -49,8 +49,8 @@ class TranspilerControlStructureSwitchTest
 
 TEST_P(TranspilerControlStructureSwitchTest, TestSwitch) {
   const TranspilerControlStructureSwitchTestCase& test_case = GetParam();
-  auto ciphertext = FheValue<char>::Encrypt(test_case.input, secret_key());
-  FheValue<int> result(params());
+  auto ciphertext = TfheValue<char>::Encrypt(test_case.input, secret_key());
+  TfheValue<int> result(params());
   XLS_ASSERT_OK(test_switch(result.get(), ciphertext.get(), cloud_key()));
   EXPECT_EQ(result.Decrypt(secret_key()), test_case.expected_output);
 }
@@ -79,9 +79,9 @@ class TranspilerControlStructureIfTest
 
 TEST_P(TranspilerControlStructureIfTest, TestIf) {
   const TranspilerControlStructureIfTestCase& test_case = GetParam();
-  auto lhs_ciphertext = FheShort::Encrypt(test_case.input.lhs, secret_key());
-  auto rhs_ciphertext = FheShort::Encrypt(test_case.input.rhs, secret_key());
-  FheValue<char> result(params());
+  auto lhs_ciphertext = TfheShort::Encrypt(test_case.input.lhs, secret_key());
+  auto rhs_ciphertext = TfheShort::Encrypt(test_case.input.rhs, secret_key());
+  TfheValue<char> result(params());
 
   XLS_ASSERT_OK(test_if(result.get(), lhs_ciphertext.get(),
                         rhs_ciphertext.get(), cloud_key()));
@@ -107,8 +107,8 @@ class TranspilerControlStructureForLoopTest
 
 TEST_P(TranspilerControlStructureForLoopTest, TestFor) {
   const TranspilerControlStructureForLoopTestCase& test_case = GetParam();
-  auto ciphertext = FheShort::Encrypt(test_case.input, secret_key());
-  FheShort result(params());
+  auto ciphertext = TfheShort::Encrypt(test_case.input, secret_key());
+  TfheShort result(params());
 
   XLS_ASSERT_OK(test_for(result.get(), ciphertext.get(), cloud_key()));
   EXPECT_EQ(result.Decrypt(secret_key()), test_case.expected_output);
@@ -116,8 +116,8 @@ TEST_P(TranspilerControlStructureForLoopTest, TestFor) {
 
 TEST_P(TranspilerControlStructureForLoopTest, TestNestedFor) {
   const TranspilerControlStructureForLoopTestCase& test_case = GetParam();
-  auto ciphertext = FheShort::Encrypt(test_case.input, secret_key());
-  FheShort result(params());
+  auto ciphertext = TfheShort::Encrypt(test_case.input, secret_key());
+  TfheShort result(params());
 
   XLS_ASSERT_OK(test_nested_for(result.get(), ciphertext.get(), cloud_key()));
   EXPECT_EQ(result.Decrypt(secret_key()), test_case.expected_output);
@@ -141,8 +141,8 @@ class TranspilerControlStructureFunctionTest
 
 TEST_P(TranspilerControlStructureFunctionTest, TestFunction) {
   const TranspilerControlStructureFunctionTestCase& test_case = GetParam();
-  auto ciphertext = FheValue<int>::Encrypt(test_case.input, secret_key());
-  FheValue<int> result(params());
+  auto ciphertext = TfheValue<int>::Encrypt(test_case.input, secret_key());
+  TfheValue<int> result(params());
 
   XLS_ASSERT_OK(test_function(result.get(), ciphertext.get(), cloud_key()));
   EXPECT_EQ(result.Decrypt(secret_key()), test_case.expected_output);

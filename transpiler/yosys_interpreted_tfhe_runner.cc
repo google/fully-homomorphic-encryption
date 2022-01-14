@@ -218,8 +218,8 @@ absl::Status YosysTfheRunner::YosysTfheRunnerState::Run(
 
   std::cout << "Collecting outputs." << std::endl;
 
-  // The return value output_nets is a map from NetRef to FheBoolValue objects.
-  // Each of the FheBoolValue objects contains a LweSample*, which it either
+  // The return value output_nets is a map from NetRef to TfheBoolValue objects.
+  // Each of the TfheBoolValue objects contains a LweSample*, which it either
   // owns or has borrowed from elsewhere (whether it owns or has borrowed does
   // not matter here.)
   //

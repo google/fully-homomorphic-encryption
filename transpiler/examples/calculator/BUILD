@@ -23,7 +23,7 @@ cc_binary(
     srcs = ["calculator_tfhe_testbench.cc"],
     deps = [
         ":calculator_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
@@ -37,7 +37,7 @@ cc_binary(
     copts = ["-DUSE_INTERPRETED_TFHE"],
     deps = [
         ":calculator_interpreted_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/status",
         "@com_google_xls//xls/common/logging",
@@ -60,7 +60,7 @@ cc_binary(
     srcs = ["calculator_testbench.cc"],
     deps = [
         ":calculator",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
         "@tfhe//:libtfhe",
     ],

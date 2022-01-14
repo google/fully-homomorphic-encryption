@@ -19,7 +19,7 @@
 #include "absl/status/status.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #include "transpiler/examples/pir/pir_api.h"
 
 namespace fully_homomorphic_encryption {
@@ -29,7 +29,7 @@ namespace fully_homomorphic_encryption {
 // key.
 class CloudService {
  public:
-  explicit CloudService(FheArray<RecordT> database)
+  explicit CloudService(TfheArray<RecordT> database)
       : database_(std::move(database)) {}
 
   absl::Status QueryRecord(absl::Span<LweSample> result,
@@ -37,7 +37,7 @@ class CloudService {
                            const TFheGateBootstrappingCloudKeySet* bk);
 
  private:
-  FheArray<RecordT> database_;
+  TfheArray<RecordT> database_;
 };
 
 }  // namespace fully_homomorphic_encryption

@@ -50,7 +50,7 @@ cc_binary(
     ],
     deps = [
         ":string_cap_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
@@ -67,7 +67,7 @@ cc_binary(
     copts = ["-DUSE_INTERPRETED_TFHE"],
     deps = [
         ":string_cap_interpreted_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/status",
         "@com_google_xls//xls/common/logging",
@@ -137,7 +137,7 @@ cc_test(
     deps = [
         ":string_cap",
         ":string_cap_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_googletest//:gtest_main",
         "@com_google_xls//xls/common/status:matchers",
@@ -157,7 +157,7 @@ cc_test(
         "@com_google_googletest//:gtest_main",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/status:matchers",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@tfhe//:libtfhe",
     ],
 )

@@ -24,7 +24,7 @@
 
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_TFHE
@@ -37,9 +37,9 @@
 
 constexpr int kMainMinimumLambda = 120;
 
-void FheStringCap(FheString& cipherresult, FheString& ciphertext, int data_size,
-                  FheState& cipherstate,
-                  const TFheGateBootstrappingCloudKeySet* bk) {
+void TfheStringCap(TfheString& cipherresult, TfheString& ciphertext,
+                   int data_size, TfheState& cipherstate,
+                   const TFheGateBootstrappingCloudKeySet* bk) {
   absl::Duration total_time = absl::ZeroDuration();
   double total_cpu_time = 0.0;
   for (int i = 0; i < data_size; i++) {
@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
   std::cout << "plaintext(" << data_size << "):" << plaintext << std::endl;
 
   // Encrypt data
-  auto ciphertext = FheString::Encrypt(plaintext, key);
+  auto ciphertext = TfheString::Encrypt(plaintext, key);
   std::cout << "Encryption done" << std::endl;
 
   std::cout << "Initial state check by decryption: " << std::endl;
@@ -92,12 +92,12 @@ int main(int argc, char** argv) {
   std::cout << "\n";
 
   State st;
-  FheState cipherstate(params.get());
+  TfheState cipherstate(params.get());
   cipherstate.SetEncrypted(st, key.get());
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform string capitalization
-  FheString cipher_result = {data_size, params};
-  FheStringCap(cipher_result, ciphertext, data_size, cipherstate, key.cloud());
+  TfheString cipher_result = {data_size, params};
+  TfheStringCap(cipher_result, ciphertext, data_size, cipherstate, key.cloud());
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 
   std::cout << "Decrypted result: ";

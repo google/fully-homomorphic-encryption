@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Funcionality for "interpreting" XLS IR within a TFHE environment.
+// Funcionality for "interpreting" XLS IR within a PALISADE environment.
 //
 // IR must satisfy:
 //
@@ -27,8 +27,6 @@
 // auto result == ... set up LweSample* with the right width ...
 // auto args = absl::flat_hash_map {{"x", ...}, {"y", ...}};
 // runner.Run(result, args, bk);
-
-// See tfhe_runner_test.cc.
 
 #ifndef THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_PALISADE_RUNNER_H_
 #define THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_PALISADE_RUNNER_H_

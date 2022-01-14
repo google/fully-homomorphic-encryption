@@ -104,7 +104,7 @@ cc_library(
     srcs = ["yosys_interpreted_tfhe_runner.cc"],
     hdrs = ["yosys_interpreted_tfhe_runner.h"],
     deps = [
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/memory",
         "@com_google_absl//absl/status",
@@ -159,7 +159,7 @@ cc_test(
     srcs = ["tfhe_runner_test.cc"],
     deps = [
         ":tfhe_runner",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",

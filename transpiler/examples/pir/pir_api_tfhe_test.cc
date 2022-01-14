@@ -22,7 +22,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #include "transpiler/examples/pir/pir_api.h"
 #include "transpiler/tests/test_util.h"
 #include "xls/common/status/matchers.h"
@@ -36,8 +36,8 @@ using ::testing::TestParamInfo;
 using ::testing::ValuesIn;
 using ::testing::WithParamInterface;
 
-using FheIndex = FheValue<Index>;
-using FheRecordT = FheValue<RecordT>;
+using TfheIndex = TfheValue<Index>;
+using TfheRecordT = TfheValue<RecordT>;
 
 struct TranspilerExamplesPirTestCase {
   const std::string test_name;
@@ -53,9 +53,9 @@ class TranspilerExamplesPirTest
 TEST_P(TranspilerExamplesPirTest, TestPir) {
   const TranspilerExamplesPirTestCase& test_case = GetParam();
 
-  auto index_ciphertext = FheIndex::Encrypt(test_case.index, secret_key());
-  auto db_ciphertext = FheArray<RecordT>::Encrypt(test_case.db, secret_key());
-  FheRecordT result_ciphertext(params());
+  auto index_ciphertext = TfheIndex::Encrypt(test_case.index, secret_key());
+  auto db_ciphertext = TfheArray<RecordT>::Encrypt(test_case.db, secret_key());
+  TfheRecordT result_ciphertext(params());
 
   XLS_ASSERT_OK(QueryRecord(result_ciphertext.get(), index_ciphertext.get(),
                             db_ciphertext.get(), cloud_key()));

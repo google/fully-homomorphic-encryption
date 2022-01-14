@@ -117,8 +117,8 @@ the code in the
 file. Below is a simplified version of the code:
 
 ```cpp
-void FheStringCap(FheString& cipherresult, FheString& ciphertext, int data_size,
-                  FheState& cipherstate, const TFheGateBootstrappingCloudKeySet* bk) {
+void TfheStringCap(TfheString& cipherresult, TfheString& ciphertext, int data_size,
+                  TfheState& cipherstate, const TFheGateBootstrappingCloudKeySet* bk) {
 
   for (int i = 0; i < data_size; i++) {
     CHECK_OK(my_package(cipherresult[i], cipherstate.get(), ciphertext[i], bk));
@@ -144,21 +144,21 @@ int main(int argc, char** argv) {
   std::cout << "plaintext(" << data_size << "):" << plaintext << std::endl;
 
   // Encrypt data
-  auto ciphertext = FheString::Encrypt(plaintext, key);
+  auto ciphertext = TfheString::Encrypt(plaintext, key);
   std::cout << "Encryption done" << std::endl;
 
   std::cout << "Initial state check by decryption: " << std::endl;
   std::cout << ciphertext.Decrypt(key) << "\n";
   std::cout << "\n";
-  
+
   State st;
-  FheState cipherstate(params.get());
+  TfheState cipherstate(params.get());
   cipherstate.SetEncrypted(st, key.get());
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform string capitalization
-  FheString cipher_result = {data_size, params};
-  FheStringCap(cipher_result, ciphertext, data_size, cipherstate, key.cloud());
+  TfheString cipher_result = {data_size, params};
+  TfheStringCap(cipher_result, ciphertext, data_size, cipherstate, key.cloud());
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 
   std::cout << "Decrypted result: ";
@@ -187,20 +187,20 @@ can see the following:
 6.  Get the length of the input string with `size_t data_size =
     plaintext.size();`, to know when there are no more characters to read from
     `plaintext`.
-7.  `auto ciphertext = FheString::Encrypt(plaintext, key);` encrypts the
+7.  `auto ciphertext = TfheString::Encrypt(plaintext, key);` encrypts the
     plaintext data with the symmetric secret `key`, and stores the ciphertext in
-    an FheString variable named `ciphertext`.
+    an TfheString variable named `ciphertext`.
 8.  To ensure the encryption and decryption work correctly, we call and output
     the result of `ciphertext.Decrypt(key)`, which should match the content of
     `plaintext`.
-9.  `FheString cipher_result = {data_size, params};` declares the variable
+9.  `TfheString cipher_result = {data_size, params};` declares the variable
     `cipher_result` that will store the result of the transformation of the
     encrypted data.
-10. `FheStringCap(cipher_result, ciphertext, data_size, state, key.cloud());` calls the
-    `FheStringCap` helper function defined above `int main`. `cipher_result` is
+10. `TfheStringCap(cipher_result, ciphertext, data_size, state, key.cloud());` calls the
+    `TfheStringCap` helper function defined above `int main`. `cipher_result` is
     passed as an output argument. `key.cloud()` is a special key that allows
     operations to be performed on the ciphertext without it being decryptable.
-11. `FheState state(params);` is the FHE representation of the original C++
+11. `TfheState state(params);` is the FHE representation of the original C++
     code's `State` that holds the `last_was_space_` variable.
 12. The code then iterates over each FHE-character in `ciphertext`, sending it
     to the "server" to be transformed, and receiving the resulting FHE-character
@@ -219,8 +219,8 @@ To summarise, the following is the minimum needed to implement a testbench:
 4.  The `TFHESecretKeySet` encryption key is created with the aforementioned
     `TFHEParameters` and a `std::array<uint32_t, 3>` (i.e., an array of 3
     unsigned 32-bit integers).
-5.  The encrypted input and output data must be stored in an FHE-supported data
-    type. These are defined in [transpiler/data/fhe_data.h](../data/fhe_data.h).
+5.  The encrypted input and output data must be stored in a TFHE-supported data
+    type. These are defined in [transpiler/data/tfhe_data.h](../data/tfhe_data.h).
 6.  The special key that allows for operations on the encrypted data is obtained
     by calling `TFHESecretKeySet::cloud()` on the previously-generated key.
 

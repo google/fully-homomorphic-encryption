@@ -22,7 +22,7 @@
 
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_TFHE
@@ -58,14 +58,14 @@ void test_fibonacci_number() {
     cout << "input n = " << n << endl;
 
     // Encrypt the input value
-    auto encryptedN = FheValue<int>::Encrypt(n, key);
+    auto encryptedN = TfheValue<int>::Encrypt(n, key);
     cout << "Encryption done" << endl;
     cout << "Initial state check by decryption: " << endl;
     cout << "Decrypted input: " << encryptedN.Decrypt(key) << endl;
 
     // Perform computation
     cout << "\t\t\t\t\tServer side computation:" << endl;
-    FheValue<int> encryptedResult(params);
+    TfheValue<int> encryptedResult(params);
 
     absl::Time start_time = absl::Now();
     double cpu_start_time = clock();

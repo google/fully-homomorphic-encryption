@@ -125,7 +125,7 @@ class EncodedArray {
   absl::FixedArray<bool> array_;
 };
 
-// Represents a string as an FheArray of the template parameter CharT.
+// Represents a string as an EncodedArray of the template parameter CharT.
 // Corresponds to std::basic_string
 template <typename CharT>
 class EncodedBasicString : public EncodedArray<CharT> {

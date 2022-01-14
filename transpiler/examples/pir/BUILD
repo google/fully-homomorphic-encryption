@@ -24,7 +24,7 @@ cc_library(
     hdrs = ["pir_cloud_service.h"],
     deps = [
         ":pir_api_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/memory",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/types:span",
@@ -39,7 +39,7 @@ cc_library(
     copts = ["-DUSE_INTERPRETED_TFHE"],
     deps = [
         ":pir_api_interpreted_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/memory",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/types:span",
@@ -55,7 +55,7 @@ cc_binary(
     ],
     deps = [
         ":pir_cloud_service",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/types:span",
@@ -72,7 +72,7 @@ cc_binary(
     ],
     deps = [
         ":pir_interpreted_cloud_service",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/types:span",
@@ -87,7 +87,7 @@ cc_test(
     srcs = ["pir_api_tfhe_test.cc"],
     deps = [
         ":pir_api_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "//transpiler/tests:test_util",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",
@@ -111,7 +111,7 @@ cc_test(
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/strings",
         "@com_google_xls//xls/common/status:matchers",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "//transpiler/tests:test_util",
         "@tfhe//:libtfhe",
     ],

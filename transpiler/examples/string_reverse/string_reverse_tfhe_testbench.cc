@@ -23,7 +23,7 @@
 
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #include "transpiler/examples/string_reverse/string_reverse.h"
 #include "xls/common/logging/logging.h"
 
@@ -35,8 +35,8 @@
 
 constexpr int kMainMinimumLambda = 120;
 
-void FheStringReverse(FheString& ciphertext,
-                      const TFheGateBootstrappingCloudKeySet* bk) {
+void TfheStringReverse(TfheString& ciphertext,
+                       const TFheGateBootstrappingCloudKeySet* bk) {
   std::cout << "Starting!" << std::endl;
   absl::Time start_time = absl::Now();
   double cpu_start_time = clock();
@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
   std::cout << "plaintext: '" << plaintext << "'" << std::endl;
 
   // Encrypt data
-  auto ciphertext = FheString::Encrypt(plaintext, key);
+  auto ciphertext = TfheString::Encrypt(plaintext, key);
   std::cout << "Encryption done" << std::endl;
 
   std::cout << "Initial state check by decryption: " << std::endl;
@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform string reverse
-  FheStringReverse(ciphertext, key.cloud());
+  TfheStringReverse(ciphertext, key.cloud());
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 
   std::cout << "Decrypted result: " << ciphertext.Decrypt(key) << "\n";

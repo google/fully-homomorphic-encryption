@@ -18,7 +18,7 @@
 #include "gmock/gmock.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #include "transpiler/examples/fibonacci/fibonacci_sequence_tfhe.h"
 #include "xls/common/status/matchers.h"
 
@@ -72,9 +72,9 @@ TEST(FibonacciTest, InitialStateEncrypted) {
 
   // Create inputs.
   int input = 5;
-  auto encrypted_input = FheValue<int>::Encrypt(input, key);
+  auto encrypted_input = TfheValue<int>::Encrypt(input, key);
 
-  FheArray<int> encrypted_result(5, params);
+  TfheArray<int> encrypted_result(5, params);
   XLS_ASSERT_OK(fibonacci_sequence(encrypted_input.get(),
                                    encrypted_result.get(), key.cloud()));
   absl::FixedArray<int> actual_result = encrypted_result.Decrypt(key);

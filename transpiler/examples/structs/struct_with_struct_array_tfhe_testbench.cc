@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
     input.b[i] = -111 * (i + 1);
   }
 
-  FheStructWithStructArray fhe_struct_with_struct_array(params);
+  TfheStructWithStructArray fhe_struct_with_struct_array(params);
   fhe_struct_with_struct_array.SetEncrypted(input, key);
 
   std::cout << "Round trip check: " << std::endl;
@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
   }
 
   std::cout << "Starting computation." << std::endl;
-  FheStructWithStructArray fhe_result(params);
+  TfheStructWithStructArray fhe_result(params);
   XLS_CHECK_OK(NegateStructWithStructArray(
       fhe_result.get(), fhe_struct_with_struct_array.get(), cloud_key));
 

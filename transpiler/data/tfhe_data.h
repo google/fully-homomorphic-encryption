@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef FHE_DATA_H_
-#define FHE_DATA_H_
+#ifndef TFHE_DATA_H_
+#define TFHE_DATA_H_
 
 #include <assert.h>
 #include <stddef.h>
@@ -133,42 +133,42 @@ inline void Decrypt(LweSample* ciphertext,
 
 template <typename ValueType,
           std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>
-class FheValueRef;
+class TfheValueRef;
 
-// FHE representation of a single object encoded as a bit array.
+// TFHE representation of a single object encoded as a bit array.
 template <typename ValueType,
           std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>
-class FheValue {
+class TfheValue {
  public:
-  FheValue(const TFheGateBootstrappingParameterSet* params)
+  TfheValue(const TFheGateBootstrappingParameterSet* params)
       : array_(new_gate_bootstrapping_ciphertext_array(kBitWidth, params),
                LweSampleArrayDeleter(kBitWidth)),
         params_(params) {}
 
-  static FheValue<ValueType> Unencrypted(
+  static TfheValue<ValueType> Unencrypted(
       ValueType value, const TFheGateBootstrappingCloudKeySet* key) {
-    FheValue<ValueType> plaintext(key->params);
+    TfheValue<ValueType> plaintext(key->params);
     plaintext.SetUnencrypted(value, key);
     return plaintext;
   }
 
-  static FheValue<ValueType> Encrypt(
+  static TfheValue<ValueType> Encrypt(
       ValueType value, const TFheGateBootstrappingSecretKeySet* key) {
-    FheValue<ValueType> ciphertext(key->params);
+    TfheValue<ValueType> ciphertext(key->params);
     ciphertext.SetEncrypted(value, key);
     return ciphertext;
   }
 
-  FheValue& operator=(const FheValueRef<ValueType>& value) {
+  TfheValue& operator=(const TfheValueRef<ValueType>& value) {
     ::Copy(value.get(), value.size(), params(), get());
     return *this;
   }
 
-  operator const FheValueRef<ValueType>() const& {
-    return FheValueRef<ValueType>(array_.get(), params_);
+  operator const TfheValueRef<ValueType>() const& {
+    return TfheValueRef<ValueType>(array_.get(), params_);
   }
-  operator FheValueRef<ValueType>() & {
-    return FheValueRef<ValueType>(array_.get(), params_);
+  operator TfheValueRef<ValueType>() & {
+    return TfheValueRef<ValueType>(array_.get(), params_);
   }
 
   void SetUnencrypted(const ValueType& value,
@@ -204,14 +204,15 @@ class FheValue {
   const TFheGateBootstrappingParameterSet* params_;
 };
 
-// Reference to an FHE representation of a single object encoded as a bit array.
+// Reference to a TFHE representation of a single object encoded as a bit array.
 template <typename ValueType, std::enable_if_t<std::is_integral_v<ValueType>>*>
-class FheValueRef {
+class TfheValueRef {
  public:
-  FheValueRef(LweSample* array, const TFheGateBootstrappingParameterSet* params)
+  TfheValueRef(LweSample* array,
+               const TFheGateBootstrappingParameterSet* params)
       : array_(array), params_(params) {}
 
-  FheValueRef& operator=(const FheValueRef<ValueType>& value) {
+  TfheValueRef& operator=(const TfheValueRef<ValueType>& value) {
     ::Copy(value.get().data(), size(), params(), this->get().data());
     return *this;
   }
@@ -251,41 +252,41 @@ class FheValueRef {
 
 template <typename ValueType,
           std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>
-class FheArrayRef;
+class TfheArrayRef;
 
-// FHE representation of an array of objects of a single type, encoded as
+// TFHE representation of an array of objects of a single type, encoded as
 // a bit array.
 template <typename ValueType,
           std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>
-class FheArray {
+class TfheArray {
  public:
-  FheArray(int32_t length, const TFheGateBootstrappingParameterSet* params)
+  TfheArray(int32_t length, const TFheGateBootstrappingParameterSet* params)
       : length_(length),
         array_(new_gate_bootstrapping_ciphertext_array(bit_width(), params),
                LweSampleArrayDeleter(kValueWidth * length)),
         params_(params) {}
 
-  static FheArray<ValueType> Unencrypted(
+  static TfheArray<ValueType> Unencrypted(
       absl::Span<const ValueType> plaintext,
       const TFheGateBootstrappingCloudKeySet* key) {
-    FheArray<ValueType> shared_value(plaintext.length(), key->params);
+    TfheArray<ValueType> shared_value(plaintext.length(), key->params);
     shared_value.SetUnencrypted(plaintext, key);
     return plaintext;
   }
 
-  static FheArray<ValueType> Encrypt(
+  static TfheArray<ValueType> Encrypt(
       absl::Span<const ValueType> plaintext,
       const TFheGateBootstrappingSecretKeySet* key) {
-    FheArray<ValueType> private_value(plaintext.length(), key->params);
+    TfheArray<ValueType> private_value(plaintext.length(), key->params);
     private_value.SetEncrypted(plaintext, key);
     return private_value;
   }
 
-  operator const FheArrayRef<ValueType>() const& {
-    return FheArrayRef<ValueType>(length_, array_.get(), params_);
+  operator const TfheArrayRef<ValueType>() const& {
+    return TfheArrayRef<ValueType>(length_, array_.get(), params_);
   }
-  operator FheArrayRef<ValueType>() & {
-    return FheArrayRef<ValueType>(length_, array_.get(), params_);
+  operator TfheArrayRef<ValueType>() & {
+    return TfheArrayRef<ValueType>(length_, array_.get(), params_);
   }
 
   void SetUnencrypted(absl::Span<const ValueType> plaintext,
@@ -312,7 +313,7 @@ class FheArray {
     return absl::MakeConstSpan(array_.get(), size());
   }
 
-  FheValueRef<ValueType> operator[](int32_t pos) {
+  TfheValueRef<ValueType> operator[](int32_t pos) {
     return {&(array_.get())[pos * kValueWidth], params()};
   }
 
@@ -332,16 +333,16 @@ class FheArray {
   const TFheGateBootstrappingParameterSet* params_;
 };
 
-// Reference to an FHE representation of an array of objects of a single type,
+// Reference to a TFHE representation of an array of objects of a single type,
 // encoded as a bit array.
 template <typename ValueType, std::enable_if_t<std::is_integral_v<ValueType>>*>
-class FheArrayRef {
+class TfheArrayRef {
  public:
-  FheArrayRef(int32_t length, LweSample* array,
-              const TFheGateBootstrappingParameterSet* params)
+  TfheArrayRef(int32_t length, LweSample* array,
+               const TFheGateBootstrappingParameterSet* params)
       : length_(length), array_(array), params_(params) {}
 
-  FheArrayRef& operator=(const FheArrayRef<ValueType>& value) {
+  TfheArrayRef& operator=(const TfheArrayRef<ValueType>& value) {
     ::Copy(value.get(), size(), params(), this->get());
     return *this;
   }
@@ -370,7 +371,7 @@ class FheArrayRef {
     return absl::MakeConstSpan(array_, size());
   }
 
-  FheValueRef<ValueType> operator[](int32_t pos) {
+  TfheValueRef<ValueType> operator[](int32_t pos) {
     return {&(this->get())[pos * kValueWidth], params()};
   }
 
@@ -390,103 +391,103 @@ class FheArrayRef {
   const TFheGateBootstrappingParameterSet* params_;
 };
 
-class FheCharRef : public FheValueRef<char> {
+class TfheCharRef : public TfheValueRef<char> {
  public:
-  using FheValueRef<char>::FheValueRef;
+  using TfheValueRef<char>::TfheValueRef;
 
-  operator FheValueRef<signed char>() {
-    return FheValueRef<signed char>(this->get().data(), this->params());
+  operator TfheValueRef<signed char>() {
+    return TfheValueRef<signed char>(this->get().data(), this->params());
   }
-  operator FheValueRef<unsigned char>() {
-    return FheValueRef<unsigned char>(this->get().data(), this->params());
+  operator TfheValueRef<unsigned char>() {
+    return TfheValueRef<unsigned char>(this->get().data(), this->params());
   }
 };
 
-// Represents a character as an FheValue of the template parameter CharT.
+// Represents a character as a TfheValue of the template parameter CharT.
 // Allow implicit reference as plain, signed, or unsigned CharT.
-class FheChar : public FheValue<char> {
+class TfheChar : public TfheValue<char> {
  public:
-  using FheValue<char>::FheValue;
+  using TfheValue<char>::TfheValue;
 
-  static FheChar Encrypt(char value,
-                         const TFheGateBootstrappingSecretKeySet* key) {
-    FheChar ciphertext(key->params);
+  static TfheChar Encrypt(char value,
+                          const TFheGateBootstrappingSecretKeySet* key) {
+    TfheChar ciphertext(key->params);
     ciphertext.SetEncrypted(value, key);
     return ciphertext;
   }
 
-  static FheChar Unencrypted(char value,
-                             const TFheGateBootstrappingCloudKeySet* key) {
-    FheChar plaintext(key->params);
+  static TfheChar Unencrypted(char value,
+                              const TFheGateBootstrappingCloudKeySet* key) {
+    TfheChar plaintext(key->params);
     plaintext.SetUnencrypted(value, key);
     return plaintext;
   }
 
-  operator FheCharRef() & {
-    return FheCharRef(this->get().data(), this->params());
+  operator TfheCharRef() & {
+    return TfheCharRef(this->get().data(), this->params());
   }
-  operator FheValueRef<signed char>() & { return ((FheCharRef) * this); }
-  operator FheValueRef<unsigned char>() & { return ((FheCharRef) * this); }
+  operator TfheValueRef<signed char>() & { return ((TfheCharRef) * this); }
+  operator TfheValueRef<unsigned char>() & { return ((TfheCharRef) * this); }
 };
 
-// Represents a string as an FheArray of the template parameter CharT.
+// Represents a string as a TfheArray of the template parameter CharT.
 // Corresponds to std::basic_string
 template <typename CharT>
-class FheBasicString : public FheArray<CharT> {
+class TfheBasicString : public TfheArray<CharT> {
  public:
-  using FheArray<CharT>::FheArray;
+  using TfheArray<CharT>::TfheArray;
 
-  static FheBasicString<CharT> Unencrypted(
+  static TfheBasicString<CharT> Unencrypted(
       absl::Span<const CharT> plaintext,
       const TFheGateBootstrappingCloudKeySet* key) {
-    FheBasicString<CharT> shared_value(plaintext.length(), key->params);
+    TfheBasicString<CharT> shared_value(plaintext.length(), key->params);
     shared_value.SetUnencrypted(plaintext, key);
     return shared_value;
   }
 
-  static FheBasicString<CharT> Encrypt(
+  static TfheBasicString<CharT> Encrypt(
       absl::Span<const CharT> plaintext,
       const TFheGateBootstrappingSecretKeySet* key) {
-    FheBasicString<CharT> private_value(plaintext.length(), key->params);
+    TfheBasicString<CharT> private_value(plaintext.length(), key->params);
     private_value.SetEncrypted(plaintext, key);
     return private_value;
   }
 
   std::basic_string<CharT> Decrypt(
       const TFheGateBootstrappingSecretKeySet* key) const {
-    const absl::FixedArray<CharT> array = FheArray<CharT>::Decrypt(key);
+    const absl::FixedArray<CharT> array = TfheArray<CharT>::Decrypt(key);
     return std::basic_string<CharT>(array.begin(), array.end());
   }
 
   template <std::enable_if_t<std::is_same_v<CharT, char>, void>* = nullptr>
-  operator FheArrayRef<signed char>() {
-    return FheArrayRef<signed char>(this->length(), this->get(),
-                                    this->params());
+  operator TfheArrayRef<signed char>() {
+    return TfheArrayRef<signed char>(this->length(), this->get(),
+                                     this->params());
   }
 
   template <std::enable_if_t<std::is_same_v<CharT, char>, void>* = nullptr>
-  operator FheArrayRef<unsigned char>() {
-    return FheArrayRef<unsigned char>(this->length(), this->get(),
-                                      this->params());
+  operator TfheArrayRef<unsigned char>() {
+    return TfheArrayRef<unsigned char>(this->length(), this->get(),
+                                       this->params());
   }
 
   template <std::enable_if_t<std::is_same_v<CharT, char>, void>* = nullptr>
-  FheCharRef operator[](int32_t pos) {
-    FheValueRef<CharT> ref = FheArray<CharT>::operator[](pos);
+  TfheCharRef operator[](int32_t pos) {
+    TfheValueRef<CharT> ref = TfheArray<CharT>::operator[](pos);
     return {ref.get().data(), ref.params()};
   }
 };
 
-// Instantiates a FHE representation of a string as an array of chars, which
+// Instantiates a TFHE representation of a string as an array of chars, which
 // are themselves arrays of bits.
 // Corresponds to std::string
-using FheString = FheBasicString<char>;
+using TfheString = TfheBasicString<char>;
 // Corresponds to int
-using FheInt = FheValue<int>;
+using TfheInt = TfheValue<int>;
 // Corresponds to short
-using FheShort = FheValue<short>;
+using TfheShort = TfheValue<short>;
 // Corresponds to bool
-using FheBit = FheValue<bool>;
-using FheBool = FheValue<bool>;
+using TfheBit = TfheValue<bool>;
+using TfheBool = TfheValue<bool>;
 
-#endif  // FHE_DATA_H_
+#endif  // TFHE_DATA_H_

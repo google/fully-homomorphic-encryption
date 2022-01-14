@@ -544,7 +544,7 @@ class GenericEncoded$0 {
       : data_(data, deleter) {}
   GenericEncoded$0(GenericEncoded$0 &&) = default;
 
-  // We set values here directly, instead of using FheValue, since FheValue
+  // We set values here directly, instead of using TfheValue, since TfheValue
   // types own their arrays, whereas we'd need to own them here as
   // contiguously-allocated chunks. (We could modify them to use borrowed data,
   // but it'd be more work than this). For structure types, though, we do
@@ -766,7 +766,7 @@ constexpr const char kTfheFileTemplate[] = R"(#ifndef $0
 
 #include "$1"
 #include "absl/types/span.h"
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #include "tfhe/tfhe.h"
 
 template<>
@@ -791,12 +791,12 @@ $2
 //  0: Header guard
 //  1: Type name
 constexpr const char kTfheStructTemplate[] = R"(
-using FheBase$0 = GenericEncoded$0<LweSample, LweSampleArrayDeleter, TFheGateBootstrappingSecretKeySet, TFheGateBootstrappingCloudKeySet>;
-class Fhe$0 : public FheBase$0 {
+using TfheBase$0 = GenericEncoded$0<LweSample, LweSampleArrayDeleter, TFheGateBootstrappingSecretKeySet, TFheGateBootstrappingCloudKeySet>;
+class Tfhe$0 : public TfheBase$0 {
 public:
-  Fhe$0(const TFheGateBootstrappingParameterSet* params) :
-      FheBase$0(new_gate_bootstrapping_ciphertext_array(Fhe$0::bit_width(), params),
-                LweSampleArrayDeleter(Fhe$0::bit_width())) {}
+  Tfhe$0(const TFheGateBootstrappingParameterSet* params) :
+      TfheBase$0(new_gate_bootstrapping_ciphertext_array(Tfhe$0::bit_width(), params),
+                 LweSampleArrayDeleter(Tfhe$0::bit_width())) {}
 };)";
 
 absl::StatusOr<std::string> ConvertStructsToEncodedTfhe(

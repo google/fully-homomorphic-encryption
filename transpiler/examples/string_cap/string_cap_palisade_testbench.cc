@@ -35,7 +35,7 @@
 
 constexpr int kMainMinimumLambda = 120;
 
-void FheStringCap(PalisadeString& ciphertext, lbcrypto::BinFHEContext cc) {
+void PalisadeStringCap(PalisadeString& ciphertext, lbcrypto::BinFHEContext cc) {
   absl::Time start_time = absl::Now();
   double cpu_start_time = clock();
   std::cout << "Starting!" << std::endl;
@@ -98,7 +98,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform string capitalization
-  FheStringCap(ciphertext, cc);
+  PalisadeStringCap(ciphertext, cc);
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 
   const absl::Time decryption_start = absl::Now();

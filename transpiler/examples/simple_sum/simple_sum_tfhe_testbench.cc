@@ -17,7 +17,7 @@
 #include <iostream>
 
 #include "tfhe/tfhe.h"
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_TFHE
@@ -50,8 +50,8 @@ int main(int argc, char** argv) {
 
   cout << "inputs are " << x << " and " << y << ", sum: " << x + y << endl;
   // Encrypt data
-  auto ciphertext_x = FheInt::Encrypt(x, key);
-  auto ciphertext_y = FheInt::Encrypt(y, key);
+  auto ciphertext_x = TfheInt::Encrypt(x, key);
+  auto ciphertext_y = TfheInt::Encrypt(y, key);
 
   cout << "Encryption done" << endl;
 
@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
 
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform addition
-  FheInt cipher_result(params);
+  TfheInt cipher_result(params);
   XLS_CHECK_OK(simple_sum(cipher_result.get(), ciphertext_x.get(),
                           ciphertext_y.get(), cloud_key));
 

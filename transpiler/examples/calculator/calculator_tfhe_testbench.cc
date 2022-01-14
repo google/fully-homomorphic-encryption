@@ -22,7 +22,7 @@
 
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
-#include "transpiler/data/fhe_data.h"
+#include "transpiler/data/tfhe_data.h"
 #include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_TFHE
@@ -39,9 +39,9 @@ void calculate(short x, short y, char op, TFHEParameters& params,
                TFHESecretKeySet& key) {
   cout << "inputs are " << x << " " << op << " " << y << endl;
   // Encrypt data
-  auto encryptedX = FheShort::Encrypt(x, key);
-  auto encryptedY = FheShort::Encrypt(y, key);
-  auto encryptedOp = FheChar::Encrypt(op, key);
+  auto encryptedX = TfheShort::Encrypt(x, key);
+  auto encryptedY = TfheShort::Encrypt(y, key);
+  auto encryptedOp = TfheChar::Encrypt(op, key);
 
   cout << "Encryption done" << endl;
   cout << "Initial state check by decryption: " << endl;
@@ -56,8 +56,8 @@ void calculate(short x, short y, char op, TFHEParameters& params,
   cout << "\n";
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform computation
-  FheShort encryptedResult(params);
-  FheBit state = FheBit::Unencrypted(true, key.cloud());
+  TfheShort encryptedResult(params);
+  TfheBit state = TfheBit::Unencrypted(true, key.cloud());
 
   absl::Time start_time = absl::Now();
   double cpu_start_time = clock();

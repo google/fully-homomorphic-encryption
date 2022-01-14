@@ -29,11 +29,11 @@ namespace fully_homomorphic_encryption {
 namespace transpiler {
 
 // Converts booleanified XLS functions into a C++ function that invokes a
-// TFHE-based interpreter for each gate.
+// PALISADE-based interpreter for each gate.
 class InterpretedPalisadeTranspiler {
  public:
   // Takes as input an XLS Function node and expected output and returns an FHE
-  // C++ method that uses the gate ops from TFHE library.
+  // C++ method that uses the gate ops from the PALISADE BinFHE library.
   static absl::StatusOr<std::string> Translate(
       const xls::Function* function,
       const xlscc_metadata::MetadataOutput& metadata);

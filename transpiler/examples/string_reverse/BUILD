@@ -49,7 +49,7 @@ cc_binary(
     ],
     deps = [
         ":string_reverse_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/time",
         "@com_google_xls//xls/common/logging",
@@ -67,7 +67,7 @@ cc_binary(
     copts = ["-DUSE_INTERPRETED_TFHE"],
     deps = [
         ":string_reverse_interpreted_tfhe",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/time",
         "@com_google_xls//xls/common/logging",
@@ -105,7 +105,7 @@ cc_binary(
     srcs = ["string_reverse_testbench.cc"],
     deps = [
         ":string_reverse",
-        "//transpiler/data:fhe_data",
+        "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
         "@tfhe//:libtfhe",
     ],

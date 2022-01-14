@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
   sos.d.x = 11;
   sos.i.h.g.f.e.d.x = 12;
 
-  FheStructOfStructs fhe_sos(params);
+  TfheStructOfStructs fhe_sos(params);
   fhe_sos.SetEncrypted(sos, key);
 
   std::cout << "Initial round-trip check: " << std::endl;
@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
             << std::endl;
 
   std::cout << "Starting computation." << std::endl;
-  FheInt fhe_result(params);
+  TfheInt fhe_result(params);
   XLS_CHECK_OK(SumStructOfStructs(fhe_result.get(), fhe_sos.get(), cloud_key));
 
   int result = fhe_result.Decrypt(key);

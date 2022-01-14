@@ -51,11 +51,11 @@ int main(int argc, char** argv) {
   helper_c.b = 128;
   helper_c.c = -256;
 
-  FheHelper fhe_helper_a(params);
+  TfheHelper fhe_helper_a(params);
   fhe_helper_a.SetEncrypted(helper_a, key);
-  FheHelper fhe_helper_b(params);
+  TfheHelper fhe_helper_b(params);
   fhe_helper_b.SetEncrypted(helper_b, key);
-  FheHelper fhe_helper_c(params);
+  TfheHelper fhe_helper_c(params);
   fhe_helper_c.SetEncrypted(helper_c, key);
 
   std::cout << "Round trip check : helper_a: " << std::endl;
@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
   std::cout << "  c: " << static_cast<int>(round_trip_c.c) << std::endl;
 
   std::cout << "Starting computation." << std::endl;
-  FheReturnStruct fhe_result(params);
+  TfheReturnStruct fhe_result(params);
   XLS_CHECK_OK(ConstructReturnStructWithInout(
       fhe_result.get(), fhe_helper_a.get(), fhe_helper_b.get(),
       fhe_helper_c.get(), cloud_key));
