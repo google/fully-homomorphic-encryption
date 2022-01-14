@@ -183,10 +183,9 @@ absl::StatusOr<std::string> PalisadeTranspiler::Prelude(
 #include "palisade/binfhe/binfhecontext.h"
 #include "palisade/binfhe/ringcore.h"
 
-lbcrypto::LWECiphertext EvalBinGate(lbcrypto::BinFHEContext cc,
-                                    const lbcrypto::BINGATE gate,
-                                    const lbcrypto::LWECiphertext ct1,
-                                    const lbcrypto::LWECiphertext ct2) {
+static inline lbcrypto::LWECiphertext EvalBinGate(
+    lbcrypto::BinFHEContext cc, const lbcrypto::BINGATE gate,
+    const lbcrypto::LWECiphertext ct1, const lbcrypto::LWECiphertext ct2) {
   if (ct1 == ct2) {
     if (gate == lbcrypto::OR || gate == lbcrypto::AND) {
       return ct1;

@@ -69,7 +69,7 @@ $2 {
                        FunctionSignature(function, metadata));
   std::string return_param = "{}";
   if (!metadata.top_func_proto().return_type().has_as_void()) {
-    return_param = "result.data()";
+    return_param = "result";
   }
   std::vector<std::string> param_entries;
   for (xls::Param* param : function->params()) {

@@ -11,12 +11,21 @@ _PRIMITIVE_TYPES = [
 ]
 
 [
-    fhe_cc_library(
-        name = "%s_tfhe" % i,
-        src = "%s.cc" % i,
-        hdrs = [],
-        num_opt_passes = 2,
-    )
+    [
+        fhe_cc_library(
+            name = "%s_tfhe" % i,
+            src = "%s.cc" % i,
+            hdrs = [],
+            num_opt_passes = 2,
+        ),
+        fhe_cc_library(
+            name = "%s_palisade" % i,
+            src = "%s.cc" % i,
+            hdrs = [],
+            num_opt_passes = 2,
+            transpiler_type = "palisade",
+        ),
+    ]
     for i in _PRIMITIVE_TYPES
 ]
 
@@ -36,6 +45,23 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "palisade_test_util",
+    testonly = True,
+    srcs = ["palisade_test_util.cc"],
+    hdrs = ["palisade_test_util.h"],
+    visibility = [
+        "//:__subpackages__",
+    ],
+    deps = [
+        "//transpiler/data:palisade_data",
+        "@com_google_absl//absl/memory",
+        "@com_google_googletest//:gtest",
+        "@com_google_xls//xls/common/status:matchers",
+        "@palisade//:binfhe",
+    ],
+)
+
 cc_test(
     name = "types_test",
     srcs = ["types_test.cc"],
@@ -52,6 +78,22 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "palisade_types_test",
+    srcs = ["palisade_types_test.cc"],
+    shard_count = 4,
+    deps = [":%s_palisade" % i for i in _PRIMITIVE_TYPES] + [
+        ":palisade_test_util",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_absl//absl/base",
+        "@com_google_absl//absl/container:fixed_array",
+        "@com_google_absl//absl/strings",
+        "@com_google_xls//xls/common/status:matchers",
+        "//transpiler/data:palisade_data",
+        "@palisade//:binfhe",
+    ],
+)
+
 _CONTROL_STRUCTURE = [
     "if",
     "for",
@@ -61,12 +103,21 @@ _CONTROL_STRUCTURE = [
 ]
 
 [
-    fhe_cc_library(
-        name = "%s_tfhe" % i,
-        src = "%s.cc" % i,
-        hdrs = [],
-        num_opt_passes = 2,
-    )
+    [
+        fhe_cc_library(
+            name = "%s_tfhe" % i,
+            src = "%s.cc" % i,
+            hdrs = [],
+            num_opt_passes = 2,
+        ),
+        fhe_cc_library(
+            name = "%s_palisade" % i,
+            src = "%s.cc" % i,
+            hdrs = [],
+            num_opt_passes = 2,
+            transpiler_type = "palisade",
+        ),
+    ]
     for i in _CONTROL_STRUCTURE
 ]
 
@@ -84,6 +135,23 @@ cc_test(
         "@com_google_xls//xls/common/status:matchers",
         "//transpiler/data:fhe_data",
         "@tfhe//:libtfhe",
+    ],
+)
+
+cc_test(
+    name = "palisade_control_structure_test",
+    size = "medium",
+    srcs = ["palisade_control_structure_test.cc"],
+    shard_count = 8,
+    deps = [":%s_palisade" % i for i in _CONTROL_STRUCTURE] + [
+        ":palisade_test_util",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_absl//absl/base",
+        "@com_google_absl//absl/container:fixed_array",
+        "@com_google_absl//absl/strings",
+        "@com_google_xls//xls/common/status:matchers",
+        "//transpiler/data:palisade_data",
+        "@palisade//:binfhe",
     ],
 )
 
