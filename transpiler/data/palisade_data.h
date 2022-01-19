@@ -134,7 +134,7 @@ class PalisadeValue {
   }
 
   void SetUnencrypted(const ValueType& value) {
-    ::Unencrypted(EncodedValue<ValueType>(value), get());
+    ::Unencrypted(EncodedValue<ValueType>(value), cc_, get());
   }
 
   void SetEncrypted(const ValueType& value, lbcrypto::LWEPrivateKey sk) {
@@ -182,7 +182,7 @@ class PalisadeValueRef {
   }
 
   void SetUnencrypted(const ValueType& value) {
-    ::Unencrypted(EncodedValue<ValueType>(value), ciphertext_);
+    ::Unencrypted(EncodedValue<ValueType>(value), cc_, ciphertext_);
   }
 
   void SetEncrypted(const ValueType& value, lbcrypto::LWEPrivateKey sk) {
@@ -320,6 +320,7 @@ using PalisadeShort = PalisadeValue<short>;
 // Corresponds to char
 using PalisadeChar = PalisadeValue<char>;
 // Corresponds to bool
+using PalisadeBit = PalisadeValue<bool>;
 using PalisadeBool = PalisadeValue<bool>;
 
 #endif  // FHE_DATA_H_

@@ -864,7 +864,10 @@ class Palisade$0 : public PalisadeBase$0 {
   Palisade$0(lbcrypto::BinFHEContext cc)
       : PalisadeBase$0(
             new lbcrypto::LWECiphertext[Palisade$0::bit_width()],
-            std::default_delete<lbcrypto::LWECiphertext[]>()), cc_(cc) {}
+            std::default_delete<lbcrypto::LWECiphertext[]>()), cc_(cc) {
+    // Initialize the LWECiphertexts.
+    SetUnencrypted({}, &cc_);
+  }
 
   void SetEncrypted(const $1& value,
                     lbcrypto::LWEPrivateKey sk) {
