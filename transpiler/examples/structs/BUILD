@@ -86,6 +86,20 @@ fhe_cc_library(
     transpiler_type = "interpreted_tfhe",
 )
 
+fhe_cc_library(
+    name = "return_struct_palisade",
+    src = "return_struct.cc",
+    hdrs = ["return_struct.h"],
+    transpiler_type = "palisade",
+)
+
+fhe_cc_library(
+    name = "return_struct_interpreted_palisade",
+    src = "return_struct.cc",
+    hdrs = ["return_struct.h"],
+    transpiler_type = "interpreted_palisade",
+)
+
 cc_binary(
     name = "return_struct_tfhe_testbench",
     srcs = ["return_struct_tfhe_testbench.cc"],
@@ -125,6 +139,31 @@ cc_binary(
 )
 
 cc_binary(
+    name = "return_struct_palisade_testbench",
+    srcs = ["return_struct_palisade_testbench.cc"],
+    deps = [
+        ":return_struct_palisade",
+        "//transpiler/data:palisade_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@palisade//:binfhe",
+    ],
+)
+
+cc_binary(
+    name = "return_struct_interpreted_palisade_testbench",
+    srcs = ["return_struct_palisade_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_PALISADE"],
+    deps = [
+        ":return_struct_interpreted_palisade",
+        "//transpiler/data:palisade_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@palisade//:binfhe",
+    ],
+)
+
+cc_binary(
     name = "return_struct_bool_testbench",
     srcs = ["return_struct_bool_testbench.cc"],
     deps = [
@@ -159,6 +198,13 @@ fhe_cc_library(
     hdrs = ["return_struct_with_inout.h"],
 )
 
+fhe_cc_library(
+    name = "return_struct_with_inout_palisade",
+    src = "return_struct_with_inout.cc",
+    hdrs = ["return_struct_with_inout.h"],
+    transpiler_type = "palisade",
+)
+
 cc_binary(
     name = "return_struct_with_inout_tfhe_testbench",
     srcs = ["return_struct_with_inout_tfhe_testbench.cc"],
@@ -168,6 +214,18 @@ cc_binary(
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "return_struct_with_inout_palisade_testbench",
+    srcs = ["return_struct_with_inout_palisade_testbench.cc"],
+    deps = [
+        ":return_struct_with_inout_palisade",
+        "//transpiler/data:palisade_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@palisade//:binfhe",
     ],
 )
 
@@ -183,6 +241,13 @@ fhe_cc_library(
     hdrs = ["simple_struct.h"],
 )
 
+fhe_cc_library(
+    name = "simple_struct_palisade",
+    src = "simple_struct.cc",
+    hdrs = ["simple_struct.h"],
+    transpiler_type = "palisade",
+)
+
 cc_binary(
     name = "simple_struct_tfhe_testbench",
     srcs = ["simple_struct_tfhe_testbench.cc"],
@@ -192,6 +257,18 @@ cc_binary(
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "simple_struct_palisade_testbench",
+    srcs = ["simple_struct_palisade_testbench.cc"],
+    deps = [
+        ":simple_struct_palisade",
+        "//transpiler/data:palisade_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@palisade//:binfhe",
     ],
 )
 

@@ -19,8 +19,13 @@
 #include "palisade/binfhe/binfhecontext.h"
 #include "palisade/binfhe/lwecore.h"
 #include "transpiler/data/palisade_data.h"
-#include "transpiler/examples/simple_sum/simple_sum_palisade.h"
 #include "xls/common/logging/logging.h"
+
+#ifdef USE_INTERPRETED_PALISADE
+#include "transpiler/examples/simple_sum/simple_sum_interpreted_palisade.h"
+#else
+#include "transpiler/examples/simple_sum/simple_sum_palisade.h"
+#endif
 
 using namespace lbcrypto;
 using namespace std;

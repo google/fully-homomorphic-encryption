@@ -33,6 +33,14 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
+    name = "simple_sum_interpreted_palisade",
+    src = "simple_sum.cc",
+    hdrs = ["simple_sum.h"],
+    num_opt_passes = 2,
+    transpiler_type = "interpreted_palisade",
+)
+
+fhe_cc_library(
     name = "simple_sum_bool",
     src = "simple_sum.cc",
     hdrs = ["simple_sum.h"],
@@ -70,6 +78,19 @@ cc_binary(
     srcs = ["simple_sum_palisade_testbench.cc"],
     deps = [
         ":simple_sum_palisade",
+        "//transpiler/data:palisade_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@palisade//:binfhe",
+    ],
+)
+
+cc_binary(
+    name = "simple_sum_interpreted_palisade_testbench",
+    srcs = ["simple_sum_palisade_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_PALISADE"],
+    deps = [
+        ":simple_sum_interpreted_palisade",
         "//transpiler/data:palisade_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",

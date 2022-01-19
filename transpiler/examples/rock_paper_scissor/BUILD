@@ -22,6 +22,20 @@ fhe_cc_library(
     transpiler_type = "interpreted_tfhe",
 )
 
+fhe_cc_library(
+    name = "rock_paper_scissor_palisade",
+    src = "rock_paper_scissor.cc",
+    hdrs = ["rock_paper_scissor.h"],
+    transpiler_type = "palisade",
+)
+
+fhe_cc_library(
+    name = "rock_paper_scissor_interpreted_palisade",
+    src = "rock_paper_scissor.cc",
+    hdrs = ["rock_paper_scissor.h"],
+    transpiler_type = "interpreted_palisade",
+)
+
 cc_binary(
     name = "rock_paper_scissor_tfhe_testbench",
     srcs = ["rock_paper_scissor_tfhe_testbench.cc"],
@@ -44,6 +58,31 @@ cc_binary(
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "rock_paper_scissor_palisade_testbench",
+    srcs = ["rock_paper_scissor_palisade_testbench.cc"],
+    deps = [
+        ":rock_paper_scissor_palisade",
+        "//transpiler/data:palisade_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@palisade//:binfhe",
+    ],
+)
+
+cc_binary(
+    name = "rock_paper_scissor_interpreted_palisade_testbench",
+    srcs = ["rock_paper_scissor_palisade_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_PALISADE"],
+    deps = [
+        ":rock_paper_scissor_interpreted_palisade",
+        "//transpiler/data:palisade_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@palisade//:binfhe",
     ],
 )
 

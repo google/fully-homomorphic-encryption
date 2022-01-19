@@ -528,6 +528,7 @@ def fhe_cc_library(
         deps.extend([
             "@com_google_absl//absl/status:statusor",
             "//transpiler:palisade_runner",
+            "//transpiler/data:boolean_data",
             "//transpiler/data:palisade_data",
             "@palisade//:binfhe",
             "@com_google_xls//xls/common/status:status_macros",

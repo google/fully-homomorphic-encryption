@@ -34,6 +34,22 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
+    name = "string_reverse_palisade",
+    src = "string_reverse.cc",
+    hdrs = ["string_reverse.h"],
+    num_opt_passes = 2,
+    transpiler_type = "palisade",
+)
+
+fhe_cc_library(
+    name = "string_reverse_interpreted_palisade",
+    src = "string_reverse.cc",
+    hdrs = ["string_reverse.h"],
+    num_opt_passes = 2,
+    transpiler_type = "interpreted_palisade",
+)
+
+fhe_cc_library(
     name = "string_reverse_bool",
     src = "string_reverse.cc",
     hdrs = ["string_reverse.h"],
@@ -73,6 +89,41 @@ cc_binary(
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "string_reverse_palisade_testbench",
+    srcs = [
+        "string_reverse.h",
+        "string_reverse_palisade_testbench.cc",
+    ],
+    deps = [
+        ":string_reverse_palisade",
+        "//transpiler/data:palisade_data",
+        "@com_google_absl//absl/base",
+        "@com_google_absl//absl/time",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@palisade//:binfhe",
+    ],
+)
+
+cc_binary(
+    name = "string_reverse_interpreted_palisade_testbench",
+    srcs = [
+        "string_reverse.h",
+        "string_reverse_palisade_testbench.cc",
+    ],
+    copts = ["-DUSE_INTERPRETED_PALISADE"],
+    deps = [
+        ":string_reverse_interpreted_palisade",
+        "//transpiler/data:palisade_data",
+        "@com_google_absl//absl/base",
+        "@com_google_absl//absl/time",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@palisade//:binfhe",
     ],
 )
 

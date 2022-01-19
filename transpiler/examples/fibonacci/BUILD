@@ -19,6 +19,22 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
+    name = "fibonacci_palisade",
+    src = "fibonacci.cc",
+    hdrs = ["fibonacci.h"],
+    num_opt_passes = 2,
+    transpiler_type = "palisade",
+)
+
+fhe_cc_library(
+    name = "fibonacci_interpreted_palisade",
+    src = "fibonacci.cc",
+    hdrs = ["fibonacci.h"],
+    num_opt_passes = 2,
+    transpiler_type = "interpreted_palisade",
+)
+
+fhe_cc_library(
     name = "fibonacci_sequence_tfhe",
     src = "fibonacci_sequence.cc",
     hdrs = ["fibonacci_sequence.h"],
@@ -39,6 +55,22 @@ fhe_cc_library(
     hdrs = ["fibonacci_sequence.h"],
     num_opt_passes = 2,
     transpiler_type = "bool",
+)
+
+fhe_cc_library(
+    name = "fibonacci_sequence_palisade",
+    src = "fibonacci_sequence.cc",
+    hdrs = ["fibonacci_sequence.h"],
+    num_opt_passes = 2,
+    transpiler_type = "palisade",
+)
+
+fhe_cc_library(
+    name = "fibonacci_sequence_interpreted_palisade",
+    src = "fibonacci_sequence.cc",
+    hdrs = ["fibonacci_sequence.h"],
+    num_opt_passes = 2,
+    transpiler_type = "interpreted_palisade",
 )
 
 cc_binary(
@@ -65,6 +97,33 @@ cc_binary(
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "fibonacci_palisade_testbench",
+    srcs = ["fibonacci_palisade_testbench.cc"],
+    deps = [
+        ":fibonacci_palisade",
+        "//transpiler/data:palisade_data",
+        "@com_google_absl//absl/base",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@palisade//:binfhe",
+    ],
+)
+
+cc_binary(
+    name = "fibonacci_interpreted_palisade_testbench",
+    srcs = ["fibonacci_palisade_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_PALISADE"],
+    deps = [
+        ":fibonacci_interpreted_palisade",
+        "//transpiler/data:palisade_data",
+        "@com_google_absl//absl/base",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@palisade//:binfhe",
     ],
 )
 
@@ -106,6 +165,33 @@ cc_binary(
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "fibonacci_sequence_palisade_testbench",
+    srcs = ["fibonacci_sequence_palisade_testbench.cc"],
+    deps = [
+        ":fibonacci_sequence_palisade",
+        "//transpiler/data:palisade_data",
+        "@com_google_absl//absl/strings:str_format",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@palisade//:binfhe",
+    ],
+)
+
+cc_binary(
+    name = "fibonacci_sequence_interpreted_palisade_testbench",
+    srcs = ["fibonacci_sequence_palisade_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_PALISADE"],
+    deps = [
+        ":fibonacci_sequence_interpreted_palisade",
+        "//transpiler/data:palisade_data",
+        "@com_google_absl//absl/strings:str_format",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@palisade//:binfhe",
     ],
 )
 
