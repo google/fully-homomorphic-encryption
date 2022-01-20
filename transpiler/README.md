@@ -5,23 +5,25 @@ C++ developer to perform transformations on encrypted data without decrypting
 it.
 
 This transpiler connects Google’s [XLS library](https://google.github.io/xls/)
-to the [TFHE library](https://tfhe.github.io/tfhe/). It will allow developers
-(including those without expertise in cryptography) to write code that runs on
-encrypted data, without revealing the data contents or the computations’ result.
-This library should help lay the groundwork for further advancements on
-practical FHE systems.
+to multiple FHE backends (currently the
+[TFHE library](https://tfhe.github.io/tfhe/) and
+[PALISADE](https://palisade-crypto.org/)'s BinFHE library). It will allow
+developers (including those without expertise in cryptography) to write code
+that runs on encrypted data, without revealing the data contents or the
+computations’ result. This system should help lay the groundwork for further
+advancements on practical FHE systems.
 
-This library is currently only supported on Linux, and requires GCC version 9
+This system is currently only supported on Linux, and requires GCC version 9
 (or later) and
 [Bazel 4.0.0](https://docs.bazel.build/versions/master/bazel-overview.html).
 
 This is currently an exploratory proof-of-concept. While it could be deployed in
 practice, the run-times of the FHE-C++ operations are likely to be too long to
-be practical at this time. This transpiler heavily relies on the TFHE library
-for security guarantees. Since TFHE is relatively new, there are yet to be
-robust cryptanalyses of TFHE. Thus, before including this library in a live
-production deployment, be aware that there may be yet undiscovered
-vulnerabilities in TFHE.
+be practical at this time. This transpiler heavily relies on the chosen FHE
+library for security guarantees. Since both the PALISADE and TFHE libraries are
+relatively new, there are not yet robust widely-accepted cryptanalyses for them.
+Thus, before including this system's output in a live production deployment, be
+aware that there may be yet undiscovered vulnerabilities in either library.
 
 ## Quick start
 
@@ -125,7 +127,7 @@ command to start the `hangman` demo:
 bazel run //transpiler/examples/hangman:hangman_client
 ```
 
-This will automatically build the core FHE C++ Transpiler library, which may
+This will automatically build the core FHE C++ Transpiler toolchain, which may
 take a long time (i.e., over an hour) when building the first time. Once the
 demo is running, a game of
 [Hangman](https://en.wikipedia.org/wiki/Hangman_(game)) will be playable,
@@ -141,7 +143,8 @@ To run the FHE C++ Transpiler on your own C++ code, follow these steps:
 2.  Add the C++ file that contains the code to be transpiled into the
     aforementioned subdirectory.
 3.  Create a testbench (e.g., `fn_tfhe_testbench`) and `BUILD` file
-    similar to those in the library’s examples, but that uses your FHE-C++ instead.
+    similar to those in the repository’s examples, but that uses your FHE-C++
+    instead.
 4.  Run the transpiler with the following command, replacing `fn` with the
     name of your subdirectory and testbench file names, followed by two dashes, and
     any needed additional arguments (e.g., `"arg1"`, `"arg2"`):
@@ -155,7 +158,7 @@ A more comprehensive guide on building your own demo can be found at
 
 ## Demos
 
-This section lists the demos included in this library that are intended to be
+This section lists the demos included in this repository that are intended to be
 simple, yet effective, examples of possible uses for the FHE C++ Transpiler.
 
 There are also `bazel` commands to compile and run each demo. For demos with a
@@ -178,13 +181,23 @@ The Calculator demo adds, subtracts, or multiples two encrypted short integers,
 without the server knowing the integers or the result.
 
 *  Baseline FHE-C++ translation command:
-   ```shell
-   bazel run //transpiler/examples/calculator:calculator_tfhe_testbench
-   ```
+    * Using TFHE:
+      ```shell
+      bazel run //transpiler/examples/calculator:calculator_tfhe_testbench
+      ```
+   * Using PALISADE:
+     ```shell
+     bazel run //transpiler/examples/calculator:calculator_palisade_testbench
+     ```
 *  Multi-core interpreter command:
-   ```shell
-   bazel run //transpiler/examples/calculator:calculator_interpreted_tfhe_testbench
-   ```
+    * Using TFHE:
+      ```shell
+      bazel run //transpiler/examples/calculator:calculator_interpreted_tfhe_testbench
+      ```
+    * Using PALISADE
+      ```shell
+      bazel run //transpiler/examples/calculator:calculator_interpreted_palisade_testbench
+      ```
 
 ### Fibonacci
 
@@ -192,13 +205,23 @@ The Fibonacci demo calculates the sum of the Fibonacci sequence up to the
 n<sup>th</sup> integer in the sequence.
 
 *  Baseline FHE-C++ translation command:
-   ```shell
-   bazel run //transpiler/examples/fibonacci:fibonacci_tfhe_testbench
-   ```
+    * Using TFHE:
+      ```shell
+      bazel run //transpiler/examples/fibonacci:fibonacci_tfhe_testbench
+      ```
+   * Using PALISADE:
+     ```shell
+     bazel run //transpiler/examples/fibonacci:fibonacci_palisade_testbench
+     ```
 *  Multi-core interpreter command:
-   ```shell
-   bazel run //transpiler/examples/fibonacci:fibonacci_interpreted_tfhe_testbench
-   ```
+    * Using TFHE:
+      ```shell
+      bazel run //transpiler/examples/fibonacci:fibonacci_interpreted_tfhe_testbench
+      ```
+   * Using PALISADE:
+     ```shell
+     bazel run //transpiler/examples/fibonacci:fibonacci_interpreted_palisade_testbench
+     ```
 
 ### Hangman
 
@@ -246,13 +269,23 @@ This demo adds two encrypted integers without the server knowing either integer
 or the resulting sum.
 
 *  Baseline FHE-C++ translation command:
-   ```shell
-   bazel run //transpiler/examples/simple_sum:simple_sum_tfhe_testbench
-   ```
+    * Using TFHE:
+      ```shell
+      bazel run //transpiler/examples/simple_sum:simple_sum_tfhe_testbench
+      ```
+   * Using PALISADE:
+     ```shell
+     bazel run //transpiler/examples/simple_sum:simple_sum_palisade_testbench
+     ```
 *  Multi-core interpreter command:
-   ```shell
-   bazel run //transpiler/examples/simple_sum:simple_sum_interpreted_tfhe_testbench
-   ```
+    * Using TFHE:
+      ```shell
+      bazel run //transpiler/examples/simple_sum:simple_sum_interpreted_tfhe_testbench
+      ```
+   * Using PALISADE:
+     ```shell
+     bazel run //transpiler/examples/simple_sum:simple_sum_interpreted_palisade_testbench
+     ```
 
 ### String capitalization
 
@@ -265,25 +298,46 @@ There are two versions of this demo:
     encrypted string and internally iterates over each character.
 
     *  Baseline FHE-C++ translation command:
-    ```shell
-    bazel run //transpiler/examples/string_cap:string_cap_tfhe_testbench "do or do not; there is no try"
-    ```
+        * Using TFHE:
+          ```shell
+          bazel run //transpiler/examples/string_cap:string_cap_tfhe_testbench -- "do or do not; there is no try"
+          ```
+        * Using PALISADE:
+          ```shell
+          bazel run //transpiler/examples/string_cap:string_cap_palisade_testbench -- "do or do not; there is no try"
+          ```
     *  Multi-core interpreter command:
-    ```shell
-    bazel run //transpiler/examples/string_cap:string_cap_interpreted_tfhe_testbench "do or do not; there is no try"
-    ```
+        * Using TFHE:
+          ```shell
+          bazel run //transpiler/examples/string_cap:string_cap_interpreted_tfhe_testbench -- "do or do not; there is no try"
+          ```
+        * Using PALISADE:
+          ```shell
+          bazel run //transpiler/examples/string_cap:string_cap_interpreted_palisade_testbench -- "do or do not; there is no try"
+          ```
 
 2.  In the `string_cap_char` example, the FHE-C++ code operates on one
     character at a time. This example can provide more output regarding the
     string transformation process, for illustrative purposes.
 
     *  Baseline FHE-C++ translation command:
-    ```shell
-    bazel run //transpiler/examples/string_cap_char:string_cap_char_tfhe_testbench "do or do not; there is no try"
-    ```
+        * Using TFHE:
+          ```shell
+          bazel run //transpiler/examples/string_cap_char:string_cap_char_tfhe_testbench -- "do or do not; there is no try"
+          ```
+        * Using PALISADE:
+          ```shell
+          bazel run //transpiler/examples/string_cap_char:string_cap_char_palisade_testbench -- "do or do not; there is no try"
+          ```
     *  Multi-core interpreter command:
-    ```shell
-    bazel run //transpiler/examples/string_cap_char:string_cap_char_interpreted_tfhe_testbench "do or do not; there is no try"
+        * Using TFHE:
+          ```shell
+          bazel run //transpiler/examples/string_cap_char:string_cap_char_interpreted_tfhe_testbench -- "do or do not; there is no try"
+          ```
+       * Using PALISADE:
+         ```shell
+         bazel run //transpiler/examples/string_cap_char:string_cap_char_interpreted_palisade_testbench -- "do or do not; there is no try"
+         ```
     ```
 
 ![String capitalization screenshot](./images/screenshot_string_cap.png)
@@ -316,7 +370,7 @@ These subdirectories include examples of programming using structs and
 templates, respectively: how structs can be used both inside and outside the FHE
 environment and how templates can be used within the FHE environment to tailor
 code to more precise specifications. Since they are not functional examples, we
-only provide a TFHE testbenches, e.g.:
+mostly provide only TFHE testbenches, e.g.:
 
 ```shell
 bazel run -c opt //transpiler/examples/structs:struct_with_struct_array_tfhe_testbench
@@ -343,13 +397,14 @@ following five stages:
     NOT).
 4.  The **FHE IR Transpiler stage** translates the Booleanified XLS IR into
     FHE-C++.
-5.  The **TFHE testbench stage** runs the FHE-C++ with
-    [TFHE library](https://tfhe.github.io/tfhe/).
+5.  The **FHE testbench stage** runs the FHE-C++ with the appropriate library:
+    either [TFHE](https://tfhe.github.io/tfhe/) or
+    [PALISADE](https://palisade-crypto.org/)'s BinFHE.
 
-This library includes the code for the first four stages, but users of this
-library will need to write their own C++ code to be transpiled, as well as the
-TFHE testbench for the fifth stage. The included examples have testbenches that
-illustrate how new testbenches can be structured.
+This system includes the code for the first four stages, but users of this
+transpiler will need to write their own C++ code to be transpiled, as well as
+the FHE testbench for the fifth stage. The included examples have testbenches
+that illustrate how new testbenches can be structured.
 
 Below are more details about each of the listed stages.
 
@@ -367,8 +422,9 @@ information, see the [XLS Optimizer documentation](https://google.github.io/xls/
 Two things of note occur during this stage. First, the optimized XLS IR is
 re-written in terms of its operations' fundamental Boolean operations (e.g.,
 AND, OR, NOT). Next, all operations are modified to be carried out on
-individual bits (since [TFHE](https://tfhe.github.io/tfhe/) encrypts data one
-bit at a time).
+individual bits (since [TFHE](https://tfhe.github.io/tfhe/) and
+[PALISADE](https://palisade-crypto.org/) BinFHE both encrypt data one bit at a
+time).
 
 This produces a Booleanified graph representing the operations
 to perform. See the illustration below for an example.
@@ -379,7 +435,7 @@ For more information, see the [XLS Booleanifier code](https://github.com/google/
 
 ### FHE IR Translation stage
 
-The library includes two options for this stage:
+The system includes two options for this stage:
 
 1.  By default, the FHE IR Transpiler parses the Booleanified graph and
     traverses it in topological-sort order.
@@ -393,11 +449,11 @@ The library includes two options for this stage:
 
 Ultimately, both options output C++ code that operates on encrypted input.
 
-### TFHE testbench stage
+### FHE testbench stage
 
-Users of the library must write their own TFHE testbench for this stage.
+Users of the transpiler must write their own FHE testbench for this stage.
 
-The examples included in this library have testbenches that simulate a
+The TFHE examples included in this repository have testbenches that simulate a
 client-server interaction as described and illustrated below.
 
 1.  The client encodes the input data into individual bits.
@@ -414,19 +470,23 @@ client-server interaction as described and illustrated below.
 
 ![Illustration of FHE client-server data processing and interaction](./images/FHE-testbench.png)
 
-While this library does not include a working example of the client and server
-deployed on separate machines, it should be possible to implement and use this
-library for performing FHE C++ operations over a network.
+The PALISADE testbenches are similar, handling `LWECiphertext`s rather than
+`LWESample`s.
+
+While this repository does not include a working example of the client and
+server deployed on separate machines, it should be possible to implement a
+system that performs FHE C++ operations over a network using this transpiler.
 
 ## Security
 
-This section explains the FTE C++ Transpiler's threat model and the estimated
-bits of security provided by the library's choice of [TFHE parameters](https://tfhe.github.io/tfhe/security_and_params.html).
+This section explains the FHE C++ Transpiler's threat model and the estimated
+bits of security provided by the system's choice of
+[TFHE parameters](https://tfhe.github.io/tfhe/security_and_params.html).
 
 ### Threat model
 
-The FTE C++ Transpiler is built with honest-but-curious-server threat model in
-mind.
+The FHE C++ Transpiler is built with the honest-but-curious-server threat model
+in mind.
 
 TFHE guarantees that, without the decryption key, the only information that a
 collection of FHE ciphertexts (i.e., `LweSample*`) reveals about the
@@ -435,17 +495,18 @@ encrypted plaintexts is the data type when used correctly. The computed function
 
 ### Bits of security
 
-Given the parameters this library uses for [TFHE](https://tfhe.github.io/tfhe),
-we currently estimate (using the
+Given the parameters our testbenches use for
+[TFHE](https://tfhe.github.io/tfhe), we currently estimate (using the
 [TFHE estimator](https://github.com/tfhe/tfhe#estimator-code)) that the FHE C++
 Transpiler provides between 97 and 127 bits of security based on
 [this running-time estimator for solving LWE instances](https://bitbucket.org/malb/lwe-estimator/src/master/).
 
 To ensure secure usage of the FHE C++ Transpiler, we recommend following the
 guidance given in the
-[TFHE security estimates and parameter choices documentation](https://github.com/tfhe/tfhe#security-estimates-and-parameter-choices). Should you wish to modify the TFHE parameters and
-estimate the resulting bits of security, be aware that the estimators might not
-be completely up to date, so proceed with caution.
+[TFHE security estimates and parameter choices documentation](https://github.com/tfhe/tfhe#security-estimates-and-parameter-choices).
+Should you wish to modify the TFHE parameters and estimate the resulting bits of
+security, be aware that the estimators might not be completely up to date, so
+proceed with caution.
 
 ## Limitations
 
@@ -524,6 +585,6 @@ If Bazel reports an error about an unknown LLVM release, try replacing the
 ## Endnotes
 
 <a name="python2-and-python3">1</a>: Both `python2` and `python3` are required
-for this library because it uses the [LLVM](https://www.llvm.org/) toolchain
+for this system because it uses the [LLVM](https://www.llvm.org/) toolchain
 (which requires `python2`) and [XLS](https://google.github.io/xls) (which
 requires `python3`).
