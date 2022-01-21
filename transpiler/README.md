@@ -342,6 +342,30 @@ There are two versions of this demo:
 
 ![String capitalization screenshot](./images/screenshot_string_cap.png)
 
+### Integer square root
+
+This demo computes the square root of an encrypted short integer, without the
+server knowing the input or the result.
+
+*  Baseline FHE-C++ translation command:
+    * Using TFHE:
+      ```shell
+      bazel run //transpiler/examples/sqrt:sqrt_tfhe_testbench -- 15875
+      ```
+   * Using PALISADE:
+     ```shell
+     bazel run //transpiler/examples/sqrt:sqrt_palisade_testbench -- 15875
+     ```
+*  Multi-core interpreter command:
+    * Using TFHE:
+      ```shell
+      bazel run //transpiler/examples/sqrt:sqrt_interpreted_tfhe_testbench -- 15875
+      ```
+   * Using PALISADE:
+     ```shell
+     bazel run //transpiler/examples/sqrt:sqrt_interpreted_palisade_testbench -- 15875
+     ```
+
 ### Rock paper scissors
 
 This demo allows to you to play
