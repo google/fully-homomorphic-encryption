@@ -145,6 +145,12 @@ class TfheValue {
                LweSampleArrayDeleter(kBitWidth)),
         params_(params) {}
 
+  TfheValue& operator=(const TfheValueRef<ValueType>& value) {
+    ::Copy(absl::MakeConstSpan(value.get()).data(), value.size(), params(),
+           get().data());
+    return *this;
+  }
+
   static TfheValue<ValueType> Unencrypted(
       ValueType value, const TFheGateBootstrappingCloudKeySet* key) {
     TfheValue<ValueType> plaintext(key->params);
@@ -159,11 +165,6 @@ class TfheValue {
     return ciphertext;
   }
 
-  TfheValue& operator=(const TfheValueRef<ValueType>& value) {
-    ::Copy(value.get(), value.size(), params(), get());
-    return *this;
-  }
-
   operator const TfheValueRef<ValueType>() const& {
     return TfheValueRef<ValueType>(array_.get(), params_);
   }
@@ -173,17 +174,17 @@ class TfheValue {
 
   void SetUnencrypted(const ValueType& value,
                       const TFheGateBootstrappingCloudKeySet* key) {
-    ::Unencrypted(EncodedValue<ValueType>(value), key, array_.get());
+    ::Unencrypted(EncodedValue<ValueType>(value).get(), key, array_.get());
   }
 
   void SetEncrypted(const ValueType& value,
                     const TFheGateBootstrappingSecretKeySet* key) {
-    ::Encrypt(EncodedValue<ValueType>(value), key, array_.get());
+    ::Encrypt(EncodedValue<ValueType>(value).get(), key, array_.get());
   }
 
   ValueType Decrypt(const TFheGateBootstrappingSecretKeySet* key) {
     EncodedValue<ValueType> plaintext;
-    ::Decrypt(array_.get(), key, plaintext);
+    ::Decrypt(array_.get(), key, plaintext.get());
     return plaintext.Decode();
   }
 
@@ -215,22 +216,6 @@ class TfheValueRef {
   TfheValueRef& operator=(const TfheValueRef<ValueType>& value) {
     ::Copy(value.get().data(), size(), params(), this->get().data());
     return *this;
-  }
-
-  void SetUnencrypted(const ValueType& value,
-                      const TFheGateBootstrappingCloudKeySet* key) {
-    ::Unencrypted(EncodedValue<ValueType>(value), key, this->get());
-  }
-
-  void SetEncrypted(const ValueType& value,
-                    const TFheGateBootstrappingSecretKeySet* key) {
-    ::Encrypt(EncodedValue<ValueType>(value), key, this->get());
-  }
-
-  ValueType Decrypt(const TFheGateBootstrappingSecretKeySet* key) {
-    EncodedValue<ValueType> plaintext;
-    ::Decrypt(this->get(), key, plaintext);
-    return plaintext.Decode();
   }
 
   int32_t size() const { return kBitWidth; }
@@ -292,19 +277,19 @@ class TfheArray {
   void SetUnencrypted(absl::Span<const ValueType> plaintext,
                       const TFheGateBootstrappingCloudKeySet* key) {
     assert(plaintext.length() == length_);
-    ::Unencrypted(EncodedArray<ValueType>(plaintext), key, array_.get());
+    ::Unencrypted(EncodedArray<ValueType>(plaintext).get(), key, array_.get());
   }
 
   void SetEncrypted(absl::Span<const ValueType> plaintext,
                     const TFheGateBootstrappingSecretKeySet* key) {
     assert(plaintext.length() == length_);
-    ::Encrypt(EncodedArray<ValueType>(plaintext), key, array_.get());
+    ::Encrypt(EncodedArray<ValueType>(plaintext).get(), key, array_.get());
   }
 
   absl::FixedArray<ValueType> Decrypt(
       const TFheGateBootstrappingSecretKeySet* key) const {
     EncodedArray<ValueType> encoded(length_);
-    ::Decrypt(array_.get(), key, encoded);
+    ::Decrypt(array_.get(), key, encoded.get());
     return encoded.Decode();
   }
 
@@ -342,42 +327,12 @@ class TfheArrayRef {
                const TFheGateBootstrappingParameterSet* params)
       : length_(length), array_(array), params_(params) {}
 
-  TfheArrayRef& operator=(const TfheArrayRef<ValueType>& value) {
-    ::Copy(value.get(), size(), params(), this->get());
-    return *this;
-  }
-
-  void SetUnencrypted(absl::Span<const ValueType> plaintext,
-                      const TFheGateBootstrappingCloudKeySet* key) {
-    assert(plaintext.length() == length_);
-    ::Unencrypted(EncodedArray<ValueType>(plaintext), key, this->get());
-  }
-
-  void SetEncrypted(absl::Span<const ValueType> plaintext,
-                    const TFheGateBootstrappingSecretKeySet* key) {
-    assert(plaintext.length() == length_);
-    ::Encrypt(EncodedArray<ValueType>(plaintext), key, this->get());
-  }
-
-  absl::FixedArray<ValueType> Decrypt(
-      const TFheGateBootstrappingSecretKeySet* key) const {
-    EncodedArray<ValueType> encoded(length_);
-    ::Decrypt(this->get(), key, encoded);
-    return encoded.Decode();
-  }
-
   absl::Span<LweSample> get() { return absl::MakeSpan(array_, size()); }
   absl::Span<const LweSample> get() const {
     return absl::MakeConstSpan(array_, size());
   }
 
-  TfheValueRef<ValueType> operator[](int32_t pos) {
-    return {&(this->get())[pos * kValueWidth], params()};
-  }
-
-  int32_t length() const { return length_; }
-  int32_t size() const { return length_; }
-
+  int32_t size() const { return bit_width(); }
   int32_t bit_width() const { return kValueWidth * length_; }
 
   const TFheGateBootstrappingParameterSet* params() { return params_; }
@@ -482,6 +437,7 @@ class TfheBasicString : public TfheArray<CharT> {
 // are themselves arrays of bits.
 // Corresponds to std::string
 using TfheString = TfheBasicString<char>;
+using TfheStringRef = TfheArrayRef<char>;
 // Corresponds to int
 using TfheInt = TfheValue<int>;
 // Corresponds to short

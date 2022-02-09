@@ -292,7 +292,7 @@ absl::StatusOr<std::string> GenerateSetOrEncryptBoolElement(
   std::string op =
       encrypt ? "Encrypt<Sample,SecretKey>" : "Unencrypted<Sample,PublicKey>";
   lines.push_back(absl::Substitute(
-      "    ::$0(EncodedValue<bool>(value.$1), key, data);", op, source));
+      "    ::$0(EncodedValue<bool>(value.$1).get(), key, data);", op, source));
   lines.push_back("    data += 1;");
   return absl::StrJoin(lines, "\n");
 }
@@ -306,8 +306,8 @@ absl::StatusOr<std::string> GenerateSetOrEncryptIntegralElement(
                        XlsccToNativeIntegerType(int_type));
 
   lines.push_back(
-      absl::Substitute("    ::$0(EncodedValue<$1>(value.$2), key, data);", op,
-                       int_type_name, source_var));
+      absl::Substitute("    ::$0(EncodedValue<$1>(value.$2).get(), key, data);",
+                       op, int_type_name, source_var));
   lines.push_back(absl::StrCat("    data += ", int_type.width(), ";"));
 
   return absl::StrJoin(lines, "\n");
@@ -430,8 +430,9 @@ absl::StatusOr<std::string> GenerateDecryptBool(const IdToType& id_to_type,
   std::vector<std::string> lines;
   lines.push_back(
       absl::StrCat("    EncodedValue<bool> encoded_", temp_name, ";"));
-  lines.push_back(absl::StrCat(
-      "    ::Decrypt<Sample, SecretKey>(data, key, encoded_", temp_name, ");"));
+  lines.push_back(
+      absl::StrCat("    ::Decrypt<Sample, SecretKey>(data, key, encoded_",
+                   temp_name, ".get());"));
   lines.push_back("    data += 1;");
   lines.push_back(absl::Substitute("    result->$0 = encoded_$1.Decode();",
                                    output_loc, temp_name));
@@ -446,7 +447,8 @@ absl::StatusOr<std::string> GenerateDecryptIntegral(
   lines.push_back(absl::Substitute("    EncodedValue<$0> encoded_$1;",
                                    int_type_name, temp_name));
   lines.push_back(absl::Substitute(
-      "    ::Decrypt<Sample, SecretKey>(data, key, encoded_$0);", temp_name));
+      "    ::Decrypt<Sample, SecretKey>(data, key, encoded_$0.get());",
+      temp_name));
   lines.push_back(absl::StrCat("    data += ", int_type.width(), ";"));
   lines.push_back(absl::Substitute("    result->$0 = encoded_$1.Decode();",
                                    output_loc, temp_name));

@@ -37,3 +37,39 @@ cc_library(
         "@palisade//:binfhe",
     ],
 )
+
+cc_test(
+    name = "boolean_data_test",
+    srcs = ["boolean_data_test.cc"],
+    deps = [
+        "//transpiler/data:boolean_data",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_xls//xls/common/status:matchers",
+    ],
+)
+
+cc_test(
+    name = "tfhe_data_test",
+    srcs = ["tfhe_data_test.cc"],
+    deps = [
+        "//transpiler/data:tfhe_data",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_xls//xls/common/status:matchers",
+    ],
+)
+
+cc_test(
+    name = "palisade_data_test",
+    srcs = ["palisade_data_test.cc"],
+    deps = [
+        "//transpiler/data:palisade_data",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_xls//xls/common/status:matchers",
+    ],
+)

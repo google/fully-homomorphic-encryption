@@ -113,6 +113,11 @@ class PalisadeValue {
     }
   }
 
+  PalisadeValue& operator=(const PalisadeValueRef<ValueType>& value) {
+    ::Copy(value.get(), get());
+    return *this;
+  }
+
   static PalisadeValue<ValueType> Unencrypted(ValueType value,
                                               lbcrypto::BinFHEContext cc) {
     PalisadeValue<ValueType> plaintext(cc);
@@ -128,22 +133,17 @@ class PalisadeValue {
     return ciphertext;
   }
 
-  PalisadeValue& operator=(const PalisadeValueRef<ValueType>& value) {
-    ::Copy(value.get(), get());
-    return *this;
-  }
-
   void SetUnencrypted(const ValueType& value) {
-    ::Unencrypted(EncodedValue<ValueType>(value), cc_, get());
+    ::Unencrypted(EncodedValue<ValueType>(value).get(), cc_, get());
   }
 
   void SetEncrypted(const ValueType& value, lbcrypto::LWEPrivateKey sk) {
-    ::Encrypt(EncodedValue<ValueType>(value), cc_, sk, get());
+    ::Encrypt(EncodedValue<ValueType>(value).get(), cc_, sk, get());
   }
 
   ValueType Decrypt(lbcrypto::LWEPrivateKey sk) {
     EncodedValue<ValueType> plaintext;
-    ::Decrypt(get(), cc_, sk, plaintext);
+    ::Decrypt(get(), cc_, sk, plaintext.get());
     return plaintext.Decode();
   }
 
@@ -173,26 +173,12 @@ class PalisadeValueRef {
   PalisadeValueRef(absl::Span<lbcrypto::LWECiphertext> ciphertext,
                    lbcrypto::BinFHEContext cc)
       : ciphertext_(ciphertext), cc_(cc) {}
-  PalisadeValueRef(const PalisadeValue<ValueType>& value)
+  PalisadeValueRef(PalisadeValue<ValueType>& value)
       : PalisadeValueRef(value.get(), value.context()) {}
 
   PalisadeValueRef& operator=(const PalisadeValueRef<ValueType>& value) {
     ::Copy(value.get(), get());
     return *this;
-  }
-
-  void SetUnencrypted(const ValueType& value) {
-    ::Unencrypted(EncodedValue<ValueType>(value), cc_, ciphertext_);
-  }
-
-  void SetEncrypted(const ValueType& value, lbcrypto::LWEPrivateKey sk) {
-    ::Encrypt(EncodedValue<ValueType>(value), cc_, sk, ciphertext_);
-  }
-
-  ValueType Decrypt(lbcrypto::LWEPrivateKey sk) {
-    EncodedValue<ValueType> plaintext;
-    ::Decrypt(ciphertext_, cc_, sk, plaintext);
-    return plaintext.Decode();
   }
 
   absl::Span<lbcrypto::LWECiphertext> get() { return ciphertext_; }
@@ -207,6 +193,10 @@ class PalisadeValueRef {
   lbcrypto::BinFHEContext cc_;
 };
 
+template <typename ValueType,
+          std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>
+class PalisadeArrayRef;
+
 // FHE representation of an array of objects of a single type, encoded as
 // a bit array.
 template <typename ValueType,
@@ -218,6 +208,13 @@ class PalisadeArray {
     for (auto& bit : ciphertext_) {
       bit = cc.EvalConstant(false);
     }
+  }
+
+  operator const PalisadeArrayRef<ValueType>() const& {
+    return PalisadeArrayRef<ValueType>(absl::MakeConstSpan(ciphertext_), cc_);
+  }
+  operator PalisadeArrayRef<ValueType>() & {
+    return PalisadeArrayRef<ValueType>(absl::MakeSpan(ciphertext_), cc_);
   }
 
   static PalisadeArray<ValueType> Unencrypted(
@@ -237,18 +234,18 @@ class PalisadeArray {
 
   void SetUnencrypted(absl::Span<const ValueType> plaintext) {
     assert(plaintext.length() == length_);
-    ::Unencrypted(EncodedArray<ValueType>(plaintext), cc_, get());
+    ::Unencrypted(EncodedArray<ValueType>(plaintext).get(), cc_, get());
   }
 
   void SetEncrypted(absl::Span<const ValueType> plaintext,
                     lbcrypto::LWEPrivateKey sk) {
     assert(plaintext.length() == length_);
-    ::Encrypt(EncodedArray<ValueType>(plaintext), cc_, sk, get());
+    ::Encrypt(EncodedArray<ValueType>(plaintext).get(), cc_, sk, get());
   }
 
   absl::FixedArray<ValueType> Decrypt(lbcrypto::LWEPrivateKey sk) const {
     EncodedArray<ValueType> encoded(length_);
-    ::Decrypt(get(), cc_, sk, encoded);
+    ::Decrypt(get(), cc_, sk, encoded.get());
     return encoded.Decode();
   }
 
@@ -276,6 +273,23 @@ class PalisadeArray {
 
   size_t length_;
   absl::FixedArray<lbcrypto::LWECiphertext, kValueWidth> ciphertext_;
+  lbcrypto::BinFHEContext cc_;
+};
+
+template <typename ValueType, std::enable_if_t<std::is_integral_v<ValueType>>*>
+class PalisadeArrayRef {
+ public:
+  PalisadeArrayRef(absl::Span<lbcrypto::LWECiphertext> data,
+                   lbcrypto::BinFHEContext cc)
+      : data_(data), cc_(cc) {}
+
+  absl::Span<lbcrypto::LWECiphertext> get() { return data_; }
+  absl::Span<const lbcrypto::LWECiphertext> get() const {
+    return absl::MakeConstSpan(data_);
+  }
+
+ private:
+  absl::Span<lbcrypto::LWECiphertext> data_;
   lbcrypto::BinFHEContext cc_;
 };
 
@@ -313,12 +327,14 @@ class PalisadeBasicString : public PalisadeArray<CharT> {
 // are themselves arrays of bits.
 // Corresponds to std::string
 using PalisadeString = PalisadeBasicString<char>;
+using PalisadeStringRef = PalisadeArrayRef<char>;
 // Corresponds to int
 using PalisadeInt = PalisadeValue<int>;
 // Corresponds to short
 using PalisadeShort = PalisadeValue<short>;
 // Corresponds to char
 using PalisadeChar = PalisadeValue<char>;
+using PalisadeCharRef = PalisadeValueRef<char>;
 // Corresponds to bool
 using PalisadeBit = PalisadeValue<bool>;
 using PalisadeBool = PalisadeValue<bool>;

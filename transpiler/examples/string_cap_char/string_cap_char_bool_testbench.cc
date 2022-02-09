@@ -36,8 +36,8 @@ void BoolStringCap(EncodedString& cipherresult, EncodedString& ciphertext,
   double total_time = 0.0;
   for (int i = 0; i < data_size; i++) {
     start_time = clock();
-    XLS_CHECK_OK(
-        my_package(cipherresult[i], absl::MakeSpan(state), ciphertext[i]));
+    XLS_CHECK_OK(my_package(cipherresult[i].get(), absl::MakeSpan(state),
+                            ciphertext[i].get()));
     end_time = clock();
     char_time = (end_time - start_time);
     std::cout << "\t\t\t\t\tchar " << i << ": " << char_time / 1000000
