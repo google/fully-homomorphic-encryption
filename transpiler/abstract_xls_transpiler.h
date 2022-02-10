@@ -189,18 +189,13 @@ class AbstractXLSTranspiler {
     return collected_outputs;
   }
 
-  static std::string NodeReference(const xls::Node* node) {
-    return TranspilerT::NodeReference(node);
+  static std::string CopyNodeToOutput(absl::string_view output_arg, int offset,
+                                      const xls::Node* node) {
+    return TranspilerT::CopyNodeToOutput(output_arg, offset, node);
   }
-  static std::string OutputBitReference(absl::string_view output_arg,
-                                        int offset) {
-    return TranspilerT::OutputBitReference(output_arg, offset);
-  }
-  static std::string ParamBitReference(const xls::Node* param, int offset) {
-    return TranspilerT::ParamBitReference(param, offset);
-  }
-  static std::string CopyTo(std::string destination, std::string source) {
-    return TranspilerT::CopyTo(destination, source);
+  static std::string CopyParamToNode(const xls::Node* node,
+                                     const xls::Node* param, int offset) {
+    return TranspilerT::CopyParamToNode(node, param, offset);
   }
   static std::string InitializeNode(const xls::Node* node) {
     return TranspilerT::InitializeNode(node);
@@ -322,9 +317,7 @@ class AbstractXLSTranspiler {
     // Overflow SHR, can be ignored.
     if (operand->GetType()->GetFlatBitCount() == slice_idx) return "";
 
-    return absl::StrCat(
-        CopyTo(NodeReference(bit_slice), ParamBitReference(operand, slice_idx)),
-        "\n");
+    return absl::StrCat(CopyParamToNode(bit_slice, operand, slice_idx), "\n");
   }
 
   // Array support will need to be updated when structs are added: it could be
@@ -348,8 +341,7 @@ class AbstractXLSTranspiler {
             node = node->operand(0);
           }
           // Copy this node to the appropriate bit of the output.
-          return CopyTo(OutputBitReference(output_arg, output_offset),
-                        NodeReference(node));
+          return CopyNodeToOutput(output_arg, output_offset, node);
         }
 
         // Otherwise, keep drilling down. Note that we iterate over bits in

@@ -636,29 +636,6 @@ absl::Status test_fn($0,
   EXPECT_EQ(actual, expected_header);
 }
 
-TEST(TfheIrTranspilerLibTest, ParamBitReference_SingleBit) {
-  xls::Package package("test_package");
-  xls::FunctionBuilder builder("test_fn", &package);
-  xls::BitsType* value_type = package.GetBitsType(1);  // Single bit
-  xls::BValue param = builder.Param(absl::StrCat("param_", 0), value_type);
-
-  std::string actual = TfheTranspiler::ParamBitReference(param.node(), 0);
-  EXPECT_EQ(actual, "&param_0[0]");
-}
-
-TEST(TfheIrTranspilerLibTest, ParamBitReference_MultipleBits) {
-  constexpr int kInOutWidth = 8;
-  xls::Package package("test_package");
-  xls::FunctionBuilder builder("test_fn", &package);
-  xls::BitsType* value_type = package.GetBitsType(kInOutWidth);
-  xls::BValue param = builder.Param(absl::StrCat("param_", 0), value_type);
-
-  for (int i = 0; i < kInOutWidth; i++) {
-    std::string actual = TfheTranspiler::ParamBitReference(param.node(), i);
-    EXPECT_EQ(actual, absl::StrCat("&param_0[", i, "]"));
-  }
-}
-
 TEST(TfheIrTranspilerLibTest, InitializeNode) {
   constexpr int kInOutWidth = 8;
   xls::Package package("test_package");

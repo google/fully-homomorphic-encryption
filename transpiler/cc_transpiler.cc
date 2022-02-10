@@ -45,13 +45,11 @@ using xls::Node;
 using xls::Op;
 using xls::Param;
 
-}  // namespace
-
-std::string CcTranspiler::NodeReference(const Node* node) {
+std::string NodeReference(const Node* node) {
   return absl::StrFormat("temp_nodes[%d]", node->id());
 }
 
-std::string CcTranspiler::ParamBitReference(const Node* param, int offset) {
+std::string ParamBitReference(const Node* param, int offset) {
   std::string param_name = param->GetName();
   int64_t param_bits = param->GetType()->GetFlatBitCount();
   if (param_bits == 1 &&
@@ -61,13 +59,28 @@ std::string CcTranspiler::ParamBitReference(const Node* param, int offset) {
   return absl::StrFormat("%s[%d]", param_name, offset);
 }
 
-std::string CcTranspiler::OutputBitReference(absl::string_view output_arg,
-                                             int offset) {
+std::string OutputBitReference(absl::string_view output_arg, int offset) {
   return absl::StrFormat("%s[%d]", output_arg, offset);
 }
 
-std::string CcTranspiler::CopyTo(std::string destination, std::string source) {
+std::string CopyTo(std::string destination, std::string source) {
   return absl::Substitute("  $0 = $1;\n", destination, source);
+}
+
+}  // namespace
+
+// Input: "result", 0, Node(id = 3)
+// Output: result[0] = temp_nodes[3];
+std::string CcTranspiler::CopyNodeToOutput(absl::string_view output_arg,
+                                           int offset, const xls::Node* node) {
+  return CopyTo(OutputBitReference(output_arg, offset), NodeReference(node));
+}
+
+// Input: Node(id = 4), Param("some_param"), 3
+// Output: temp_nodes[4] = some_param[3];
+std::string CcTranspiler::CopyParamToNode(const xls::Node* node,
+                                          const xls::Node* param, int offset) {
+  return CopyTo(NodeReference(node), ParamBitReference(param, offset));
 }
 
 std::string CcTranspiler::InitializeNode(const Node* node) { return ""; }

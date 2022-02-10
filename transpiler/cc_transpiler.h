@@ -40,11 +40,10 @@ class CcTranspiler : public AbstractXLSTranspiler<CcTranspiler> {
       const xls::Function* function,
       const xlscc_metadata::MetadataOutput& metadata);
 
-  static std::string NodeReference(const xls::Node* node);
-  static std::string ParamBitReference(const xls::Node* param, int offset);
-  static std::string OutputBitReference(absl::string_view output_arg,
-                                        int offset);
-  static std::string CopyTo(std::string destination, std::string source);
+  static std::string CopyNodeToOutput(absl::string_view output_arg, int offset,
+                                      const xls::Node* node);
+  static std::string CopyParamToNode(const xls::Node* node,
+                                     const xls::Node* param, int offset);
   static std::string InitializeNode(const xls::Node* node);
 
   static absl::StatusOr<std::string> Execute(const xls::Node* node);

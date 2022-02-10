@@ -47,25 +47,38 @@ using xls::Node;
 using xls::Op;
 using xls::Param;
 
-}  // namespace
-
-std::string PalisadeTranspiler::NodeReference(const Node* node) {
+std::string NodeReference(const Node* node) {
   return absl::StrFormat("temp_nodes[%d]", node->id());
 }
 
-std::string PalisadeTranspiler::ParamBitReference(const Node* param,
-                                                  int offset) {
+std::string ParamBitReference(const Node* param, int offset) {
   return absl::StrFormat("%s[%d]", param->GetName(), offset);
 }
 
-std::string PalisadeTranspiler::OutputBitReference(absl::string_view output_arg,
-                                                   int offset) {
+std::string OutputBitReference(absl::string_view output_arg, int offset) {
   return absl::StrFormat("%s[%d]", output_arg, offset);
 }
 
-std::string PalisadeTranspiler::CopyTo(std::string destination,
-                                       std::string source) {
+std::string CopyTo(std::string destination, std::string source) {
   return absl::Substitute("  $0 = $1;\n", destination, source);
+}
+
+}  // namespace
+
+// Input: "result", 0, Node(id = 3)
+// Output: result[0] = temp_nodes[3];
+std::string PalisadeTranspiler::CopyNodeToOutput(absl::string_view output_arg,
+                                                 int offset,
+                                                 const xls::Node* node) {
+  return CopyTo(OutputBitReference(output_arg, offset), NodeReference(node));
+}
+
+// Input: Node(id = 4), Param("some_param"), 3
+// Output: temp_nodes[4] = some_param[3];
+std::string PalisadeTranspiler::CopyParamToNode(const xls::Node* node,
+                                                const xls::Node* param,
+                                                int offset) {
+  return CopyTo(NodeReference(node), ParamBitReference(param, offset));
 }
 
 // No-op
