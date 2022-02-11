@@ -24,6 +24,51 @@
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
 
+namespace {
+
+enum class BackendType {
+  kGeneric,
+  kCleartext,
+  kTFHE,
+  kPALISADE,
+};
+inline bool AbslParseFlag(absl::string_view text, BackendType* out,
+                          std::string* error) {
+  if (text.empty()) {
+    *out = BackendType::kGeneric;
+    return true;
+  }
+  if (absl::EqualsIgnoreCase(text, "cleartext")) {
+    *out = BackendType::kCleartext;
+    return true;
+  }
+  if (absl::EqualsIgnoreCase(text, "tfhe")) {
+    *out = BackendType::kTFHE;
+    return true;
+  }
+  if (absl::EqualsIgnoreCase(text, "palisade")) {
+    *out = BackendType::kPALISADE;
+    return true;
+  }
+  *error = "Unrecognized backend type.";
+  return false;
+}
+inline std::string AbslUnparseFlag(BackendType in) {
+  switch (in) {
+    case BackendType::kGeneric:
+      return "";
+    case BackendType::kCleartext:
+      return "cleartext";
+    case BackendType::kTFHE:
+      return "tfhe";
+    case BackendType::kPALISADE:
+      return "palisade";
+  }
+  return "unknown";
+}
+
+}  // namespace
+
 ABSL_FLAG(std::string, metadata_path, "",
           "Path to the FHE function metadata [binary] proto.");
 ABSL_FLAG(std::string, original_headers, "",
@@ -32,13 +77,13 @@ ABSL_FLAG(std::string, original_headers, "",
 ABSL_FLAG(std::string, output_path, "",
           "Path to which to write the generated header file. "
           "If unspecified, output will be written to stdout.");
-ABSL_FLAG(
-    std::string, transpiler_type, "",
-    "Transpiler type: could be empty, 'bool', 'plaintext', 'tfhe', or "
-    "'palisade'. If unspecified or empty, the generic template is created.");
+ABSL_FLAG(BackendType, backend_type, BackendType::kGeneric,
+          "Transpiler type: could be empty, 'cleartext', 'tfhe', or "
+          "'palisade'. If unspecified or empty, the generic template is "
+          "created.");
 ABSL_FLAG(std::string, generic_header_path, "",
           "Path to which to the previously-generated template header file. "
-          "Must be provided when --transpiler_type is used.");
+          "Must be provided when --backend_type is used.");
 ABSL_FLAG(bool, struct_fields_in_declaration_order, false,
           "When false, struct fields are encoded in reverse order.");
 
@@ -47,8 +92,7 @@ namespace transpiler {
 
 absl::Status RealMain(absl::string_view metadata_path,
                       absl::string_view original_headers,
-                      absl::string_view output_path,
-                      absl::string_view transpiler_type,
+                      absl::string_view output_path, BackendType backend_type,
                       absl::string_view generic_header_path,
                       bool struct_fields_in_declaration_order) {
   XLS_ASSIGN_OR_RETURN(std::string proto_data,
@@ -58,44 +102,50 @@ absl::Status RealMain(absl::string_view metadata_path,
     return absl::InvalidArgumentError("Unable to parse input metadata proto.");
   }
 
-  if (transpiler_type.empty()) {
-    std::vector<std::string> split_headers =
-        absl::StrSplit(original_headers, ',');
-    XLS_ASSIGN_OR_RETURN(
-        std::string generic_result,
-        ConvertStructsToEncodedTemplate(metadata, split_headers, output_path,
-                                        struct_fields_in_declaration_order));
-    if (!output_path.empty()) {
-      return xls::SetFileContents(output_path, generic_result);
+  switch (backend_type) {
+    case BackendType::kGeneric: {
+      std::vector<std::string> split_headers =
+          absl::StrSplit(original_headers, ',');
+      XLS_ASSIGN_OR_RETURN(
+          std::string generic_result,
+          ConvertStructsToEncodedTemplate(metadata, split_headers, output_path,
+                                          struct_fields_in_declaration_order));
+      if (!output_path.empty()) {
+        return xls::SetFileContents(output_path, generic_result);
+      }
+      std::cout << generic_result << std::endl;
+      break;
     }
-    std::cout << generic_result << std::endl;
-  } else if (transpiler_type == "tfhe") {
-    XLS_ASSIGN_OR_RETURN(std::string specific_result,
-                         ConvertStructsToEncodedTfhe(generic_header_path,
-                                                     metadata, output_path));
-    if (!output_path.empty()) {
-      return xls::SetFileContents(output_path, specific_result);
+    case BackendType::kCleartext: {
+      XLS_ASSIGN_OR_RETURN(std::string specific_result,
+                           ConvertStructsToEncodedBool(generic_header_path,
+                                                       metadata, output_path));
+      if (!output_path.empty()) {
+        return xls::SetFileContents(output_path, specific_result);
+      }
+      std::cout << specific_result << std::endl;
+      break;
     }
-    std::cout << specific_result << std::endl;
-  } else if (transpiler_type == "bool" || transpiler_type == "plaintext") {
-    XLS_ASSIGN_OR_RETURN(std::string specific_result,
-                         ConvertStructsToEncodedBool(generic_header_path,
-                                                     metadata, output_path));
-    if (!output_path.empty()) {
-      return xls::SetFileContents(output_path, specific_result);
+    case BackendType::kPALISADE: {
+      XLS_ASSIGN_OR_RETURN(std::string specific_result,
+                           ConvertStructsToEncodedPalisade(
+                               generic_header_path, metadata, output_path));
+      if (!output_path.empty()) {
+        return xls::SetFileContents(output_path, specific_result);
+      }
+      std::cout << specific_result << std::endl;
+      break;
     }
-    std::cout << specific_result << std::endl;
-  } else if (transpiler_type == "palisade") {
-    XLS_ASSIGN_OR_RETURN(std::string specific_result,
-                         ConvertStructsToEncodedPalisade(
-                             generic_header_path, metadata, output_path));
-    if (!output_path.empty()) {
-      return xls::SetFileContents(output_path, specific_result);
+    case BackendType::kTFHE: {
+      XLS_ASSIGN_OR_RETURN(std::string specific_result,
+                           ConvertStructsToEncodedTfhe(generic_header_path,
+                                                       metadata, output_path));
+      if (!output_path.empty()) {
+        return xls::SetFileContents(output_path, specific_result);
+      }
+      std::cout << specific_result << std::endl;
+      break;
     }
-    std::cout << specific_result << std::endl;
-  } else {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Unsupported transpiler type %s.", transpiler_type));
   }
 
   return absl::OkStatus();
@@ -115,11 +165,10 @@ int main(int argc, char* argv[]) {
   }
   std::string original_headers = absl::GetFlag(FLAGS_original_headers);
   std::string output_path = absl::GetFlag(FLAGS_output_path);
-  std::string transpiler_type = absl::GetFlag(FLAGS_transpiler_type);
+  BackendType backend_type = absl::GetFlag(FLAGS_backend_type);
   std::string generic_header_path = absl::GetFlag(FLAGS_generic_header_path);
-  if (!transpiler_type.empty() && generic_header_path.empty()) {
-    std::cout << "--transpiler_type requires --generic_header_path."
-              << std::endl;
+  if (backend_type != BackendType::kGeneric && generic_header_path.empty()) {
+    std::cout << "--backend_type requires --generic_header_path." << std::endl;
     return 1;
   }
 
@@ -127,7 +176,7 @@ int main(int argc, char* argv[]) {
       absl::GetFlag(FLAGS_struct_fields_in_declaration_order);
 
   absl::Status status = fully_homomorphic_encryption::transpiler::RealMain(
-      metadata_path, original_headers, output_path, transpiler_type,
+      metadata_path, original_headers, output_path, backend_type,
       generic_header_path, struct_fields_in_declaration_order);
   if (!status.ok()) {
     std::cerr << status.message() << std::endl;

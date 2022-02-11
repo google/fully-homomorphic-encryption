@@ -85,6 +85,7 @@ cc_library(
     hdrs = ["yosys_transpiler.h"],
     deps = [
         ":common_transpiler",
+        ":pipeline_enums",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
@@ -296,6 +297,12 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "pipeline_enums",
+    hdrs = ["pipeline_enums.h"],
+    deps = ["@com_google_absl//absl/strings"],
+)
+
 cc_binary(
     name = "transpiler",
     srcs = ["transpiler_main.cc"],
@@ -308,6 +315,7 @@ cc_binary(
         ":interpreted_palisade_transpiler",
         ":interpreted_tfhe_transpiler",
         ":palisade_transpiler",
+        ":pipeline_enums",
         ":tfhe_transpiler",
         ":yosys_transpiler",
         "//transpiler/util:subprocess",

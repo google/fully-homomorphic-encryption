@@ -20,32 +20,36 @@ fhe_cc_library(
     name = "simple_sum_interpreted_tfhe",
     src = "simple_sum.cc",
     hdrs = ["simple_sum.h"],
+    backend = "interpreted_tfhe",
     num_opt_passes = 2,
-    transpiler_type = "interpreted_tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "simple_sum_palisade",
     src = "simple_sum.cc",
     hdrs = ["simple_sum.h"],
+    backend = "palisade",
     num_opt_passes = 2,
-    transpiler_type = "palisade",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "simple_sum_interpreted_palisade",
     src = "simple_sum.cc",
     hdrs = ["simple_sum.h"],
+    backend = "interpreted_palisade",
     num_opt_passes = 2,
-    transpiler_type = "interpreted_palisade",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "simple_sum_bool",
     src = "simple_sum.cc",
     hdrs = ["simple_sum.h"],
+    backend = "cleartext",
     num_opt_passes = 2,
-    transpiler_type = "bool",
+    optimizer = "xls",
 )
 
 cc_binary(

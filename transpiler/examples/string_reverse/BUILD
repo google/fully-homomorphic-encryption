@@ -29,32 +29,36 @@ fhe_cc_library(
     name = "string_reverse_interpreted_tfhe",
     src = "string_reverse.cc",
     hdrs = ["string_reverse.h"],
+    backend = "interpreted_tfhe",
     num_opt_passes = 2,
-    transpiler_type = "interpreted_tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "string_reverse_palisade",
     src = "string_reverse.cc",
     hdrs = ["string_reverse.h"],
+    backend = "palisade",
     num_opt_passes = 2,
-    transpiler_type = "palisade",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "string_reverse_interpreted_palisade",
     src = "string_reverse.cc",
     hdrs = ["string_reverse.h"],
+    backend = "interpreted_palisade",
     num_opt_passes = 2,
-    transpiler_type = "interpreted_palisade",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "string_reverse_bool",
     src = "string_reverse.cc",
     hdrs = ["string_reverse.h"],
+    backend = "cleartext",
     num_opt_passes = 2,
-    transpiler_type = "bool",
+    optimizer = "xls",
 )
 
 cc_binary(

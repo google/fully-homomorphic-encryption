@@ -21,6 +21,7 @@
 
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
+#include "transpiler/pipeline_enums.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
 
 namespace fully_homomorphic_encryption {
@@ -33,20 +34,18 @@ class YosysTranspiler {
   static absl::StatusOr<std::string> Translate(
       const xlscc_metadata::MetadataOutput& metadata,
       const absl::string_view cell_library_text,
-      const absl::string_view netlist_text,
-      const absl::string_view transpiler_type);
+      const absl::string_view netlist_text, Backend backend);
 
   static absl::StatusOr<std::string> TranslateHeader(
       const xlscc_metadata::MetadataOutput& metadata,
-      absl::string_view header_path, const absl::string_view transpiler_type);
+      absl::string_view header_path, Backend backend);
 
   static absl::StatusOr<std::string> FunctionSignature(
-      const xlscc_metadata::MetadataOutput& metadata,
-      const absl::string_view transpiler_type);
+      const xlscc_metadata::MetadataOutput& metadata, Backend backend);
 
  private:
   static absl::StatusOr<std::string> PathToHeaderGuard(
-      absl::string_view header_path, const absl::string_view transpiler_type);
+      absl::string_view header_path, Backend backend);
 };
 
 }  // namespace transpiler

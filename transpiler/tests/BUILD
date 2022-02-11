@@ -22,8 +22,9 @@ _PRIMITIVE_TYPES = [
             name = "%s_palisade" % i,
             src = "%s.cc" % i,
             hdrs = [],
+            backend = "palisade",
             num_opt_passes = 2,
-            transpiler_type = "palisade",
+            optimizer = "xls",
         ),
     ]
     for i in _PRIMITIVE_TYPES
@@ -114,8 +115,9 @@ _CONTROL_STRUCTURE = [
             name = "%s_palisade" % i,
             src = "%s.cc" % i,
             hdrs = [],
+            backend = "palisade",
             num_opt_passes = 2,
-            transpiler_type = "palisade",
+            optimizer = "xls",
         ),
     ]
     for i in _CONTROL_STRUCTURE
@@ -159,36 +161,41 @@ fhe_cc_library(
     name = "function_bool",
     src = "function.cc",
     hdrs = [],
+    backend = "cleartext",
     num_opt_passes = 1,
-    transpiler_type = "bool",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "out_params_bool",
     src = "out_params.cc",
     hdrs = [],
-    transpiler_type = "bool",
+    backend = "cleartext",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "out_params_with_return_bool",
     src = "out_params_with_return.cc",
     hdrs = [],
-    transpiler_type = "bool",
+    backend = "cleartext",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "single_out_param_bool",
     src = "single_out_param.cc",
     hdrs = [],
-    transpiler_type = "bool",
+    backend = "cleartext",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "single_out_param_with_return_bool",
     src = "single_out_param_with_return.cc",
     hdrs = [],
-    transpiler_type = "bool",
+    backend = "cleartext",
+    optimizer = "xls",
 )
 
 cc_test(

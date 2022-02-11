@@ -14,32 +14,36 @@ fhe_cc_library(
     name = "string_cap_interpreted_tfhe",
     src = "string_cap.cc",
     hdrs = ["string_cap.h"],
+    backend = "interpreted_tfhe",
     num_opt_passes = 2,
-    transpiler_type = "interpreted_tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "string_cap_palisade",
     src = "string_cap.cc",
     hdrs = ["string_cap.h"],
+    backend = "palisade",
     num_opt_passes = 2,
-    transpiler_type = "palisade",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "string_cap_interpreted_palisade",
     src = "string_cap.cc",
     hdrs = ["string_cap.h"],
+    backend = "interpreted_palisade",
     num_opt_passes = 2,
-    transpiler_type = "interpreted_palisade",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "string_cap_bool",
     src = "string_cap.cc",
     hdrs = ["string_cap.h"],
+    backend = "cleartext",
     num_opt_passes = 2,
-    transpiler_type = "bool",
+    optimizer = "xls",
 )
 
 cc_binary(

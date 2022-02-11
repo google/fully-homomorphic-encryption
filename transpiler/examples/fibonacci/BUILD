@@ -14,24 +14,27 @@ fhe_cc_library(
     name = "fibonacci_interpreted_tfhe",
     src = "fibonacci.cc",
     hdrs = ["fibonacci.h"],
+    backend = "interpreted_tfhe",
     num_opt_passes = 2,
-    transpiler_type = "interpreted_tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "fibonacci_palisade",
     src = "fibonacci.cc",
     hdrs = ["fibonacci.h"],
+    backend = "palisade",
     num_opt_passes = 2,
-    transpiler_type = "palisade",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "fibonacci_interpreted_palisade",
     src = "fibonacci.cc",
     hdrs = ["fibonacci.h"],
+    backend = "interpreted_palisade",
     num_opt_passes = 2,
-    transpiler_type = "interpreted_palisade",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
@@ -45,32 +48,36 @@ fhe_cc_library(
     name = "fibonacci_sequence_interpreted_tfhe",
     src = "fibonacci_sequence.cc",
     hdrs = ["fibonacci_sequence.h"],
+    backend = "interpreted_tfhe",
     num_opt_passes = 2,
-    transpiler_type = "interpreted_tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "fibonacci_sequence_bool",
     src = "fibonacci_sequence.cc",
     hdrs = ["fibonacci_sequence.h"],
+    backend = "cleartext",
     num_opt_passes = 2,
-    transpiler_type = "bool",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "fibonacci_sequence_palisade",
     src = "fibonacci_sequence.cc",
     hdrs = ["fibonacci_sequence.h"],
+    backend = "palisade",
     num_opt_passes = 2,
-    transpiler_type = "palisade",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "fibonacci_sequence_interpreted_palisade",
     src = "fibonacci_sequence.cc",
     hdrs = ["fibonacci_sequence.h"],
+    backend = "interpreted_palisade",
     num_opt_passes = 2,
-    transpiler_type = "interpreted_palisade",
+    optimizer = "xls",
 )
 
 cc_binary(

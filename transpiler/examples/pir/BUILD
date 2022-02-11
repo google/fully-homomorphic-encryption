@@ -14,8 +14,9 @@ fhe_cc_library(
     name = "pir_api_interpreted_tfhe",
     src = "pir_api.cc",
     hdrs = ["pir_api.h"],
+    backend = "interpreted_tfhe",
     num_opt_passes = 2,
-    transpiler_type = "interpreted_tfhe",
+    optimizer = "xls",
 )
 
 cc_library(

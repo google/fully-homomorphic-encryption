@@ -135,7 +135,7 @@ def _pick_last_bool_file(optimized_files):
     inspect = optimized_files[1::2]
     return optimized_files[-1]
 
-def _fhe_transpile_ir(ctx, src, metadata, entry, transpiler):
+def _fhe_transpile_ir(ctx, src, metadata, entry, optimizer, backend):
     """Transpile XLS IR into C++ source."""
     library_name = ctx.attr.library_name or ctx.label.name
     out_cc = ctx.actions.declare_file("%s.cc" % library_name)
@@ -150,11 +150,13 @@ def _fhe_transpile_ir(ctx, src, metadata, entry, transpiler):
         out_cc.path,
         "-header_path",
         out_h.path,
-        "-transpiler_type",
-        transpiler,
+        "-optimizer",
+        optimizer,
+        "-backend",
+        backend,
     ]
 
-    if ctx.attr.transpiler_type.startswith("yosys_"):
+    if optimizer == "yosys":
         args += ["-liberty_path", ctx.file.cell_library.path]
 
     ctx.actions.run(
@@ -165,7 +167,7 @@ def _fhe_transpile_ir(ctx, src, metadata, entry, transpiler):
     )
     return [out_cc, out_h]
 
-def _generate_struct_header(ctx, metadata):
+def _generate_struct_header(ctx, metadata, optimizer, backend):
     """Transpile XLS IR into C++ source."""
     library_name = ctx.attr.library_name or ctx.label.name
     generic_struct_h = ctx.actions.declare_file("%s.generic.types.h" % library_name)
@@ -179,9 +181,7 @@ def _generate_struct_header(ctx, metadata):
         "-output_path",
         generic_struct_h.path,
     ]
-    transpiler_type = ctx.attr.transpiler_type
-    if transpiler_type.startswith("yosys_"):
-        transpiler_type = transpiler_type[len("yosys_"):]
+    if optimizer == "yosys":
         args.append("-struct_fields_in_declaration_order")
     ctx.actions.run(
         inputs = [metadata],
@@ -190,8 +190,9 @@ def _generate_struct_header(ctx, metadata):
         arguments = args,
     )
 
-    if transpiler_type.startswith("interpreted_"):
-        transpiler_type = transpiler_type[len("interpreted_"):]
+    backend_type = backend
+    if backend_type.startswith("interpreted_"):
+        backend_type = backend_type[len("interpreted_"):]
     args = [
         "-metadata_path",
         metadata.path,
@@ -199,8 +200,8 @@ def _generate_struct_header(ctx, metadata):
         specific_struct_h.path,
         "-generic_header_path",
         generic_struct_h.path,
-        "-transpiler_type",
-        transpiler_type,
+        "-backend_type",
+        backend_type,
     ]
     ctx.actions.run(
         inputs = [metadata, generic_struct_h],
@@ -292,47 +293,44 @@ def _generate_netlist(ctx, verilog, entry):
 def _fhe_transpile_impl(ctx):
     ir_file, metadata_file, metadata_entry_file = _build_ir(ctx)
 
-    transpiler = ctx.attr.transpiler_type
+    optimizer = ctx.attr.optimizer
+    backend = ctx.attr.backend
 
-    extras = []
+    outputs = []
     optimized_files = []
     netlist_file = None
-    if transpiler.startswith("yosys_"):
+    if optimizer == "yosys":
         optimized_ir_file = _optimize_ir(ctx, ir_file, ".opt.ir", metadata_entry_file)
         optimized_files.append(optimized_ir_file)
         verilog_ir_file = _generate_verilog(ctx, optimized_ir_file, ".v", metadata_entry_file)
         netlist_file, yosys_script_file = _generate_netlist(ctx, verilog_ir_file, metadata_entry_file)
-        extras = [verilog_ir_file, netlist_file, yosys_script_file]
+        outputs.extend([verilog_ir_file, netlist_file, yosys_script_file])
     else:
         optimized_files = _optimize_and_booleanify_repeatedly(ctx, ir_file, metadata_entry_file)
 
-    hdrs = _generate_struct_header(ctx, metadata_file)
+    hdrs = _generate_struct_header(ctx, metadata_file, optimizer, backend)
 
-    if transpiler.startswith("yosys_"):
+    if optimizer == "yosys":
         ir_input = netlist_file
     else:
         ir_input = _pick_last_bool_file(optimized_files)
-    out_cc, out_h = _fhe_transpile_ir(ctx, ir_input, metadata_file, metadata_entry_file, transpiler)
+    out_cc, out_h = _fhe_transpile_ir(ctx, ir_input, metadata_file, metadata_entry_file, optimizer, backend)
     hdrs.append(out_h)
 
-    common = [ir_file, metadata_file, metadata_entry_file, out_cc] + optimized_files + hdrs
+    outputs = [
+        ir_file,
+        metadata_file,
+        metadata_entry_file,
+        out_cc,
+    ] + optimized_files + hdrs + outputs
 
-    if transpiler.startswith("yosys_"):
-        return [
-            DefaultInfo(files = depset(common + extras)),
-            OutputGroupInfo(
-                sources = depset([out_cc]),
-                headers = depset(hdrs),
-            ),
-        ]
-    else:
-        return [
-            DefaultInfo(files = depset(common)),
-            OutputGroupInfo(
-                sources = depset([out_cc]),
-                headers = depset(hdrs),
-            ),
-        ]
+    return [
+        DefaultInfo(files = depset(outputs)),
+        OutputGroupInfo(
+            sources = depset([out_cc]),
+            headers = depset(hdrs),
+        ),
+    ]
 
 def _executable_attr(label):
     """A helper for declaring internal executable dependencies."""
@@ -368,24 +366,38 @@ fhe_transpile = rule(
             doc = """
             The number of optimization passes to run on XLS IR (default 1).
             Values <= 0 will skip optimization altogether.
+            (Only affects the XLS optimizer.)
             """,
             default = 1,
         ),
-        "transpiler_type": attr.string(
+        "optimizer": attr.string(
             doc = """
-            Type of FHE library to transpile to. Choices are {tfhe, interpreted_tfhe,
-            palisade, interpreted_palisade, bool, yosys_plaintext, yosys_interpreted_tfhe}.
-            'bool' and 'yosys_plaintext' do not depend on any FHE libraries.
+            Optimizing/lowering pipeline to use in transpilation. Choices are {xls, yosys}.
+            'xls' uses the built-in XLS tools to transform the program into an optimized
+            Boolean circuit; 'yosys' uses Yosys to synthesize a circuit that targets the
+            given backend.
+            """,
+            values = [
+                "xls",
+                "yosys",
+            ],
+            default = "xls",
+        ),
+        "backend": attr.string(
+            doc = """
+            FHE execution backend to target. Choices are {tfhe, palisade, interpreted_tfhe,
+            interpreted_palisade, cleartext}. 'cleartext' executes the resulting circuit in
+            cleartext, skipping encryption; this has zero security, but is useful for
+            debugging the pipeline.
             """,
             values = [
                 "tfhe",
                 "interpreted_tfhe",
                 "palisade",
                 "interpreted_palisade",
-                "bool",
-                "yosys_plaintext",
-                "yosys_interpreted_tfhe",
+                "cleartext",
             ],
+            default = "tfhe",
         ),
         "cell_library": attr.label(
             doc = "A single cell-definition library in Liberty format.",
@@ -413,7 +425,8 @@ def fhe_cc_library(
         hdrs,
         copts = [],
         num_opt_passes = 1,
-        transpiler_type = "tfhe",
+        optimizer = "xls",
+        backend = "tfhe",
         **kwargs):
     """A rule for building FHE-based cc_libraries.
 
@@ -423,7 +436,8 @@ def fhe_cc_library(
             src = "secret_computation.cc",
             hdrs = ["secret_computation.h"],
             num_opt_passes = 2,
-            transpiler_type = "bool",
+            optimizer = "xls",
+            backend = "cleartext",
         )
         cc_binary(
             name = "secret_computation_consumer",
@@ -442,11 +456,16 @@ def fhe_cc_library(
       copts: The list of options to the C++ compilation command.
       num_opt_passes: The number of optimization passes to run on XLS IR (default 1).
             Values <= 0 will skip optimization altogether.
-      transpiler_type: Defaults to "tfhe"; Type of FHE library to transpile to. Choices are
-            {tfhe, interpreted_tfhe, palisade, interpreted_palisade, bool, yosys_plaintext}. 'bool' does Boolean operations on plaintext,
-            and doesn't depend on any FHE libraries; mostly useful for debugging. Like 'bool',
-            'yosys_plaintext' does not depend on an FHE libraries, doing operations on plaintext (whether
-            they are boolean depends on the cell-library definition in use.)
+            (Only affects the XLS optimizer.)
+      optimizer: Defaults to "xls"; optimizing/lowering pipeline to use in transpilation.
+            Choices are {xls, yosys}. 'xls' uses the built-in XLS tools to transform the
+            program into an optimized Boolean circuit; 'yosys' uses Yosys to synthesize
+            a circuit that targets the given backend. (In most cases, Yosys's optimizer
+            is more powerful.)
+      backend: Defaults to "tfhe"; FHE execution backend to transpile to. Choices are
+            {tfhe, interpreted_tfhe, palisade, interpreted_palisade, cleartext}.
+            'cleartext' executes the resulting circuit in cleartext, skipping encryption
+            entirely; this has zero security, but is useful for debugging the pipeline.
       **kwargs: Keyword arguments to pass through to the cc_library target.
     """
     tags = kwargs.pop("tags", None)
@@ -458,7 +477,8 @@ def fhe_cc_library(
         hdrs = hdrs,
         library_name = name,
         num_opt_passes = num_opt_passes,
-        transpiler_type = transpiler_type,
+        optimizer = optimizer,
+        backend = backend,
         tags = tags,
         cell_library = _TFHE_CELLS_LIBERTY,
     )
@@ -483,56 +503,58 @@ def fhe_cc_library(
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/types:span",
     ]
-    if transpiler_type == "bool":
-        deps.extend([
-            "//transpiler/data:boolean_data",
-        ])
-    elif transpiler_type == "yosys_interpreted_tfhe":
-        deps.extend([
-            "@com_google_absl//absl/status:statusor",
-            "//transpiler:yosys_interpreted_tfhe_runner",
-            "//transpiler/data:boolean_data",
-            "//transpiler/data:tfhe_data",
-            "@tfhe//:libtfhe",
-            "@com_google_xls//xls/common/status:status_macros",
-        ])
-    elif transpiler_type == "yosys_plaintext":
-        deps.extend([
-            "@com_google_absl//absl/status:statusor",
-            "//transpiler:yosys_plaintext_runner",
-            "//transpiler/data:boolean_data",
-            "@com_google_xls//xls/common/status:status_macros",
-        ])
-    elif transpiler_type == "tfhe":
-        deps.extend([
-            "@tfhe//:libtfhe",
-            "//transpiler/data:boolean_data",
-            "//transpiler/data:tfhe_data",
-        ])
-    elif transpiler_type == "interpreted_tfhe":
-        deps.extend([
-            "@com_google_absl//absl/status:statusor",
-            "//transpiler:tfhe_runner",
-            "//transpiler/data:boolean_data",
-            "//transpiler/data:tfhe_data",
-            "@tfhe//:libtfhe",
-            "@com_google_xls//xls/common/status:status_macros",
-        ])
-    elif transpiler_type == "palisade":
-        deps.extend([
-            "//transpiler/data:boolean_data",
-            "//transpiler/data:palisade_data",
-            "@palisade//:binfhe",
-        ])
-    elif transpiler_type == "interpreted_palisade":
-        deps.extend([
-            "@com_google_absl//absl/status:statusor",
-            "//transpiler:palisade_runner",
-            "//transpiler/data:boolean_data",
-            "//transpiler/data:palisade_data",
-            "@palisade//:binfhe",
-            "@com_google_xls//xls/common/status:status_macros",
-        ])
+    if optimizer == "yosys":
+        if backend == "cleartext":
+            deps.extend([
+                "@com_google_absl//absl/status:statusor",
+                "//transpiler:yosys_plaintext_runner",
+                "//transpiler/data:boolean_data",
+                "@com_google_xls//xls/common/status:status_macros",
+            ])
+        elif backend == "interpreted_tfhe":
+            deps.extend([
+                "@com_google_absl//absl/status:statusor",
+                "//transpiler:yosys_interpreted_tfhe_runner",
+                "//transpiler/data:boolean_data",
+                "//transpiler/data:tfhe_data",
+                "@tfhe//:libtfhe",
+                "@com_google_xls//xls/common/status:status_macros",
+            ])
+    elif optimizer == "xls":
+        if backend == "cleartext":
+            deps.extend([
+                "//transpiler/data:boolean_data",
+            ])
+        elif backend == "tfhe":
+            deps.extend([
+                "@tfhe//:libtfhe",
+                "//transpiler/data:boolean_data",
+                "//transpiler/data:tfhe_data",
+            ])
+        elif backend == "interpreted_tfhe":
+            deps.extend([
+                "@com_google_absl//absl/status:statusor",
+                "//transpiler:tfhe_runner",
+                "//transpiler/data:boolean_data",
+                "//transpiler/data:tfhe_data",
+                "@tfhe//:libtfhe",
+                "@com_google_xls//xls/common/status:status_macros",
+            ])
+        elif backend == "palisade":
+            deps.extend([
+                "//transpiler/data:boolean_data",
+                "//transpiler/data:palisade_data",
+                "@palisade//:binfhe",
+            ])
+        elif backend == "interpreted_palisade":
+            deps.extend([
+                "@com_google_absl//absl/status:statusor",
+                "//transpiler:palisade_runner",
+                "//transpiler/data:boolean_data",
+                "//transpiler/data:palisade_data",
+                "@palisade//:binfhe",
+                "@com_google_xls//xls/common/status:status_macros",
+            ])
 
     native.cc_library(
         name = name,

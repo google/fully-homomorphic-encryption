@@ -19,21 +19,24 @@ fhe_cc_library(
     name = "rock_paper_scissor_interpreted_tfhe",
     src = "rock_paper_scissor.cc",
     hdrs = ["rock_paper_scissor.h"],
-    transpiler_type = "interpreted_tfhe",
+    backend = "interpreted_tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "rock_paper_scissor_palisade",
     src = "rock_paper_scissor.cc",
     hdrs = ["rock_paper_scissor.h"],
-    transpiler_type = "palisade",
+    backend = "palisade",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "rock_paper_scissor_interpreted_palisade",
     src = "rock_paper_scissor.cc",
     hdrs = ["rock_paper_scissor.h"],
-    transpiler_type = "interpreted_palisade",
+    backend = "interpreted_palisade",
+    optimizer = "xls",
 )
 
 cc_binary(

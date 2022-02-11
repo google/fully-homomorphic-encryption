@@ -7,21 +7,24 @@ fhe_cc_library(
     name = "ifte_yosys_plaintext",
     src = "ifte.cc",
     hdrs = ["ifte.h"],
-    transpiler_type = "yosys_plaintext",
+    backend = "cleartext",
+    optimizer = "yosys",
 )
 
 fhe_cc_library(
     name = "ifte_yosys_interpreted_tfhe",
     src = "ifte.cc",
     hdrs = ["ifte.h"],
-    transpiler_type = "yosys_interpreted_tfhe",
+    backend = "interpreted_tfhe",
+    optimizer = "yosys",
 )
 
 fhe_cc_library(
     name = "ifte_bool",
     src = "ifte.cc",
     hdrs = ["ifte.h"],
-    transpiler_type = "bool",
+    backend = "cleartext",
+    optimizer = "xls",
 )
 
 fhe_cc_library(

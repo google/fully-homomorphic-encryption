@@ -14,24 +14,27 @@ fhe_cc_library(
     name = "calculator_interpreted_tfhe",
     src = "calculator.cc",
     hdrs = ["calculator.h"],
+    backend = "interpreted_tfhe",
     num_opt_passes = 2,
-    transpiler_type = "interpreted_tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "calculator_palisade",
     src = "calculator.cc",
     hdrs = ["calculator.h"],
+    backend = "palisade",
     num_opt_passes = 2,
-    transpiler_type = "palisade",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "calculator_interpreted_palisade",
     src = "calculator.cc",
     hdrs = ["calculator.h"],
+    backend = "interpreted_palisade",
     num_opt_passes = 2,
-    transpiler_type = "interpreted_palisade",
+    optimizer = "xls",
 )
 
 cc_binary(
@@ -114,8 +117,9 @@ fhe_cc_library(
     name = "calculator_bool",
     src = "calculator.cc",
     hdrs = ["calculator.h"],
+    backend = "cleartext",
     num_opt_passes = 2,
-    transpiler_type = "bool",
+    optimizer = "xls",
 )
 
 cc_binary(

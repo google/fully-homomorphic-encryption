@@ -14,24 +14,27 @@ fhe_cc_library(
     name = "string_cap_char_interpreted_tfhe",
     src = "string_cap_char.cc",
     hdrs = ["string_cap_char.h"],
+    backend = "interpreted_tfhe",
     num_opt_passes = 2,
-    transpiler_type = "interpreted_tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "string_cap_char_palisade",
     src = "string_cap_char.cc",
     hdrs = ["string_cap_char.h"],
+    backend = "palisade",
     num_opt_passes = 2,
-    transpiler_type = "palisade",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "string_cap_char_bool",
     src = "string_cap_char.cc",
     hdrs = ["string_cap_char.h"],
+    backend = "cleartext",
     num_opt_passes = 2,
-    transpiler_type = "bool",
+    optimizer = "xls",
 )
 
 cc_binary(

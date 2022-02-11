@@ -46,8 +46,9 @@ fhe_cc_library(
         "mul.h",
         "mul8.h",
     ],
+    backend = "interpreted_tfhe",
     num_opt_passes = 2,
-    transpiler_type = "interpreted_tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
@@ -57,8 +58,9 @@ fhe_cc_library(
         "mul.h",
         "mul16.h",
     ],
+    backend = "interpreted_tfhe",
     num_opt_passes = 2,
-    transpiler_type = "interpreted_tfhe",
+    optimizer = "xls",
 )
 
 cc_binary(

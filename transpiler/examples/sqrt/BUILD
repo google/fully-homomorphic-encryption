@@ -14,46 +14,52 @@ fhe_cc_library(
     name = "sqrt_yosys_plaintext",
     src = "sqrt.cc",
     hdrs = ["sqrt.h"],
-    transpiler_type = "yosys_plaintext",
+    backend = "cleartext",
+    optimizer = "yosys",
 )
 
 fhe_cc_library(
     name = "sqrt_yosys_interpreted_tfhe",
     src = "sqrt.cc",
     hdrs = ["sqrt.h"],
-    transpiler_type = "yosys_interpreted_tfhe",
+    backend = "interpreted_tfhe",
+    optimizer = "yosys",
 )
 
 fhe_cc_library(
     name = "sqrt_interpreted_tfhe",
     src = "sqrt.cc",
     hdrs = ["sqrt.h"],
+    backend = "interpreted_tfhe",
     num_opt_passes = 2,
-    transpiler_type = "interpreted_tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "sqrt_palisade",
     src = "sqrt.cc",
     hdrs = ["sqrt.h"],
+    backend = "palisade",
     num_opt_passes = 2,
-    transpiler_type = "palisade",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "sqrt_interpreted_palisade",
     src = "sqrt.cc",
     hdrs = ["sqrt.h"],
+    backend = "interpreted_palisade",
     num_opt_passes = 2,
-    transpiler_type = "interpreted_palisade",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "sqrt_bool",
     src = "sqrt.cc",
     hdrs = ["sqrt.h"],
+    backend = "cleartext",
     num_opt_passes = 2,
-    transpiler_type = "bool",
+    optimizer = "xls",
 )
 
 cc_binary(

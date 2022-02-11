@@ -19,7 +19,8 @@ fhe_cc_library(
     name = "array_of_array_of_structs_palisade",
     src = "array_of_array_of_structs.cc",
     hdrs = ["array_of_array_of_structs.h"],
-    transpiler_type = "palisade",
+    backend = "palisade",
+    optimizer = "xls",
 )
 
 cc_binary(
@@ -56,14 +57,16 @@ fhe_cc_library(
     name = "return_struct_bool",
     src = "return_struct.cc",
     hdrs = ["return_struct.h"],
-    transpiler_type = "bool",
+    backend = "cleartext",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "return_struct_yosys_plaintext",
     src = "return_struct.cc",
     hdrs = ["return_struct.h"],
-    transpiler_type = "yosys_plaintext",
+    backend = "cleartext",
+    optimizer = "yosys",
 )
 
 fhe_cc_library(
@@ -76,28 +79,32 @@ fhe_cc_library(
     name = "return_struct_yosys_interpreted_tfhe",
     src = "return_struct.cc",
     hdrs = ["return_struct.h"],
-    transpiler_type = "yosys_interpreted_tfhe",
+    backend = "interpreted_tfhe",
+    optimizer = "yosys",
 )
 
 fhe_cc_library(
     name = "return_struct_interpreted_tfhe",
     src = "return_struct.cc",
     hdrs = ["return_struct.h"],
-    transpiler_type = "interpreted_tfhe",
+    backend = "interpreted_tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "return_struct_palisade",
     src = "return_struct.cc",
     hdrs = ["return_struct.h"],
-    transpiler_type = "palisade",
+    backend = "palisade",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "return_struct_interpreted_palisade",
     src = "return_struct.cc",
     hdrs = ["return_struct.h"],
-    transpiler_type = "interpreted_palisade",
+    backend = "interpreted_palisade",
+    optimizer = "xls",
 )
 
 cc_binary(
@@ -202,21 +209,24 @@ fhe_cc_library(
     name = "return_struct_with_inout_interpreted_tfhe",
     src = "return_struct_with_inout.cc",
     hdrs = ["return_struct_with_inout.h"],
-    transpiler_type = "interpreted_tfhe",
+    backend = "interpreted_tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "return_struct_with_inout_palisade",
     src = "return_struct_with_inout.cc",
     hdrs = ["return_struct_with_inout.h"],
-    transpiler_type = "palisade",
+    backend = "palisade",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "return_struct_with_inout_yosys_interpreted_tfhe",
     src = "return_struct_with_inout.cc",
     hdrs = ["return_struct_with_inout.h"],
-    transpiler_type = "yosys_interpreted_tfhe",
+    backend = "interpreted_tfhe",
+    optimizer = "yosys",
 )
 
 cc_binary(
@@ -285,7 +295,8 @@ fhe_cc_library(
     name = "simple_struct_palisade",
     src = "simple_struct.cc",
     hdrs = ["simple_struct.h"],
-    transpiler_type = "palisade",
+    backend = "palisade",
+    optimizer = "xls",
 )
 
 cc_binary(
@@ -328,21 +339,24 @@ fhe_cc_library(
     name = "struct_of_structs_bool",
     src = "struct_of_structs.cc",
     hdrs = ["struct_of_structs.h"],
-    transpiler_type = "bool",
+    backend = "cleartext",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "struct_of_structs_yosys_plaintext",
     src = "struct_of_structs.cc",
     hdrs = ["struct_of_structs.h"],
-    transpiler_type = "yosys_plaintext",
+    backend = "cleartext",
+    optimizer = "yosys",
 )
 
 fhe_cc_library(
     name = "struct_of_structs_yosys_interpreted_tfhe",
     src = "struct_of_structs.cc",
     hdrs = ["struct_of_structs.h"],
-    transpiler_type = "yosys_interpreted_tfhe",
+    backend = "interpreted_tfhe",
+    optimizer = "yosys",
 )
 
 cc_binary(
@@ -410,28 +424,32 @@ fhe_cc_library(
     name = "struct_with_array_interpreted_tfhe",
     src = "struct_with_array.cc",
     hdrs = ["struct_with_array.h"],
-    transpiler_type = "interpreted_tfhe",
+    backend = "interpreted_tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "struct_with_array_bool",
     src = "struct_with_array.cc",
     hdrs = ["struct_with_array.h"],
-    transpiler_type = "bool",
+    backend = "cleartext",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
     name = "struct_with_array_yosys_plaintext",
     src = "struct_with_array.cc",
     hdrs = ["struct_with_array.h"],
-    transpiler_type = "yosys_plaintext",
+    backend = "cleartext",
+    optimizer = "yosys",
 )
 
 fhe_cc_library(
     name = "struct_with_array_yosys_interpreted_tfhe",
     src = "struct_with_array.cc",
     hdrs = ["struct_with_array.h"],
-    transpiler_type = "yosys_interpreted_tfhe",
+    backend = "interpreted_tfhe",
+    optimizer = "yosys",
 )
 
 cc_binary(
