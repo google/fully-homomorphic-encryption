@@ -53,19 +53,18 @@ http_archive(
         "//patches:xls-visibility-logging.patch",
         "//patches:xls-visibility-status.patch",
     ],
-    sha256 = "4d61980ffca7c0601431ead4523668921f489b88c22ea9fd7752b4bf140060dc",
-    strip_prefix = "xls-d628ca1d37378b3498cca10898ab84ec309d09af",
-    url = "https://github.com/google/xls/archive/d628ca1d37378b3498cca10898ab84ec309d09af.tar.gz",
+    sha256 = "884b381168a630ed9b7c0802a9d7589a618adc7cf3a8e0f9efb6aeb17529374e",
+    strip_prefix = "xls-a565e5d07ffd2076161be5ac10b9c2750c9999f5",
+    url = "https://github.com/google/xls/archive/a565e5d07ffd2076161be5ac10b9c2750c9999f5.tar.gz",
 )
 
 # Install dependencies for XLS
 http_archive(
     name = "com_grail_bazel_toolchain",
-    patches = ["@com_google_xls//dependency_support/com_grail_bazel_toolchain:google_workstation_workaround.patch"],
-    sha256 = "0246482b21a04667825c655d3b4f8f796d842817b2e11f536bbfed5673cbfd97",
-    strip_prefix = "bazel-toolchain-f2d1ba2c9d713b2aa6e7063f6d11dd3d64aa402a",
+    sha256 = "dd03374af7885d255eb735b9065a32463a1154d9de6eb47261a49c8acc1cd497",
+    strip_prefix = "bazel-toolchain-0.6.3",
     urls = [
-        "https://github.com/grailbio/bazel-toolchain/archive/f2d1ba2c9d713b2aa6e7063f6d11dd3d64aa402a.zip",
+        "https://github.com/grailbio/bazel-toolchain/archive/0.6.3.zip",
     ],
 )
 

@@ -13,6 +13,12 @@
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 
+absl::optional<std::string> TypedOverload(
+    const xlscc_metadata::MetadataOutput& metadata,
+    const absl::string_view prefix, const std::string default_type,
+    absl::optional<absl::string_view> key_param_type,
+    absl::string_view key_param_name = "bk");
+
 std::string FunctionSignature(const xlscc_metadata::MetadataOutput& metadata,
                               const absl::string_view element_type,
                               absl::optional<absl::string_view> key_param_type,
@@ -20,6 +26,8 @@ std::string FunctionSignature(const xlscc_metadata::MetadataOutput& metadata,
 
 std::string PathToHeaderGuard(std::string_view default_value,
                               std::string_view header_path);
+
+std::string GetTypeHeader(absl::string_view header_path);
 
 }  // namespace transpiler
 }  // namespace fully_homomorphic_encryption
