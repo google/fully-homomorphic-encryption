@@ -47,16 +47,17 @@ TEST(CcTranspilerLibTest, TranslateHeader_NoParam) {
   // Mark the top function as returning void with no parameters.
   xlscc_metadata::MetadataOutput metadata;
   metadata.mutable_top_func_proto()->mutable_return_type()->mutable_as_void();
+  metadata.mutable_top_func_proto()->mutable_name()->set_name("test_fn");
 
   static constexpr absl::string_view expected_header =
-      R"(#ifndef TEST_H_
-#define TEST_H_
+      R"(#ifndef TEST_H
+#define TEST_H
 
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 
 absl::Status test_fn();
-#endif  // TEST_H_
+#endif  // TEST_H
 )";
   XLS_ASSERT_OK_AND_ASSIGN(
       std::string actual,
@@ -75,19 +76,21 @@ TEST(CcTranspilerLibTest, TranslateHeader_Param) {
   // Mark the top function as returning void with one parameter.
   xlscc_metadata::MetadataOutput metadata;
   metadata.mutable_top_func_proto()->mutable_return_type()->mutable_as_void();
+  metadata.mutable_top_func_proto()->mutable_name()->set_name("test_fn");
   xlscc_metadata::FunctionParameter* param =
       metadata.mutable_top_func_proto()->add_params();
   param->set_name("param");
+  param->mutable_type()->mutable_as_int()->set_width(32);
 
   static constexpr absl::string_view expected_header =
-      R"(#ifndef TEST_H_
-#define TEST_H_
+      R"(#ifndef TEST_H
+#define TEST_H
 
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 
 absl::Status test_fn(absl::Span<bool> param);
-#endif  // TEST_H_
+#endif  // TEST_H
 )";
   XLS_ASSERT_OK_AND_ASSIGN(
       std::string actual,
@@ -103,6 +106,7 @@ TEST(CcTranspilerLibTest, TranslateHeader_MultipleParams) {
   xlscc_metadata::MetadataOutput metadata;
   // Mark the top function as returning void.
   metadata.mutable_top_func_proto()->mutable_return_type()->mutable_as_void();
+  metadata.mutable_top_func_proto()->mutable_name()->set_name("test_fn");
 
   xls::FunctionBuilder builder("test_fn", &package);
   xls::BitsType* value_type = package.GetBitsType(32);
@@ -116,14 +120,14 @@ TEST(CcTranspilerLibTest, TranslateHeader_MultipleParams) {
   XLS_ASSERT_OK_AND_ASSIGN(xls::Function * function, builder.Build());
 
   static constexpr absl::string_view expected_header_template =
-      R"(#ifndef TEST_H_
-#define TEST_H_
+      R"(#ifndef TEST_H
+#define TEST_H
 
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 
 absl::Status test_fn($0);
-#endif  // TEST_H_
+#endif  // TEST_H
 )";
   std::vector<std::string> expected_params;
   for (int param_index = 0; param_index < kParamNum; param_index++) {

@@ -24,7 +24,9 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "absl/strings/substitute.h"
+#include "transpiler/common_transpiler.h"
 #include "xls/common/status/status_macros.h"
+#include "xls/contrib/xlscc/metadata_output.pb.h"
 #include "xls/ir/function.h"
 #include "xls/ir/node.h"
 #include "xls/ir/node_iterator.h"
@@ -163,23 +165,8 @@ $0;
 
 absl::StatusOr<std::string> TfheTranspiler::FunctionSignature(
     const Function* function, const xlscc_metadata::MetadataOutput& metadata) {
-  std::vector<std::string> param_signatures;
-  if (!metadata.top_func_proto().return_type().has_as_void()) {
-    param_signatures.push_back("absl::Span<LweSample> result");
-  }
-  for (Param* param : function->params()) {
-    param_signatures.push_back(
-        absl::StrCat("absl::Span<LweSample> ", param->name()));
-  }
-
-  constexpr absl::string_view key_param =
-      "const TFheGateBootstrappingCloudKeySet* bk";
-  if (param_signatures.empty()) {
-    return absl::Substitute("absl::Status $0($1)", function->name(), key_param);
-  } else {
-    return absl::Substitute("absl::Status $0($1,\n  $2)", function->name(),
-                            absl::StrJoin(param_signatures, ", "), key_param);
-  }
+  return transpiler::FunctionSignature(
+      metadata, "LweSample", "const TFheGateBootstrappingCloudKeySet*", "bk");
 }
 
 absl::StatusOr<std::string> TfheTranspiler::Prelude(

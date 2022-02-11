@@ -453,6 +453,7 @@ TEST(TfheIrTranspilerLibTest, FunctionSignature_OnlyPure) {
   xlscc_metadata::IntType* int_return_type = metadata.mutable_top_func_proto()
                                                  ->mutable_return_type()
                                                  ->mutable_as_int();
+  metadata.mutable_top_func_proto()->mutable_name()->set_name("test_fn");
   int_return_type->set_width(kPureReturnWidth);
   int_return_type->set_is_signed(true);
 
@@ -463,8 +464,7 @@ TEST(TfheIrTranspilerLibTest, FunctionSignature_OnlyPure) {
       TfheTranspiler::FunctionSignature(function, metadata));
 
   static constexpr absl::string_view expected_signature =
-      R"(absl::Status test_fn(absl::Span<LweSample> result,
-  const TFheGateBootstrappingCloudKeySet* bk))";
+      R"(absl::Status test_fn(absl::Span<LweSample> result, const TFheGateBootstrappingCloudKeySet* bk))";
   EXPECT_EQ(function_signature, expected_signature);
 }
 
@@ -482,6 +482,7 @@ TEST(TfheIrTranspilerLibTest, Prelude_OnlyPure) {
   xlscc_metadata::IntType* int_return_type = metadata.mutable_top_func_proto()
                                                  ->mutable_return_type()
                                                  ->mutable_as_int();
+  metadata.mutable_top_func_proto()->mutable_name()->set_name("test_fn");
   int_return_type->set_width(kPureReturnWidth);
   int_return_type->set_is_signed(true);
 
@@ -498,8 +499,7 @@ TEST(TfheIrTranspilerLibTest, Prelude_OnlyPure) {
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
 
-absl::Status test_fn(absl::Span<LweSample> result,
-  const TFheGateBootstrappingCloudKeySet* bk) {
+absl::Status test_fn(absl::Span<LweSample> result, const TFheGateBootstrappingCloudKeySet* bk) {
   std::unordered_map<int, LweSample*> temp_nodes;
 
 )";
@@ -536,10 +536,11 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_NoParam) {
   // Mark the top function as returning void with no parameters.
   xlscc_metadata::MetadataOutput metadata;
   metadata.mutable_top_func_proto()->mutable_return_type()->mutable_as_void();
+  metadata.mutable_top_func_proto()->mutable_name()->set_name("test_fn");
 
   static constexpr absl::string_view expected_header =
-      R"(#ifndef TEST_H_
-#define TEST_H_
+      R"(#ifndef A_B_C_TEST_H
+#define A_B_C_TEST_H
 
 #include "absl/status/status.h"
 #include "absl/types/span.h"
@@ -547,7 +548,7 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_NoParam) {
 #include "tfhe/tfhe_io.h"
 
 absl::Status test_fn(const TFheGateBootstrappingCloudKeySet* bk);
-#endif  // TEST_H_
+#endif  // A_B_C_TEST_H
 )";
   XLS_ASSERT_OK_AND_ASSIGN(
       std::string actual,
@@ -566,22 +567,22 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_Param) {
   // Mark the top function as returning void with one parameter.
   xlscc_metadata::MetadataOutput metadata;
   metadata.mutable_top_func_proto()->mutable_return_type()->mutable_as_void();
+  metadata.mutable_top_func_proto()->mutable_name()->set_name("test_fn");
   xlscc_metadata::FunctionParameter* param =
       metadata.mutable_top_func_proto()->add_params();
   param->set_name("param");
 
   static constexpr absl::string_view expected_header =
-      R"(#ifndef TEST_H_
-#define TEST_H_
+      R"(#ifndef TEST_H
+#define TEST_H
 
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
 
-absl::Status test_fn(absl::Span<LweSample> param,
-  const TFheGateBootstrappingCloudKeySet* bk);
-#endif  // TEST_H_
+absl::Status test_fn(absl::Span<LweSample> param, const TFheGateBootstrappingCloudKeySet* bk);
+#endif  // TEST_H
 )";
   XLS_ASSERT_OK_AND_ASSIGN(
       std::string actual,
@@ -597,6 +598,7 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_MultipleParams) {
   xlscc_metadata::MetadataOutput metadata;
   // Mark the top function as returning void.
   metadata.mutable_top_func_proto()->mutable_return_type()->mutable_as_void();
+  metadata.mutable_top_func_proto()->mutable_name()->set_name("test_fn");
 
   xls::FunctionBuilder builder("test_fn", &package);
   xls::BitsType* value_type = package.GetBitsType(32);
@@ -610,17 +612,16 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_MultipleParams) {
   XLS_ASSERT_OK_AND_ASSIGN(xls::Function * function, builder.Build());
 
   static constexpr absl::string_view expected_header_template =
-      R"(#ifndef TEST_H_
-#define TEST_H_
+      R"(#ifndef TEST_H
+#define TEST_H
 
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
 
-absl::Status test_fn($0,
-  const TFheGateBootstrappingCloudKeySet* bk);
-#endif  // TEST_H_
+absl::Status test_fn($0, const TFheGateBootstrappingCloudKeySet* bk);
+#endif  // TEST_H
 )";
   std::vector<std::string> expected_params;
   for (int param_index = 0; param_index < kParamNum; param_index++) {

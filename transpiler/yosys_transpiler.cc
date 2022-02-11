@@ -25,6 +25,7 @@
 #include "absl/strings/string_view.h"
 #include "absl/strings/substitute.h"
 #include "google/protobuf/text_format.h"
+#include "transpiler/common_transpiler.h"
 #include "xls/common/logging/logging.h"
 #include "xls/common/status/status_macros.h"
 
@@ -129,24 +130,12 @@ $0;
 absl::StatusOr<std::string> YosysTranspiler::FunctionSignature(
     const xlscc_metadata::MetadataOutput& metadata,
     const absl::string_view transpiler_type) {
-  std::vector<std::string> param_signatures;
-  std::string type =
-      transpiler_type == "yosys_plaintext" ? "bool" : "LweSample";
-  if (!metadata.top_func_proto().return_type().has_as_void()) {
-    param_signatures.push_back(absl::Substitute("absl::Span<$0> result", type));
+  if (transpiler_type == "yosys_plaintext") {
+    return transpiler::FunctionSignature(metadata, "bool", absl::nullopt);
+  } else {
+    return transpiler::FunctionSignature(
+        metadata, "LweSample", "const TFheGateBootstrappingCloudKeySet*", "bk");
   }
-  for (auto& param : metadata.top_func_proto().params()) {
-    param_signatures.push_back(
-        absl::StrCat(absl::Substitute("absl::Span<$0> ", type), param.name()));
-  }
-
-  if (transpiler_type == "yosys_interpreted_tfhe") {
-    param_signatures.push_back("const TFheGateBootstrappingCloudKeySet* bk");
-  }
-
-  std::string function_name = metadata.top_func_proto().name().name();
-  return absl::Substitute("absl::Status $0($1)", function_name,
-                          absl::StrJoin(param_signatures, ", "));
 }
 
 absl::StatusOr<std::string> YosysTranspiler::PathToHeaderGuard(
@@ -155,17 +144,7 @@ absl::StatusOr<std::string> YosysTranspiler::PathToHeaderGuard(
                                       transpiler_type == "yosys_plaintext"
                                           ? "PLAINTEXT_"
                                           : "INTERPRETED_TFHE_");
-  if (header_path == "-") return stem;
-  std::string header_guard = absl::AsciiStrToUpper(header_path);
-  std::transform(header_guard.begin(), header_guard.end(), header_guard.begin(),
-                 [](unsigned char c) -> unsigned char {
-                   if (std::isalnum(c)) {
-                     return c;
-                   } else {
-                     return '_';
-                   }
-                 });
-  return absl::StrCat(stem, header_guard);
+  return transpiler::PathToHeaderGuard(stem, header_path);
 }
 
 }  // namespace transpiler

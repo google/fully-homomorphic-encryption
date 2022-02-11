@@ -16,6 +16,7 @@ cc_library(
     name = "abstract_xls_transpiler",
     hdrs = ["abstract_xls_transpiler.h"],
     deps = [
+        ":common_transpiler",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
@@ -28,17 +29,32 @@ cc_library(
 )
 
 cc_library(
+    name = "common_transpiler",
+    srcs = ["common_transpiler.cc"],
+    hdrs = ["common_transpiler.h"],
+    deps = [
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings:str_format",
+        "@com_google_absl//absl/types:optional",
+        "@com_google_absl//absl/types:span",
+        "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
+    ],
+)
+
+cc_library(
     name = "tfhe_transpiler",
     srcs = ["tfhe_transpiler.cc"],
     hdrs = ["tfhe_transpiler.h"],
     deps = [
         ":abstract_xls_transpiler",
+        ":common_transpiler",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_xls//xls/common/status:status_macros",
+        "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
         "@com_google_xls//xls/ir",
         "@com_google_xls//xls/public:value",
     ],
@@ -49,6 +65,7 @@ cc_library(
     srcs = ["interpreted_tfhe_transpiler.cc"],
     hdrs = ["interpreted_tfhe_transpiler.h"],
     deps = [
+        ":common_transpiler",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
@@ -66,6 +83,7 @@ cc_library(
     srcs = ["yosys_transpiler.cc"],
     hdrs = ["yosys_transpiler.h"],
     deps = [
+        ":common_transpiler",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
@@ -211,6 +229,7 @@ cc_library(
     hdrs = ["cc_transpiler.h"],
     deps = [
         ":abstract_xls_transpiler",
+        ":common_transpiler",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
@@ -246,6 +265,7 @@ cc_library(
     hdrs = ["palisade_transpiler.h"],
     deps = [
         ":abstract_xls_transpiler",
+        ":common_transpiler",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
@@ -262,6 +282,7 @@ cc_library(
     srcs = ["interpreted_palisade_transpiler.cc"],
     hdrs = ["interpreted_palisade_transpiler.h"],
     deps = [
+        ":common_transpiler",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",

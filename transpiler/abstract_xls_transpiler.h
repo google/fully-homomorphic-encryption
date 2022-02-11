@@ -30,6 +30,7 @@
 #include "absl/strings/str_split.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
+#include "transpiler/common_transpiler.h"
 #include "xls/common/logging/logging.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
@@ -107,17 +108,7 @@ class AbstractXLSTranspiler {
 
   static absl::StatusOr<std::string> PathToHeaderGuard(
       absl::string_view header_path) {
-    if (header_path == "-") return "FHE_GENERATE_H_";
-    std::string header_guard = "";
-    std::vector<absl::string_view> sub_paths = absl::StrSplit(header_path, '/');
-    for (auto c : sub_paths[sub_paths.size() - 1]) {
-      header_guard += std::isalnum(c) ? std::toupper(c) : '_';
-    }
-    if (header_guard.empty()) {
-      return absl::InvalidArgumentError("Invalid header_path");
-    }
-    header_guard += '_';
-    return header_guard;
+    return transpiler::PathToHeaderGuard("FHE_GENERATE_H_", header_path);
   }
 
   // Walks the type elements comprising `function`'s output type and generates

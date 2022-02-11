@@ -24,6 +24,7 @@
 #include "absl/strings/string_view.h"
 #include "absl/strings/substitute.h"
 #include "absl/types/span.h"
+#include "transpiler/common_transpiler.h"
 #include "xls/common/logging/logging.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
@@ -150,17 +151,7 @@ $0;
 
 absl::StatusOr<std::string> CcTranspiler::FunctionSignature(
     const Function* function, const xlscc_metadata::MetadataOutput& metadata) {
-  std::vector<std::string> param_signatures;
-  if (!metadata.top_func_proto().return_type().has_as_void()) {
-    param_signatures.push_back("absl::Span<bool> result");
-  }
-  for (Param* param : function->params()) {
-    param_signatures.push_back(
-        absl::StrCat("absl::Span<bool> ", param->name()));
-  }
-
-  return absl::Substitute("absl::Status $0($1)", function->name(),
-                          absl::StrJoin(param_signatures, ", "));
+  return transpiler::FunctionSignature(metadata, "bool", absl::nullopt);
 }
 
 absl::StatusOr<std::string> CcTranspiler::Prelude(

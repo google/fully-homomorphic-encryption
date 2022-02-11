@@ -24,6 +24,7 @@
 #include "absl/strings/string_view.h"
 #include "absl/strings/substitute.h"
 #include "google/protobuf/text_format.h"
+#include "transpiler/common_transpiler.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/ir/function.h"
 #include "xls/ir/node.h"
@@ -111,37 +112,13 @@ $0;
 absl::StatusOr<std::string> InterpretedPalisadeTranspiler::FunctionSignature(
     const xls::Function* function,
     const xlscc_metadata::MetadataOutput& metadata) {
-  std::vector<std::string> param_signatures;
-  if (!metadata.top_func_proto().return_type().has_as_void()) {
-    param_signatures.push_back("absl::Span<lbcrypto::LWECiphertext> result");
-  }
-  for (xls::Param* param : function->params()) {
-    param_signatures.push_back(
-        absl::StrCat("absl::Span<lbcrypto::LWECiphertext> ", param->name()));
-  }
-
-  constexpr absl::string_view key_param = "lbcrypto::BinFHEContext cc";
-  if (param_signatures.empty()) {
-    return absl::Substitute("absl::Status $0($1)", function->name(), key_param);
-  } else {
-    return absl::Substitute("absl::Status $0($1,\n  $2)", function->name(),
-                            absl::StrJoin(param_signatures, ", "), key_param);
-  }
+  return transpiler::FunctionSignature(metadata, "lbcrypto::LWECiphertext",
+                                       "lbcrypto::BinFHEContext", "cc");
 }
 
 absl::StatusOr<std::string> InterpretedPalisadeTranspiler::PathToHeaderGuard(
     absl::string_view header_path) {
-  if (header_path == "-") return "PALISADE_GENERATE_H_";
-  std::string header_guard = "";
-  std::vector<absl::string_view> sub_paths = absl::StrSplit(header_path, '/');
-  for (auto c : sub_paths[sub_paths.size() - 1]) {
-    header_guard += std::isalnum(c) ? std::toupper(c) : '_';
-  }
-  if (header_guard.empty()) {
-    return absl::InvalidArgumentError("Invalid header_path");
-  }
-  header_guard += '_';
-  return header_guard;
+  return transpiler::PathToHeaderGuard("PALISADE_GENERATE_H_", header_path);
 }
 
 }  // namespace transpiler
