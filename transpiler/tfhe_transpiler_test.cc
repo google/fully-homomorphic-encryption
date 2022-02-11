@@ -464,7 +464,7 @@ TEST(TfheIrTranspilerLibTest, FunctionSignature_OnlyPure) {
       TfheTranspiler::FunctionSignature(function, metadata));
 
   static constexpr absl::string_view expected_signature =
-      R"(absl::Status test_fn(absl::Span<LweSample> result, const TFheGateBootstrappingCloudKeySet* bk))";
+      R"(absl::Status test_fn_UNSAFE(absl::Span<LweSample> result, const TFheGateBootstrappingCloudKeySet* bk))";
   EXPECT_EQ(function_signature, expected_signature);
 }
 
@@ -499,7 +499,7 @@ TEST(TfheIrTranspilerLibTest, Prelude_OnlyPure) {
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
 
-absl::Status test_fn(absl::Span<LweSample> result, const TFheGateBootstrappingCloudKeySet* bk) {
+absl::Status test_fn_UNSAFE(absl::Span<LweSample> result, const TFheGateBootstrappingCloudKeySet* bk) {
   std::unordered_map<int, LweSample*> temp_nodes;
 
 )";
@@ -551,8 +551,11 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_NoParam) {
 #include "tfhe/tfhe_io.h"
 #include "transpiler/data/tfhe_data.h"
 
-absl::Status test_fn(const TFheGateBootstrappingCloudKeySet* bk);
+absl::Status test_fn_UNSAFE(const TFheGateBootstrappingCloudKeySet* bk);
 
+absl::Status test_fn(const TFheGateBootstrappingCloudKeySet* bk) {
+  return test_fn_UNSAFE(bk);
+}
 #endif  // A_B_C_TEST_H
 )";
   XLS_ASSERT_OK_AND_ASSIGN(
@@ -594,11 +597,11 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_Param) {
 #include "tfhe/tfhe_io.h"
 #include "transpiler/data/tfhe_data.h"
 
-absl::Status test_fn(absl::Span<const LweSample> param, const TFheGateBootstrappingCloudKeySet* bk);
+absl::Status test_fn_UNSAFE(absl::Span<const LweSample> param, const TFheGateBootstrappingCloudKeySet* bk);
 
 absl::Status test_fn(const TfheValueRef<int16_t> param,
  const TFheGateBootstrappingCloudKeySet* bk) {
-  return test_fn(param.get(), bk);
+  return test_fn_UNSAFE(param.get(), bk);
 }
 #endif  // TEST_H
 )";
@@ -643,11 +646,11 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_MultipleParams) {
 #include "tfhe/tfhe_io.h"
 #include "transpiler/data/tfhe_data.h"
 
-absl::Status test_fn($0, const TFheGateBootstrappingCloudKeySet* bk);
+absl::Status test_fn_UNSAFE($0, const TFheGateBootstrappingCloudKeySet* bk);
 
 absl::Status test_fn(const TfheValueRef<bool> param_0, const TfheValueRef<bool> param_1, const TfheValueRef<bool> param_2, const TfheValueRef<bool> param_3, const TfheValueRef<bool> param_4,
  const TFheGateBootstrappingCloudKeySet* bk) {
-  return test_fn(param_0.get(), param_1.get(), param_2.get(), param_3.get(), param_4.get(), bk);
+  return test_fn_UNSAFE(param_0.get(), param_1.get(), param_2.get(), param_3.get(), param_4.get(), bk);
 }
 #endif  // TEST_H
 )";

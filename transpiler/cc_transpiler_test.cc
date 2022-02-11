@@ -60,7 +60,10 @@ TEST(CcTranspilerLibTest, TranslateHeader_NoParam) {
 #include "absl/types/span.h"
 #include "transpiler/data/boolean_data.h"
 
-absl::Status test_fn();
+absl::Status test_fn_UNSAFE();
+absl::Status test_fn() {
+  return test_fn_UNSAFE();
+}
 #endif  // TEST_H
 )";
   XLS_ASSERT_OK_AND_ASSIGN(
@@ -97,9 +100,9 @@ TEST(CcTranspilerLibTest, TranslateHeader_Param) {
 #include "absl/types/span.h"
 #include "transpiler/data/boolean_data.h"
 
-absl::Status test_fn(absl::Span<const bool> param);
+absl::Status test_fn_UNSAFE(absl::Span<const bool> param);
 absl::Status test_fn(const EncodedValueRef<uint32_t> param) {
-  return test_fn(param.get());
+  return test_fn_UNSAFE(param.get());
 }
 #endif  // TEST_H
 )";
@@ -142,9 +145,9 @@ TEST(CcTranspilerLibTest, TranslateHeader_MultipleParams) {
 #include "absl/types/span.h"
 #include "transpiler/data/boolean_data.h"
 
-absl::Status test_fn($0);
+absl::Status test_fn_UNSAFE($0);
 absl::Status test_fn($1) {
-  return test_fn($2);
+  return test_fn_UNSAFE($2);
 }
 #endif  // TEST_H
 )";

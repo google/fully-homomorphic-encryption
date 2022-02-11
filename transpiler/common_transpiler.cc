@@ -84,12 +84,6 @@ absl::optional<std::string> TypedOverload(
     const absl::string_view prefix, const std::string default_type,
     absl::optional<absl::string_view> key_param_type,
     absl::string_view key_param_name) {
-  // If there are no parameters, the overload would have the same type as the
-  // non-ovealoaded function; skip emitting it.
-  if (metadata.top_func_proto().params().empty()) {
-    return "";
-  }
-
   std::vector<std::string> param_signatures;
   if (!metadata.top_func_proto().return_type().has_as_void()) {
     param_signatures.push_back(absl::Substitute(
@@ -142,7 +136,7 @@ absl::optional<std::string> TypedOverload(
   }
 
   constexpr absl::string_view overload_template = R"($0 {
-  return $1($2);
+  return $1_UNSAFE($2);
 }
 )";
   return absl::Substitute(overload_template, prototype, function_name,
@@ -170,7 +164,7 @@ std::string FunctionSignature(const xlscc_metadata::MetadataOutput& metadata,
   }
 
   std::string function_name = metadata.top_func_proto().name().name();
-  return absl::Substitute("absl::Status $0($1)", function_name,
+  return absl::Substitute("absl::Status $0_UNSAFE($1)", function_name,
                           absl::StrJoin(param_signatures, ", "));
 }
 
