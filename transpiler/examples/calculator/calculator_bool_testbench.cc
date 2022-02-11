@@ -42,11 +42,11 @@ void calculate(short x, short y, char op) {
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform calculation
   EncodedShort cipher_result(int_size);
-  absl::FixedArray<bool> calculator = {true};
+  EncodedCalculator calc;
+  calc.Encode(Calculator());
 
-  XLS_CHECK_OK(my_package(cipher_result.get(), absl::MakeSpan(calculator),
-                          ciphertext_x.get(), ciphertext_y.get(),
-                          ciphertext_op.get()));
+  XLS_CHECK_OK(my_package(cipher_result, calc, ciphertext_x, ciphertext_y,
+                          ciphertext_op));
 
   cout << "\t\t\t\t\tComputation done" << endl;
 

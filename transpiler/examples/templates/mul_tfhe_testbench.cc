@@ -47,17 +47,22 @@ absl::Status RealMain() {
   auto x_c = TfheInt::Encrypt(c, key);
   auto x_result = TfheInt(params);
 
+  TfheShort short_result(params);
   absl::Time start_time = absl::Now();
-  absl::Status status =
-      Mul16(x_a.get(), x_b.get(), x_c.get(), x_result.get(), key.cloud());
+  absl::Status status = Mul16(short_result, TfheShort::Encrypt(a, key),
+                              TfheShort::Encrypt(b, key),
+                              TfheShort::Encrypt(c, key), key.cloud());
   if (!status.ok()) {
     return status;
   }
   std::cout << "Time to multiply/add, 16-bit version : "
             << absl::Now() - start_time << std::endl;
 
+  TfheChar char_result(params);
   start_time = absl::Now();
-  status = Mul8(x_a.get(), x_b.get(), x_c.get(), x_result.get(), key.cloud());
+  status = Mul8(char_result, TfheValue<uint8_t>::Encrypt(a, key),
+                TfheValue<uint8_t>::Encrypt(b, key),
+                TfheValue<uint8_t>::Encrypt(c, key), key.cloud());
   if (!status.ok()) {
     return status;
   }

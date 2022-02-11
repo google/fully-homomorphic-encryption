@@ -92,8 +92,8 @@ int main() {
     std::cout << "Querying the database..." << std::endl;
     auto index_ciphertext = TfheIndex::Encrypt(static_cast<Index>(index), key);
     TfheRecordT result_ciphertext(params);
-    XLS_CHECK_OK(service.QueryRecord(result_ciphertext.get(),
-                                     index_ciphertext.get(), key.cloud()));
+    XLS_CHECK_OK(
+        service.QueryRecord(result_ciphertext, index_ciphertext, key.cloud()));
 
     const RecordT result = result_ciphertext.Decrypt(key);
     std::cout << "Result: '" << result << "'." << std::endl;

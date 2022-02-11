@@ -42,7 +42,7 @@ TfheShort TfheSqrt(TfheShort& ciphertext,
   double cpu_start_time = clock();
   std::cout << "Starting!" << std::endl;
   TfheShort result(bk->params);
-  XLS_CHECK_OK(isqrt(result.get(), ciphertext.get(), bk));
+  XLS_CHECK_OK(isqrt(result, ciphertext, bk));
   double cpu_end_time = clock();
   absl::Time end_time = absl::Now();
   std::cout << "\t\t\t\t\tTotal time: "

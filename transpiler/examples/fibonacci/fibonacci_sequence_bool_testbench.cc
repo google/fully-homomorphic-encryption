@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
   EncodedInt input(5);
   EncodedArray<int> encoded_result({0, 0, 0, 0, 0});
 
-  XLS_CHECK_OK(fibonacci_sequence(input.get(), encoded_result.get()));
+  XLS_CHECK_OK(fibonacci_sequence(input, encoded_result));
   absl::FixedArray<int> result = encoded_result.Decode();
 
   std::cout << absl::StrFormat("Result: %d, %d, %d, %d, %d", result[0],

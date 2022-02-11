@@ -39,7 +39,7 @@ PalisadeShort FHESqrt(PalisadeShort& ciphertext, lbcrypto::BinFHEContext cc) {
   double cpu_start_time = clock();
   std::cout << "Starting!" << std::endl;
   PalisadeShort result(cc);
-  XLS_CHECK_OK(isqrt(result.get(), ciphertext.get(), cc));
+  XLS_CHECK_OK(isqrt(result, ciphertext, cc));
   double cpu_end_time = clock();
   absl::Time end_time = absl::Now();
   std::cout << "\t\t\t\t\tTotal time: "

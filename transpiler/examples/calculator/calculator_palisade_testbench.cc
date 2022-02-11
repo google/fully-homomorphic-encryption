@@ -56,12 +56,13 @@ void calculate(short x, short y, char op, lbcrypto::BinFHEContext cc,
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform computation
   PalisadeShort encryptedResult(cc);
-  PalisadeBit state = PalisadeBit::Unencrypted(true, cc);
+  PalisadeCalculator calc(cc);
+  calc.SetUnencrypted(Calculator(), &cc);
 
   absl::Time start_time = absl::Now();
   double cpu_start_time = clock();
-  XLS_CHECK_OK(my_package(encryptedResult.get(), state.get(), encryptedX.get(),
-                          encryptedY.get(), encryptedOp.get(), cc));
+  XLS_CHECK_OK(my_package(encryptedResult, calc, encryptedX, encryptedY,
+                          encryptedOp, cc));
   double cpu_end_time = clock();
   absl::Time end_time = absl::Now();
   cout << "\t\t\t\t\tComputation done" << endl;

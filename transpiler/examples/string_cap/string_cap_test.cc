@@ -55,7 +55,7 @@ TEST(StringCapTest, CorrectlyCapitalizesLongPhraseEncrypted) {
 
   char input[] = "do or do not; there is no try!.!";
   auto ciphertext = TfheString::Encrypt(input, key);
-  XLS_ASSERT_OK(CapitalizeString(ciphertext.get(), key.cloud()));
+  XLS_ASSERT_OK(CapitalizeString(ciphertext, key.cloud()));
 
   std::string result = ciphertext.Decrypt(key);
   // Remove the last null terminator for comparisons.

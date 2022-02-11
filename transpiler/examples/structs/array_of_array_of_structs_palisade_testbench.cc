@@ -79,7 +79,7 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   PalisadeBase palisade_result(cc);
-  XLS_CHECK_OK(DoubleBase(palisade_result.get(), palisade_input.get(), cc));
+  XLS_CHECK_OK(DoubleBase(palisade_result, palisade_input, cc));
 
   Base result = palisade_result.Decrypt(sk);
   std::cout << "Done. Result: " << std::endl;

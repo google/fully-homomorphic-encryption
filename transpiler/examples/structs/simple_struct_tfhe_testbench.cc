@@ -53,8 +53,7 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   TfheInt fhe_result(params);
-  XLS_CHECK_OK(
-      SumSimpleStruct(fhe_result.get(), fhe_simple_struct.get(), cloud_key));
+  XLS_CHECK_OK(SumSimpleStruct(fhe_result, fhe_simple_struct, cloud_key));
 
   int result = fhe_result.Decrypt(key);
   std::cout << "Done. Result: " << result << std::endl;

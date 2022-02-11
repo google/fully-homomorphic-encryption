@@ -60,11 +60,10 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   TfheReturnStruct fhe_result(params);
-  auto fhe_a = TfheValue<unsigned char>::Encrypt(8, key);
-  auto fhe_c = TfheValue<unsigned char>::Encrypt(16, key);
-  XLS_CHECK_OK(ConstructReturnStruct(fhe_result.get(), fhe_a.get(),
-                                     fhe_embedded.get(), fhe_c.get(),
-                                     cloud_key));
+  auto fhe_a = TfheChar::Encrypt(8, key);
+  auto fhe_c = TfheChar::Encrypt(16, key);
+  XLS_CHECK_OK(
+      ConstructReturnStruct(fhe_result, fhe_a, fhe_embedded, fhe_c, cloud_key));
 
   ReturnStruct result = fhe_result.Decrypt(key);
   std::cout << "Done. Result: " << std::endl;

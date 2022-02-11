@@ -5,18 +5,17 @@
 // values.
 struct Embedded {
   short a;
-  unsigned char b;
+  char b;
   int c;
 };
 
 struct ReturnStruct {
-  unsigned char a;
+  char a;
   Embedded b;
-  unsigned char c;
+  char c;
 };
 
 // Builds a ReturnStruct out of the argument values and returns it.
-ReturnStruct ConstructReturnStruct(unsigned char a, Embedded b,
-                                   unsigned char c);
+ReturnStruct ConstructReturnStruct(char a, Embedded b, char c);
 
 #endif  // TRANSPILER_EXAMPLES_STRUCTS_RETURN_STRUCT_H_

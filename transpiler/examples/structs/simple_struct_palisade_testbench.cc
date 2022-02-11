@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   PalisadeInt fhe_result = {cc};
-  XLS_CHECK_OK(SumSimpleStruct(fhe_result.get(), fhe_simple_struct.get(), cc));
+  XLS_CHECK_OK(SumSimpleStruct(fhe_result, fhe_simple_struct, cc));
 
   int result = fhe_result.Decrypt(sk);
   std::cout << "Done. Result: " << result << std::endl;

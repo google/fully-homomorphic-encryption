@@ -56,14 +56,14 @@ int main(int argc, char** argv) {
   cc.BTKeyGen(sk);
 
   // create inputs.
-  unsigned char player_a = argv[1][0];
-  unsigned char player_b = argv[2][0];
+  char player_a = argv[1][0];
+  char player_b = argv[2][0];
 
   std::cout << "Player A selected " << player_a << " and Player B selected "
             << player_b << std::endl;
   // Encrypt data
-  auto ciphertext_x = PalisadeInt::Encrypt(player_a, cc, sk);
-  auto ciphertext_y = PalisadeInt::Encrypt(player_b, cc, sk);
+  auto ciphertext_x = PalisadeChar::Encrypt(player_a, cc, sk);
+  auto ciphertext_y = PalisadeChar::Encrypt(player_b, cc, sk);
 
   std::cout << "Encryption done" << std::endl;
 
@@ -77,9 +77,9 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform addition
-  PalisadeInt cipher_result(cc);
-  XLS_CHECK_OK(rock_paper_scissor(cipher_result.get(), ciphertext_x.get(),
-                                  ciphertext_y.get(), cc));
+  PalisadeChar cipher_result(cc);
+  XLS_CHECK_OK(
+      rock_paper_scissor(cipher_result, ciphertext_x, ciphertext_y, cc));
 
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 

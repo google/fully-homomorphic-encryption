@@ -59,33 +59,33 @@ int main(int argc, char** argv) {
   const TFheGateBootstrappingCloudKeySet* cloud_key = &key->cloud;
 
   // create inputs.
-  unsigned char player_a = argv[1][0];
-  unsigned char player_b = argv[2][0];
+  char player_a = argv[1][0];
+  char player_b = argv[2][0];
 
   std::cout << "Player A selected " << player_a << " and Player B selected "
             << player_b << std::endl;
   // Encrypt data
-  auto ciphertext_x = TfheInt::Encrypt(player_a, key);
-  auto ciphertext_y = TfheInt::Encrypt(player_b, key);
+  auto ciphertext_x = TfheChar::Encrypt(player_a, key);
+  auto ciphertext_y = TfheChar::Encrypt(player_b, key);
 
   std::cout << "Encryption done" << std::endl;
 
   std::cout << "Initial state check by decryption: " << std::endl;
   // Decrypt results.
-  std::cout << static_cast<char>(ciphertext_x.Decrypt(key));
+  std::cout << ciphertext_x.Decrypt(key);
   std::cout << "  ";
-  std::cout << static_cast<char>(ciphertext_y.Decrypt(key));
+  std::cout << ciphertext_y.Decrypt(key);
 
   std::cout << "\n";
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform addition
-  TfheInt cipher_result(params);
-  XLS_CHECK_OK(rock_paper_scissor(cipher_result.get(), ciphertext_x.get(),
-                                  ciphertext_y.get(), cloud_key));
+  TfheChar cipher_result(params);
+  XLS_CHECK_OK(
+      rock_paper_scissor(cipher_result, ciphertext_x, ciphertext_y, cloud_key));
 
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 
-  std::cout << "Decrypted result: " << (char)cipher_result.Decrypt(key) << "\n";
+  std::cout << "Decrypted result: " << cipher_result.Decrypt(key) << "\n";
   std::cout << "Decryption done" << std::endl;
 }

@@ -40,7 +40,7 @@ void PalisadeStringReverse(PalisadeString& ciphertext,
   std::cout << "Starting!" << std::endl;
   absl::Time start_time = absl::Now();
   double cpu_start_time = clock();
-  XLS_CHECK_OK(ReverseString(ciphertext.get(), cc));
+  XLS_CHECK_OK(ReverseString(ciphertext, cc));
   double cpu_end_time = clock();
   absl::Time end_time = absl::Now();
   std::cout << "\t\t\t\t\tTotal time: "

@@ -57,8 +57,8 @@ TEST_P(TranspilerExamplesPirTest, TestPir) {
   auto db_ciphertext = TfheArray<RecordT>::Encrypt(test_case.db, secret_key());
   TfheRecordT result_ciphertext(params());
 
-  XLS_ASSERT_OK(QueryRecord(result_ciphertext.get(), index_ciphertext.get(),
-                            db_ciphertext.get(), cloud_key()));
+  XLS_ASSERT_OK(QueryRecord(result_ciphertext, index_ciphertext, db_ciphertext,
+                            cloud_key()));
   EXPECT_EQ(result_ciphertext.Decrypt(secret_key()), test_case.expected_output);
 }
 

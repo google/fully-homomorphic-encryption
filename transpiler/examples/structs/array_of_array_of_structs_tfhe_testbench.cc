@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   TfheBase fhe_result(params);
-  XLS_CHECK_OK(DoubleBase(fhe_result.get(), fhe_input.get(), cloud_key));
+  XLS_CHECK_OK(DoubleBase(fhe_result, fhe_input, cloud_key));
 
   Base result = fhe_result.Decrypt(key);
   std::cout << "Done. Result: " << std::endl;

@@ -32,8 +32,8 @@ class CloudService {
   explicit CloudService(TfheArray<RecordT> database)
       : database_(std::move(database)) {}
 
-  absl::Status QueryRecord(absl::Span<LweSample> result,
-                           absl::Span<LweSample> index,
+  absl::Status QueryRecord(TfheValueRef<uint8_t> result,
+                           TfheValueRef<uint8_t> index,
                            const TFheGateBootstrappingCloudKeySet* bk);
 
  private:

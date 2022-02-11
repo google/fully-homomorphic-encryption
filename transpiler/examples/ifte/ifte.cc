@@ -15,7 +15,7 @@
 #include "ifte.h"
 
 #pragma hls_top
-unsigned char ifte(bool i, unsigned char t, unsigned char e) {
+char ifte(bool i, char t, char e) {
   if (i) return t;
   return e;
 }

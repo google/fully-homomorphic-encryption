@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   EncodedInt encoded_result;
-  XLS_CHECK_OK(SumStructOfStructs(encoded_result.get(), encoded_sos.get()));
+  XLS_CHECK_OK(SumStructOfStructs(encoded_result, encoded_sos));
 
   int result = encoded_result.Decode();
   std::cout << "Done. Result: " << result << std::endl;

@@ -78,9 +78,8 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   PalisadeReturnStruct fhe_result(cc);
-  XLS_CHECK_OK(ConstructReturnStructWithInout(
-      fhe_result.get(), fhe_helper_a.get(), fhe_helper_b.get(),
-      fhe_helper_c.get(), cc));
+  XLS_CHECK_OK(ConstructReturnStructWithInout(fhe_result, fhe_helper_a,
+                                              fhe_helper_b, fhe_helper_c, cc));
 
   ReturnStruct result = fhe_result.Decrypt(sk);
   std::cout << "Done. Function return: " << std::endl;

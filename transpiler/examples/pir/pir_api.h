@@ -24,7 +24,7 @@ namespace fully_homomorphic_encryption {
 
 // TODO: Replace with uint8_t.
 using Index = unsigned char;
-using RecordT = char;
+using RecordT = unsigned char;
 
 // Returns a record of interest from an underlying "database" using FHE.
 RecordT QueryRecord(Index index, const RecordT database[kDbSize]);

@@ -17,7 +17,6 @@
 // player_a and player_b are the selection made by each player. The inputs must
 // chosen from 'R', 'P', 'S'. Returns the winning player 'A' or 'B', or '=' if
 // the result was a tie.
-unsigned char rock_paper_scissor(unsigned char player_a,
-                                 unsigned char player_b);
+char rock_paper_scissor(char player_a, char player_b);
 
 #endif  // __ROCK_PAPER_SCISSOR_H_

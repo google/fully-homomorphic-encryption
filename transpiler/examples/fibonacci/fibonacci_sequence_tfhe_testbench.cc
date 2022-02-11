@@ -52,8 +52,8 @@ int main(int argc, char** argv) {
             << std::endl;
 
   TfheArray<int> encrypted_result(500, params);
-  XLS_CHECK_OK(fibonacci_sequence(encrypted_input.get(), encrypted_result.get(),
-                                  key.cloud()));
+  XLS_CHECK_OK(
+      fibonacci_sequence(encrypted_input, encrypted_result, key.cloud()));
   absl::FixedArray<int> result = encrypted_result.Decrypt(key);
   std::cout << absl::StrFormat("Result: %d, %d, %d, %d, %d", result[0],
                                result[1], result[2], result[3], result[4])

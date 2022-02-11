@@ -85,8 +85,8 @@ int main(int argc, char** argv) {
   std::cout << std::endl;
 
   std::cout << "Starting computation." << std::endl << std::endl;
-  XLS_CHECK_OK(NegateStructWithArray(encoded_struct_with_array.get(),
-                                     encoded_other.get(), encoded_inner.get()));
+  XLS_CHECK_OK(NegateStructWithArray(encoded_struct_with_array, encoded_other,
+                                     encoded_inner));
 
   StructWithArray result = encoded_struct_with_array.Decode();
   std::cout << "Done. Result: " << std::endl;

@@ -75,8 +75,8 @@ TEST(FibonacciTest, InitialStateEncrypted) {
   auto encrypted_input = TfheValue<int>::Encrypt(input, key);
 
   TfheArray<int> encrypted_result(5, params);
-  XLS_ASSERT_OK(fibonacci_sequence(encrypted_input.get(),
-                                   encrypted_result.get(), key.cloud()));
+  XLS_ASSERT_OK(
+      fibonacci_sequence(encrypted_input, encrypted_result, key.cloud()));
   absl::FixedArray<int> actual_result = encrypted_result.Decrypt(key);
 
   int expected_result[5] = {5, 8, 13, 21, 34};

@@ -103,9 +103,8 @@ int main(int argc, char** argv) {
   std::cout << std::endl;
 
   std::cout << "Starting computation." << std::endl << std::endl;
-  XLS_CHECK_OK(NegateStructWithArray(fhe_struct_with_array.get(),
-                                     fhe_other.get(), fhe_inner.get(),
-                                     cloud_key));
+  XLS_CHECK_OK(NegateStructWithArray(fhe_struct_with_array, fhe_other,
+                                     fhe_inner, cloud_key));
 
   StructWithArray result = fhe_struct_with_array.Decrypt(key);
   std::cout << "Done. Result: " << std::endl;

@@ -46,8 +46,8 @@ int main(int argc, char** argv) {
   encoded_a.Encode(8);
   EncodedChar encoded_c;
   encoded_c.Encode(16);
-  XLS_CHECK_OK(ConstructReturnStruct(encoded_result.get(), encoded_a.get(),
-                                     encoded_embedded.get(), encoded_c.get()));
+  XLS_CHECK_OK(ConstructReturnStruct(encoded_result, encoded_a,
+                                     encoded_embedded, encoded_c));
 
   ReturnStruct result = encoded_result.Decode();
   std::cout << "Done. Result: " << std::endl;

@@ -54,10 +54,10 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   PalisadeReturnStruct fhe_result(cc);
-  auto fhe_a = PalisadeValue<unsigned char>::Encrypt(8, cc, sk);
-  auto fhe_c = PalisadeValue<unsigned char>::Encrypt(16, cc, sk);
-  XLS_CHECK_OK(ConstructReturnStruct(fhe_result.get(), fhe_a.get(),
-                                     fhe_embedded.get(), fhe_c.get(), cc));
+  auto fhe_a = PalisadeChar::Encrypt(8, cc, sk);
+  auto fhe_c = PalisadeChar::Encrypt(16, cc, sk);
+  XLS_CHECK_OK(
+      ConstructReturnStruct(fhe_result, fhe_a, fhe_embedded, fhe_c, cc));
 
   ReturnStruct result = fhe_result.Decrypt(sk);
   std::cout << "Done. Result: " << std::endl;

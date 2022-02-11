@@ -16,8 +16,7 @@
 
 // Returns "A" if A wins, "B" if B wins, or "=" if it is a tie.
 #pragma hls_top
-unsigned char rock_paper_scissor(unsigned char player_a,
-                                 unsigned char player_b) {
+char rock_paper_scissor(char player_a, char player_b) {
   if (player_a == player_b) {
     return '=';
   }

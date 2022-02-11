@@ -40,8 +40,7 @@ int main(int argc, char** argv) {
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform addition
   EncodedInt cipher_result;
-  XLS_CHECK_OK(
-      simple_sum(cipher_result.get(), ciphertext_x.get(), ciphertext_y.get()));
+  XLS_CHECK_OK(simple_sum(cipher_result, ciphertext_x, ciphertext_y));
 
   cout << "\t\t\t\t\tComputation done" << endl;
 

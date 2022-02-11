@@ -27,8 +27,10 @@
 
 #ifdef USE_INTERPRETED_TFHE
 #include "transpiler/examples/calculator/calculator_interpreted_tfhe.h"
+#include "transpiler/examples/calculator/calculator_interpreted_tfhe.types.h"
 #else
 #include "transpiler/examples/calculator/calculator_tfhe.h"
+#include "transpiler/examples/calculator/calculator_tfhe.types.h"
 #endif
 
 using namespace std;
@@ -57,12 +59,13 @@ void calculate(short x, short y, char op, TFHEParameters& params,
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform computation
   TfheShort encryptedResult(params);
-  TfheBit state = TfheBit::Unencrypted(true, key.cloud());
+  TfheCalculator calc(params);
+  calc.SetUnencrypted(Calculator(), key.cloud());
 
   absl::Time start_time = absl::Now();
   double cpu_start_time = clock();
-  XLS_CHECK_OK(my_package(encryptedResult.get(), state.get(), encryptedX.get(),
-                          encryptedY.get(), encryptedOp.get(), key.cloud()));
+  XLS_CHECK_OK(my_package(encryptedResult, calc, encryptedX, encryptedY,
+                          encryptedOp, key.cloud()));
   double cpu_end_time = clock();
   absl::Time end_time = absl::Now();
   cout << "\t\t\t\t\tComputation done" << endl;

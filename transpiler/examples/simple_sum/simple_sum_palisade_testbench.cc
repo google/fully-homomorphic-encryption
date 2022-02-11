@@ -68,8 +68,7 @@ int main(int argc, char** argv) {
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform addition
   PalisadeInt cipher_result(cc);
-  XLS_CHECK_OK(simple_sum(cipher_result.get(), ciphertext_x.get(),
-                          ciphertext_y.get(), cc));
+  XLS_CHECK_OK(simple_sum(cipher_result, ciphertext_x, ciphertext_y, cc));
 
   cout << "\t\t\t\t\tComputation done" << endl;
 

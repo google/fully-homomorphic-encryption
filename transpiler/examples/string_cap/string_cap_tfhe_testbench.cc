@@ -39,7 +39,7 @@ void TfheStringCap(TfheString& ciphertext,
   absl::Time start_time = absl::Now();
   double cpu_start_time = clock();
   std::cout << "Starting!" << std::endl;
-  XLS_CHECK_OK(CapitalizeString(ciphertext.get(), bk));
+  XLS_CHECK_OK(CapitalizeString(ciphertext, bk));
   std::cout << "\t\t\t\t\tTotal time: "
             << absl::ToDoubleSeconds(absl::Now() - start_time) << " secs"
             << std::endl;

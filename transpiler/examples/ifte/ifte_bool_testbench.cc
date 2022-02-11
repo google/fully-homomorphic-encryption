@@ -62,8 +62,7 @@ int main(int argc, char** argv) {
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform addition
   EncodedChar cipher_result;
-  XLS_CHECK_OK(ifte(cipher_result.get(), encoded_i.get(), encoded_t.get(),
-                    encoded_e.get()));
+  XLS_CHECK_OK(ifte(cipher_result, encoded_i, encoded_t, encoded_e));
 
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 

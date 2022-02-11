@@ -69,7 +69,7 @@ void test_fibonacci_number() {
 
     absl::Time start_time = absl::Now();
     double cpu_start_time = clock();
-    XLS_CHECK_OK(fibonacci_number(encryptedResult.get(), encryptedN.get(), cc));
+    XLS_CHECK_OK(fibonacci_number(encryptedResult, encryptedN, cc));
     double cpu_end_time = clock();
     absl::Time end_time = absl::Now();
     cout << "\t\t\t\t\tComputation done" << endl;

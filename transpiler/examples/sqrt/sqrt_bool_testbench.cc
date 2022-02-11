@@ -36,7 +36,7 @@ EncodedShort TimedYosysSqrt(EncodedShort& ciphertext) {
   double start_time = clock();
   std::cout << "Starting!" << std::endl;
   EncodedShort result;
-  XLS_CHECK_OK(isqrt(result.get(), ciphertext.get()));
+  XLS_CHECK_OK(isqrt(result, ciphertext));
   std::cout << "\t\t\t\t\tTotal time "
             << ": " << (clock() - start_time) / 1000000 << " secs" << std::endl;
   return result;

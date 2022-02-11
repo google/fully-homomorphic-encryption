@@ -199,10 +199,24 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
+    name = "return_struct_with_inout_interpreted_tfhe",
+    src = "return_struct_with_inout.cc",
+    hdrs = ["return_struct_with_inout.h"],
+    transpiler_type = "interpreted_tfhe",
+)
+
+fhe_cc_library(
     name = "return_struct_with_inout_palisade",
     src = "return_struct_with_inout.cc",
     hdrs = ["return_struct_with_inout.h"],
     transpiler_type = "palisade",
+)
+
+fhe_cc_library(
+    name = "return_struct_with_inout_yosys_interpreted_tfhe",
+    src = "return_struct_with_inout.cc",
+    hdrs = ["return_struct_with_inout.h"],
+    transpiler_type = "yosys_interpreted_tfhe",
 )
 
 cc_binary(
@@ -210,6 +224,32 @@ cc_binary(
     srcs = ["return_struct_with_inout_tfhe_testbench.cc"],
     deps = [
         ":return_struct_with_inout_tfhe",
+        "//transpiler/data:tfhe_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "return_struct_with_inout_interpreted_tfhe_testbench",
+    srcs = ["return_struct_with_inout_tfhe_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_TFHE"],
+    deps = [
+        ":return_struct_with_inout_tfhe",
+        "//transpiler/data:tfhe_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "return_struct_with_inout_yosys_interpreted_tfhe_testbench",
+    srcs = ["return_struct_with_inout_tfhe_testbench.cc"],
+    copts = ["-DUSE_YOSYS_INTERPRETED_TFHE"],
+    deps = [
+        ":return_struct_with_inout_yosys_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",

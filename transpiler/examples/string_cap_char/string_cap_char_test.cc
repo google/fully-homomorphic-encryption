@@ -75,10 +75,11 @@ TEST(StringCapCharTest, CorrectlyCapitalizesLongPhraseEncrypted) {
   auto ciphertext = TfheString::Encrypt(plaintext, key);
   TfheString cipher_result = {data_size, params};
 
-  TfheBit state = TfheBit::Unencrypted(true, key.cloud());
+  TfheState state(params);
+  state.SetUnencrypted(State(), key.cloud());
   for (int i = 0; i < data_size; i++) {
-    XLS_ASSERT_OK(my_package(cipher_result[i].get(), state.get(),
-                             ciphertext[i].get(), key.cloud()));
+    XLS_ASSERT_OK(
+        my_package(cipher_result[i], state, ciphertext[i], key.cloud()));
   }
   std::string result = cipher_result.Decrypt(key);
 

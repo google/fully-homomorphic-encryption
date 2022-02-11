@@ -15,10 +15,18 @@
 #include <cstdint>
 #include <iostream>
 
-#include "tfhe/tfhe.h"
+#include "xls/common/logging/logging.h"
+#ifdef USE_YOSYS_INTERPRETED_TFHE
+#include "transpiler/examples/structs/return_struct_with_inout_yosys_interpreted_tfhe.h"
+#include "transpiler/examples/structs/return_struct_with_inout_yosys_interpreted_tfhe.types.h"
+#elif defined(DUSE_INTERPRETED_TFHE)
+#include "transpiler/examples/structs/return_struct_with_inout_interpreted_tfhe.h"
+#include "transpiler/examples/structs/return_struct_with_inout_interpreted_tfhe.types.h"
+#else
 #include "transpiler/examples/structs/return_struct_with_inout_tfhe.h"
 #include "transpiler/examples/structs/return_struct_with_inout_tfhe.types.h"
-#include "xls/common/logging/logging.h"
+#endif
+#include "tfhe/tfhe.h"
 
 const int main_minimum_lambda = 120;
 
@@ -82,8 +90,7 @@ int main(int argc, char** argv) {
   std::cout << "Starting computation." << std::endl;
   TfheReturnStruct fhe_result(params);
   XLS_CHECK_OK(ConstructReturnStructWithInout(
-      fhe_result.get(), fhe_helper_a.get(), fhe_helper_b.get(),
-      fhe_helper_c.get(), cloud_key));
+      fhe_result, fhe_helper_a, fhe_helper_b, fhe_helper_c, cloud_key));
 
   ReturnStruct result = fhe_result.Decrypt(key);
   std::cout << "Done. Function return: " << std::endl;

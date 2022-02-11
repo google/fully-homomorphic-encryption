@@ -41,7 +41,7 @@ TEST(SqrtTest, SmallPerfectSquareEncrypted) {
 
   auto ciphertext = TfheValue<short>::Encrypt(25, key);
   TfheValue<short> result(key.params());
-  XLS_ASSERT_OK(isqrt(result.get(), ciphertext.get(), key.cloud()));
+  XLS_ASSERT_OK(isqrt(result, ciphertext, key.cloud()));
 
   ASSERT_EQ(result.Decrypt(key), 5);
 }
@@ -59,7 +59,7 @@ TEST(SqrtTest, SmallSquareRootEncrypted) {
 
   auto ciphertext = TfheValue<short>::Encrypt(35, key);
   TfheValue<short> result(key.params());
-  XLS_ASSERT_OK(isqrt(result.get(), ciphertext.get(), key.cloud()));
+  XLS_ASSERT_OK(isqrt(result, ciphertext, key.cloud()));
 
   ASSERT_EQ(result.Decrypt(key), 5);
 }
@@ -77,7 +77,7 @@ TEST(SqrtTest, LargePerfectSquareEncrypted) {
 
   auto ciphertext = TfheValue<short>::Encrypt(22'500, key);
   TfheValue<short> result(key.params());
-  XLS_ASSERT_OK(isqrt(result.get(), ciphertext.get(), key.cloud()));
+  XLS_ASSERT_OK(isqrt(result, ciphertext, key.cloud()));
 
   ASSERT_EQ(result.Decrypt(key), 150);
 }
@@ -95,7 +95,7 @@ TEST(SqrtTest, LargeSquareRootEncrypted) {
 
   auto ciphertext = TfheValue<short>::Encrypt(22'800, key);
   TfheValue<short> result(key.params());
-  XLS_ASSERT_OK(isqrt(result.get(), ciphertext.get(), key.cloud()));
+  XLS_ASSERT_OK(isqrt(result, ciphertext, key.cloud()));
 
   ASSERT_EQ(result.Decrypt(key), 150);
 }
