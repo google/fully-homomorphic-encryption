@@ -53,7 +53,7 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "string_reverse_bool",
+    name = "string_reverse_cleartext",
     src = "string_reverse.cc",
     hdrs = ["string_reverse.h"],
     backend = "cleartext",
@@ -132,13 +132,13 @@ cc_binary(
 )
 
 cc_binary(
-    name = "string_reverse_bool_testbench",
+    name = "string_reverse_cleartext_testbench",
     srcs = [
         "string_reverse.h",
-        "string_reverse_bool_testbench.cc",
+        "string_reverse_cleartext_testbench.cc",
     ],
     deps = [
-        ":string_reverse_bool",
+        ":string_reverse_cleartext",
         "//transpiler/data:boolean_data",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_xls//xls/common/logging",

@@ -54,7 +54,7 @@ cc_library(
 )
 
 fhe_cc_library(
-    name = "return_struct_bool",
+    name = "return_struct_cleartext",
     src = "return_struct.cc",
     hdrs = ["return_struct.h"],
     backend = "cleartext",
@@ -62,7 +62,7 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "return_struct_yosys_plaintext",
+    name = "return_struct_yosys_cleartext",
     src = "return_struct.cc",
     hdrs = ["return_struct.h"],
     backend = "cleartext",
@@ -171,10 +171,10 @@ cc_binary(
 )
 
 cc_binary(
-    name = "return_struct_bool_testbench",
-    srcs = ["return_struct_bool_testbench.cc"],
+    name = "return_struct_cleartext_testbench",
+    srcs = ["return_struct_cleartext_testbench.cc"],
     deps = [
-        ":return_struct_bool",
+        ":return_struct_cleartext",
         "//transpiler/data:boolean_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
@@ -182,11 +182,11 @@ cc_binary(
 )
 
 cc_binary(
-    name = "return_struct_yosys_plaintext_testbench",
-    srcs = ["return_struct_bool_testbench.cc"],
-    copts = ["-DUSE_YOSYS_PLAINTEXT"],
+    name = "return_struct_yosys_cleartext_testbench",
+    srcs = ["return_struct_cleartext_testbench.cc"],
+    copts = ["-DUSE_YOSYS_CLEARTEXT"],
     deps = [
-        ":return_struct_yosys_plaintext",
+        ":return_struct_yosys_cleartext",
         "//transpiler/data:boolean_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
@@ -336,7 +336,7 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "struct_of_structs_bool",
+    name = "struct_of_structs_cleartext",
     src = "struct_of_structs.cc",
     hdrs = ["struct_of_structs.h"],
     backend = "cleartext",
@@ -344,7 +344,7 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "struct_of_structs_yosys_plaintext",
+    name = "struct_of_structs_yosys_cleartext",
     src = "struct_of_structs.cc",
     hdrs = ["struct_of_structs.h"],
     backend = "cleartext",
@@ -360,10 +360,10 @@ fhe_cc_library(
 )
 
 cc_binary(
-    name = "struct_of_structs_bool_testbench",
-    srcs = ["struct_of_structs_bool_testbench.cc"],
+    name = "struct_of_structs_cleartext_testbench",
+    srcs = ["struct_of_structs_cleartext_testbench.cc"],
     deps = [
-        ":struct_of_structs_bool",
+        ":struct_of_structs_cleartext",
         "//transpiler/data:boolean_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
@@ -372,11 +372,11 @@ cc_binary(
 )
 
 cc_binary(
-    name = "struct_of_structs_yosys_plaintext_testbench",
-    srcs = ["struct_of_structs_bool_testbench.cc"],
-    copts = ["-DUSE_YOSYS_PLAINTEXT"],
+    name = "struct_of_structs_yosys_cleartext_testbench",
+    srcs = ["struct_of_structs_cleartext_testbench.cc"],
+    copts = ["-DUSE_YOSYS_CLEARTEXT"],
     deps = [
-        ":struct_of_structs_yosys_plaintext",
+        ":struct_of_structs_yosys_cleartext",
         "//transpiler/data:boolean_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
@@ -429,7 +429,7 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "struct_with_array_bool",
+    name = "struct_with_array_cleartext",
     src = "struct_with_array.cc",
     hdrs = ["struct_with_array.h"],
     backend = "cleartext",
@@ -437,7 +437,7 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "struct_with_array_yosys_plaintext",
+    name = "struct_with_array_yosys_cleartext",
     src = "struct_with_array.cc",
     hdrs = ["struct_with_array.h"],
     backend = "cleartext",
@@ -491,21 +491,21 @@ cc_binary(
 )
 
 cc_binary(
-    name = "struct_with_array_bool_testbench",
-    srcs = ["struct_with_array_bool_testbench.cc"],
+    name = "struct_with_array_cleartext_testbench",
+    srcs = ["struct_with_array_cleartext_testbench.cc"],
     deps = [
-        ":struct_with_array_bool",
+        ":struct_with_array_cleartext",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
 
 cc_binary(
-    name = "struct_with_array_yosys_plaintext_testbench",
-    srcs = ["struct_with_array_bool_testbench.cc"],
-    copts = ["-DUSE_YOSYS_PLAINTEXT"],
+    name = "struct_with_array_yosys_cleartext_testbench",
+    srcs = ["struct_with_array_cleartext_testbench.cc"],
+    copts = ["-DUSE_YOSYS_CLEARTEXT"],
     deps = [
-        ":struct_with_array_yosys_plaintext",
+        ":struct_with_array_yosys_cleartext",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
     ],

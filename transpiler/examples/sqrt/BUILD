@@ -11,7 +11,7 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "sqrt_yosys_plaintext",
+    name = "sqrt_yosys_cleartext",
     src = "sqrt.cc",
     hdrs = ["sqrt.h"],
     backend = "cleartext",
@@ -54,7 +54,7 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "sqrt_bool",
+    name = "sqrt_cleartext",
     src = "sqrt.cc",
     hdrs = ["sqrt.h"],
     backend = "cleartext",
@@ -146,12 +146,12 @@ cc_binary(
 )
 
 cc_binary(
-    name = "sqrt_bool_testbench",
+    name = "sqrt_cleartext_testbench",
     srcs = [
-        "sqrt_bool_testbench.cc",
+        "sqrt_cleartext_testbench.cc",
     ],
     deps = [
-        ":sqrt_bool",
+        ":sqrt_cleartext",
         "//transpiler/data:boolean_data",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/strings",
@@ -161,13 +161,13 @@ cc_binary(
 )
 
 cc_binary(
-    name = "sqrt_yosys_plaintext_testbench",
+    name = "sqrt_yosys_cleartext_testbench",
     srcs = [
-        "sqrt_bool_testbench.cc",
+        "sqrt_cleartext_testbench.cc",
     ],
-    copts = ["-DUSE_YOSYS_PLAINTEXT"],
+    copts = ["-DUSE_YOSYS_CLEARTEXT"],
     deps = [
-        ":sqrt_yosys_plaintext",
+        ":sqrt_yosys_cleartext",
         "//transpiler/data:boolean_data",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/strings",

@@ -16,12 +16,12 @@
 #include <iostream>
 
 #include "xls/common/logging/logging.h"
-#ifdef USE_YOSYS_PLAINTEXT
-#include "transpiler/examples/structs/return_struct_yosys_plaintext.h"
-#include "transpiler/examples/structs/return_struct_yosys_plaintext.types.h"
+#ifdef USE_YOSYS_CLEARTEXT
+#include "transpiler/examples/structs/return_struct_yosys_cleartext.h"
+#include "transpiler/examples/structs/return_struct_yosys_cleartext.types.h"
 #else
-#include "transpiler/examples/structs/return_struct_bool.h"
-#include "transpiler/examples/structs/return_struct_bool.types.h"
+#include "transpiler/examples/structs/return_struct_cleartext.h"
+#include "transpiler/examples/structs/return_struct_cleartext.types.h"
 #endif
 #include "transpiler/data/boolean_data.h"
 

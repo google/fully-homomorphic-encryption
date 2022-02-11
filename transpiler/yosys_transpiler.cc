@@ -134,10 +134,8 @@ $3 {
   return absl::Substitute(
       kSourceTemplate, netlist_text, metadata_text, cell_library_text,
       signature, return_param, absl::StrJoin(in_param_entries, ", "),
-      absl::Substitute(
-          R"hdr(#include "transpiler/yosys_$0_runner.h")hdr",
-          (backend == Backend::kCleartext ? "plaintext"
-                                          : AbslUnparseFlag(backend))),
+      absl::Substitute(R"hdr(#include "transpiler/yosys_$0_runner.h")hdr",
+                       AbslUnparseFlag(backend)),
       runner_prefix, args_suffix, absl::StrJoin(inout_param_entries, ", "));
 }
 

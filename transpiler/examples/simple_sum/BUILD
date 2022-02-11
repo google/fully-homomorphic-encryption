@@ -44,7 +44,7 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "simple_sum_bool",
+    name = "simple_sum_cleartext",
     src = "simple_sum.cc",
     hdrs = ["simple_sum.h"],
     backend = "cleartext",
@@ -103,10 +103,10 @@ cc_binary(
 )
 
 cc_binary(
-    name = "simple_sum_bool_testbench",
-    srcs = ["simple_sum_bool_testbench.cc"],
+    name = "simple_sum_cleartext_testbench",
+    srcs = ["simple_sum_cleartext_testbench.cc"],
     deps = [
-        ":simple_sum_bool",
+        ":simple_sum_cleartext",
         "//transpiler/data:boolean_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",

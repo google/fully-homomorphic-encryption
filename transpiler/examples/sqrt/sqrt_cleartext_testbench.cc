@@ -23,60 +23,51 @@
 #include <vector>
 
 #include "absl/container/fixed_array.h"
+#include "absl/strings/numbers.h"
 #include "transpiler/data/boolean_data.h"
-#include "transpiler/examples/string_cap_char/string_cap_char_bool.h"
 #include "xls/common/logging/logging.h"
+#ifdef USE_YOSYS_CLEARTEXT
+#include "transpiler/examples/sqrt/sqrt_yosys_cleartext.h"
+#else
+#include "transpiler/examples/sqrt/sqrt_cleartext.h"
+#endif
 
-void BoolStringCap(EncodedString& cipherresult, EncodedString& ciphertext,
-                   int data_size, EncodedState& state) {
-  time_t start_time;
-  time_t end_time;
-  double char_time = 0.0;
-  double total_time = 0.0;
-  for (int i = 0; i < data_size; i++) {
-    start_time = clock();
-    XLS_CHECK_OK(my_package(cipherresult[i], state, ciphertext[i]));
-    end_time = clock();
-    char_time = (end_time - start_time);
-    std::cout << "\t\t\t\t\tchar " << i << ": " << char_time / 1000000
-              << " secs" << std::endl;
-    total_time += char_time;
-  }
+EncodedShort TimedYosysSqrt(EncodedShort& ciphertext) {
+  double start_time = clock();
+  std::cout << "Starting!" << std::endl;
+  EncodedShort result;
+  XLS_CHECK_OK(isqrt(result, ciphertext));
   std::cout << "\t\t\t\t\tTotal time "
-            << ": " << total_time / 1000000 << " secs" << std::endl;
+            << ": " << (clock() - start_time) / 1000000 << " secs" << std::endl;
+  return result;
 }
 
 int main(int argc, char** argv) {
   if (argc < 2) {
-    fprintf(stderr, "Usage: string_cap_bool_testbench string_input\n\n");
+    fprintf(stderr, "Usage: sqrt_cleartext_testbench num\n\n");
     return 1;
   }
 
-  const char* input = argv[1];
+  std::string input = argv[1];
 
-  std::string plaintext(input);
-  int data_size = plaintext.size();
-  std::cout << "plaintext(" << data_size << "):" << plaintext << std::endl;
+  int plaintext;
+  XLS_CHECK(absl::SimpleAtoi(input, &plaintext));
+  std::cout << "plaintext: " << plaintext << std::endl;
 
   // Encode data
-  EncodedString ciphertext(plaintext);
+  EncodedShort ciphertext(plaintext);
   std::cout << "Encoding done" << std::endl;
 
   std::cout << "Initial state check by decoding: " << std::endl;
   // Decode results.
   std::cout << ciphertext.Decode() << "\n";
 
-  State st;
-  EncodedState cipherstate;
-  cipherstate.Encode(st);
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
-  // Perform string capitalization
-  EncodedString cipher_result(data_size);
-  BoolStringCap(cipher_result, ciphertext, data_size, cipherstate);
+  // Compute the square root.
+  EncodedShort result = TimedYosysSqrt(ciphertext);
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 
-  std::cout << "Decoded result: ";
   // Decode results.
-  std::cout << cipher_result.Decode() << "\n";
+  std::cout << "Decoded result: " << result.Decode() << "\n";
   std::cout << "Decoding done" << std::endl;
 }

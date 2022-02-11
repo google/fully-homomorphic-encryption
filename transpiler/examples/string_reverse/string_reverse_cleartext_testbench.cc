@@ -21,7 +21,7 @@
 
 #include "transpiler/data/boolean_data.h"
 #include "transpiler/examples/string_reverse/string_reverse.h"
-#include "transpiler/examples/string_reverse/string_reverse_bool.h"
+#include "transpiler/examples/string_reverse/string_reverse_cleartext.h"
 #include "xls/common/logging/logging.h"
 
 void BoolStringReverse(EncodedString& ciphertext) {
@@ -34,7 +34,7 @@ void BoolStringReverse(EncodedString& ciphertext) {
 
 int main(int argc, char** argv) {
   if (argc < 2) {
-    std::cerr << "Usage: string_reverse_bool_testbench string_input"
+    std::cerr << "Usage: string_reverse_cleartext_testbench string_input"
               << std::endl;
     return 1;
   }

@@ -98,9 +98,9 @@ cc_library(
 )
 
 cc_library(
-    name = "yosys_plaintext_runner",
-    srcs = ["yosys_plaintext_runner.cc"],
-    hdrs = ["yosys_plaintext_runner.h"],
+    name = "yosys_cleartext_runner",
+    srcs = ["yosys_cleartext_runner.cc"],
+    hdrs = ["yosys_cleartext_runner.h"],
     deps = [
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
@@ -146,10 +146,10 @@ cc_library(
 )
 
 cc_test(
-    name = "yosys_plaintext_runner_test",
-    srcs = ["yosys_plaintext_runner_test.cc"],
+    name = "yosys_cleartext_runner_test",
+    srcs = ["yosys_cleartext_runner_test.cc"],
     deps = [
-        ":yosys_plaintext_runner",
+        ":yosys_cleartext_runner",
         "//transpiler/data:boolean_data",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",

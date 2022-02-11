@@ -114,7 +114,7 @@ cc_binary(
 )
 
 fhe_cc_library(
-    name = "calculator_bool",
+    name = "calculator_cleartext",
     src = "calculator.cc",
     hdrs = ["calculator.h"],
     backend = "cleartext",
@@ -123,10 +123,10 @@ fhe_cc_library(
 )
 
 cc_binary(
-    name = "calculator_bool_testbench",
-    srcs = ["calculator_bool_testbench.cc"],
+    name = "calculator_cleartext_testbench",
+    srcs = ["calculator_cleartext_testbench.cc"],
     deps = [
-        ":calculator_bool",
+        ":calculator_cleartext",
         "//transpiler/data:boolean_data",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_xls//xls/common/logging",

@@ -4,7 +4,7 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 licenses(["notice"])
 
 fhe_cc_library(
-    name = "ifte_yosys_plaintext",
+    name = "ifte_yosys_cleartext",
     src = "ifte.cc",
     hdrs = ["ifte.h"],
     backend = "cleartext",
@@ -20,7 +20,7 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "ifte_bool",
+    name = "ifte_cleartext",
     src = "ifte.cc",
     hdrs = ["ifte.h"],
     backend = "cleartext",
@@ -34,10 +34,10 @@ fhe_cc_library(
 )
 
 cc_binary(
-    name = "ifte_bool_testbench",
-    srcs = ["ifte_bool_testbench.cc"],
+    name = "ifte_cleartext_testbench",
+    srcs = ["ifte_cleartext_testbench.cc"],
     deps = [
-        ":ifte_bool",
+        ":ifte_cleartext",
         "//transpiler/data:boolean_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
@@ -46,11 +46,11 @@ cc_binary(
 )
 
 cc_binary(
-    name = "ifte_yosys_plaintext_testbench",
-    srcs = ["ifte_bool_testbench.cc"],
-    copts = ["-DUSE_YOSYS_PLAINTEXT"],
+    name = "ifte_yosys_cleartext_testbench",
+    srcs = ["ifte_cleartext_testbench.cc"],
+    copts = ["-DUSE_YOSYS_CLEARTEXT"],
     deps = [
-        ":ifte_yosys_plaintext",
+        ":ifte_yosys_cleartext",
         "//transpiler/data:boolean_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",

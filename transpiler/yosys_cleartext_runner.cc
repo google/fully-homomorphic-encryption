@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "transpiler/yosys_plaintext_runner.h"
+#include "transpiler/yosys_cleartext_runner.h"
 
 #include "absl/strings/substitute.h"
 #include "xls/common/status/status_macros.h"

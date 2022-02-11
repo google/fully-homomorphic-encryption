@@ -15,10 +15,10 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "transpiler/data/boolean_data.h"
-#include "transpiler/tests/out_params_bool.h"
-#include "transpiler/tests/out_params_with_return_bool.h"
-#include "transpiler/tests/single_out_param_bool.h"
-#include "transpiler/tests/single_out_param_with_return_bool.h"
+#include "transpiler/tests/out_params_cleartext.h"
+#include "transpiler/tests/out_params_with_return_cleartext.h"
+#include "transpiler/tests/single_out_param_cleartext.h"
+#include "transpiler/tests/single_out_param_with_return_cleartext.h"
 #include "xls/common/status/matchers.h"
 
 namespace fully_homomorphic_encryption {

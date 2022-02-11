@@ -507,7 +507,7 @@ def fhe_cc_library(
         if backend == "cleartext":
             deps.extend([
                 "@com_google_absl//absl/status:statusor",
-                "//transpiler:yosys_plaintext_runner",
+                "//transpiler:yosys_cleartext_runner",
                 "//transpiler/data:boolean_data",
                 "@com_google_xls//xls/common/status:status_macros",
             ])

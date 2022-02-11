@@ -38,7 +38,7 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "string_cap_bool",
+    name = "string_cap_cleartext",
     src = "string_cap.cc",
     hdrs = ["string_cap.h"],
     backend = "cleartext",
@@ -114,13 +114,13 @@ cc_binary(
 )
 
 cc_binary(
-    name = "string_cap_bool_testbench",
+    name = "string_cap_cleartext_testbench",
     srcs = [
         "string_cap.h",
-        "string_cap_bool_testbench.cc",
+        "string_cap_cleartext_testbench.cc",
     ],
     deps = [
-        ":string_cap_bool",
+        ":string_cap_cleartext",
         "//transpiler/data:boolean_data",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_xls//xls/common/logging",

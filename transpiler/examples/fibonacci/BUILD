@@ -54,7 +54,7 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "fibonacci_sequence_bool",
+    name = "fibonacci_sequence_cleartext",
     src = "fibonacci_sequence.cc",
     hdrs = ["fibonacci_sequence.h"],
     backend = "cleartext",
@@ -162,10 +162,10 @@ cc_binary(
 )
 
 cc_binary(
-    name = "fibonacci_sequence_bool_testbench",
-    srcs = ["fibonacci_sequence_bool_testbench.cc"],
+    name = "fibonacci_sequence_cleartext_testbench",
+    srcs = ["fibonacci_sequence_cleartext_testbench.cc"],
     deps = [
-        ":fibonacci_sequence_bool",
+        ":fibonacci_sequence_cleartext",
         "//transpiler/data:boolean_data",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/strings:str_format",

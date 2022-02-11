@@ -18,10 +18,10 @@
 #include "transpiler/data/boolean_data.h"
 #include "xls/common/logging/logging.h"
 
-#ifdef USE_YOSYS_PLAINTEXT
-#include "transpiler/examples/ifte/ifte_yosys_plaintext.h"
+#ifdef USE_YOSYS_CLEARTEXT
+#include "transpiler/examples/ifte/ifte_yosys_cleartext.h"
 #else
-#include "transpiler/examples/ifte/ifte_bool.h"
+#include "transpiler/examples/ifte/ifte_cleartext.h"
 #endif
 
 int main(int argc, char** argv) {

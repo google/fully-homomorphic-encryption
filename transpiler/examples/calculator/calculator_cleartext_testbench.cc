@@ -16,7 +16,7 @@
 
 #include "absl/container/fixed_array.h"
 #include "transpiler/data/boolean_data.h"
-#include "transpiler/examples/calculator/calculator_bool.h"
+#include "transpiler/examples/calculator/calculator_cleartext.h"
 #include "xls/common/logging/logging.h"
 
 using namespace std;

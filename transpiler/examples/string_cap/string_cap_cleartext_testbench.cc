@@ -25,7 +25,7 @@
 #include "absl/container/fixed_array.h"
 #include "transpiler/data/boolean_data.h"
 #include "transpiler/examples/string_cap/string_cap.h"
-#include "transpiler/examples/string_cap/string_cap_bool.h"
+#include "transpiler/examples/string_cap/string_cap_cleartext.h"
 #include "xls/common/logging/logging.h"
 
 void BoolStringCap(EncodedString& ciphertext) {
@@ -38,7 +38,7 @@ void BoolStringCap(EncodedString& ciphertext) {
 
 int main(int argc, char** argv) {
   if (argc < 2) {
-    fprintf(stderr, "Usage: string_cap_bool_testbench string_input\n\n");
+    fprintf(stderr, "Usage: string_cap_cleartext_testbench string_input\n\n");
     return 1;
   }
 

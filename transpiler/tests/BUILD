@@ -158,7 +158,7 @@ cc_test(
 )
 
 fhe_cc_library(
-    name = "function_bool",
+    name = "function_cleartext",
     src = "function.cc",
     hdrs = [],
     backend = "cleartext",
@@ -167,7 +167,7 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "out_params_bool",
+    name = "out_params_cleartext",
     src = "out_params.cc",
     hdrs = [],
     backend = "cleartext",
@@ -175,7 +175,7 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "out_params_with_return_bool",
+    name = "out_params_with_return_cleartext",
     src = "out_params_with_return.cc",
     hdrs = [],
     backend = "cleartext",
@@ -183,7 +183,7 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "single_out_param_bool",
+    name = "single_out_param_cleartext",
     src = "single_out_param.cc",
     hdrs = [],
     backend = "cleartext",
@@ -191,7 +191,7 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "single_out_param_with_return_bool",
+    name = "single_out_param_with_return_cleartext",
     src = "single_out_param_with_return.cc",
     hdrs = [],
     backend = "cleartext",
@@ -202,10 +202,10 @@ cc_test(
     name = "out_params_test",
     srcs = ["out_params_test.cc"],
     deps = [
-        ":out_params_bool",
-        ":out_params_with_return_bool",
-        ":single_out_param_bool",
-        ":single_out_param_with_return_bool",
+        ":out_params_cleartext",
+        ":out_params_with_return_cleartext",
+        ":single_out_param_cleartext",
+        ":single_out_param_with_return_cleartext",
         "//transpiler/data:boolean_data",
         "@com_google_absl//absl/base",
         "@com_google_googletest//:gtest_main",
