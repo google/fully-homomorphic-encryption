@@ -41,28 +41,36 @@
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 
+using PalisadeCiphertext = lbcrypto::LWECiphertext;
+using PalisadeCiphertextRef = PalisadeCiphertext;
+using PalisadeCiphertextConstRef = const PalisadeCiphertextRef;
+
 class PalisadeRunner
-    : public AbstractXlsRunner<PalisadeRunner, lbcrypto::LWECiphertext> {
+    : public AbstractXlsRunner<PalisadeRunner, PalisadeCiphertext,
+                               PalisadeCiphertextRef,
+                               PalisadeCiphertextConstRef> {
  private:
-  using Base = AbstractXlsRunner<PalisadeRunner, lbcrypto::LWECiphertext>;
+  using Base =
+      AbstractXlsRunner<PalisadeRunner, PalisadeCiphertext,
+                        PalisadeCiphertextRef, PalisadeCiphertextConstRef>;
 
   class PalisadeOperations : public BitOperations {
    public:
     PalisadeOperations(lbcrypto::BinFHEContext cc) : cc_(cc) {}
     virtual ~PalisadeOperations() {}
 
-    lbcrypto::LWECiphertext And(const lbcrypto::LWECiphertext lhs,
-                                const lbcrypto::LWECiphertext rhs) override;
-    lbcrypto::LWECiphertext Or(const lbcrypto::LWECiphertext lhs,
-                               const lbcrypto::LWECiphertext rhs) override;
-    lbcrypto::LWECiphertext Not(const lbcrypto::LWECiphertext in) override;
+    PalisadeCiphertext And(PalisadeCiphertextConstRef lhs,
+                           PalisadeCiphertextConstRef rhs) override;
+    PalisadeCiphertext Or(PalisadeCiphertextConstRef lhs,
+                          PalisadeCiphertextConstRef rhs) override;
+    PalisadeCiphertext Not(PalisadeCiphertextConstRef in) override;
 
-    lbcrypto::LWECiphertext Constant(bool value) override;
+    PalisadeCiphertext Constant(bool value) override;
 
-    void Copy(const lbcrypto::LWECiphertext src,
-              lbcrypto::LWECiphertext& dst) override;
+    void Copy(PalisadeCiphertextConstRef src,
+              PalisadeCiphertextRef& dst) override;
 
-    lbcrypto::LWECiphertext CopyOf(const lbcrypto::LWECiphertext src) override;
+    PalisadeCiphertext CopyOf(PalisadeCiphertextConstRef src) override;
 
    private:
     lbcrypto::BinFHEContext cc_;
@@ -74,9 +82,11 @@ class PalisadeRunner
   using Base::CreateFromStrings;
 
   absl::Status Run(
-      absl::Span<lbcrypto::LWECiphertext> result,
-      absl::flat_hash_map<std::string, absl::Span<lbcrypto::LWECiphertext>>
-          args,
+      absl::Span<PalisadeCiphertextRef> result,
+      absl::flat_hash_map<std::string, absl::Span<PalisadeCiphertextConstRef>>
+          in_args,
+      absl::flat_hash_map<std::string, absl::Span<PalisadeCiphertextRef>>
+          inout_args,
       lbcrypto::BinFHEContext cc);
 };
 

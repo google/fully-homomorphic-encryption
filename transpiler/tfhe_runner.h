@@ -54,6 +54,16 @@ class TfheCiphertextRef {
   LweSample* value_;
 };
 
+class TfheCiphertextConstRef {
+ public:
+  TfheCiphertextConstRef(const LweSample* value) : value_(value) {}
+  TfheCiphertextConstRef(const TfheCiphertextRef& ref) : value_(ref.get()) {}
+  const LweSample* get() const { return value_; }
+
+ private:
+  const LweSample* value_;
+};
+
 class TfheCiphertext {
  public:
   TfheCiphertext(const TFheGateBootstrappingParameterSet* params)
@@ -63,8 +73,8 @@ class TfheCiphertext {
   const LweSample* get() const { return value_.get(); }
 
   operator TfheCiphertextRef() { return TfheCiphertextRef(value_.get()); }
-  operator const TfheCiphertextRef() const {
-    return TfheCiphertextRef(value_.get());
+  operator TfheCiphertextConstRef() const {
+    return TfheCiphertextConstRef(value_.get());
   }
 
  private:
@@ -78,25 +88,28 @@ class TfheCiphertext {
 };
 
 class TfheRunner
-    : public AbstractXlsRunner<TfheRunner, TfheCiphertext, TfheCiphertextRef> {
+    : public AbstractXlsRunner<TfheRunner, TfheCiphertext, TfheCiphertextRef,
+                               TfheCiphertextConstRef> {
  private:
-  using Base = AbstractXlsRunner<TfheRunner, TfheCiphertext, TfheCiphertextRef>;
+  using Base = AbstractXlsRunner<TfheRunner, TfheCiphertext, TfheCiphertextRef,
+                                 TfheCiphertextConstRef>;
 
   class TfheOperations : public BitOperations {
    public:
     TfheOperations(const TFheGateBootstrappingCloudKeySet* bk) : bk_(bk) {}
     virtual ~TfheOperations() {}
 
-    TfheCiphertext And(const TfheCiphertextRef lhs,
-                       const TfheCiphertextRef rhs) override;
-    TfheCiphertext Or(TfheCiphertextRef lhs, TfheCiphertextRef rhs) override;
-    TfheCiphertext Not(TfheCiphertextRef in) override;
+    TfheCiphertext And(TfheCiphertextConstRef lhs,
+                       TfheCiphertextConstRef rhs) override;
+    TfheCiphertext Or(TfheCiphertextConstRef lhs,
+                      TfheCiphertextConstRef rhs) override;
+    TfheCiphertext Not(TfheCiphertextConstRef in) override;
 
     TfheCiphertext Constant(bool value) override;
 
-    void Copy(const TfheCiphertextRef src, TfheCiphertextRef& dst) override;
+    void Copy(TfheCiphertextConstRef src, TfheCiphertextRef& dst) override;
 
-    TfheCiphertext CopyOf(TfheCiphertextRef src) override;
+    TfheCiphertext CopyOf(TfheCiphertextConstRef src) override;
 
    private:
     const TFheGateBootstrappingCloudKeySet* bk_;
@@ -107,9 +120,11 @@ class TfheRunner
   using Base::CreateFromFile;
   using Base::CreateFromStrings;
 
-  absl::Status Run(absl::Span<LweSample> result,
-                   absl::flat_hash_map<std::string, absl::Span<LweSample>> args,
-                   const TFheGateBootstrappingCloudKeySet* bk);
+  absl::Status Run(
+      absl::Span<LweSample> result,
+      absl::flat_hash_map<std::string, absl::Span<const LweSample>> in_args,
+      absl::flat_hash_map<std::string, absl::Span<LweSample>> inout_args,
+      const TFheGateBootstrappingCloudKeySet* bk);
 };
 
 }  // namespace transpiler

@@ -35,31 +35,30 @@ using ::fully_homomorphic_encryption::transpiler::TranspilerTestBase;
 class TranspilerTypesTest : public TranspilerTestBase {};
 
 TEST_F(TranspilerTypesTest, TestArray) {
-  auto ciphertext = TfheArray<char>::Encrypt("abcd", secret_key());
-  TfheArray<char> result(4, params());
-  XLS_ASSERT_OK(test_array(ciphertext.get(), result.get(), cloud_key()));
-  std::initializer_list<char> expected{'a', 'c', 'c', 'e'};
-  EXPECT_EQ(result.Decrypt(secret_key()), absl::FixedArray<char>(expected));
+  auto ciphertext = TfheString::Encrypt("abcd", secret_key());
+  TfheString result(4, params());
+  XLS_ASSERT_OK(test_array(ciphertext, result, cloud_key()));
+  EXPECT_EQ(result.Decrypt(secret_key()), "acce");
 }
 
 TEST_F(TranspilerTypesTest, TestChar) {
-  auto ciphertext = TfheValue<char>::Encrypt('a', secret_key());
-  TfheValue<char> result(params());
-  XLS_ASSERT_OK(test_char(result.get(), ciphertext.get(), cloud_key()));
+  auto ciphertext = TfheChar::Encrypt('a', secret_key());
+  TfheChar result(params());
+  XLS_ASSERT_OK(test_char(result, ciphertext, cloud_key()));
   EXPECT_EQ(result.Decrypt(secret_key()), 'b');
 }
 
 TEST_F(TranspilerTypesTest, TestInt) {
-  auto ciphertext = TfheValue<int>::Encrypt(100, secret_key());
-  TfheValue<int> result(params());
-  XLS_ASSERT_OK(test_int(result.get(), ciphertext.get(), cloud_key()));
+  auto ciphertext = TfheInt::Encrypt(100, secret_key());
+  TfheInt result(params());
+  XLS_ASSERT_OK(test_int(result, ciphertext, cloud_key()));
   EXPECT_EQ(result.Decrypt(secret_key()), 101);
 }
 
 TEST_F(TranspilerTypesTest, TestLong) {
   auto ciphertext = TfheValue<long>::Encrypt(100, secret_key());
   TfheValue<long> result(params());
-  XLS_ASSERT_OK(test_long(result.get(), ciphertext.get(), cloud_key()));
+  XLS_ASSERT_OK(test_long(result, ciphertext, cloud_key()));
   EXPECT_EQ(result.Decrypt(secret_key()), 101);
 }
 

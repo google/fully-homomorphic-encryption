@@ -109,7 +109,7 @@ TEST(TfheRunnerTest, EndToEnd) {
 
   auto ciphertext = TfheValue<char>::Encrypt('a', key);
   TfheValue<char> result(key.params());
-  absl::flat_hash_map<std::string, absl::Span<LweSample>> args = {
+  absl::flat_hash_map<std::string, absl::Span<const LweSample>> in_args = {
       {"x", ciphertext.get()}};
 
   XLS_ASSERT_OK_AND_ASSIGN(auto package,
@@ -118,7 +118,7 @@ TEST(TfheRunnerTest, EndToEnd) {
   metadata.mutable_top_func_proto()->mutable_name()->set_name("my_package");
 
   TfheRunner runner{std::move(package), metadata};
-  XLS_CHECK(runner.Run(result.get(), args, key.cloud()).ok());
+  XLS_CHECK(runner.Run(result.get(), in_args, {}, key.cloud()).ok());
   auto r = result.Decrypt(key);
   EXPECT_EQ(r, 'b');
 }

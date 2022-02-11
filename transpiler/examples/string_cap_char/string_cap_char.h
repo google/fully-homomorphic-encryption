@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRING_CAP_CHAR_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRING_CAP_CHAR_H_
+
 // Capitalizes the first letter of each word.
 
 class State {
@@ -25,3 +28,5 @@ class State {
   // private:
   bool last_was_space_;
 };
+
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRING_CAP_CHAR_H_

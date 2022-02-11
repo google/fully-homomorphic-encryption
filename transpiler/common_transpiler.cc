@@ -159,8 +159,9 @@ std::string FunctionSignature(const xlscc_metadata::MetadataOutput& metadata,
         absl::Substitute("absl::Span<$0> result", element_type));
   }
   for (auto& param : metadata.top_func_proto().params()) {
-    param_signatures.push_back(
-        absl::Substitute("absl::Span<$0> $1", element_type, param.name()));
+    param_signatures.push_back(absl::Substitute("absl::Span<$0$1> $2",
+                                                IsConst(param) ? "const " : "",
+                                                element_type, param.name()));
   }
 
   if (key_param_type.has_value()) {

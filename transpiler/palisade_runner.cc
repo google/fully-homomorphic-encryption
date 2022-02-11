@@ -23,46 +23,48 @@
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 
-lbcrypto::LWECiphertext PalisadeRunner::PalisadeOperations::And(
-    const lbcrypto::LWECiphertext lhs, const lbcrypto::LWECiphertext rhs) {
+PalisadeCiphertext PalisadeRunner::PalisadeOperations::And(
+    PalisadeCiphertextConstRef lhs, PalisadeCiphertextConstRef rhs) {
   if (lhs == rhs) {
     return lhs;
   }
   return cc_.EvalBinGate(lbcrypto::AND, lhs, rhs);
 }
-lbcrypto::LWECiphertext PalisadeRunner::PalisadeOperations::Or(
-    const lbcrypto::LWECiphertext lhs, const lbcrypto::LWECiphertext rhs) {
+PalisadeCiphertext PalisadeRunner::PalisadeOperations::Or(
+    PalisadeCiphertextConstRef lhs, PalisadeCiphertextConstRef rhs) {
   if (lhs == rhs) {
     return lhs;
   }
   return cc_.EvalBinGate(lbcrypto::OR, lhs, rhs);
 }
-lbcrypto::LWECiphertext PalisadeRunner::PalisadeOperations::Not(
-    const lbcrypto::LWECiphertext in) {
+PalisadeCiphertext PalisadeRunner::PalisadeOperations::Not(
+    PalisadeCiphertextConstRef in) {
   return cc_.EvalNOT(in);
 }
 
-lbcrypto::LWECiphertext PalisadeRunner::PalisadeOperations::Constant(
-    bool value) {
+PalisadeCiphertext PalisadeRunner::PalisadeOperations::Constant(bool value) {
   return cc_.EvalConstant(value);
 }
 
-void PalisadeRunner::PalisadeOperations::Copy(const lbcrypto::LWECiphertext src,
-                                              lbcrypto::LWECiphertext& dst) {
+void PalisadeRunner::PalisadeOperations::Copy(PalisadeCiphertextConstRef src,
+                                              PalisadeCiphertextRef& dst) {
   *dst = *src;
 }
 
-lbcrypto::LWECiphertext PalisadeRunner::PalisadeOperations::CopyOf(
-    const lbcrypto::LWECiphertext src) {
+PalisadeCiphertext PalisadeRunner::PalisadeOperations::CopyOf(
+    PalisadeCiphertextConstRef src) {
   return std::make_shared<lbcrypto::LWECiphertextImpl>(*src);
 }
 
 absl::Status PalisadeRunner::Run(
-    absl::Span<lbcrypto::LWECiphertext> result,
-    absl::flat_hash_map<std::string, absl::Span<lbcrypto::LWECiphertext>> args,
+    absl::Span<PalisadeCiphertextRef> result,
+    absl::flat_hash_map<std::string, absl::Span<PalisadeCiphertextConstRef>>
+        in_args,
+    absl::flat_hash_map<std::string, absl::Span<PalisadeCiphertextRef>>
+        inout_args,
     lbcrypto::BinFHEContext cc) {
   PalisadeOperations op(cc);
-  return Base::Run(result, args, &op);
+  return Base::Run(result, in_args, inout_args, &op);
 }
 
 }  // namespace transpiler

@@ -669,7 +669,7 @@ TEST(YosysRunnerTest, IfThenElseTrue) {
   YosysRunner runner{std::string(kLiberty), std::string(kNetlist),
                      std::string(kMetadata)};
   XLS_ASSERT_OK(
-      runner.Run(result.get(), {_if.get(), _then.get(), _else.get()}));
+      runner.Run(result.get(), {_if.get(), _then.get(), _else.get()}, {}));
   auto r = result.Decode();
   EXPECT_EQ(r, 't');
 }
@@ -682,7 +682,7 @@ TEST(YosysRunnerTest, IfThenElseFalse) {
   YosysRunner runner{std::string(kLiberty), std::string(kNetlist),
                      std::string(kMetadata)};
   XLS_ASSERT_OK(
-      runner.Run(result.get(), {_if.get(), _then.get(), _else.get()}));
+      runner.Run(result.get(), {_if.get(), _then.get(), _else.get()}, {}));
   auto r = result.Decode();
   EXPECT_EQ(r, 'e');
 }

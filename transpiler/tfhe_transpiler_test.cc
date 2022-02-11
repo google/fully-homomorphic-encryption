@@ -542,12 +542,17 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_NoParam) {
       R"(#ifndef A_B_C_TEST_H
 #define A_B_C_TEST_H
 
+// clang-format off
+#include "test.types.h"
+// clang-format on
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
+#include "transpiler/data/tfhe_data.h"
 
 absl::Status test_fn(const TFheGateBootstrappingCloudKeySet* bk);
+
 #endif  // A_B_C_TEST_H
 )";
   XLS_ASSERT_OK_AND_ASSIGN(
@@ -571,17 +576,30 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_Param) {
   xlscc_metadata::FunctionParameter* param =
       metadata.mutable_top_func_proto()->add_params();
   param->set_name("param");
+  xlscc_metadata::IntType* param_int_type =
+      param->mutable_type()->mutable_as_int();
+  param_int_type->set_is_signed(true);
+  param_int_type->set_width(16);
 
   static constexpr absl::string_view expected_header =
       R"(#ifndef TEST_H
 #define TEST_H
 
+// clang-format off
+#include "test.types.h"
+// clang-format on
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
+#include "transpiler/data/tfhe_data.h"
 
-absl::Status test_fn(absl::Span<LweSample> param, const TFheGateBootstrappingCloudKeySet* bk);
+absl::Status test_fn(absl::Span<const LweSample> param, const TFheGateBootstrappingCloudKeySet* bk);
+
+absl::Status test_fn(const TfheValueRef<int16_t> param,
+ const TFheGateBootstrappingCloudKeySet* bk) {
+  return test_fn(param.get(), bk);
+}
 #endif  // TEST_H
 )";
   XLS_ASSERT_OK_AND_ASSIGN(
@@ -608,6 +626,7 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_MultipleParams) {
     xlscc_metadata::FunctionParameter* param =
         metadata.mutable_top_func_proto()->add_params();
     param->set_name(param_name);
+    param->mutable_type()->mutable_as_bool();
   }
   XLS_ASSERT_OK_AND_ASSIGN(xls::Function * function, builder.Build());
 
@@ -615,18 +634,28 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_MultipleParams) {
       R"(#ifndef TEST_H
 #define TEST_H
 
+// clang-format off
+#include "test.types.h"
+// clang-format on
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
+#include "transpiler/data/tfhe_data.h"
 
 absl::Status test_fn($0, const TFheGateBootstrappingCloudKeySet* bk);
+
+absl::Status test_fn(const TfheValueRef<bool> param_0, const TfheValueRef<bool> param_1, const TfheValueRef<bool> param_2, const TfheValueRef<bool> param_3, const TfheValueRef<bool> param_4,
+ const TFheGateBootstrappingCloudKeySet* bk) {
+  return test_fn(param_0.get(), param_1.get(), param_2.get(), param_3.get(), param_4.get(), bk);
+}
 #endif  // TEST_H
 )";
+  // clang-format on
   std::vector<std::string> expected_params;
   for (int param_index = 0; param_index < kParamNum; param_index++) {
     expected_params.push_back(
-        absl::StrCat("absl::Span<LweSample> param_", param_index));
+        absl::StrCat("absl::Span<const LweSample> param_", param_index));
   }
   std::string expected_header = absl::Substitute(
       expected_header_template, absl::StrJoin(expected_params, ", "));

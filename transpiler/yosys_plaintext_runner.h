@@ -43,7 +43,8 @@ class YosysRunner {
       const xls::netlist::rtl::CellToOutputEvalFns<BoolValue>& eval_fns);
 
   absl::Status Run(absl::Span<OpaqueValue> result,
-                   std::vector<absl::Span<OpaqueValue>> args);
+                   std::vector<absl::Span<const OpaqueValue>> in_args,
+                   std::vector<absl::Span<OpaqueValue>> inout_args);
 
   std::unique_ptr<BoolValue> CreateBoolValue(OpaqueValue in) {
     return std::make_unique<BoolValue>(in);
@@ -63,7 +64,8 @@ class YosysRunner {
           scanner_(scanner) {}
 
     absl::Status Run(absl::Span<OpaqueValue> result,
-                     std::vector<absl::Span<OpaqueValue>> args);
+                     std::vector<absl::Span<const OpaqueValue>> in_args,
+                     std::vector<absl::Span<OpaqueValue>> inout_args);
 
     BoolValue zero_;
     BoolValue one_;

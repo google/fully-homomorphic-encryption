@@ -63,7 +63,7 @@ using fully_homomorphic_encryption::transpiler::PalisadeRunner;
 $2 {
   XLS_ASSIGN_OR_RETURN(auto runner, PalisadeRunner::CreateFromStrings(
                                     kXLSPackage, kFunctionMetadata));
-  return runner->Run($3, {$4}, cc);
+  return runner->Run($3, {$4}, {$5}, cc);
 }
 )";
   XLS_ASSIGN_OR_RETURN(const std::string signature,
@@ -72,9 +72,16 @@ $2 {
   if (!metadata.top_func_proto().return_type().has_as_void()) {
     return_param = "result";
   }
-  std::vector<std::string> param_entries;
-  for (xls::Param* param : function->params()) {
-    param_entries.push_back(absl::Substitute(R"({"$0", $0})", param->name()));
+  std::vector<std::string> in_param_entries;
+  std::vector<std::string> inout_param_entries;
+  for (const auto& param : metadata.top_func_proto().params()) {
+    if (param.is_reference() && !param.is_const()) {
+      inout_param_entries.push_back(
+          absl::Substitute(R"({"$0", $0})", param.name()));
+    } else {
+      in_param_entries.push_back(
+          absl::Substitute(R"({"$0", $0})", param.name()));
+    }
   }
 
   // Serialize the metadata, removing the trailing null.
@@ -84,7 +91,8 @@ $2 {
 
   return absl::Substitute(kSourceTemplate, function->package()->DumpIr(),
                           metadata_text, signature, return_param,
-                          absl::StrJoin(param_entries, ", "));
+                          absl::StrJoin(in_param_entries, ", "),
+                          absl::StrJoin(inout_param_entries, ", "));
 }
 
 absl::StatusOr<std::string> InterpretedPalisadeTranspiler::TranslateHeader(
@@ -94,19 +102,29 @@ absl::StatusOr<std::string> InterpretedPalisadeTranspiler::TranslateHeader(
   XLS_ASSIGN_OR_RETURN(const std::string header_guard,
                        PathToHeaderGuard(header_path));
   static constexpr absl::string_view kHeaderTemplate =
-      R"(#ifndef $1
-#define $1
+      R"(#ifndef $2
+#define $2
 
+// clang-format off
+#include "$3"
+// clang-format on
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 #include "palisade/binfhe/binfhecontext.h"
+#include "transpiler/data/palisade_data.h"
 
 $0;
-#endif  // $1
+
+$1#endif  // $2
 )";
   XLS_ASSIGN_OR_RETURN(std::string signature,
                        FunctionSignature(function, metadata));
-  return absl::Substitute(kHeaderTemplate, signature, header_guard);
+  absl::optional<std::string> typed_overload =
+      TypedOverload(metadata, "Palisade", "absl::Span<lbcrypto::LWECiphertext>",
+                    "lbcrypto::BinFHEContext", "cc");
+  return absl::Substitute(kHeaderTemplate, signature,
+                          typed_overload.value_or(""), header_guard,
+                          GetTypeHeader(header_path));
 }
 
 absl::StatusOr<std::string> InterpretedPalisadeTranspiler::FunctionSignature(

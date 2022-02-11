@@ -49,9 +49,9 @@ class TranspilerControlStructureSwitchTest
 
 TEST_P(TranspilerControlStructureSwitchTest, TestSwitch) {
   const TranspilerControlStructureSwitchTestCase& test_case = GetParam();
-  auto ciphertext = PalisadeValue<char>::Encrypt(test_case.input, cc(), sk());
-  PalisadeValue<int> result(cc());
-  XLS_ASSERT_OK(test_switch(result.get(), ciphertext.get(), cc()));
+  auto ciphertext = PalisadeChar::Encrypt(test_case.input, cc(), sk());
+  PalisadeInt result(cc());
+  XLS_ASSERT_OK(test_switch(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), test_case.expected_output);
 }
 
@@ -83,8 +83,7 @@ TEST_P(TranspilerControlStructureIfTest, TestIf) {
   auto rhs_ciphertext = PalisadeShort::Encrypt(test_case.input.rhs, cc(), sk());
   PalisadeValue<char> result(cc());
 
-  XLS_ASSERT_OK(
-      test_if(result.get(), lhs_ciphertext.get(), rhs_ciphertext.get(), cc()));
+  XLS_ASSERT_OK(test_if(result, lhs_ciphertext, rhs_ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), test_case.expected_output);
 }
 
@@ -110,7 +109,7 @@ TEST_P(TranspilerControlStructureForLoopTest, TestFor) {
   auto ciphertext = PalisadeShort::Encrypt(test_case.input, cc(), sk());
   PalisadeShort result(cc());
 
-  XLS_ASSERT_OK(test_for(result.get(), ciphertext.get(), cc()));
+  XLS_ASSERT_OK(test_for(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), test_case.expected_output);
 }
 
@@ -119,7 +118,7 @@ TEST_P(TranspilerControlStructureForLoopTest, TestNestedFor) {
   auto ciphertext = PalisadeShort::Encrypt(test_case.input, cc(), sk());
   PalisadeShort result(cc());
 
-  XLS_ASSERT_OK(test_nested_for(result.get(), ciphertext.get(), cc()));
+  XLS_ASSERT_OK(test_nested_for(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), test_case.expected_output);
 }
 
@@ -141,10 +140,10 @@ class TranspilerControlStructureFunctionTest
 
 TEST_P(TranspilerControlStructureFunctionTest, TestFunction) {
   const TranspilerControlStructureFunctionTestCase& test_case = GetParam();
-  auto ciphertext = PalisadeValue<int>::Encrypt(test_case.input, cc(), sk());
-  PalisadeValue<int> result(cc());
+  auto ciphertext = PalisadeInt::Encrypt(test_case.input, cc(), sk());
+  PalisadeInt result(cc());
 
-  XLS_ASSERT_OK(test_function(result.get(), ciphertext.get(), cc()));
+  XLS_ASSERT_OK(test_function(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), test_case.expected_output);
 }
 

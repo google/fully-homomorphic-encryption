@@ -101,8 +101,10 @@ absl::Status YosysRunner::InitializeOnce(
   return absl::OkStatus();
 }
 
-absl::Status YosysRunner::Run(absl::Span<OpaqueValue> result,
-                              std::vector<absl::Span<OpaqueValue>> args) {
+absl::Status YosysRunner::Run(
+    absl::Span<OpaqueValue> result,
+    std::vector<absl::Span<const OpaqueValue>> in_args,
+    std::vector<absl::Span<OpaqueValue>> inout_args) {
 #define OP(name)                                       \
   {                                                    \
 #name, {                                           \
@@ -126,19 +128,29 @@ absl::Status YosysRunner::Run(absl::Span<OpaqueValue> result,
   }
 #undef OP
 
-  return state_->Run(result, args);
+  return state_->Run(result, in_args, inout_args);
 }
 
 absl::Status YosysRunner::YosysRunnerState::Run(
-    absl::Span<OpaqueValue> result, std::vector<absl::Span<OpaqueValue>> args) {
+    absl::Span<OpaqueValue> result,
+    std::vector<absl::Span<const OpaqueValue>> in_args,
+    std::vector<absl::Span<OpaqueValue>> inout_args) {
   std::cout << "Setting up inputs." << std::endl;
   std::string function_name = metadata_.top_func_proto().name().name();
   XLS_ASSIGN_OR_RETURN(auto module, netlist_->GetModule(function_name));
 
   xls::Bits input_bits;
-  for (auto arg : args) {
-    xls::Bits arg_bits(arg);
-    input_bits = xls::bits_ops::Concat({input_bits, arg_bits});
+  size_t in_i = 0, inout_i = 0;
+  for (const auto& param : metadata_.top_func_proto().params()) {
+    if (param.is_reference() && !param.is_const()) {
+      XLS_CHECK(inout_i < inout_args.size());
+      xls::Bits arg_bits(inout_args[inout_i++]);
+      input_bits = xls::bits_ops::Concat({input_bits, arg_bits});
+    } else {
+      XLS_CHECK(in_i < in_args.size());
+      xls::Bits arg_bits(in_args[in_i++]);
+      input_bits = xls::bits_ops::Concat({input_bits, arg_bits});
+    }
   }
   input_bits = xls::bits_ops::Reverse(input_bits);
 
@@ -230,26 +242,36 @@ absl::Status YosysRunner::YosysRunnerState::Run(
       // be 2, since args[2] is the span for the encoded form of argument "c".
       size_t params_i =
           std::distance(metadata_.top_func_proto().params().begin(), found);
+      size_t params_inout_i = -1;
+      for (size_t i = 0; i <= params_i; i++) {
+        const auto& param = metadata_.top_func_proto().params().at(i);
+        if (param.is_reference() && !param.is_const()) {
+          params_inout_i++;
+        }
+      }
+      XLS_CHECK_GE(params_inout_i, 0);
+      XLS_CHECK_LE(params_inout_i, params_i);
+
       // Get the bit size of the argument (e.g., 8 since "c" is defined to be a
       // byte.)
-      size_t arg_size = args[params_i].size();
+      size_t arg_size = inout_args[params_inout_i].size();
 
       // Now read out the index of the parameter itself (e.g., the 0 in "c[0]").
-      size_t params_i_idx = 0;
+      size_t param_bit_idx = 0;
       if (name_and_idx.size() == 2) {
         absl::string_view idx = absl::StripSuffix(name_and_idx[1], "]");
-        XLS_CHECK(absl::SimpleAtoi(idx, &params_i_idx));
+        XLS_CHECK(absl::SimpleAtoi(idx, &param_bit_idx));
       }
       // The i'th parameter subscript must be within range (e.g., 0 must be less
       // than 8, since c is a byte in out example.)
-      XLS_CHECK(params_i_idx < arg_size);
+      XLS_CHECK(param_bit_idx < arg_size);
       // Now, the out[i] is the return value for c[0] from the example above.
       // More generally, out[i] is the write-back value of the param_i'th
       // argument at index param_i_idx.  Copy that bit directly into the output.
       // In our example, this represents argument "c" at index 0, which is
       // exactly args[2].
       const auto* src = (out + i);
-      auto* dest = args[params_i].data() + params_i_idx;
+      auto* dest = inout_args[params_inout_i].data() + param_bit_idx;
       *dest = *src;
       copied++;
     }

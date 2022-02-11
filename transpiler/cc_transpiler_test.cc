@@ -53,8 +53,12 @@ TEST(CcTranspilerLibTest, TranslateHeader_NoParam) {
       R"(#ifndef TEST_H
 #define TEST_H
 
+// clang-format off
+#include "test.types.h"
+// clang-format on
 #include "absl/status/status.h"
 #include "absl/types/span.h"
+#include "transpiler/data/boolean_data.h"
 
 absl::Status test_fn();
 #endif  // TEST_H
@@ -86,10 +90,17 @@ TEST(CcTranspilerLibTest, TranslateHeader_Param) {
       R"(#ifndef TEST_H
 #define TEST_H
 
+// clang-format off
+#include "test.types.h"
+// clang-format on
 #include "absl/status/status.h"
 #include "absl/types/span.h"
+#include "transpiler/data/boolean_data.h"
 
-absl::Status test_fn(absl::Span<bool> param);
+absl::Status test_fn(absl::Span<const bool> param);
+absl::Status test_fn(const EncodedValueRef<uint32_t> param) {
+  return test_fn(param.get());
+}
 #endif  // TEST_H
 )";
   XLS_ASSERT_OK_AND_ASSIGN(
@@ -116,6 +127,7 @@ TEST(CcTranspilerLibTest, TranslateHeader_MultipleParams) {
     xlscc_metadata::FunctionParameter* param =
         metadata.mutable_top_func_proto()->add_params();
     param->set_name(param_name);
+    param->mutable_type()->mutable_as_int()->set_width(32);
   }
   XLS_ASSERT_OK_AND_ASSIGN(xls::Function * function, builder.Build());
 
@@ -123,19 +135,33 @@ TEST(CcTranspilerLibTest, TranslateHeader_MultipleParams) {
       R"(#ifndef TEST_H
 #define TEST_H
 
+// clang-format off
+#include "test.types.h"
+// clang-format on
 #include "absl/status/status.h"
 #include "absl/types/span.h"
+#include "transpiler/data/boolean_data.h"
 
 absl::Status test_fn($0);
+absl::Status test_fn($1) {
+  return test_fn($2);
+}
 #endif  // TEST_H
 )";
+  std::vector<std::string> param_names;
   std::vector<std::string> expected_params;
+  std::vector<std::string> expected_overloaded_params;
   for (int param_index = 0; param_index < kParamNum; param_index++) {
+    param_names.push_back(absl::StrCat("param_", param_index, ".get()"));
     expected_params.push_back(
-        absl::StrCat("absl::Span<bool> param_", param_index));
+        absl::StrCat("absl::Span<const bool> param_", param_index));
+    expected_overloaded_params.push_back(
+        absl::StrCat("const EncodedValueRef<uint32_t> param_", param_index));
   }
   std::string expected_header = absl::Substitute(
-      expected_header_template, absl::StrJoin(expected_params, ", "));
+      expected_header_template, absl::StrJoin(expected_params, ", "),
+      absl::StrJoin(expected_overloaded_params, ", "),
+      absl::StrJoin(param_names, ", "));
 
   XLS_ASSERT_OK_AND_ASSIGN(
       std::string actual,

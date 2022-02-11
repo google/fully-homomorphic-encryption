@@ -35,31 +35,30 @@ using ::fully_homomorphic_encryption::transpiler::TranspilerTestBase;
 class TranspilerTypesTest : public TranspilerTestBase {};
 
 TEST_F(TranspilerTypesTest, TestArray) {
-  auto ciphertext = PalisadeArray<char>::Encrypt("abcd", cc(), sk());
-  PalisadeArray<char> result(4, cc());
-  XLS_ASSERT_OK(test_array(ciphertext.get(), result.get(), cc()));
-  std::initializer_list<char> expected{'a', 'c', 'c', 'e'};
-  EXPECT_EQ(result.Decrypt(sk()), absl::FixedArray<char>(expected));
+  auto ciphertext = PalisadeString::Encrypt("abcd", cc(), sk());
+  PalisadeString result(4, cc());
+  XLS_ASSERT_OK(test_array(ciphertext, result, cc()));
+  EXPECT_EQ(result.Decrypt(sk()), "acce");
 }
 
 TEST_F(TranspilerTypesTest, TestChar) {
-  auto ciphertext = PalisadeValue<char>::Encrypt('a', cc(), sk());
+  auto ciphertext = PalisadeChar::Encrypt('a', cc(), sk());
   PalisadeValue<char> result(cc());
-  XLS_ASSERT_OK(test_char(result.get(), ciphertext.get(), cc()));
+  XLS_ASSERT_OK(test_char(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), 'b');
 }
 
 TEST_F(TranspilerTypesTest, TestInt) {
-  auto ciphertext = PalisadeValue<int>::Encrypt(100, cc(), sk());
-  PalisadeValue<int> result(cc());
-  XLS_ASSERT_OK(test_int(result.get(), ciphertext.get(), cc()));
+  auto ciphertext = PalisadeInt::Encrypt(100, cc(), sk());
+  PalisadeInt result(cc());
+  XLS_ASSERT_OK(test_int(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), 101);
 }
 
 TEST_F(TranspilerTypesTest, TestLong) {
   auto ciphertext = PalisadeValue<long>::Encrypt(100, cc(), sk());
   PalisadeValue<long> result(cc());
-  XLS_ASSERT_OK(test_long(result.get(), ciphertext.get(), cc()));
+  XLS_ASSERT_OK(test_long(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), 101);
 }
 

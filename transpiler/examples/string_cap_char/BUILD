@@ -93,6 +93,7 @@ cc_binary(
         "string_cap_char_bool_testbench.cc",
     ],
     deps = [
+        ":string_cap_char",
         ":string_cap_char_bool",
         "//transpiler/data:boolean_data",
         "@com_google_absl//absl/container:fixed_array",

@@ -79,9 +79,11 @@ absl::StatusOr<TfheBoolValue> YosysTfheRunner::TfheOp_imux2(
   return TfheBoolValue(result, state_->bk_);
 }
 
-absl::Status YosysTfheRunner::Run(absl::Span<LweSample> result,
-                                  std::vector<absl::Span<LweSample>> args,
-                                  const TFheGateBootstrappingCloudKeySet* bk) {
+absl::Status YosysTfheRunner::Run(
+    absl::Span<LweSample> result,
+    std::vector<absl::Span<const LweSample>> in_args,
+    std::vector<absl::Span<LweSample>> inout_args,
+    const TFheGateBootstrappingCloudKeySet* bk) {
 #define OP(name)                                           \
   {                                                        \
 #name, {                                               \
@@ -105,7 +107,7 @@ absl::Status YosysTfheRunner::Run(absl::Span<LweSample> result,
   }
 #undef OP
 
-  return state_->Run(result, args);
+  return state_->Run(result, in_args, inout_args);
 }
 
 absl::Status YosysTfheRunner::InitializeOnce(
@@ -139,7 +141,9 @@ absl::Status YosysTfheRunner::InitializeOnce(
 }
 
 absl::Status YosysTfheRunner::YosysTfheRunnerState::Run(
-    absl::Span<LweSample> result, std::vector<absl::Span<LweSample>> args) {
+    absl::Span<LweSample> result,
+    std::vector<absl::Span<const LweSample>> in_args,
+    std::vector<absl::Span<LweSample>> inout_args) {
   std::string function_name = metadata_.top_func_proto().name().name();
   XLS_ASSIGN_OR_RETURN(auto module, netlist_->GetModule(function_name));
 
@@ -183,11 +187,23 @@ absl::Status YosysTfheRunner::YosysTfheRunnerState::Run(
   std::cout << "Setting up inputs." << std::endl;
   using NetRef = xls::netlist::rtl::AbstractNetRef<TfheBoolValue>;
   std::vector<TfheBoolValue> input_bits;
-  for (auto arg : args) {
+  size_t in_i = 0, inout_i = 0;
+  for (const auto& param : metadata_.top_func_proto().params()) {
     std::vector<TfheBoolValue> arg_bits;
-    arg_bits.reserve(arg.size());
-    for (int i = 0; i < arg.size(); i++) {
-      arg_bits.emplace_back(arg.data() + i, bk_);
+    if (param.is_reference() && !param.is_const()) {
+      XLS_CHECK(inout_i < inout_args.size());
+      const auto& arg = inout_args[inout_i++];
+      arg_bits.reserve(arg.size());
+      for (int i = 0; i < arg.size(); i++) {
+        arg_bits.emplace_back(arg.data() + i, bk_);
+      }
+    } else {
+      XLS_CHECK(in_i < in_args.size());
+      const auto& arg = in_args[in_i++];
+      arg_bits.reserve(arg.size());
+      for (int i = 0; i < arg.size(); i++) {
+        arg_bits.emplace_back(arg.data() + i, bk_);
+      }
     }
     input_bits.insert(input_bits.begin(), arg_bits.begin(), arg_bits.end());
   }
@@ -202,7 +218,7 @@ absl::Status YosysTfheRunner::YosysTfheRunnerState::Run(
     XLS_CHECK(!input_nets.contains(in));
     input_nets.emplace(
         in, std::move(input_bits[module->GetInputPortOffset(in->name())]));
-    //    std::cout << "in->name(): " << in->name() << std::endl;
+    //      std::cout << "in->name(): " << in->name() << std::endl;
   }
   std::cout << "Done setting up inputs." << std::endl;
 
@@ -298,27 +314,37 @@ absl::Status YosysTfheRunner::YosysTfheRunnerState::Run(
       // be 2, since args[2] is the span for the encoded form of argument "c".
       size_t params_i =
           std::distance(metadata_.top_func_proto().params().begin(), found);
+      size_t params_inout_i = -1;
+      for (size_t i = 0; i <= params_i; i++) {
+        const auto& param = metadata_.top_func_proto().params().at(i);
+        if (param.is_reference() && !param.is_const()) {
+          params_inout_i++;
+        }
+      }
+      XLS_CHECK_GE(params_inout_i, 0);
+      XLS_CHECK_LE(params_inout_i, params_i);
+
       // Get the bit size of the argument (e.g., 8 since "c" is defined to be a
       // byte.)
-      size_t arg_size = args[params_i].size();
+      size_t arg_size = inout_args[params_inout_i].size();
 
       // Now read out the index of the parameter itself (e.g., the 0 in "c[0]").
-      size_t params_i_idx = 0;
+      size_t params_bit_idx = 0;
       if (name_and_idx.size() == 2) {
         absl::string_view idx = absl::StripSuffix(name_and_idx[1], "]");
-        XLS_CHECK(absl::SimpleAtoi(idx, &params_i_idx));
+        XLS_CHECK(absl::SimpleAtoi(idx, &params_bit_idx));
       }
       // The i'th parameter subscript must be within range (e.g., 0 must be less
       // than 8, since c is a byte in out example.)
-      XLS_CHECK(params_i_idx < arg_size);
+      XLS_CHECK(params_bit_idx < arg_size);
       // Now, the out[i] is the return value for c[0] from the example above.
       // More generally, out[i] is the write-back value of the param_i'th
       // argument at index param_i_idx.  Copy that bit directly into the output.
       // In our example, this represents argument "c" at index 0, which is
       // exactly args[2].
       const LweSample* src = (out + i)->get();
-      LweSample* dest = args[params_i].data();
-      bootsCOPY(&dest[params_i_idx], src, bk_);
+      LweSample* dest = inout_args[params_inout_i].data();
+      bootsCOPY(&dest[params_bit_idx], src, bk_);
       copied++;
     }
   }

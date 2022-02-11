@@ -33,21 +33,31 @@ std::vector<TfheCiphertextRef> ToRefVector(absl::Span<LweSample> values) {
   return value_refs;
 }
 
+std::vector<TfheCiphertextConstRef> ToRefVector(
+    absl::Span<const LweSample> values) {
+  std::vector<TfheCiphertextConstRef> value_refs;
+  value_refs.reserve(values.size());
+  for (absl::Span<const LweSample>::size_type i = 0; i < values.size(); ++i) {
+    value_refs.push_back(&values[i]);
+  }
+  return value_refs;
+}
+
 }  // namespace
 
-TfheCiphertext TfheRunner::TfheOperations::And(const TfheCiphertextRef lhs,
-                                               const TfheCiphertextRef rhs) {
+TfheCiphertext TfheRunner::TfheOperations::And(TfheCiphertextConstRef lhs,
+                                               TfheCiphertextConstRef rhs) {
   TfheCiphertext result(bk_->params);
   bootsAND(result.get(), lhs.get(), rhs.get(), bk_);
   return result;
 }
-TfheCiphertext TfheRunner::TfheOperations::Or(TfheCiphertextRef lhs,
-                                              TfheCiphertextRef rhs) {
+TfheCiphertext TfheRunner::TfheOperations::Or(TfheCiphertextConstRef lhs,
+                                              TfheCiphertextConstRef rhs) {
   TfheCiphertext result(bk_->params);
   bootsOR(result.get(), lhs.get(), rhs.get(), bk_);
   return result;
 }
-TfheCiphertext TfheRunner::TfheOperations::Not(TfheCiphertextRef in) {
+TfheCiphertext TfheRunner::TfheOperations::Not(TfheCiphertextConstRef in) {
   TfheCiphertext result(bk_->params);
   bootsNOT(result.get(), in.get(), bk_);
   return result;
@@ -59,12 +69,12 @@ TfheCiphertext TfheRunner::TfheOperations::Constant(bool value) {
   return result;
 }
 
-void TfheRunner::TfheOperations::Copy(const TfheCiphertextRef src,
+void TfheRunner::TfheOperations::Copy(TfheCiphertextConstRef src,
                                       TfheCiphertextRef& dst) {
   bootsCOPY(dst.get(), src.get(), bk_);
 }
 
-TfheCiphertext TfheRunner::TfheOperations::CopyOf(TfheCiphertextRef src) {
+TfheCiphertext TfheRunner::TfheOperations::CopyOf(TfheCiphertextConstRef src) {
   TfheCiphertext dst(bk_->params);
   bootsCOPY(dst.get(), src.get(), bk_);
   return dst;
@@ -72,20 +82,32 @@ TfheCiphertext TfheRunner::TfheOperations::CopyOf(TfheCiphertextRef src) {
 
 absl::Status TfheRunner::Run(
     absl::Span<LweSample> result,
-    absl::flat_hash_map<std::string, absl::Span<LweSample>> args,
+    absl::flat_hash_map<std::string, absl::Span<const LweSample>> in_args,
+    absl::flat_hash_map<std::string, absl::Span<LweSample>> inout_args,
     const TFheGateBootstrappingCloudKeySet* bk) {
   std::vector<TfheCiphertextRef> result_ref_vec = ToRefVector(result);
   absl::Span<TfheCiphertextRef> result_ref = absl::MakeSpan(result_ref_vec);
 
-  absl::flat_hash_map<std::string, std::vector<TfheCiphertextRef>> arg_ref_vecs;
-  absl::flat_hash_map<std::string, absl::Span<TfheCiphertextRef>> arg_refs;
-  for (const auto& [name, arg] : args) {
-    arg_ref_vecs[name] = ToRefVector(arg);
-    arg_refs[name] = absl::MakeSpan(arg_ref_vecs[name]);
+  absl::flat_hash_map<std::string, std::vector<TfheCiphertextConstRef>>
+      in_arg_ref_vecs;
+  absl::flat_hash_map<std::string, absl::Span<TfheCiphertextConstRef>>
+      in_arg_refs;
+  for (const auto& [name, arg] : in_args) {
+    in_arg_ref_vecs[name] = ToRefVector(arg);
+    in_arg_refs[name] = absl::MakeSpan(in_arg_ref_vecs[name]);
+  }
+
+  absl::flat_hash_map<std::string, std::vector<TfheCiphertextRef>>
+      inout_arg_ref_vecs;
+  absl::flat_hash_map<std::string, absl::Span<TfheCiphertextRef>>
+      inout_arg_refs;
+  for (const auto& [name, arg] : inout_args) {
+    inout_arg_ref_vecs[name] = ToRefVector(arg);
+    inout_arg_refs[name] = absl::MakeSpan(inout_arg_ref_vecs[name]);
   }
 
   TfheOperations op(bk);
-  return Base::Run(result_ref, arg_refs, &op);
+  return Base::Run(result_ref, in_arg_refs, inout_arg_refs, &op);
 }
 
 }  // namespace transpiler

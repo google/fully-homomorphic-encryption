@@ -65,7 +65,7 @@ static fully_homomorphic_encryption::transpiler::Yosys$7Runner runner(
 }  // namespace
 
 $3 {
-  return runner.Run($4, {$5}$8);
+  return runner.Run($4, {$5}, {$9}$8);
 })source";
 
   XLS_ASSIGN_OR_RETURN(const std::string signature,
@@ -78,9 +78,14 @@ $3 {
   if (!metadata.top_func_proto().return_type().has_as_void()) {
     return_param = "result";
   }
-  std::vector<std::string> param_entries;
+  std::vector<std::string> in_param_entries;
+  std::vector<std::string> inout_param_entries;
   for (auto& param : metadata.top_func_proto().params()) {
-    param_entries.push_back(param.name());
+    if (param.is_reference() && !param.is_const()) {
+      inout_param_entries.push_back(param.name());
+    } else {
+      in_param_entries.push_back(param.name());
+    }
   }
 
   // Serialize the metadata, removing the trailing null.
@@ -90,13 +95,14 @@ $3 {
 
   return absl::Substitute(
       kSourceTemplate, netlist_text, metadata_text, cell_library_text,
-      signature, return_param, absl::StrJoin(param_entries, ", "),
+      signature, return_param, absl::StrJoin(in_param_entries, ", "),
       absl::Substitute(R"hdr(#include "transpiler/yosys_$0runner.h")hdr",
                        transpiler_type == "yosys_plaintext"
                            ? "plaintext_"
                            : "interpreted_tfhe_"),
       transpiler_type == "yosys_plaintext" ? "" : "Tfhe",
-      transpiler_type == "yosys_plaintext" ? "" : ", bk");
+      transpiler_type == "yosys_plaintext" ? "" : ", bk",
+      absl::StrJoin(inout_param_entries, ", "));
 }
 
 absl::StatusOr<std::string> YosysTranspiler::TranslateHeader(
@@ -115,16 +121,40 @@ $2
 
 $0;
 
-#endif  // $1
+$3#endif  // $1
 )";
   XLS_ASSIGN_OR_RETURN(std::string signature,
                        FunctionSignature(metadata, transpiler_type));
-  return absl::Substitute(kHeaderTemplate, signature, header_guard,
-                          transpiler_type == "yosys_plaintext" ? "" : R"hdr(
+
+  absl::optional<std::string> typed_overload;
+  std::string types_include;
+  std::string scheme_data_header;
+  if (transpiler_type == "yosys_plaintext") {
+    typed_overload =
+        TypedOverload(metadata, "Encoded", "absl::Span<bool>", absl::nullopt);
+    scheme_data_header = R"hdr(
+#include "transpiler/data/boolean_data.h"
+)hdr";
+  } else {
+    typed_overload = TypedOverload(metadata, "Tfhe", "absl::Span<LweSample>",
+                                   "const TFheGateBootstrappingCloudKeySet*");
+    scheme_data_header = R"hdr(
 #include "transpiler/data/tfhe_data.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
-                          )hdr");
+)hdr";
+  }
+  types_include =
+      absl::Substitute(R"hdr(
+// clang-format off
+#include "$0"
+// clang-format on
+$1
+                          )hdr",
+                       GetTypeHeader(header_path), scheme_data_header);
+
+  return absl::Substitute(kHeaderTemplate, signature, header_guard,
+                          types_include, typed_overload.value_or(""));
 }
 
 absl::StatusOr<std::string> YosysTranspiler::FunctionSignature(

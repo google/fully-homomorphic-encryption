@@ -64,20 +64,20 @@ namespace fully_homomorphic_encryption {
 namespace transpiler {
 
 template <typename Derived, typename EncodedBit,
-          typename EncodedBitRef = EncodedBit>
+          typename EncodedBitRef = EncodedBit,
+          typename EncodedBitConstRef = const EncodedBitRef>
 class AbstractXlsRunner {
  protected:
   struct BitOperations {
-    virtual EncodedBit And(const EncodedBitRef lhs,
-                           const EncodedBitRef rhs) = 0;
-    virtual EncodedBit Or(const EncodedBitRef lhs, const EncodedBitRef rhs) = 0;
-    virtual EncodedBit Not(const EncodedBitRef in) = 0;
+    virtual EncodedBit And(EncodedBitConstRef lhs, EncodedBitConstRef rhs) = 0;
+    virtual EncodedBit Or(EncodedBitConstRef lhs, EncodedBitConstRef rhs) = 0;
+    virtual EncodedBit Not(EncodedBitConstRef in) = 0;
 
     virtual EncodedBit Constant(bool value) = 0;
 
-    virtual void Copy(const EncodedBitRef src, EncodedBitRef& dst) = 0;
+    virtual void Copy(EncodedBitConstRef src, EncodedBitRef& dst) = 0;
 
-    virtual EncodedBit CopyOf(const EncodedBitRef in) = 0;
+    virtual EncodedBit CopyOf(EncodedBitConstRef in) = 0;
   };
 
  public:
@@ -87,7 +87,8 @@ class AbstractXlsRunner {
 
   absl::Status Run(
       absl::Span<EncodedBitRef> result,
-      absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>> args,
+      absl::flat_hash_map<std::string, absl::Span<EncodedBitConstRef>> in_args,
+      absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>> inout_args,
       BitOperations* op);
 
   static absl::StatusOr<std::unique_ptr<Derived>> CreateFromFile(
@@ -104,7 +105,8 @@ class AbstractXlsRunner {
   // This method copies the relevant bit from input params into the result.
   static absl::StatusOr<EncodedBit> HandleBitSlice(
       const xls::BitSlice* bit_slice,
-      absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>> args,
+      absl::flat_hash_map<std::string, absl::Span<EncodedBitConstRef>> in_args,
+      absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>> inout_args,
       BitOperations* op);
 
   // Array support will need to be updated when structs are added: it could be
@@ -131,7 +133,7 @@ class AbstractXlsRunner {
   // supported, though this is intended to change in the near future.
   absl::Status CollectOutputs(
       absl::Span<EncodedBitRef> result,
-      absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>> args,
+      absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>> inout_args,
       const absl::flat_hash_map</*id=*/uint64_t, absl::optional<EncodedBit>>&
           values);
 
@@ -139,16 +141,22 @@ class AbstractXlsRunner {
   absl::Status ThreadBody();
 
   // This is static to ensure no access to lock-protected state
-  // Can return nullptr for no-ops
+  // Can return nullopt for no-ops
   static absl::StatusOr<absl::optional<EncodedBit>> EvalSingleOp(
-      xls::Node* n, std::vector<absl::optional<EncodedBitRef>> operands,
-      const absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>> args,
+      xls::Node* n, std::vector<absl::optional<EncodedBitConstRef>> operands,
+      const absl::flat_hash_map<std::string, absl::Span<EncodedBitConstRef>>
+          in_args,
+      const absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>>
+          inout_args,
       BitOperations* op);
 
-  absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>> const_args_;
+  absl::flat_hash_map<std::string, absl::Span<EncodedBitConstRef>>
+      const_in_args_;
+  absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>> const_inout_args_;
   BitOperations* const_op_ = nullptr;
 
-  typedef std::tuple<xls::Node*, std::vector<absl::optional<EncodedBitRef>>>
+  typedef std::tuple<xls::Node*,
+                     std::vector<absl::optional<EncodedBitConstRef>>>
       NodeToEval;
 
   pthread_mutex_t lock_;  // Only used by worker threads
@@ -169,10 +177,11 @@ class AbstractXlsRunner {
   xlscc_metadata::MetadataOutput metadata_;
 };
 
-template <typename Derived, typename EncodedBit, typename EncodedBitRef>
-AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::AbstractXlsRunner(
-    std::unique_ptr<xls::Package> package,
-    xlscc_metadata::MetadataOutput metadata)
+template <typename Derived, typename EncodedBit, typename EncodedBitRef,
+          typename EncodedBitConstRef>
+AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef, EncodedBitConstRef>::
+    AbstractXlsRunner(std::unique_ptr<xls::Package> package,
+                      xlscc_metadata::MetadataOutput metadata)
     : package_(std::move(package)), metadata_(metadata) {
   threads_should_exit_.store(false);
 
@@ -191,8 +200,10 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::AbstractXlsRunner(
   }
 }
 
-template <typename Derived, typename EncodedBit, typename EncodedBitRef>
-AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::~AbstractXlsRunner() {
+template <typename Derived, typename EncodedBit, typename EncodedBitRef,
+          typename EncodedBitConstRef>
+AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef,
+                  EncodedBitConstRef>::~AbstractXlsRunner() {
   threads_should_exit_.store(true);
 
   // Wake up threads
@@ -210,12 +221,16 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::~AbstractXlsRunner() {
   XLS_CHECK_EQ(0, sem_destroy(&output_sem_));
 }
 
-template <typename Derived, typename EncodedBit, typename EncodedBitRef>
+template <typename Derived, typename EncodedBit, typename EncodedBitRef,
+          typename EncodedBitConstRef>
 absl::StatusOr<EncodedBit>
-AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::HandleBitSlice(
-    const xls::BitSlice* bit_slice,
-    absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>> args,
-    BitOperations* op) {
+AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef, EncodedBitConstRef>::
+    HandleBitSlice(
+        const xls::BitSlice* bit_slice,
+        absl::flat_hash_map<std::string, absl::Span<EncodedBitConstRef>>
+            in_args,
+        absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>> inout_args,
+        BitOperations* op) {
   xls::Node* operand = bit_slice->operand(0);
 
   int slice_idx = bit_slice->start();
@@ -270,18 +285,24 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::HandleBitSlice(
   }
 
   std::string param_name = operand->GetName();
-  auto found_arg = args.find(param_name);
-  XLS_CHECK(found_arg != args.end());
-  return op->CopyOf(found_arg->second[slice_idx]);
+  auto found_in_arg = in_args.find(param_name);
+  if (found_in_arg != in_args.end()) {
+    return op->CopyOf(found_in_arg->second[slice_idx]);
+  }
+  auto found_inout_arg = inout_args.find(param_name);
+  XLS_CHECK(found_inout_arg != inout_args.end());
+  return op->CopyOf(found_inout_arg->second[slice_idx]);
 }
 
-template <typename Derived, typename EncodedBit, typename EncodedBitRef>
+template <typename Derived, typename EncodedBit, typename EncodedBitRef,
+          typename EncodedBitConstRef>
 absl::Status
-AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::CollectNodeValue(
-    const xls::Node* node, absl::Span<EncodedBitRef> output_arg,
-    int output_offset,
-    const absl::flat_hash_map</*id=*/uint64_t, absl::optional<EncodedBit>>&
-        values) {
+AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef, EncodedBitConstRef>::
+    CollectNodeValue(
+        const xls::Node* node, absl::Span<EncodedBitRef> output_arg,
+        int output_offset,
+        const absl::flat_hash_map</*id=*/uint64_t, absl::optional<EncodedBit>>&
+            values) {
   xls::Type* type = node->GetType();
   std::string outputs;
   switch (type->kind()) {
@@ -347,13 +368,15 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::CollectNodeValue(
   return absl::OkStatus();
 }
 
-template <typename Derived, typename EncodedBit, typename EncodedBitRef>
+template <typename Derived, typename EncodedBit, typename EncodedBitRef,
+          typename EncodedBitConstRef>
 absl::Status
-AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::CollectOutputs(
-    absl::Span<EncodedBitRef> result,
-    absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>> args,
-    const absl::flat_hash_map</*id=*/uint64_t, absl::optional<EncodedBit>>&
-        values) {
+AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef, EncodedBitConstRef>::
+    CollectOutputs(
+        absl::Span<EncodedBitRef> result,
+        absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>> inout_args,
+        const absl::flat_hash_map</*id=*/uint64_t, absl::optional<EncodedBit>>&
+            values) {
   XLS_ASSIGN_OR_RETURN(auto function, GetEntry());
   const xls::Node* return_value = function->return_value();
 
@@ -439,17 +462,19 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::CollectOutputs(
       }
     }
 
-    XLS_RETURN_IF_ERROR(
-        CollectNodeValue(elements[output_idx], args[param->name()], 0, values));
+    XLS_RETURN_IF_ERROR(CollectNodeValue(elements[output_idx],
+                                         inout_args[param->name()], 0, values));
   }
 
   return absl::OkStatus();
 }
 
-template <typename Derived, typename EncodedBit, typename EncodedBitRef>
-absl::StatusOr<std::unique_ptr<Derived>>
-AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::CreateFromFile(
-    absl::string_view ir_path, absl::string_view metadata_path) {
+template <typename Derived, typename EncodedBit, typename EncodedBitRef,
+          typename EncodedBitConstRef>
+absl::StatusOr<std::unique_ptr<Derived>> AbstractXlsRunner<
+    Derived, EncodedBit, EncodedBitRef,
+    EncodedBitConstRef>::CreateFromFile(absl::string_view ir_path,
+                                        absl::string_view metadata_path) {
   XLS_ASSIGN_OR_RETURN(std::string ir_text, xls::GetFileContents(ir_path));
   XLS_ASSIGN_OR_RETURN(auto package, xls::Parser::ParsePackage(ir_text));
 
@@ -463,10 +488,12 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::CreateFromFile(
   return std::make_unique<Derived>(std::move(package), std::move(metadata));
 }
 
-template <typename Derived, typename EncodedBit, typename EncodedBitRef>
-absl::StatusOr<std::unique_ptr<Derived>>
-AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::CreateFromStrings(
-    absl::string_view xls_package, absl::string_view metadata_text) {
+template <typename Derived, typename EncodedBit, typename EncodedBitRef,
+          typename EncodedBitConstRef>
+absl::StatusOr<std::unique_ptr<Derived>> AbstractXlsRunner<
+    Derived, EncodedBit, EncodedBitRef,
+    EncodedBitConstRef>::CreateFromStrings(absl::string_view xls_package,
+                                           absl::string_view metadata_text) {
   XLS_ASSIGN_OR_RETURN(auto package, xls::Parser::ParsePackage(xls_package));
 
   xlscc_metadata::MetadataOutput metadata;
@@ -479,12 +506,17 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::CreateFromStrings(
   return std::make_unique<Derived>(std::move(package), std::move(metadata));
 }
 
-template <typename Derived, typename EncodedBit, typename EncodedBitRef>
+template <typename Derived, typename EncodedBit, typename EncodedBitRef,
+          typename EncodedBitConstRef>
 absl::StatusOr<absl::optional<EncodedBit>>
-AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::EvalSingleOp(
-    xls::Node* n, std::vector<absl::optional<EncodedBitRef>> operands,
-    const absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>> args,
-    BitOperations* op) {
+AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef, EncodedBitConstRef>::
+    EvalSingleOp(
+        xls::Node* n, std::vector<absl::optional<EncodedBitConstRef>> operands,
+        const absl::flat_hash_map<std::string, absl::Span<EncodedBitConstRef>>
+            in_args,
+        const absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>>
+            inout_args,
+        BitOperations* op) {
   XLS_CHECK(n != nullptr);
   auto node_type = n->op();
   if (node_type == xls::Op::kArray || node_type == xls::Op::kArrayIndex ||
@@ -499,7 +531,7 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::EvalSingleOp(
     case xls::Op::kBitSlice: {
       // Slices should be of parameters with width 1.
       auto slice = n->As<xls::BitSlice>();
-      return HandleBitSlice(slice, args, op);
+      return HandleBitSlice(slice, in_args, inout_args, op);
     } break;
     case xls::Op::kLiteral: {
       // Literals must be bits with width 1, or else used purely as array
@@ -542,31 +574,35 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::EvalSingleOp(
   }
 }
 
-template <typename Derived, typename EncodedBit, typename EncodedBitRef>
-absl::Status AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::Run(
+template <typename Derived, typename EncodedBit, typename EncodedBitRef,
+          typename EncodedBitConstRef>
+absl::Status
+AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef, EncodedBitConstRef>::Run(
     absl::Span<EncodedBitRef> result,
-    absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>> args,
+    absl::flat_hash_map<std::string, absl::Span<EncodedBitConstRef>> in_args,
+    absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>> inout_args,
     BitOperations* op) {
   XLS_CHECK(input_queue_.empty());
   XLS_CHECK(output_queue_.empty());
 
-  const_args_ = args;
+  const_in_args_ = in_args;
+  const_inout_args_ = inout_args;
   const_op_ = op;
 
   XLS_ASSIGN_OR_RETURN(auto entry, GetEntry());
   auto type = entry->GetType();
 
   // Arguments must match and all types must be bits.
-  XLS_CHECK(type->parameter_count() == args.size());
+  XLS_CHECK(type->parameter_count() == in_args.size() + inout_args.size());
   for (auto n : entry->params()) {
     XLS_CHECK(n != nullptr);
-    XLS_CHECK(args.contains(n->name()));
+    XLS_CHECK(in_args.contains(n->name()) || inout_args.contains(n->name()));
   }
 
   auto return_value = entry->return_value();
   XLS_CHECK(return_value != nullptr);
 
-  // Map of intermediate LWECiphertext, indexed by node id.
+  // Map of intermediate bits of ciphertext, indexed by node id.
   absl::flat_hash_map<uint64_t, absl::optional<EncodedBit>> values;
 
   absl::flat_hash_set<xls::Node*> unevaluated;
@@ -579,8 +615,8 @@ absl::Status AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::Run(
 
     // Scan ahead and find nodes that are ready to be evaluated
     for (xls::Node* n : unevaluated) {
-      std::vector<absl::optional<EncodedBitRef>> operands;
-      operands.resize(n->operand_count());
+      std::vector<absl::optional<EncodedBitConstRef>> operands;
+      // operands.resize(n->operand_count());
 
       bool all_operands_ready = true;
 
@@ -591,7 +627,7 @@ absl::Status AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::Run(
           all_operands_ready = false;
           break;
         }
-        operands[opi] = found_val->second;
+        operands.emplace_back(found_val->second);
       }
 
       if (all_operands_ready) {
@@ -627,23 +663,26 @@ absl::Status AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::Run(
   }
 
   // Copy the return value.
-  XLS_RETURN_IF_ERROR(CollectOutputs(result, args, values));
+  XLS_RETURN_IF_ERROR(CollectOutputs(result, inout_args, values));
 
-  const_args_.clear();
+  const_in_args_.clear();
+  const_inout_args_.clear();
   const_op_ = nullptr;
   return absl::OkStatus();
 }
 
-template <typename Derived, typename EncodedBit, typename EncodedBitRef>
-void* AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::ThreadBodyStatic(
-    void* runner) {
+template <typename Derived, typename EncodedBit, typename EncodedBitRef,
+          typename EncodedBitConstRef>
+void* AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef,
+                        EncodedBitConstRef>::ThreadBodyStatic(void* runner) {
   XLS_CHECK(reinterpret_cast<Derived*>(runner)->ThreadBody().ok());
   return 0;
 }
 
-template <typename Derived, typename EncodedBit, typename EncodedBitRef>
-absl::Status
-AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::ThreadBody() {
+template <typename Derived, typename EncodedBit, typename EncodedBitRef,
+          typename EncodedBitConstRef>
+absl::Status AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef,
+                               EncodedBitConstRef>::ThreadBody() {
   while (true) {
     // Wait for the signal from the main thread
     sem_wait(&input_sem_);
@@ -662,8 +701,9 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef>::ThreadBody() {
     // Process the input
     xls::Node* n = std::get<0>(to_eval);
     absl::optional<EncodedBit> out = absl::nullopt;
-    XLS_ASSIGN_OR_RETURN(
-        out, EvalSingleOp(n, std::get<1>(to_eval), const_args_, const_op_));
+    XLS_ASSIGN_OR_RETURN(out,
+                         EvalSingleOp(n, std::get<1>(to_eval), const_in_args_,
+                                      const_inout_args_, const_op_));
 
     // Save the output safely
     pthread_mutex_lock(&lock_);

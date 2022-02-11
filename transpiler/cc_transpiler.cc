@@ -138,15 +138,23 @@ absl::StatusOr<std::string> CcTranspiler::TranslateHeader(
       R"(#ifndef $1
 #define $1
 
+// clang-format off
+#include "$2"
+// clang-format on
 #include "absl/status/status.h"
 #include "absl/types/span.h"
+#include "transpiler/data/boolean_data.h"
 
 $0;
-#endif  // $1
+$3#endif  // $1
 )";
   XLS_ASSIGN_OR_RETURN(std::string signature,
                        FunctionSignature(function, metadata));
-  return absl::Substitute(kHeaderTemplate, signature, header_guard);
+  absl::optional<std::string> typed_overload =
+      TypedOverload(metadata, "Encoded", "absl::Span<bool>", absl::nullopt);
+  return absl::Substitute(kHeaderTemplate, signature, header_guard,
+                          GetTypeHeader(header_path),
+                          typed_overload.value_or(""));
 }
 
 absl::StatusOr<std::string> CcTranspiler::FunctionSignature(

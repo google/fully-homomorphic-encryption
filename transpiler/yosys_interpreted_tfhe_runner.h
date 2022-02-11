@@ -167,7 +167,8 @@ class YosysTfheRunner {
       const xls::netlist::rtl::CellToOutputEvalFns<TfheBoolValue>& eval_fns);
 
   absl::Status Run(absl::Span<LweSample> result,
-                   std::vector<absl::Span<LweSample>> args,
+                   std::vector<absl::Span<const LweSample>> in_args,
+                   std::vector<absl::Span<LweSample>> inout_args,
                    const TFheGateBootstrappingCloudKeySet* bk);
 
   std::unique_ptr<TfheBoolValue> CreateTfheBoolValue(bool in) {
@@ -191,7 +192,8 @@ class YosysTfheRunner {
           scanner_(scanner) {}
 
     absl::Status Run(absl::Span<LweSample> result,
-                     std::vector<absl::Span<LweSample>> args);
+                     std::vector<absl::Span<const LweSample>> in_args,
+                     std::vector<absl::Span<LweSample>> inout_args);
 
     const TFheGateBootstrappingCloudKeySet* bk_;
     TfheBoolValue zero_;

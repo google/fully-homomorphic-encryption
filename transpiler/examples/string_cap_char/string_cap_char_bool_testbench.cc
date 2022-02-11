@@ -28,16 +28,15 @@
 #include "xls/common/logging/logging.h"
 
 void BoolStringCap(EncodedString& cipherresult, EncodedString& ciphertext,
-                   int data_size) {
-  absl::FixedArray<bool> state = {true};
+                   int data_size, EncodedState& state) {
   time_t start_time;
   time_t end_time;
   double char_time = 0.0;
   double total_time = 0.0;
   for (int i = 0; i < data_size; i++) {
     start_time = clock();
-    XLS_CHECK_OK(my_package(cipherresult[i].get(), absl::MakeSpan(state),
-                            ciphertext[i].get()));
+    XLS_CHECK_OK(
+        my_package(cipherresult[i].get(), state.get(), ciphertext[i].get()));
     end_time = clock();
     char_time = (end_time - start_time);
     std::cout << "\t\t\t\t\tchar " << i << ": " << char_time / 1000000
@@ -68,10 +67,13 @@ int main(int argc, char** argv) {
   // Decode results.
   std::cout << ciphertext.Decode() << "\n";
 
+  State st;
+  EncodedState cipherstate;
+  cipherstate.Encode(st);
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform string capitalization
   EncodedString cipher_result(data_size);
-  BoolStringCap(cipher_result, ciphertext, data_size);
+  BoolStringCap(cipher_result, ciphertext, data_size, cipherstate);
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 
   std::cout << "Decoded result: ";
