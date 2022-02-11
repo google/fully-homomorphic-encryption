@@ -531,14 +531,87 @@ $1
 #endif//$2)";
 
 // The template for each individual struct. Substitution params:
-//  0: The header from which we're transpiling. The root struct source.
-//  1: The name of the struct we're transpiling.
-//  2: The fully-qualified name of the struct we're transpiling.
-//  3: The body of the internal "Set" routine.
-//  4: The body of the internal "Encrypt" routine.
-//  5: The body of the internal "Decrypt" routine.
-//  6: The [packed] bit width of the structure.
+//  0: The name of the struct we're transpiling.
+//  1: The fully-qualified name of the struct we're transpiling.
+//  2: The body of the internal "Set" routine.
+//  3: The body of the internal "Encrypt" routine.
+//  4: The body of the internal "Decrypt" routine.
+//  5: The [packed] bit width of the structure.
 constexpr const char kClassTemplate[] = R"(
+template <class Sample, class SampleArrayDeleter, class SecretKey, class PublicKey>
+class GenericEncoded$0Ref {
+ public:
+  GenericEncoded$0Ref(Sample* data)
+      : data_(data) { }
+
+  // We set values here directly, instead of using EncodedValue, since EncodedValue
+  // types own their arrays, whereas we'd need to own them here as
+  // contiguously-allocated chunks. (We could modify them to use borrowed data,
+  // but it'd be more work than this). For structure types, though, we do
+  // enable setting on "borrowed" data to enable recursive setting.
+  void SetUnencrypted(const $1& value,
+                      const PublicKey* key) {
+    SetUnencryptedInternal(value, key, data_);
+  }
+
+  void SetEncrypted(const $1& value,
+                    const SecretKey* key) {
+    SetEncryptedInternal(value, key, data_);
+  }
+
+  $1 Decrypt(const SecretKey* key) {
+    $1 result;
+    DecryptInternal(key, data_, &result);
+    return result;
+  }
+
+  static void BorrowedSetUnencrypted(
+      const $1& value, const PublicKey* key,
+      Sample* data) {
+    SetUnencryptedInternal(value, key, data);
+  }
+
+  static void BorrowedSetEncrypted(
+      const $1& value, const SecretKey* key,
+      Sample* data) {
+    SetEncryptedInternal(value, key, data);
+  }
+
+  static void BorrowedDecrypt(
+      const SecretKey* key,
+      Sample* data, $1* result) {
+    DecryptInternal(key, data, result);
+  }
+
+  absl::Span<Sample> get() { return absl::MakeSpan(data_, bit_width()); }
+  absl::Span<const Sample> get() const { return absl::MakeConstSpan(data_, bit_width()); }
+
+  static constexpr size_t bit_width() { return bit_width_; }
+
+ private:
+  static constexpr size_t bit_width_ = $5;
+
+  static void SetUnencryptedInternal(
+      const $1& value, const PublicKey* key,
+      Sample* data) {
+$2
+  }
+
+  static void SetEncryptedInternal(
+      const $1& value, const SecretKey* key,
+      Sample* data) {
+$3
+  }
+
+  static void DecryptInternal(
+      const SecretKey* key, Sample* data,
+      $1* result) {
+$4
+  }
+
+  Sample* data_;
+};
+
 template <class Sample, class SampleArrayDeleter, class SecretKey, class PublicKey>
 class GenericEncoded$0 {
  public:
@@ -546,7 +619,14 @@ class GenericEncoded$0 {
       : data_(data, deleter) {}
   GenericEncoded$0(GenericEncoded$0 &&) = default;
 
-  // We set values here directly, instead of using TfheValue, since TfheValue
+  operator const GenericEncoded$0Ref<Sample, SampleArrayDeleter, SecretKey, PublicKey>() const& {
+    return GenericEncoded$0Ref<Sample, SampleArrayDeleter, SecretKey, PublicKey>(data_.get());
+  }
+  operator GenericEncoded$0Ref<Sample, SampleArrayDeleter, SecretKey, PublicKey>() & {
+    return GenericEncoded$0Ref<Sample, SampleArrayDeleter, SecretKey, PublicKey>(data_.get());
+  }
+
+  // We set values here directly, instead of using EncodedValue, since EncodedValue
   // types own their arrays, whereas we'd need to own them here as
   // contiguously-allocated chunks. (We could modify them to use borrowed data,
   // but it'd be more work than this). For structure types, though, we do
@@ -583,6 +663,7 @@ class GenericEncoded$0 {
   }
 
   absl::Span<Sample> get() { return absl::MakeSpan(data_.get(), bit_width()); }
+  absl::Span<const Sample> get() const { return absl::MakeConstSpan(data_.get(), bit_width()); }
   static constexpr size_t bit_width() { return bit_width_; }
 
  private:
@@ -732,6 +813,7 @@ private:
   using EncodedBase$0::BorrowedDecrypt;
 };
 
+using Encoded$0Ref = GenericEncoded$0Ref<bool, std::default_delete<bool[]>, DummySecretKey, DummyPublicKey>;
 )";
 
 absl::StatusOr<std::string> ConvertStructsToEncodedBool(
@@ -790,8 +872,7 @@ $2
 #endif//$0)";
 
 // Tfhe struct template
-//  0: Header guard
-//  1: Type name
+//  0: Type name
 constexpr const char kTfheStructTemplate[] = R"(
 using TfheBase$0 = GenericEncoded$0<LweSample, LweSampleArrayDeleter, TFheGateBootstrappingSecretKeySet, TFheGateBootstrappingCloudKeySet>;
 class Tfhe$0 : public TfheBase$0 {
@@ -799,7 +880,10 @@ public:
   Tfhe$0(const TFheGateBootstrappingParameterSet* params) :
       TfheBase$0(new_gate_bootstrapping_ciphertext_array(Tfhe$0::bit_width(), params),
                  LweSampleArrayDeleter(Tfhe$0::bit_width())) {}
-};)";
+};
+
+using Tfhe$0Ref = GenericEncoded$0Ref<LweSample, LweSampleArrayDeleter, TFheGateBootstrappingSecretKeySet, TFheGateBootstrappingCloudKeySet>;
+)";
 
 absl::StatusOr<std::string> ConvertStructsToEncodedTfhe(
     absl::string_view generic_header,
@@ -884,7 +968,9 @@ class Palisade$0 : public PalisadeBase$0 {
 
  private:
   lbcrypto::BinFHEContext cc_;
-};)";
+};
+
+using Palisade$0Ref = GenericEncoded$0Ref<lbcrypto::LWECiphertext, std::default_delete<lbcrypto::LWECiphertext[]>, PalisadePrivateKeySet, lbcrypto::BinFHEContext>;)";
 
 absl::StatusOr<std::string> ConvertStructsToEncodedPalisade(
     absl::string_view generic_header,
