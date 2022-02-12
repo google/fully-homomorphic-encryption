@@ -100,27 +100,34 @@ std::string TfheTranspiler::InitializeNode(const Node* node) {
 // Input: Node(id = 5, op = kNot, operands = Node(id = 2))
 // Output: "  bootsNOT(temp_nodes[5], temp_nodes[2], bk);\n\n"
 absl::StatusOr<std::string> TfheTranspiler::Execute(const Node* node) {
-  static const absl::flat_hash_map<xls::Op, absl::string_view> kFHEOps = {
-      {Op::kAnd, "bootsAND"},
-      {Op::kOr, "bootsOR"},
-      {Op::kNot, "bootsNOT"},
-      {Op::kLiteral, "bootsCONSTANT"},
-  };
-  auto it = kFHEOps.find(node->op());
-  if (it == kFHEOps.end()) {
-    return absl::InvalidArgumentError("Unsupported Op kind.");
+  absl::ParsedFormat<'s', 's'> statement{
+      "// Unsupported Op kind; arguments \"%s\", \"%s\"\n\n"};
+  switch (node->op()) {
+    case Op::kAnd:
+      statement = absl::ParsedFormat<'s', 's'>{"  bootsAND(%s, %s, bk);\n\n"};
+      break;
+    case Op::kOr:
+      statement = absl::ParsedFormat<'s', 's'>{"  bootsOR(%s, %s, bk);\n\n"};
+      break;
+    case Op::kNot:
+      statement = absl::ParsedFormat<'s', 's'>{"  bootsNOT(%s, %s, bk);\n\n"};
+      break;
+    case Op::kLiteral:
+      statement =
+          absl::ParsedFormat<'s', 's'>{"  bootsCONSTANT(%s, %s, bk);\n\n"};
+      break;
+    default:
+      return absl::InvalidArgumentError("Unsupported Op kind.");
   }
-  const absl::string_view tfhe_op = it->second;
 
-  std::string operation =
-      absl::StrFormat("  %s(%s, ", tfhe_op, NodeReference(node));
+  std::vector<std::string> arguments;
   if (node->Is<Literal>()) {
     const Literal* literal = node->As<Literal>();
     XLS_ASSIGN_OR_RETURN(const Bits bit, literal->value().GetBitsWithStatus());
     if (bit.IsOne()) {
-      absl::StrAppend(&operation, "1, ");
+      arguments.push_back("1");
     } else if (bit.IsZero()) {
-      absl::StrAppend(&operation, "0, ");
+      arguments.push_back("0");
     } else {
       // We allow literals strictly for pulling values out of [param] arrays.
       for (const Node* user : literal->users()) {
@@ -132,12 +139,11 @@ absl::StatusOr<std::string> TfheTranspiler::Execute(const Node* node) {
     }
   } else {
     for (const Node* operand_node : node->operands()) {
-      absl::StrAppend(&operation, NodeReference(operand_node), ", ");
+      arguments.push_back(NodeReference(operand_node));
     }
   }
-  // bk is the bootstrapping key from TFHE library.
-  absl::StrAppend(&operation, "bk);\n\n");
-  return operation;
+  return absl::StrFormat(statement, NodeReference(node),
+                         absl::StrJoin(arguments, ", "));
 }
 
 absl::StatusOr<std::string> TfheTranspiler::TranslateHeader(
