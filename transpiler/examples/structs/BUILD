@@ -523,11 +523,53 @@ fhe_cc_library(
     hdrs = ["struct_with_struct_array.h"],
 )
 
+fhe_cc_library(
+    name = "struct_with_struct_array_interpreted_tfhe",
+    src = "struct_with_struct_array.cc",
+    hdrs = ["struct_with_struct_array.h"],
+    backend = "interpreted_tfhe",
+    optimizer = "xls",
+)
+
+fhe_cc_library(
+    name = "struct_with_struct_array_yosys_interpreted_tfhe",
+    src = "struct_with_struct_array.cc",
+    hdrs = ["struct_with_struct_array.h"],
+    backend = "interpreted_tfhe",
+    optimizer = "yosys",
+)
+
 cc_binary(
     name = "struct_with_struct_array_tfhe_testbench",
     srcs = ["struct_with_struct_array_tfhe_testbench.cc"],
     deps = [
         ":struct_with_struct_array_tfhe",
+        "//transpiler/data:tfhe_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "struct_with_struct_array_interpreted_tfhe_testbench",
+    srcs = ["struct_with_struct_array_tfhe_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_TFHE"],
+    deps = [
+        ":struct_with_struct_array_interpreted_tfhe",
+        "//transpiler/data:tfhe_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "struct_with_struct_array_yosys_interpreted_tfhe_testbench",
+    srcs = ["struct_with_struct_array_tfhe_testbench.cc"],
+    copts = ["-DUSE_YOSYS_INTERPRETED_TFHE"],
+    deps = [
+        ":struct_with_struct_array_yosys_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
