@@ -1,0 +1,337 @@
+// Copyright 2021 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include "transpiler/yosys_interpreted_palisade_runner.h"
+
+#include "absl/container/flat_hash_map.h"
+#include "absl/strings/substitute.h"
+#include "google/protobuf/text_format.h"
+#include "palisade/binfhe/binfhecontext.h"
+#include "xls/common/status/status_macros.h"
+#include "xls/contrib/xlscc/metadata_output.pb.h"
+#include "xls/ir/bits.h"
+#include "xls/ir/bits_ops.h"
+#include "xls/netlist/netlist.h"
+
+namespace fully_homomorphic_encryption {
+namespace transpiler {
+
+using EvalFn = xls::netlist::rtl::CellOutputEvalFn<lbcrypto::LWECiphertext>;
+
+// NOTE: The input order to methods YosysPalisadeRunner::PalisadeOp_* is the
+// same as the order in which the pins are declared in the Liberty file.  This
+// is generally as you expect.
+
+absl::StatusOr<PalisadeBoolValue> YosysPalisadeRunner::PalisadeOp_inv(
+    const std::vector<PalisadeBoolValue>& args) {
+  XLS_CHECK_EQ(args.size(), 1);
+  return PalisadeBoolValue(state_->cc_.EvalNOT(args[0].lwe()), state_->cc_);
+}
+
+absl::StatusOr<PalisadeBoolValue> YosysPalisadeRunner::PalisadeOp_buffer(
+    const std::vector<PalisadeBoolValue>& args) {
+  XLS_CHECK_EQ(args.size(), 1);
+  return args[0];
+}
+
+#define IMPL2(cell, GATE)                                                      \
+  absl::StatusOr<PalisadeBoolValue> YosysPalisadeRunner::PalisadeOp_##cell(    \
+      const std::vector<PalisadeBoolValue>& args) {                            \
+    XLS_CHECK_EQ(args.size(), 2);                                              \
+    return PalisadeBoolValue(                                                  \
+        state_->cc_.EvalBinGate(lbcrypto::GATE, args[0].lwe(), args[1].lwe()), \
+        state_->cc_);                                                          \
+  }
+
+IMPL2(and2, AND);
+IMPL2(nand2, NAND);
+IMPL2(or2, OR);
+IMPL2(nor2, NOR);
+IMPL2(xor2, XOR_FAST);
+IMPL2(xnor2, XNOR_FAST);
+#undef IMPL2
+
+absl::Status YosysPalisadeRunner::Run(
+    absl::Span<lbcrypto::LWECiphertext> result,
+    std::vector<absl::Span<const lbcrypto::LWECiphertext>> in_args,
+    std::vector<absl::Span<lbcrypto::LWECiphertext>> inout_args,
+    lbcrypto::BinFHEContext cc) {
+#define OP(name)                                               \
+  {                                                            \
+#name, {                                                   \
+      {                                                        \
+        "Y",                                                   \
+            [this](const std::vector<PalisadeBoolValue>& args) \
+                -> absl::StatusOr<PalisadeBoolValue> {         \
+              return this->PalisadeOp_##name(args);            \
+            }                                                  \
+      }                                                        \
+    }                                                          \
+  }
+  if (state_ == nullptr) {
+    xls::netlist::rtl::CellToOutputEvalFns<PalisadeBoolValue> palisade_eval_map{
+        OP(inv), OP(buffer), OP(and2), OP(nand2),
+        OP(or2), OP(nor2),   OP(xor2), OP(xnor2),
+    };
+
+    XLS_RETURN_IF_ERROR(InitializeOnce(cc, palisade_eval_map));
+  }
+#undef OP
+
+  return state_->Run(result, in_args, inout_args);
+}
+
+absl::Status YosysPalisadeRunner::InitializeOnce(
+    lbcrypto::BinFHEContext cc,
+    const xls::netlist::rtl::CellToOutputEvalFns<PalisadeBoolValue>& eval_fns) {
+  if (state_ == nullptr) {
+    state_ = std::make_unique<YosysPalisadeRunnerState>(
+        cc, *xls::netlist::cell_lib::CharStream::FromText(liberty_text_),
+        xls::netlist::rtl::Scanner(netlist_text_));
+
+    std::cout << "Parsing netlist..." << std::endl;
+    auto start_time = absl::Now();
+    state_->netlist_ = std::move(
+        *xls::netlist::rtl::AbstractParser<PalisadeBoolValue>::ParseNetlist(
+            &state_->cell_library_, &state_->scanner_, state_->zero_,
+            state_->one_));
+    std::cout << "Parsing netlist took "
+              << absl::ToDoubleSeconds(absl::Now() - start_time) << " secs"
+              << std::endl;
+
+    std::cout << "Adding cell-evaluation functions." << std::endl;
+    XLS_RETURN_IF_ERROR(state_->netlist_->AddCellEvaluationFns(eval_fns));
+    std::cout << "Done adding cell-evaluation functions." << std::endl;
+
+    std::cout << "Parsing metadata." << std::endl;
+    XLS_CHECK(google::protobuf::TextFormat::ParseFromString(
+        metadata_text_, &state_->metadata_));
+    std::cout << "Done parsing metadata." << std::endl;
+  }
+  return absl::OkStatus();
+}
+
+absl::Status YosysPalisadeRunner::YosysPalisadeRunnerState::Run(
+    absl::Span<lbcrypto::LWECiphertext> result,
+    std::vector<absl::Span<const lbcrypto::LWECiphertext>> in_args,
+    std::vector<absl::Span<lbcrypto::LWECiphertext>> inout_args) {
+  std::string function_name = metadata_.top_func_proto().name().name();
+  XLS_ASSIGN_OR_RETURN(auto module, netlist_->GetModule(function_name));
+
+  // Arguments are in the form of spans of LWECiphertexts, with one span per
+  // input argument.  So for example, if you have two inputs, an uint8_t and an
+  // int32_t, then you'll have two spans, the first of which is 8-bits wide, and
+  // the second of which is 32-bits wide.  Each span entry will be a
+  // LWECiphertext representing one bit of the input.  It represents a bit of
+  // input, but it does not act like a "bool".
+  //
+  // The interpreter, on the other hand, expects values that act as booleans:
+  // they can be constructed from bool and can participate in boolean operators.
+  // From the interpreter's view, they or may not be evaluated to booleans (in
+  // our case, or course, we want to prevent such evaluation).
+  //
+  //    a) Constructing from bool is necessary to assign initial values to
+  //    constants in the netlist.  These constants are part of the algorithm,
+  //    and constructing TFHE objects from them is OK.  Also, technically
+  //    evaluating them as bool is OK since we know their values already.
+  //
+  //    b) Bool expressions.  The Interpreter has code to either parse *and*
+  //    interpret the cell-output-pin-function definitions already provided in
+  //    the cell library as part of the cell definitions, or to parse the
+  //    functions but trap directly into our callback implementations (e.g.,
+  //    YosysPalisadeRunner::PalisadeOp_xor2) to do the actual evaluation.  For
+  //    the latter, we only need requirement (a) above, because all the actual
+  //    operations are handled in the callbacks.  However, the Interpreter is
+  //    coded to handle the case where a callback isn't available, and so it
+  //    needs to be able to evaluate the FHE objects as booleans as usual.  For
+  //    this reason, we must provide arithmetic operation capabilities to our
+  //    FHE booleans.
+  //
+  //    c) No evaluation to bool.  For obvious reasons.
+  //
+  // Requirement (b) is useful if for some reasons we cannot provide an
+  // implementation of a cell and instead rely on the function parser to
+  // interpret it.  In the extreme case, we can simply not pass TfheEvalMap to
+  // the interpreter, forcing it to evaluate everything.  That will still work
+  // since the FHE objects act as bools.
+
+  std::cout << "Setting up inputs." << std::endl;
+  using NetRef = xls::netlist::rtl::AbstractNetRef<PalisadeBoolValue>;
+  std::vector<PalisadeBoolValue> input_bits;
+  size_t in_i = 0, inout_i = 0;
+  for (const auto& param : metadata_.top_func_proto().params()) {
+    std::vector<PalisadeBoolValue> arg_bits;
+    if (param.is_reference() && !param.is_const()) {
+      XLS_CHECK(inout_i < inout_args.size());
+      const auto& arg = inout_args[inout_i++];
+      arg_bits.reserve(arg.size());
+      for (int i = 0; i < arg.size(); i++) {
+        arg_bits.emplace_back(arg[i], cc_);
+      }
+    } else {
+      XLS_CHECK(in_i < in_args.size());
+      const auto& arg = in_args[in_i++];
+      arg_bits.reserve(arg.size());
+      for (int i = 0; i < arg.size(); i++) {
+        arg_bits.emplace_back(arg[i], cc_);
+      }
+    }
+    input_bits.insert(input_bits.begin(), arg_bits.begin(), arg_bits.end());
+  }
+  std::reverse(input_bits.begin(), input_bits.end());
+
+  xls::netlist::AbstractNetRef2Value<PalisadeBoolValue> input_nets;
+  const std::vector<NetRef>& module_inputs = module->inputs();
+  XLS_CHECK(module_inputs.size() == input_bits.size());
+
+  for (int i = 0; i < module->inputs().size(); i++) {
+    const NetRef in = module_inputs[i];
+    XLS_CHECK(!input_nets.contains(in));
+    input_nets.emplace(
+        in, std::move(input_bits[module->GetInputPortOffset(in->name())]));
+    //      std::cout << "in->name(): " << in->name() << std::endl;
+  }
+  std::cout << "Done setting up inputs." << std::endl;
+
+  std::cout << "Interpreting." << std::endl;
+  auto zero = PalisadeBoolValue::Unencrypted(false, cc_);
+  auto one = PalisadeBoolValue::Unencrypted(true, cc_);
+  // *2 for hyperthreading opportunities
+  const int num_threads = sysconf(_SC_NPROCESSORS_ONLN) * 2;
+  xls::netlist::AbstractInterpreter<PalisadeBoolValue> interpreter(
+      netlist_.get(), zero, one, num_threads);
+  XLS_ASSIGN_OR_RETURN(auto output_nets,
+                       interpreter.InterpretModule(module, input_nets, {}));
+
+  std::cout << "Collecting outputs." << std::endl;
+
+  // The return value output_nets is a map from NetRef to PalisadeBoolValue
+  // objects. Each of the PalisadeBoolValue objects contains an LWECiphertext,
+  // which it either owns or has borrowed from elsewhere (whether it owns or has
+  // borrowed does not matter here.)
+  //
+  // We need to map the output_nets-contained LWECiphertexts to the result. We
+  // do that by assigning each pointer in the result array to the corresponding
+  // pointer in the output_nets-owned LWECiphertexts.
+
+  std::vector<lbcrypto::LWECiphertext> output_bit_vector;
+
+  XLS_CHECK(module->outputs().size() == output_nets.size());
+  for (const NetRef ref : module->outputs()) {
+    auto tfhe_bool = output_nets.at(ref);
+    auto lwe = tfhe_bool.lwe();
+    XLS_CHECK(lwe != nullptr);
+    output_bit_vector.push_back(lwe);
+  }
+
+  // As we iterate over output_bit_vector, we'll use this iterator.
+  auto out = output_bit_vector.cbegin();
+
+  // The return value of the function will always come first, so we copy that.
+  // If there is no return value, then result.size() == 0 and we do not copy
+  // anything.
+  for (int i = 0; i < result.size(); i++) {
+    result[i] = *out++;
+  }
+
+  // The remaining output wires in the netlist follow the declaration order of
+  // the input wires in the verilog file.  Suppose you have the following
+  // netlist:
+  //
+  // module foo(a, b, c, out);
+  //     input [7:0] c;
+  //     input a;
+  //     output [7:0] out;
+  //     input [7:0] b;
+  //
+  // Suppose that in that netlist input wires a, b, and c represent in/out
+  // parameters in the source language (i.e. they are non-const references in
+  // C++).
+  //
+  // In this case, the return values of these parameters will be splayed out in
+  // the ouput in the same order in which the input wires are declared, rather
+  // than the order in which they appear in the module statement.  In other
+  // words, at this point out will have c[0], c[1], ... c[7], then it will have
+  // a, and finally it will have b[0], ..., b[7].
+  //
+  // However, the inputs to the runner follow the order in the module statement
+  // (which in turn mirrors the order in which they are in the source language.)
+  // Therefore, we have to identify which parts of the output wires correspond
+  // to each of the input arguments.
+  size_t copied = result.size();
+  for (int i = 0; i < module_inputs.size(); i++) {
+    // Start by pulling off the first input net wire.  Following the example
+    // above, it will have the name "c[0]".  (When we get to the single-wire "a"
+    // next, the name will simply be "a".).
+    std::vector<std::string> name_and_idx =
+        absl::StrSplit(module_inputs[i]->name(), '[');
+    // Look for the non-indexed name ("c" in the example above) in the list of
+    // function arguments, which we can access from the metadata.
+    auto found = std::find_if(
+        metadata_.top_func_proto().params().cbegin(),
+        metadata_.top_func_proto().params().cend(),
+        [&name_and_idx](const xlscc_metadata::FunctionParameter& arg) {
+          return arg.name() == name_and_idx[0];
+        });
+    // We must be able to find that parameter--failing to is a bug, as we
+    // autogenerate both the netlist and the metadata from the same source file,
+    // and provide these parameters to this method.
+    XLS_CHECK(found != metadata_.top_func_proto().params().cend());
+
+    if (found->is_reference() && !found->is_const()) {
+      // Find the index of the argument for our match.  In our example, it will
+      // be 2, since args[2] is the span for the encoded form of argument "c".
+      size_t params_i =
+          std::distance(metadata_.top_func_proto().params().begin(), found);
+      size_t params_inout_i = -1;
+      for (size_t i = 0; i <= params_i; i++) {
+        const auto& param = metadata_.top_func_proto().params().at(i);
+        if (param.is_reference() && !param.is_const()) {
+          params_inout_i++;
+        }
+      }
+      XLS_CHECK_GE(params_inout_i, 0);
+      XLS_CHECK_LE(params_inout_i, params_i);
+
+      // Get the bit size of the argument (e.g., 8 since "c" is defined to be a
+      // byte.)
+      size_t arg_size = inout_args[params_inout_i].size();
+
+      // Now read out the index of the parameter itself (e.g., the 0 in "c[0]").
+      size_t params_bit_idx = 0;
+      if (name_and_idx.size() == 2) {
+        absl::string_view idx = absl::StripSuffix(name_and_idx[1], "]");
+        XLS_CHECK(absl::SimpleAtoi(idx, &params_bit_idx));
+      }
+      // The i'th parameter subscript must be within range (e.g., 0 must be less
+      // than 8, since c is a byte in out example.)
+      XLS_CHECK(params_bit_idx < arg_size);
+      // Now, the out[i] is the return value for c[0] from the example above.
+      // More generally, out[i] is the write-back value of the param_i'th
+      // argument at index param_i_idx.  Copy that bit directly into the output.
+      // In our example, this represents argument "c" at index 0, which is
+      // exactly args[2].
+      inout_args[params_inout_i][params_bit_idx] = out[i];
+      copied++;
+    }
+  }
+  XLS_CHECK(copied == output_bit_vector.size());
+
+  std::cout << "Done." << std::endl;
+
+  return absl::OkStatus();
+}
+
+}  // namespace transpiler
+}  // namespace fully_homomorphic_encryption

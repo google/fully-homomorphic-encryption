@@ -42,6 +42,8 @@ absl::StatusOr<std::string> ElementType(Backend backend) {
       return "bool";
     case Backend::kInterpretedTFHE:
       return "LweSample";
+    case Backend::kInterpretedPALISADE:
+      return "lbcrypto::LWECiphertext";
     default:
       return absl::UnimplementedError(absl::Substitute(
           "The Yosys pipeline does not currently implement the '$0' backend.",
@@ -121,6 +123,10 @@ $3 {
       runner_prefix = "Tfhe";
       args_suffix = ", bk";
       break;
+    case Backend::kInterpretedPALISADE:
+      runner_prefix = "Palisade";
+      args_suffix = ", cc";
+      break;
     case Backend::kCleartext:
       // Uses YosysRunner; no prefix needed.
       // No key argument required.
@@ -174,6 +180,14 @@ $3#endif  // $1
 #include "tfhe/tfhe_io.h"
 )hdr";
       break;
+    case Backend::kInterpretedPALISADE:
+      typed_overload = TypedOverload(metadata, "Palisade", data_type,
+                                     "lbcrypto::BinFHEContext");
+      scheme_data_header = R"hdr(
+#include "transpiler/data/palisade_data.h"
+#include "palisade/binfhe/binfhecontext.h"
+)hdr";
+      break;
     case Backend::kCleartext:
       typed_overload =
           TypedOverload(metadata, "Encoded", data_type, absl::nullopt);
@@ -208,6 +222,9 @@ absl::StatusOr<std::string> YosysTranspiler::FunctionSignature(
       return transpiler::FunctionSignature(
           metadata, element_type, "const TFheGateBootstrappingCloudKeySet*",
           "bk");
+    case Backend::kInterpretedPALISADE:
+      return transpiler::FunctionSignature(metadata, element_type,
+                                           "lbcrypto::BinFHEContext", "cc");
     case Backend::kCleartext:
       return transpiler::FunctionSignature(metadata, element_type,
                                            absl::nullopt);

@@ -15,19 +15,19 @@
 
 #include <iostream>
 
-#include "tfhe/tfhe.h"
-#include "transpiler/data/tfhe_data.h"
+#include "palisade/binfhe/binfhecontext.h"
+#include "transpiler/data/palisade_data.h"
 #include "xls/common/logging/logging.h"
 
-#ifdef USE_INTERPRETED_TFHE
-#include "transpiler/examples/ifte/ifte_interpreted_tfhe.h"
-#elif USE_YOSYS_INTERPRETED_TFHE
-#include "transpiler/examples/ifte/ifte_yosys_interpreted_tfhe.h"
+#if defined(USE_INTERPRETED_PALISADE)
+#include "transpiler/examples/ifte/ifte_interpreted_palisade.h"
+#elif defined(USE_YOSYS_INTERPRETED_PALISADE)
+#include "transpiler/examples/ifte/ifte_yosys_interpreted_palisade.h"
 #else
-#include "transpiler/examples/ifte/ifte_tfhe.h"
+#include "transpiler/examples/ifte/ifte_palisade.h"
 #endif
 
-const int main_minimum_lambda = 120;
+constexpr auto kSecurityLevel = lbcrypto::MEDIUM;
 
 int main(int argc, char** argv) {
   if (argc < 4) {
@@ -41,48 +41,45 @@ int main(int argc, char** argv) {
   char e = argv[3][0];
 
   // generate a keyset
-  TFheGateBootstrappingParameterSet* params =
-      new_default_gate_bootstrapping_parameters(main_minimum_lambda);
+  auto cc = lbcrypto::BinFHEContext();
 
   // generate a random key
   // Note: In real applications, a cryptographically secure seed needs to be
   // used.
-  uint32_t seed[] = {314, 1592, 657};
-  tfhe_random_generator_setSeed(seed, 3);
-  TFheGateBootstrappingSecretKeySet* key =
-      new_random_gate_bootstrapping_secret_keyset(params);
-  const TFheGateBootstrappingCloudKeySet* cloud_key = &key->cloud;
+  cc.GenerateBinFHEContext(kSecurityLevel);
+  auto sk = cc.KeyGen();
+  cc.BTKeyGen(sk);
 
   std::cout << "i: " << i << std::endl;
   std::cout << "t: " << t << std::endl;
   std::cout << "e: " << e << std::endl;
 
   // Encrypt data
-  auto ciphertext_i = TfheBool::Encrypt(i, key);
-  auto ciphertext_t = TfheChar::Encrypt(t, key);
-  auto ciphertext_e = TfheChar::Encrypt(e, key);
+  auto ciphertext_i = PalisadeBool::Encrypt(i, cc, sk);
+  auto ciphertext_t = PalisadeChar::Encrypt(t, cc, sk);
+  auto ciphertext_e = PalisadeChar::Encrypt(e, cc, sk);
 
   std::cout << "Encryption done" << std::endl;
 
   std::cout << "Initial state check by decryption: " << std::endl;
   // Decrypt results.
-  std::cout << (ciphertext_i.Decrypt(key) ? 'T' : 'F');
+  std::cout << (ciphertext_i.Decrypt(sk) ? 'T' : 'F');
   std::cout << "  ";
-  std::cout << static_cast<char>(ciphertext_t.Decrypt(key));
+  std::cout << static_cast<char>(ciphertext_t.Decrypt(sk));
   std::cout << "  ";
-  std::cout << static_cast<char>(ciphertext_e.Decrypt(key));
+  std::cout << static_cast<char>(ciphertext_e.Decrypt(sk));
 
   std::cout << "\n";
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform addition
-  TfheChar cipher_result(params);
+  PalisadeChar cipher_result(cc);
   XLS_CHECK_OK(
-      ifte(cipher_result, ciphertext_i, ciphertext_t, ciphertext_e, cloud_key));
+      ifte(cipher_result, ciphertext_i, ciphertext_t, ciphertext_e, cc));
 
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 
-  char res = cipher_result.Decrypt(key);
+  char res = cipher_result.Decrypt(sk);
   std::cout << "Decrypted result: " << res << " (hex " << std::hex << (int)res
             << ")" << std::endl;
   std::cout << "Decryption done" << std::endl;

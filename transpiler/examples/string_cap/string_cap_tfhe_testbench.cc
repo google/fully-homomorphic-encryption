@@ -26,8 +26,10 @@
 #include "transpiler/examples/string_cap/string_cap.h"
 #include "xls/common/logging/logging.h"
 
-#ifdef USE_INTERPRETED_TFHE
+#if defined(USE_INTERPRETED_TFHE)
 #include "transpiler/examples/string_cap/string_cap_interpreted_tfhe.h"
+#elif defined(USE_YOSYS_INTERPRETED_TFHE)
+#include "transpiler/examples/string_cap/string_cap_yosys_interpreted_tfhe.h"
 #else
 #include "transpiler/examples/string_cap/string_cap_tfhe.h"
 #endif

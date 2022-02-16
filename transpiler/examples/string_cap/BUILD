@@ -20,6 +20,14 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
+    name = "string_cap_yosys_interpreted_tfhe",
+    src = "string_cap.cc",
+    hdrs = ["string_cap.h"],
+    backend = "interpreted_tfhe",
+    optimizer = "yosys",
+)
+
+fhe_cc_library(
     name = "string_cap_palisade",
     src = "string_cap.cc",
     hdrs = ["string_cap.h"],
@@ -35,6 +43,15 @@ fhe_cc_library(
     backend = "interpreted_palisade",
     num_opt_passes = 2,
     optimizer = "xls",
+)
+
+fhe_cc_library(
+    name = "string_cap_yosys_interpreted_palisade",
+    src = "string_cap.cc",
+    hdrs = ["string_cap.h"],
+    backend = "interpreted_palisade",
+    num_opt_passes = 2,
+    optimizer = "yosys",
 )
 
 fhe_cc_library(
@@ -81,6 +98,24 @@ cc_binary(
 )
 
 cc_binary(
+    name = "string_cap_yosys_interpreted_tfhe_testbench",
+    srcs = [
+        "string_cap.h",
+        "string_cap_tfhe_testbench.cc",
+    ],
+    copts = ["-DUSE_YOSYS_INTERPRETED_TFHE"],
+    deps = [
+        ":string_cap_yosys_interpreted_tfhe",
+        "//transpiler/data:tfhe_data",
+        "@com_google_absl//absl/base",
+        "@com_google_absl//absl/status",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
     name = "string_cap_palisade_testbench",
     srcs = [
         "string_cap.h",
@@ -105,6 +140,23 @@ cc_binary(
     copts = ["-DUSE_INTERPRETED_PALISADE"],
     deps = [
         ":string_cap_interpreted_palisade",
+        "//transpiler/data:palisade_data",
+        "@com_google_absl//absl/base",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@palisade//:binfhe",
+    ],
+)
+
+cc_binary(
+    name = "string_cap_yosys_interpreted_palisade_testbench",
+    srcs = [
+        "string_cap.h",
+        "string_cap_palisade_testbench.cc",
+    ],
+    copts = ["-DUSE_YOSYS_INTERPRETED_PALISADE"],
+    deps = [
+        ":string_cap_yosys_interpreted_palisade",
         "//transpiler/data:palisade_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",

@@ -29,6 +29,8 @@
 
 #ifdef USE_INTERPRETED_PALISADE
 #include "transpiler/examples/string_cap/string_cap_interpreted_palisade.h"
+#elif defined(USE_YOSYS_INTERPRETED_PALISADE)
+#include "transpiler/examples/string_cap/string_cap_yosys_interpreted_palisade.h"
 #else
 #include "transpiler/examples/string_cap/string_cap_palisade.h"
 #endif

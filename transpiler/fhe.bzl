@@ -25,6 +25,7 @@ _XLS_CODEGEN = "@com_google_xls//xls/tools:codegen_main"
 _YOSYS = "@yosys//:yosys_bin"
 _ABC = "@abc//:abc_bin"
 _TFHE_CELLS_LIBERTY = "//transpiler:tfhe_cells.liberty"
+_PALISADE_CELLS_LIBERTY = "//transpiler:palisade_cells.liberty"
 
 def _run(ctx, inputs, out_ext, tool, args, entry = None):
     """A helper to run a shell script and capture the output.
@@ -471,6 +472,9 @@ def fhe_cc_library(
     tags = kwargs.pop("tags", None)
 
     transpiled_files = "{}.transpiled_files".format(name)
+    cell_library = _TFHE_CELLS_LIBERTY
+    if backend.endswith("palisade"):
+        cell_library = _PALISADE_CELLS_LIBERTY
     fhe_transpile(
         name = transpiled_files,
         src = src,
@@ -480,7 +484,7 @@ def fhe_cc_library(
         optimizer = optimizer,
         backend = backend,
         tags = tags,
-        cell_library = _TFHE_CELLS_LIBERTY,
+        cell_library = cell_library,
     )
 
     transpiled_source = "{}.srcs".format(name)
@@ -518,6 +522,15 @@ def fhe_cc_library(
                 "//transpiler/data:boolean_data",
                 "//transpiler/data:tfhe_data",
                 "@tfhe//:libtfhe",
+                "@com_google_xls//xls/common/status:status_macros",
+            ])
+        elif backend == "interpreted_palisade":
+            deps.extend([
+                "@com_google_absl//absl/status:statusor",
+                "//transpiler:yosys_interpreted_palisade_runner",
+                "//transpiler/data:boolean_data",
+                "//transpiler/data:palisade_data",
+                "@palisade//:binfhe",
                 "@com_google_xls//xls/common/status:status_macros",
             ])
     elif optimizer == "xls":

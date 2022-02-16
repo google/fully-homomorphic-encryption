@@ -20,6 +20,14 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
+    name = "ifte_yosys_interpreted_palisade",
+    src = "ifte.cc",
+    hdrs = ["ifte.h"],
+    backend = "interpreted_palisade",
+    optimizer = "yosys",
+)
+
+fhe_cc_library(
     name = "ifte_cleartext",
     src = "ifte.cc",
     hdrs = ["ifte.h"],
@@ -82,5 +90,19 @@ cc_binary(
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "ifte_yosys_interpreted_palisade_testbench",
+    srcs = ["ifte_palisade_testbench.cc"],
+    copts = ["-DUSE_YOSYS_INTERPRETED_PALISADE"],
+    deps = [
+        ":ifte_yosys_interpreted_palisade",
+        "//transpiler/data:palisade_data",
+        "@com_google_absl//absl/base",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@palisade//:binfhe",
     ],
 )

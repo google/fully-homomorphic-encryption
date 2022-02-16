@@ -145,6 +145,33 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "yosys_interpreted_palisade_runner",
+    srcs = ["yosys_interpreted_palisade_runner.cc"],
+    hdrs = ["yosys_interpreted_palisade_runner.h"],
+    deps = [
+        "//transpiler/data:palisade_data",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/memory",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+        "@com_google_protobuf//:protobuf",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
+        "@com_google_xls//xls/ir:bits",
+        "@com_google_xls//xls/ir:bits_ops",
+        "@com_google_xls//xls/netlist",
+        "@com_google_xls//xls/netlist:cell_library",
+        "@com_google_xls//xls/netlist:function_extractor",
+        "@com_google_xls//xls/netlist:interpreter",
+        "@com_google_xls//xls/netlist:lib_parser",
+        "@com_google_xls//xls/netlist:netlist_parser",
+        "@palisade//:binfhe",
+    ],
+)
+
 cc_test(
     name = "yosys_cleartext_runner_test",
     srcs = ["yosys_cleartext_runner_test.cc"],
