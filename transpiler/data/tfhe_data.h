@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef TFHE_DATA_H_
-#define TFHE_DATA_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_TFHE_DATA_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_TFHE_DATA_H_
 
 #include <assert.h>
 #include <stddef.h>
@@ -446,4 +446,4 @@ using TfheShort = TfheValue<short>;
 using TfheBit = TfheValue<bool>;
 using TfheBool = TfheValue<bool>;
 
-#endif  // TFHE_DATA_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_TFHE_DATA_H_

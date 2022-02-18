@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_UTIL_SUBPROCESS_H_
-#define THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_UTIL_SUBPROCESS_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_UTIL_SUBPROCESS_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_UTIL_SUBPROCESS_H_
 
 #include <filesystem>
 #include <string>
@@ -33,4 +33,4 @@ absl::StatusOr<std::pair<std::string, std::string>> InvokeSubprocess(
 }  // namespace transpiler
 }  // namespace fully_homomorphic_encryption
 
-#endif  // THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_UTIL_SUBPROCESS_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_UTIL_SUBPROCESS_H_

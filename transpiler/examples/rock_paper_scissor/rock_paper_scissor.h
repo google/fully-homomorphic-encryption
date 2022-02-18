@@ -11,12 +11,13 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#ifndef __ROCK_PAPER_SCISSOR_H_
-#define __ROCK_PAPER_SCISSOR_H_
+
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRUCTS_ROCK_PAPER_SCISSOR_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRUCTS_ROCK_PAPER_SCISSOR_H_
 
 // player_a and player_b are the selection made by each player. The inputs must
 // chosen from 'R', 'P', 'S'. Returns the winning player 'A' or 'B', or '=' if
 // the result was a tie.
 char rock_paper_scissor(char player_a, char player_b);
 
-#endif  // __ROCK_PAPER_SCISSOR_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRUCTS_ROCK_PAPER_SCISSOR_H_

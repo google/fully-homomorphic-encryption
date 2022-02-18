@@ -1,5 +1,5 @@
-#ifndef TRANSPILER_EXAMPLES_STRUCTS_STRUCT_OF_STRUCTS_H_
-#define TRANSPILER_EXAMPLES_STRUCTS_STRUCT_OF_STRUCTS_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRUCTS_STRUCT_OF_STRUCTS_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRUCTS_STRUCT_OF_STRUCTS_H_
 
 // Example demonstrating that structs can be composed of other struct types (and
 // still transpile, etc. correctly).
@@ -57,4 +57,4 @@ struct StructOfStructs {
 // Calculates the sum of each [transitive] element in a StructOfStructs.
 int SumStructOfStructs(StructOfStructs value);
 
-#endif  // TRANSPILER_EXAMPLES_STRUCTS_STRUCT_OF_STRUCTS_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRUCTS_STRUCT_OF_STRUCTS_H_

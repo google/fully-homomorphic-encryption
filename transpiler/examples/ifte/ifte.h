@@ -11,9 +11,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#ifndef __IFTE_H
-#define __IFTE_H
+
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_IFTE_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_IFTE_H_
 
 unsigned char ifte(unsigned char i, unsigned char t, unsigned char e);
 
-#endif  // __IFTE_H
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_IFTE_H_

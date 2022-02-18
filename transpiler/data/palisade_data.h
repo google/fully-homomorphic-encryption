@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef FHE_DATA_H_
-#define FHE_DATA_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_PALISADE_DATA_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_PALISADE_DATA_H_
 
 #include <assert.h>
 #include <stddef.h>
@@ -339,4 +339,4 @@ using PalisadeCharRef = PalisadeValueRef<char>;
 using PalisadeBit = PalisadeValue<bool>;
 using PalisadeBool = PalisadeValue<bool>;
 
-#endif  // FHE_DATA_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_PALISADE_DATA_H_

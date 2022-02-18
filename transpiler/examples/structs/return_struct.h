@@ -1,5 +1,5 @@
-#ifndef TRANSPILER_EXAMPLES_STRUCTS_RETURN_STRUCT_H_
-#define TRANSPILER_EXAMPLES_STRUCTS_RETURN_STRUCT_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRUCTS_RETURN_STRUCT_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRUCTS_RETURN_STRUCT_H_
 
 // Very basic example demonstrating the ability to specify structs as return
 // values.
@@ -18,4 +18,4 @@ struct ReturnStruct {
 // Builds a ReturnStruct out of the argument values and returns it.
 ReturnStruct ConstructReturnStruct(char a, Embedded b, char c);
 
-#endif  // TRANSPILER_EXAMPLES_STRUCTS_RETURN_STRUCT_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRUCTS_RETURN_STRUCT_H_

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TEMP_FILE_H_
-#define THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TEMP_FILE_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TEMP_FILE_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TEMP_FILE_H_
 
 #include <filesystem>
 
@@ -43,4 +43,4 @@ class TempFile {
 
 }  // namespace fully_homomorphic_encryption::transpiler
 
-#endif  // THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TEMP_FILE_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TEMP_FILE_H_

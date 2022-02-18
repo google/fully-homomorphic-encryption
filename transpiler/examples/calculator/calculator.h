@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_CALCULATOR_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_CALCULATOR_H_
+
 // Sums and subtracts values
 class Calculator {
  public:
@@ -19,3 +22,5 @@ class Calculator {
   // -1 is returned.
   short process(short x, short y, char op);
 };
+
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_CALCULATOR_H_

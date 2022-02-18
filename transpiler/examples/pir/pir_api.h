@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef TRANSPILER_EXAMPLES_PIR_API_H_
-#define TRANSPILER_EXAMPLES_PIR_API_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_TRANSPILER_EXAMPLES_PIR_API_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_TRANSPILER_EXAMPLES_PIR_API_H_
 
 // The supported "cloud database" size. Must be known at compile-time for FHE.
 // Should be a value between [0, 255].
@@ -31,4 +31,4 @@ RecordT QueryRecord(Index index, const RecordT database[kDbSize]);
 
 }  // namespace fully_homomorphic_encryption
 
-#endif  // TRANSPILER_EXAMPLES_PIR_API_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_TRANSPILER_EXAMPLES_PIR_API_H_

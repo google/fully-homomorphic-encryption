@@ -28,8 +28,8 @@
 // auto args = absl::flat_hash_map {{"x", ...}, {"y", ...}};
 // runner.Run(result, args, bk);
 
-#ifndef THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_ABSTRACT_XLS_RUNNER_H_
-#define THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_ABSTRACT_XLS_RUNNER_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_ABSTRACT_XLS_RUNNER_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_ABSTRACT_XLS_RUNNER_H_
 
 #include <pthread.h>
 #include <semaphore.h>
@@ -718,4 +718,4 @@ absl::Status AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef,
 }  // namespace transpiler
 }  // namespace fully_homomorphic_encryption
 
-#endif  // THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_ABSTRACT_XLS_RUNNER_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_ABSTRACT_XLS_RUNNER_H_

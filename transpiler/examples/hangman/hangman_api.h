@@ -21,4 +21,10 @@
 //
 // Expects lowercase characters.
 // Assumes that the player knows the length of the secret word.
+
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_HANGMAN_HANGMAN_API_H
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_HANGMAN_HANGMAN_API_H
+
 int hangmanMakeMove(char letter);
+
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_HANGMAN_HANGMAN_API_H

@@ -14,8 +14,13 @@
 // limitations under the License.
 //
 
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRUCTS_STRING_REVERSE_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRUCTS_STRING_REVERSE_H_
+
 // Reverses a string. The string must have from 1 to 7 characters.
 
 #define MAX_LENGTH 8
 
 void ReverseString(char my_string[MAX_LENGTH]);
+
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRUCTS_STRING_REVERSE_H_

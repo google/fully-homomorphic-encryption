@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_CC_TRANSPILER_H_
-#define THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_CC_TRANSPILER_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_CC_TRANSPILER_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_CC_TRANSPILER_H_
 
 #include <string>
 
@@ -58,4 +58,4 @@ class CcTranspiler : public AbstractXLSTranspiler<CcTranspiler> {
 }  // namespace transpiler
 }  // namespace fully_homomorphic_encryption
 
-#endif  // THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_CC_TRANSPILER_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_CC_TRANSPILER_H_

@@ -12,8 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRING_CAP_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRING_CAP_H_
+
 // Capitalizes the first letter of each word
 
 #define MAX_LENGTH 32
 
 void CapitalizeString(char my_string[MAX_LENGTH]);
+
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRING_CAP_H_

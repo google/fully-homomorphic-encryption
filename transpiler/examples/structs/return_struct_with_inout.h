@@ -1,5 +1,5 @@
-#ifndef TRANSPILER_EXAMPLES_STRUCTS_RETURN_STRUCT_WITH_INOUT_H_
-#define TRANSPILER_EXAMPLES_STRUCTS_RETURN_STRUCT_WITH_INOUT_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRUCTS_RETURN_STRUCT_WITH_INOUT_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRUCTS_RETURN_STRUCT_WITH_INOUT_H_
 
 // Example demonstrating the ability to specify structs as return values and
 // as in/out params.
@@ -23,4 +23,4 @@ struct ReturnStruct {
 ReturnStruct ConstructReturnStructWithInout(Helper& a, Helper& b,
                                             const Helper& c);
 
-#endif  // TRANSPILER_EXAMPLES_STRUCTS_RETURN_STRUCT_WITH_INOUT_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRUCTS_RETURN_STRUCT_WITH_INOUT_H_

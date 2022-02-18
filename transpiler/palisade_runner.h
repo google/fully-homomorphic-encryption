@@ -28,8 +28,8 @@
 // auto args = absl::flat_hash_map {{"x", ...}, {"y", ...}};
 // runner.Run(result, args, bk);
 
-#ifndef THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_PALISADE_RUNNER_H_
-#define THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_PALISADE_RUNNER_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_PALISADE_RUNNER_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_PALISADE_RUNNER_H_
 
 #include <vector>
 
@@ -93,4 +93,4 @@ class PalisadeRunner
 }  // namespace transpiler
 }  // namespace fully_homomorphic_encryption
 
-#endif  // THIRD_PARTY_FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_PALISADE_RUNNER_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_PALISADE_RUNNER_H_

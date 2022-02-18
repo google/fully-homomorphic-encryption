@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef TRANSPILER_EXAMPLES_PIR_CLOUD_SERVICE_H_
-#define TRANSPILER_EXAMPLES_PIR_CLOUD_SERVICE_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_TRANSPILER_EXAMPLES_PIR_CLOUD_SERVICE_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_TRANSPILER_EXAMPLES_PIR_CLOUD_SERVICE_H_
 
 #include "absl/memory/memory.h"
 #include "absl/status/status.h"
@@ -42,4 +42,4 @@ class CloudService {
 
 }  // namespace fully_homomorphic_encryption
 
-#endif  // TRANSPILER_EXAMPLES_PIR_CLOUD_SERVICE_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_TRANSPILER_EXAMPLES_PIR_CLOUD_SERVICE_H_
