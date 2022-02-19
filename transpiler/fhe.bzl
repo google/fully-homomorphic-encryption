@@ -305,15 +305,12 @@ def _fhe_transpile_impl(ctx):
         verilog_ir_file = _generate_verilog(ctx, optimized_ir_file, ".v", metadata_entry_file)
         netlist_file, yosys_script_file = _generate_netlist(ctx, verilog_ir_file, metadata_entry_file)
         outputs.extend([verilog_ir_file, netlist_file, yosys_script_file])
-    else:
-        optimized_files = _optimize_and_booleanify_repeatedly(ctx, ir_file, metadata_entry_file)
-
-    hdrs = _generate_struct_header(ctx, metadata_file, optimizer, backend)
-
-    if optimizer == "yosys":
         ir_input = netlist_file
     else:
+        optimized_files = _optimize_and_booleanify_repeatedly(ctx, ir_file, metadata_entry_file)
         ir_input = _pick_last_bool_file(optimized_files)
+
+    hdrs = _generate_struct_header(ctx, metadata_file, optimizer, backend)
     out_cc, out_h = _fhe_transpile_ir(ctx, ir_input, metadata_file, optimizer, backend)
     hdrs.append(out_h)
 
