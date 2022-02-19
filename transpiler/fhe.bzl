@@ -115,7 +115,7 @@ def _optimize_and_booleanify_repeatedly(ctx, ir_file, entry):
         suffix += ".bool"
         results.append(_booleanify_ir(ctx, results[-1], suffix + ".ir", entry))
     else:
-        for i in range(ctx.attr.num_opt_passes):
+        for _ in range(ctx.attr.num_opt_passes):
             suffix += ".opt"
             results.append(_optimize_ir(ctx, results[-1], suffix + ".ir", entry))
             suffix += ".bool"
@@ -133,10 +133,9 @@ def _pick_last_bool_file(optimized_files):
     # structure is [%.opt.ir, %.opt.bool.ir, %.opt.bool.opt.ir,
     # %.opt.bool.opt.bool.ir, ...], so every other file is the result of an
     # optimization + booleanification pass.
-    inspect = optimized_files[1::2]
     return optimized_files[-1]
 
-def _fhe_transpile_ir(ctx, src, metadata, entry, optimizer, backend):
+def _fhe_transpile_ir(ctx, src, metadata, optimizer, backend):
     """Transpile XLS IR into C++ source."""
     library_name = ctx.attr.library_name or ctx.label.name
     out_cc = ctx.actions.declare_file("%s.cc" % library_name)
@@ -315,7 +314,7 @@ def _fhe_transpile_impl(ctx):
         ir_input = netlist_file
     else:
         ir_input = _pick_last_bool_file(optimized_files)
-    out_cc, out_h = _fhe_transpile_ir(ctx, ir_input, metadata_file, metadata_entry_file, optimizer, backend)
+    out_cc, out_h = _fhe_transpile_ir(ctx, ir_input, metadata_file, optimizer, backend)
     hdrs.append(out_h)
 
     outputs = [
