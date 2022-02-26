@@ -118,24 +118,15 @@ absl::Status YosysTfheRunner::InitializeOnce(
         bk, *xls::netlist::cell_lib::CharStream::FromText(liberty_text_),
         xls::netlist::rtl::Scanner(netlist_text_));
 
-    std::cout << "Parsing netlist..." << std::endl;
-    auto start_time = absl::Now();
     state_->netlist_ = std::move(
         *xls::netlist::rtl::AbstractParser<TfheBoolValue>::ParseNetlist(
             &state_->cell_library_, &state_->scanner_, state_->zero_,
             state_->one_));
-    std::cout << "Parsing netlist took "
-              << absl::ToDoubleSeconds(absl::Now() - start_time) << " secs"
-              << std::endl;
 
-    std::cout << "Adding cell-evaluation functions." << std::endl;
     XLS_RETURN_IF_ERROR(state_->netlist_->AddCellEvaluationFns(eval_fns));
-    std::cout << "Done adding cell-evaluation functions." << std::endl;
 
-    std::cout << "Parsing metadata." << std::endl;
     XLS_CHECK(google::protobuf::TextFormat::ParseFromString(
         metadata_text_, &state_->metadata_));
-    std::cout << "Done parsing metadata." << std::endl;
   }
   return absl::OkStatus();
 }
@@ -184,7 +175,6 @@ absl::Status YosysTfheRunner::YosysTfheRunnerState::Run(
   // the interpreter, forcing it to evaluate everything.  That will still work
   // since the FHE objects act as bools.
 
-  std::cout << "Setting up inputs." << std::endl;
   using NetRef = xls::netlist::rtl::AbstractNetRef<TfheBoolValue>;
   std::vector<TfheBoolValue> input_bits;
   size_t in_i = 0, inout_i = 0;
@@ -218,11 +208,8 @@ absl::Status YosysTfheRunner::YosysTfheRunnerState::Run(
     XLS_CHECK(!input_nets.contains(in));
     input_nets.emplace(
         in, std::move(input_bits[module->GetInputPortOffset(in->name())]));
-    //      std::cout << "in->name(): " << in->name() << std::endl;
   }
-  std::cout << "Done setting up inputs." << std::endl;
 
-  std::cout << "Interpreting." << std::endl;
   TfheBoolValue zero(false, bk_);
   TfheBoolValue one(true, bk_);
   // *2 for hyperthreading opportunities
@@ -231,8 +218,6 @@ absl::Status YosysTfheRunner::YosysTfheRunnerState::Run(
       netlist_.get(), zero, one, num_threads);
   XLS_ASSIGN_OR_RETURN(auto output_nets,
                        interpreter.InterpretModule(module, input_nets, {}));
-
-  std::cout << "Collecting outputs." << std::endl;
 
   // The return value output_nets is a map from NetRef to TfheBoolValue objects.
   // Each of the TfheBoolValue objects contains a LweSample*, which it either
@@ -349,8 +334,6 @@ absl::Status YosysTfheRunner::YosysTfheRunnerState::Run(
     }
   }
   XLS_CHECK(copied == output_bit_vector.size());
-
-  std::cout << "Done." << std::endl;
 
   return absl::OkStatus();
 }
