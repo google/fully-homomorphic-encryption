@@ -43,6 +43,7 @@ absl::StatusOr<std::string> InterpretedPalisadeTranspiler::Translate(
 #include "absl/status/statusor.h"
 #include "absl/types/span.h"
 #include "transpiler/palisade_runner.h"
+#include "transpiler/common_runner.h"
 #include "palisade/binfhe/binfhecontext.h"
 #include "xls/common/status/status_macros.h"
 
@@ -59,6 +60,8 @@ $1
 using fully_homomorphic_encryption::transpiler::PalisadeRunner;
 
 }  // namespace
+
+static StructReverseEncodeOrderSetter ORDER;
 
 $2 {
   XLS_ASSIGN_OR_RETURN(auto runner, PalisadeRunner::CreateFromStrings(

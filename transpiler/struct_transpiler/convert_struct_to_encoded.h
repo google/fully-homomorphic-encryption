@@ -28,7 +28,7 @@ namespace transpiler {
 absl::StatusOr<std::string> ConvertStructsToEncodedTemplate(
     const xlscc_metadata::MetadataOutput& metadata,
     const std::vector<std::string>& original_headers,
-    absl::string_view output_path, bool struct_fields_in_declaration_order);
+    absl::string_view output_path);
 
 absl::StatusOr<std::string> ConvertStructsToEncodedBool(
     absl::string_view generic_header,

@@ -43,6 +43,7 @@ absl::StatusOr<std::string> InterpretedTfheTranspiler::Translate(
 #include "absl/status/statusor.h"
 #include "absl/types/span.h"
 #include "transpiler/tfhe_runner.h"
+#include "transpiler/common_runner.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
 #include "xls/common/status/status_macros.h"
@@ -60,6 +61,8 @@ $1
 using fully_homomorphic_encryption::transpiler::TfheRunner;
 
 }  // namespace
+
+static StructReverseEncodeOrderSetter ORDER;
 
 $2 {
   XLS_ASSIGN_OR_RETURN(auto runner, TfheRunner::CreateFromStrings(

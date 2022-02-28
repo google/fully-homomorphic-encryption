@@ -84,8 +84,6 @@ ABSL_FLAG(BackendType, backend_type, BackendType::kGeneric,
 ABSL_FLAG(std::string, generic_header_path, "",
           "Path to which to the previously-generated template header file. "
           "Must be provided when --backend_type is used.");
-ABSL_FLAG(bool, struct_fields_in_declaration_order, false,
-          "When false, struct fields are encoded in reverse order.");
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {
@@ -93,8 +91,7 @@ namespace transpiler {
 absl::Status RealMain(absl::string_view metadata_path,
                       absl::string_view original_headers,
                       absl::string_view output_path, BackendType backend_type,
-                      absl::string_view generic_header_path,
-                      bool struct_fields_in_declaration_order) {
+                      absl::string_view generic_header_path) {
   XLS_ASSIGN_OR_RETURN(std::string proto_data,
                        xls::GetFileContents(metadata_path));
   xlscc_metadata::MetadataOutput metadata;
@@ -106,10 +103,9 @@ absl::Status RealMain(absl::string_view metadata_path,
     case BackendType::kGeneric: {
       std::vector<std::string> split_headers =
           absl::StrSplit(original_headers, ',');
-      XLS_ASSIGN_OR_RETURN(
-          std::string generic_result,
-          ConvertStructsToEncodedTemplate(metadata, split_headers, output_path,
-                                          struct_fields_in_declaration_order));
+      XLS_ASSIGN_OR_RETURN(std::string generic_result,
+                           ConvertStructsToEncodedTemplate(
+                               metadata, split_headers, output_path));
       if (!output_path.empty()) {
         return xls::SetFileContents(output_path, generic_result);
       }
@@ -172,12 +168,9 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  bool struct_fields_in_declaration_order =
-      absl::GetFlag(FLAGS_struct_fields_in_declaration_order);
-
   absl::Status status = fully_homomorphic_encryption::transpiler::RealMain(
       metadata_path, original_headers, output_path, backend_type,
-      generic_header_path, struct_fields_in_declaration_order);
+      generic_header_path);
   if (!status.ok()) {
     std::cerr << status.message() << std::endl;
     return 1;

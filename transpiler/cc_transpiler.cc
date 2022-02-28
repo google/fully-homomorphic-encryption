@@ -170,6 +170,9 @@ absl::StatusOr<std::string> CcTranspiler::Prelude(
 
 #include "absl/status/status.h"
 #include "absl/types/span.h"
+#include "transpiler/common_runner.h"
+
+static StructReverseEncodeOrderSetter ORDER;
 
 $0 {
   std::unordered_map<int, bool> temp_nodes;

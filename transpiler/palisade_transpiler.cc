@@ -190,8 +190,11 @@ absl::StatusOr<std::string> PalisadeTranspiler::Prelude(
 
 #include "absl/status/status.h"
 #include "absl/types/span.h"
+#include "transpiler/common_runner.h"
 #include "palisade/binfhe/binfhecontext.h"
 #include "palisade/binfhe/ringcore.h"
+
+static StructReverseEncodeOrderSetter ORDER;
 
 static inline lbcrypto::LWECiphertext EvalBinGate(
     lbcrypto::BinFHEContext cc, const lbcrypto::BINGATE gate,

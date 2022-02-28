@@ -181,8 +181,6 @@ def _generate_struct_header(ctx, metadata, optimizer, backend):
         "-output_path",
         generic_struct_h.path,
     ]
-    if optimizer == "yosys":
-        args.append("-struct_fields_in_declaration_order")
     ctx.actions.run(
         inputs = [metadata],
         outputs = [generic_struct_h],
@@ -502,6 +500,7 @@ def fhe_cc_library(
     deps = [
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/types:span",
+        "//transpiler:common_runner",
     ]
     if optimizer == "yosys":
         if backend == "cleartext":

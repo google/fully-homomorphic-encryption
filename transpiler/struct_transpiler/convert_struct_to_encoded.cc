@@ -18,6 +18,7 @@
 #include "transpiler/struct_transpiler/convert_struct_to_encoded.h"
 
 #include <cctype>
+#include <utility>
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
@@ -26,6 +27,7 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_join.h"
 #include "absl/strings/str_replace.h"
 #include "absl/strings/string_view.h"
 #include "absl/strings/substitute.h"
@@ -255,7 +257,7 @@ absl::StatusOr<std::string> GenerateSetOrEncryptArrayElement(
   }
 
   std::vector<std::string> lines;
-  lines.push_back(absl::Substitute("    for (int $0 = 0; $0 < $1; $0++) {",
+  lines.push_back(absl::Substitute("        for (int $0 = 0; $0 < $1; $0++) {",
                                    index_var, array_type.size()));
   if (sub_element_type.has_as_array()) {
     XLS_ASSIGN_OR_RETURN(std::string foo, GenerateSetOrEncryptArrayElement(
@@ -281,7 +283,7 @@ absl::StatusOr<std::string> GenerateSetOrEncryptArrayElement(
                              absl::StrCat(element_name, index_expr), encrypt));
     lines.push_back(foo);
   }
-  lines.push_back("    }");
+  lines.push_back("        }");
 
   return absl::StrJoin(lines, "\n");
 }
@@ -292,8 +294,9 @@ absl::StatusOr<std::string> GenerateSetOrEncryptBoolElement(
   std::string op =
       encrypt ? "Encrypt<Sample,SecretKey>" : "Unencrypted<Sample,PublicKey>";
   lines.push_back(absl::Substitute(
-      "    ::$0(EncodedValue<bool>(value.$1).get(), key, data);", op, source));
-  lines.push_back("    data += 1;");
+      "        ::$0(EncodedValue<bool>(value.$1).get(), key, data);", op,
+      source));
+  lines.push_back("        data += 1;");
   return absl::StrJoin(lines, "\n");
 }
 
@@ -305,10 +308,10 @@ absl::StatusOr<std::string> GenerateSetOrEncryptIntegralElement(
   XLS_ASSIGN_OR_RETURN(std::string int_type_name,
                        XlsccToNativeIntegerType(int_type));
 
-  lines.push_back(
-      absl::Substitute("    ::$0(EncodedValue<$1>(value.$2).get(), key, data);",
-                       op, int_type_name, source_var));
-  lines.push_back(absl::StrCat("    data += ", int_type.width(), ";"));
+  lines.push_back(absl::Substitute(
+      "        ::$0(EncodedValue<$1>(value.$2).get(), key, data);", op,
+      int_type_name, source_var));
+  lines.push_back(absl::Substitute("        data += $0;", int_type.width()));
 
   return absl::StrJoin(lines, "\n");
 }
@@ -323,28 +326,33 @@ absl::StatusOr<std::string> GenerateSetOrEncryptStructElement(
   std::string struct_name =
       absl::StrCat("GenericEncoded", instance_type.name().name());
   lines.push_back(
-      absl::Substitute("    $2<Sample, SampleArrayDeleter, SecretKey, "
+      absl::Substitute("        $2<Sample, SampleArrayDeleter, SecretKey, "
                        "PublicKey>::Borrowed$0(value.$1, data, key);",
                        op, source_var, struct_name));
-  lines.push_back(absl::StrCat("    data += ", type_data.bit_width, ";"));
+  lines.push_back(absl::Substitute("        data += $0;", type_data.bit_width));
 
   return absl::StrJoin(lines, "\n");
 }
 
 absl::StatusOr<std::string> GenerateSetOrEncryptFunction(
-    const IdToType& id_to_type, const StructType& struct_type, bool encrypt,
-    bool reverse) {
+    const IdToType& id_to_type, const StructType& struct_type, bool encrypt) {
   std::vector<std::string> lines;
+  std::vector<std::string> reversed_buffer_lines;
   for (int i = 0; i < struct_type.fields_size(); i++) {
     XLS_ASSIGN_OR_RETURN(std::string line,
                          GenerateSetOrEncryptOneElement(
                              id_to_type, struct_type.fields(i), encrypt));
     lines.push_back(line);
+    XLS_ASSIGN_OR_RETURN(std::string reverse_buffer_line,
+                         GenerateSetOrEncryptOneElement(
+                             id_to_type, struct_type.fields(i), encrypt));
+    reversed_buffer_lines.push_back(reverse_buffer_line);
   }
-  if (reverse) {
-    std::reverse(lines.begin(), lines.end());
-  }
-  return absl::StrJoin(lines, "\n");
+  std::reverse(reversed_buffer_lines.begin(), reversed_buffer_lines.end());
+  return absl::StrCat(
+      "    if (GetStructEncodeOrder() == StructEncodeOrder::REVERSE) {\n",
+      absl::StrJoin(lines, "\n"), "\n    } else {\n",
+      absl::StrJoin(reversed_buffer_lines, "\n"), "\n    }");
 }
 
 absl::StatusOr<std::string> GenerateDecryptArray(const IdToType& id_to_type,
@@ -357,6 +365,7 @@ absl::StatusOr<std::string> GenerateDecryptBool(const IdToType& id_to_type,
 absl::StatusOr<std::string> GenerateDecryptIntegral(
     const IdToType& id_to_type, const IntType& int_type,
     const std::string& temp_name, absl::string_view output_loc);
+
 absl::StatusOr<std::string> GenerateDecryptStruct(
     const IdToType& id_to_type, const InstanceType& instance_type,
     absl::string_view output_loc);
@@ -395,7 +404,7 @@ absl::StatusOr<std::string> GenerateDecryptArray(const IdToType& id_to_type,
   std::string var_name = absl::StrCat("tmp_", loop_nest);
 
   std::vector<std::string> lines;
-  lines.push_back(absl::Substitute("    for (int $0 = 0; $0 < $1; $0++) {",
+  lines.push_back(absl::Substitute("        for (int $0 = 0; $0 < $1; $0++) {",
                                    index_var, array_type.size()));
   if (element_type.has_as_array()) {
     XLS_ASSIGN_OR_RETURN(
@@ -419,7 +428,7 @@ absl::StatusOr<std::string> GenerateDecryptArray(const IdToType& id_to_type,
         GenerateDecryptStruct(id_to_type, element_type.as_inst(), index_expr));
     lines.push_back(foo);
   }
-  lines.push_back("    }");
+  lines.push_back("        }");
 
   return absl::StrJoin(lines, "\n");
 }
@@ -429,12 +438,12 @@ absl::StatusOr<std::string> GenerateDecryptBool(const IdToType& id_to_type,
                                                 absl::string_view output_loc) {
   std::vector<std::string> lines;
   lines.push_back(
-      absl::StrCat("    EncodedValue<bool> encoded_", temp_name, ";"));
-  lines.push_back(
-      absl::StrCat("    ::Decrypt<Sample, SecretKey>(data, key, encoded_",
-                   temp_name, ".get());"));
-  lines.push_back("    data += 1;");
-  lines.push_back(absl::Substitute("    result->$0 = encoded_$1.Decode();",
+      absl::StrCat("        EncodedValue<bool> encoded_", temp_name, ";"));
+  lines.push_back(absl::Substitute(
+      "        ::Decrypt<Sample, SecretKey>(data, key, encoded_$0.get());",
+      temp_name));
+  lines.push_back("        data += 1;");
+  lines.push_back(absl::Substitute("        result->$0 = encoded_$1.Decode();",
                                    output_loc, temp_name));
   return absl::StrJoin(lines, "\n");
 }
@@ -444,13 +453,13 @@ absl::StatusOr<std::string> GenerateDecryptIntegral(
   std::vector<std::string> lines;
   XLS_ASSIGN_OR_RETURN(std::string int_type_name,
                        XlsccToNativeIntegerType(int_type));
-  lines.push_back(absl::Substitute("    EncodedValue<$0> encoded_$1;",
+  lines.push_back(absl::Substitute("        EncodedValue<$0> encoded_$1;",
                                    int_type_name, temp_name));
   lines.push_back(absl::Substitute(
-      "    ::Decrypt<Sample, SecretKey>(data, key, encoded_$0.get());",
+      "        ::Decrypt<Sample, SecretKey>(data, key, encoded_$0.get());",
       temp_name));
-  lines.push_back(absl::StrCat("    data += ", int_type.width(), ";"));
-  lines.push_back(absl::Substitute("    result->$0 = encoded_$1.Decode();",
+  lines.push_back(absl::Substitute("        data += $0;", int_type.width()));
+  lines.push_back(absl::Substitute("        result->$0 = encoded_$1.Decode();",
                                    output_loc, temp_name));
   return absl::StrJoin(lines, "\n");
 }
@@ -463,28 +472,33 @@ absl::StatusOr<std::string> GenerateDecryptStruct(
   std::string struct_name =
       absl::StrCat("GenericEncoded", instance_type.name().name());
   lines.push_back(
-      absl::Substitute("    $0<Sample, SampleArrayDeleter, SecretKey, "
+      absl::Substitute("        $0<Sample, SampleArrayDeleter, SecretKey, "
                        "PublicKey>::BorrowedDecrypt(data, &result->$1, key);",
                        struct_name, output_loc));
-  lines.push_back(absl::StrCat("    data += ", type_data.bit_width, ";"));
+  lines.push_back(absl::Substitute("        data += $0;", type_data.bit_width));
   return absl::StrJoin(lines, "\n");
 }
 
 absl::StatusOr<std::string> GenerateDecryptFunction(
-    const IdToType& id_to_type, const StructType& struct_type, bool reverse) {
+    const IdToType& id_to_type, const StructType& struct_type) {
   std::vector<std::string> lines;
+  std::vector<std::string> reversed_buffer_lines;
   for (int i = 0; i < struct_type.fields_size(); i++) {
     const StructField& field = struct_type.fields(i);
     XLS_ASSIGN_OR_RETURN(std::string line,
                          GenerateDecryptOneElement(
                              id_to_type, field, struct_type.fields(i).name()));
+    XLS_ASSIGN_OR_RETURN(std::string reversed_buffer_line,
+                         GenerateDecryptOneElement(
+                             id_to_type, field, struct_type.fields(i).name()));
     lines.push_back(line);
+    reversed_buffer_lines.push_back(reversed_buffer_line);
   }
-  if (reverse) {
-    std::reverse(lines.begin(), lines.end());
-  }
-
-  return absl::StrJoin(lines, "\n");
+  std::reverse(reversed_buffer_lines.begin(), reversed_buffer_lines.end());
+  return absl::StrCat(
+      "    if (GetStructEncodeOrder() == StructEncodeOrder::REVERSE) {\n",
+      absl::StrJoin(lines, "\n"), "\n    } else {\n",
+      absl::StrJoin(reversed_buffer_lines, "\n"), "\n    }");
 }
 
 static std::string GenerateHeaderGuard(absl::string_view header) {
@@ -511,7 +525,7 @@ constexpr const char kFileTemplate[] = R"(#ifndef $2
 #include <memory>
 
 #include "absl/types/span.h"
-
+#include "transpiler/common_runner.h"
 $0
 #include "transpiler/data/boolean_data.h"
 
@@ -664,6 +678,7 @@ class GenericEncoded$0 {
 
   absl::Span<Sample> get() { return absl::MakeSpan(data_.get(), bit_width()); }
   absl::Span<const Sample> get() const { return absl::MakeConstSpan(data_.get(), bit_width()); }
+
   static constexpr size_t bit_width() { return bit_width_; }
 
  private:
@@ -691,21 +706,20 @@ $4
 };)";
 
 absl::StatusOr<std::string> ConvertStructToEncoded(const IdToType& id_to_type,
-                                                   int64_t id, bool reverse) {
+                                                   int64_t id) {
   const StructType& struct_type = id_to_type.at(id).type;
 
   int64_t bit_width = GetStructWidth(id_to_type, struct_type);
 
   xlscc_metadata::CPPName struct_name = struct_type.name().as_inst().name();
-  XLS_ASSIGN_OR_RETURN(std::string set_fn, GenerateSetOrEncryptFunction(
-                                               id_to_type, struct_type,
-                                               /*encrypt=*/false, reverse));
+  XLS_ASSIGN_OR_RETURN(std::string set_fn,
+                       GenerateSetOrEncryptFunction(id_to_type, struct_type,
+                                                    /*encrypt=*/false));
   XLS_ASSIGN_OR_RETURN(std::string encrypt_fn,
                        GenerateSetOrEncryptFunction(id_to_type, struct_type,
-                                                    /*encrypt=*/true, reverse));
-  XLS_ASSIGN_OR_RETURN(
-      std::string decrypt_fn,
-      GenerateDecryptFunction(id_to_type, struct_type, reverse));
+                                                    /*encrypt=*/true));
+  XLS_ASSIGN_OR_RETURN(std::string decrypt_fn,
+                       GenerateDecryptFunction(id_to_type, struct_type));
   std::string result = absl::Substitute(
       kClassTemplate, struct_name.name(), struct_name.fully_qualified_name(),
       set_fn, encrypt_fn, decrypt_fn, bit_width);
@@ -717,21 +731,19 @@ absl::StatusOr<std::string> ConvertStructToEncoded(const IdToType& id_to_type,
 absl::StatusOr<std::string> ConvertStructsToEncodedTemplate(
     const xlscc_metadata::MetadataOutput& metadata,
     const std::vector<std::string>& original_headers,
-    absl::string_view output_path, bool struct_fields_in_declaration_order) {
+    absl::string_view output_path) {
   if (metadata.structs_size() == 0) {
     return "";
   }
 
   std::string header_guard = GenerateHeaderGuard(output_path);
 
-  bool reverse = struct_fields_in_declaration_order;
-
   std::vector<int64_t> struct_order = GetTypeReferenceOrder(metadata);
   IdToType id_to_type = PopulateTypeData(metadata, struct_order);
   std::vector<std::string> generated;
   for (int64_t id : struct_order) {
     XLS_ASSIGN_OR_RETURN(std::string struct_text,
-                         ConvertStructToEncoded(id_to_type, id, reverse));
+                         ConvertStructToEncoded(id_to_type, id));
     generated.push_back(struct_text);
   }
 

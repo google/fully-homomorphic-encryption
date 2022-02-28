@@ -194,8 +194,11 @@ absl::StatusOr<std::string> TfheTranspiler::Prelude(
 
 #include "absl/status/status.h"
 #include "absl/types/span.h"
+#include "transpiler/common_runner.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
+
+static StructReverseEncodeOrderSetter ORDER;
 
 $0 {
   std::unordered_map<int, LweSample*> temp_nodes;

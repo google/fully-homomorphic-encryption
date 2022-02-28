@@ -29,6 +29,15 @@ cc_library(
 )
 
 cc_library(
+    name = "common_runner",
+    srcs = ["common_runner.cc"],
+    hdrs = ["common_runner.h"],
+    deps = [
+        "@com_google_xls//xls/common/logging",
+    ],
+)
+
+cc_library(
     name = "common_transpiler",
     srcs = ["common_transpiler.cc"],
     hdrs = ["common_transpiler.h"],

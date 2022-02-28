@@ -496,8 +496,11 @@ TEST(TfheIrTranspilerLibTest, Prelude_OnlyPure) {
 
 #include "absl/status/status.h"
 #include "absl/types/span.h"
+#include "transpiler/common_runner.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
+
+static StructReverseEncodeOrderSetter ORDER;
 
 absl::Status test_fn_UNSAFE(absl::Span<LweSample> result, const TFheGateBootstrappingCloudKeySet* bk) {
   std::unordered_map<int, LweSample*> temp_nodes;

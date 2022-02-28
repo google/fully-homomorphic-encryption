@@ -66,6 +66,7 @@ absl::StatusOr<std::string> YosysTranspiler::Translate(
       R"source(#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/types/span.h"
+#include "transpiler/common_runner.h"
 #include "xls/common/status/status_macros.h"
 
 $6
@@ -82,6 +83,7 @@ static constexpr char kCellDefinitions[] = R"cd(
 $2
 )cd";
 
+static StructDeclarationEncodeOrderSetter ORDER;
 static fully_homomorphic_encryption::transpiler::Yosys$7Runner runner(
                             kCellDefinitions,
                             kNetlistPackage,
