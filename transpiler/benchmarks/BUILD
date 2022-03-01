@@ -30,8 +30,8 @@ INT_TYPES = [
 
 # Run with (e.g.):
 #
-# $ blaze run -c opt --dynamic_mode=off \
-#   //third_party/fully_homomorphic_encryption/transpiler/benchmarks:arithmetic_xls_interpreted_tfhe \
+# $ bazel run -c opt --dynamic_mode=off \
+#   //transpiler/benchmarks:arithmetic_xls_interpreted_tfhe \
 #   -- \
 #       --benchmark_filter=all \
 #       --benchmark_min_iters=4
