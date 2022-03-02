@@ -36,7 +36,7 @@ def _run(ctx, inputs, out_ext, tool, args, entry = None):
     tool: What tool to run.
     args: A list of arguments to pass to the tool.
     entry: If specified, it points to a file contianing the entry point; that
-           information is extracted and provided as value to the --entry
+           information is extracted and provided as value to the --top
            command-line switch.
 
     Returns:
@@ -46,7 +46,7 @@ def _run(ctx, inputs, out_ext, tool, args, entry = None):
     out = ctx.actions.declare_file("%s%s" % (library_name, out_ext))
     arguments = " ".join(args)
     if entry != None:
-        arguments += " --entry $(cat {})".format(entry.path)
+        arguments += " --top $(cat {})".format(entry.path)
     ctx.actions.run_shell(
         inputs = inputs,
         outputs = [out],
