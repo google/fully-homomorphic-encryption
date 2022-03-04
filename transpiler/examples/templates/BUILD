@@ -26,7 +26,9 @@ fhe_cc_library(
         "mul.h",
         "mul8.h",
     ],
+    backend = "tfhe",
     num_opt_passes = 2,
+    optimizer = "xls",
 )
 
 fhe_cc_library(
@@ -36,7 +38,9 @@ fhe_cc_library(
         "mul.h",
         "mul16.h",
     ],
+    backend = "tfhe",
     num_opt_passes = 2,
+    optimizer = "xls",
 )
 
 fhe_cc_library(

@@ -7,7 +7,9 @@ fhe_cc_library(
     name = "string_cap_char_tfhe",
     src = "string_cap_char.cc",
     hdrs = ["string_cap_char.h"],
+    backend = "tfhe",
     num_opt_passes = 2,
+    optimizer = "xls",
 )
 
 fhe_cc_library(

@@ -13,7 +13,9 @@ fhe_cc_library(
     name = "simple_sum_tfhe",
     src = "simple_sum.cc",
     hdrs = ["simple_sum.h"],
+    backend = "tfhe",
     num_opt_passes = 2,
+    optimizer = "xls",
 )
 
 fhe_cc_library(

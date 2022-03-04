@@ -7,7 +7,9 @@ fhe_cc_library(
     name = "calculator_tfhe",
     src = "calculator.cc",
     hdrs = ["calculator.h"],
+    backend = "tfhe",
     num_opt_passes = 2,
+    optimizer = "xls",
 )
 
 fhe_cc_library(

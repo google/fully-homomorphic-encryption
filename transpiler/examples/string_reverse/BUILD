@@ -22,7 +22,9 @@ fhe_cc_library(
     name = "string_reverse_tfhe",
     src = "string_reverse.cc",
     hdrs = ["string_reverse.h"],
+    backend = "tfhe",
     num_opt_passes = 2,
+    optimizer = "xls",
 )
 
 fhe_cc_library(

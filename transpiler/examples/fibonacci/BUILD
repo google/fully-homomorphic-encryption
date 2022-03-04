@@ -7,7 +7,9 @@ fhe_cc_library(
     name = "fibonacci_tfhe",
     src = "fibonacci.cc",
     hdrs = ["fibonacci.h"],
+    backend = "tfhe",
     num_opt_passes = 2,
+    optimizer = "xls",
 )
 
 fhe_cc_library(
@@ -41,7 +43,9 @@ fhe_cc_library(
     name = "fibonacci_sequence_tfhe",
     src = "fibonacci_sequence.cc",
     hdrs = ["fibonacci_sequence.h"],
+    backend = "tfhe",
     num_opt_passes = 2,
+    optimizer = "xls",
 )
 
 fhe_cc_library(

@@ -13,6 +13,8 @@ fhe_cc_library(
     name = "rock_paper_scissor_tfhe",
     src = "rock_paper_scissor.cc",
     hdrs = ["rock_paper_scissor.h"],
+    backend = "tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(

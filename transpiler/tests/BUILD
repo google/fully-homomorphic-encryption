@@ -16,7 +16,9 @@ _PRIMITIVE_TYPES = [
             name = "%s_tfhe" % i,
             src = "%s.cc" % i,
             hdrs = [],
+            backend = "tfhe",
             num_opt_passes = 2,
+            optimizer = "xls",
         ),
         fhe_cc_library(
             name = "%s_palisade" % i,
@@ -109,7 +111,9 @@ _CONTROL_STRUCTURE = [
             name = "%s_tfhe" % i,
             src = "%s.cc" % i,
             hdrs = [],
+            backend = "tfhe",
             num_opt_passes = 2,
+            optimizer = "xls",
         ),
         fhe_cc_library(
             name = "%s_palisade" % i,

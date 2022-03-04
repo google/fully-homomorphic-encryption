@@ -39,6 +39,8 @@ fhe_cc_library(
     name = "ifte_tfhe",
     src = "ifte.cc",
     hdrs = ["ifte.h"],
+    backend = "tfhe",
+    optimizer = "xls",
 )
 
 cc_binary(

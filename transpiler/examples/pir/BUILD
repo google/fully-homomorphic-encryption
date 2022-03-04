@@ -7,7 +7,9 @@ fhe_cc_library(
     name = "pir_api_tfhe",
     src = "pir_api.cc",
     hdrs = ["pir_api.h"],
+    backend = "tfhe",
     num_opt_passes = 2,
+    optimizer = "xls",
 )
 
 fhe_cc_library(

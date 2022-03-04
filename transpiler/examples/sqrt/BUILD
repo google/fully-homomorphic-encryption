@@ -7,7 +7,9 @@ fhe_cc_library(
     name = "sqrt_tfhe",
     src = "sqrt.cc",
     hdrs = ["sqrt.h"],
+    backend = "tfhe",
     num_opt_passes = 2,
+    optimizer = "xls",
 )
 
 fhe_cc_library(

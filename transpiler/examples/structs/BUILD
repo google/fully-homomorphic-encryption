@@ -13,6 +13,8 @@ fhe_cc_library(
     name = "array_of_array_of_structs_tfhe",
     src = "array_of_array_of_structs.cc",
     hdrs = ["array_of_array_of_structs.h"],
+    backend = "tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
@@ -73,6 +75,8 @@ fhe_cc_library(
     name = "return_struct_tfhe",
     src = "return_struct.cc",
     hdrs = ["return_struct.h"],
+    backend = "tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
@@ -203,6 +207,8 @@ fhe_cc_library(
     name = "return_struct_with_inout_tfhe",
     src = "return_struct_with_inout.cc",
     hdrs = ["return_struct_with_inout.h"],
+    backend = "tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
@@ -289,6 +295,8 @@ fhe_cc_library(
     name = "simple_struct_tfhe",
     src = "simple_struct.cc",
     hdrs = ["simple_struct.h"],
+    backend = "tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
@@ -333,6 +341,8 @@ fhe_cc_library(
     name = "struct_of_structs_tfhe",
     src = "struct_of_structs.cc",
     hdrs = ["struct_of_structs.h"],
+    backend = "tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
@@ -418,6 +428,8 @@ fhe_cc_library(
     name = "struct_with_array_tfhe",
     src = "struct_with_array.cc",
     hdrs = ["struct_with_array.h"],
+    backend = "tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
@@ -521,6 +533,8 @@ fhe_cc_library(
     name = "struct_with_struct_array_tfhe",
     src = "struct_with_struct_array.cc",
     hdrs = ["struct_with_struct_array.h"],
+    backend = "tfhe",
+    optimizer = "xls",
 )
 
 fhe_cc_library(
