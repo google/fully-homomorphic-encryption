@@ -7,7 +7,8 @@ fhe_cc_library(
     name = "ifte_yosys_cleartext",
     src = "ifte.cc",
     hdrs = ["ifte.h"],
-    backend = "cleartext",
+    encryption = "cleartext",
+    interpreter = True,
     optimizer = "yosys",
 )
 
@@ -15,7 +16,8 @@ fhe_cc_library(
     name = "ifte_yosys_interpreted_tfhe",
     src = "ifte.cc",
     hdrs = ["ifte.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     optimizer = "yosys",
 )
 
@@ -23,7 +25,8 @@ fhe_cc_library(
     name = "ifte_yosys_interpreted_palisade",
     src = "ifte.cc",
     hdrs = ["ifte.h"],
-    backend = "interpreted_palisade",
+    encryption = "palisade",
+    interpreter = True,
     optimizer = "yosys",
 )
 
@@ -31,7 +34,7 @@ fhe_cc_library(
     name = "ifte_cleartext",
     src = "ifte.cc",
     hdrs = ["ifte.h"],
-    backend = "cleartext",
+    encryption = "cleartext",
     optimizer = "xls",
 )
 
@@ -39,7 +42,7 @@ fhe_cc_library(
     name = "ifte_tfhe",
     src = "ifte.cc",
     hdrs = ["ifte.h"],
-    backend = "tfhe",
+    encryption = "tfhe",
     optimizer = "xls",
 )
 

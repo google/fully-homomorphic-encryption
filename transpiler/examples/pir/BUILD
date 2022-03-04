@@ -7,7 +7,7 @@ fhe_cc_library(
     name = "pir_api_tfhe",
     src = "pir_api.cc",
     hdrs = ["pir_api.h"],
-    backend = "tfhe",
+    encryption = "tfhe",
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -16,7 +16,8 @@ fhe_cc_library(
     name = "pir_api_interpreted_tfhe",
     src = "pir_api.cc",
     hdrs = ["pir_api.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
 )

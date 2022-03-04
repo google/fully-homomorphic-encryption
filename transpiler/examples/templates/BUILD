@@ -26,7 +26,7 @@ fhe_cc_library(
         "mul.h",
         "mul8.h",
     ],
-    backend = "tfhe",
+    encryption = "tfhe",
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -38,7 +38,7 @@ fhe_cc_library(
         "mul.h",
         "mul16.h",
     ],
-    backend = "tfhe",
+    encryption = "tfhe",
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -50,7 +50,8 @@ fhe_cc_library(
         "mul.h",
         "mul8.h",
     ],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -62,7 +63,8 @@ fhe_cc_library(
         "mul.h",
         "mul16.h",
     ],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
 )

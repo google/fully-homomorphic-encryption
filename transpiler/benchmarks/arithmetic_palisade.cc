@@ -21,11 +21,11 @@
 #include "transpiler/data/palisade_data.h"
 
 #ifdef USE_YOSYS_OPTIMIZER
-#include "transpiler/benchmarks/add_char_yosys_interpreted_palisade.h"
-#include "transpiler/benchmarks/add_int_yosys_interpreted_palisade.h"
+#include "transpiler/benchmarks/add_char_yosys_palisade.h"
+#include "transpiler/benchmarks/add_int_yosys_palisade.h"
 #else
-#include "transpiler/benchmarks/add_char_xls_interpreted_palisade.h"
-#include "transpiler/benchmarks/add_int_xls_interpreted_palisade.h"
+#include "transpiler/benchmarks/add_char_xls_palisade.h"
+#include "transpiler/benchmarks/add_int_xls_palisade.h"
 #endif
 
 // PALISADE parameters

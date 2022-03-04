@@ -7,7 +7,7 @@ fhe_cc_library(
     name = "sqrt_tfhe",
     src = "sqrt.cc",
     hdrs = ["sqrt.h"],
-    backend = "tfhe",
+    encryption = "tfhe",
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -16,7 +16,8 @@ fhe_cc_library(
     name = "sqrt_yosys_cleartext",
     src = "sqrt.cc",
     hdrs = ["sqrt.h"],
-    backend = "cleartext",
+    encryption = "cleartext",
+    interpreter = True,
     optimizer = "yosys",
 )
 
@@ -24,7 +25,8 @@ fhe_cc_library(
     name = "sqrt_yosys_interpreted_tfhe",
     src = "sqrt.cc",
     hdrs = ["sqrt.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     optimizer = "yosys",
 )
 
@@ -32,7 +34,8 @@ fhe_cc_library(
     name = "sqrt_interpreted_tfhe",
     src = "sqrt.cc",
     hdrs = ["sqrt.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -41,7 +44,7 @@ fhe_cc_library(
     name = "sqrt_palisade",
     src = "sqrt.cc",
     hdrs = ["sqrt.h"],
-    backend = "palisade",
+    encryption = "palisade",
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -50,7 +53,8 @@ fhe_cc_library(
     name = "sqrt_interpreted_palisade",
     src = "sqrt.cc",
     hdrs = ["sqrt.h"],
-    backend = "interpreted_palisade",
+    encryption = "palisade",
+    interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -59,7 +63,7 @@ fhe_cc_library(
     name = "sqrt_cleartext",
     src = "sqrt.cc",
     hdrs = ["sqrt.h"],
-    backend = "cleartext",
+    encryption = "cleartext",
     num_opt_passes = 2,
     optimizer = "xls",
 )

@@ -7,7 +7,7 @@ fhe_cc_library(
     name = "string_cap_tfhe",
     src = "string_cap.cc",
     hdrs = ["string_cap.h"],
-    backend = "tfhe",
+    encryption = "tfhe",
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -16,7 +16,8 @@ fhe_cc_library(
     name = "string_cap_interpreted_tfhe",
     src = "string_cap.cc",
     hdrs = ["string_cap.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -25,7 +26,8 @@ fhe_cc_library(
     name = "string_cap_yosys_interpreted_tfhe",
     src = "string_cap.cc",
     hdrs = ["string_cap.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     optimizer = "yosys",
 )
 
@@ -33,7 +35,7 @@ fhe_cc_library(
     name = "string_cap_palisade",
     src = "string_cap.cc",
     hdrs = ["string_cap.h"],
-    backend = "palisade",
+    encryption = "palisade",
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -42,7 +44,8 @@ fhe_cc_library(
     name = "string_cap_interpreted_palisade",
     src = "string_cap.cc",
     hdrs = ["string_cap.h"],
-    backend = "interpreted_palisade",
+    encryption = "palisade",
+    interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -51,7 +54,8 @@ fhe_cc_library(
     name = "string_cap_yosys_interpreted_palisade",
     src = "string_cap.cc",
     hdrs = ["string_cap.h"],
-    backend = "interpreted_palisade",
+    encryption = "palisade",
+    interpreter = True,
     num_opt_passes = 2,
     optimizer = "yosys",
 )
@@ -60,7 +64,7 @@ fhe_cc_library(
     name = "string_cap_cleartext",
     src = "string_cap.cc",
     hdrs = ["string_cap.h"],
-    backend = "cleartext",
+    encryption = "cleartext",
     num_opt_passes = 2,
     optimizer = "xls",
 )

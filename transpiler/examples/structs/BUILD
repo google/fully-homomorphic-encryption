@@ -13,7 +13,7 @@ fhe_cc_library(
     name = "array_of_array_of_structs_tfhe",
     src = "array_of_array_of_structs.cc",
     hdrs = ["array_of_array_of_structs.h"],
-    backend = "tfhe",
+    encryption = "tfhe",
     optimizer = "xls",
 )
 
@@ -21,7 +21,7 @@ fhe_cc_library(
     name = "array_of_array_of_structs_palisade",
     src = "array_of_array_of_structs.cc",
     hdrs = ["array_of_array_of_structs.h"],
-    backend = "palisade",
+    encryption = "palisade",
     optimizer = "xls",
 )
 
@@ -59,7 +59,7 @@ fhe_cc_library(
     name = "return_struct_cleartext",
     src = "return_struct.cc",
     hdrs = ["return_struct.h"],
-    backend = "cleartext",
+    encryption = "cleartext",
     optimizer = "xls",
 )
 
@@ -67,7 +67,8 @@ fhe_cc_library(
     name = "return_struct_yosys_cleartext",
     src = "return_struct.cc",
     hdrs = ["return_struct.h"],
-    backend = "cleartext",
+    encryption = "cleartext",
+    interpreter = True,
     optimizer = "yosys",
 )
 
@@ -75,7 +76,7 @@ fhe_cc_library(
     name = "return_struct_tfhe",
     src = "return_struct.cc",
     hdrs = ["return_struct.h"],
-    backend = "tfhe",
+    encryption = "tfhe",
     optimizer = "xls",
 )
 
@@ -83,7 +84,8 @@ fhe_cc_library(
     name = "return_struct_yosys_interpreted_tfhe",
     src = "return_struct.cc",
     hdrs = ["return_struct.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     optimizer = "yosys",
 )
 
@@ -91,7 +93,8 @@ fhe_cc_library(
     name = "return_struct_interpreted_tfhe",
     src = "return_struct.cc",
     hdrs = ["return_struct.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     optimizer = "xls",
 )
 
@@ -99,7 +102,7 @@ fhe_cc_library(
     name = "return_struct_palisade",
     src = "return_struct.cc",
     hdrs = ["return_struct.h"],
-    backend = "palisade",
+    encryption = "palisade",
     optimizer = "xls",
 )
 
@@ -107,7 +110,8 @@ fhe_cc_library(
     name = "return_struct_interpreted_palisade",
     src = "return_struct.cc",
     hdrs = ["return_struct.h"],
-    backend = "interpreted_palisade",
+    encryption = "palisade",
+    interpreter = True,
     optimizer = "xls",
 )
 
@@ -207,7 +211,7 @@ fhe_cc_library(
     name = "return_struct_with_inout_tfhe",
     src = "return_struct_with_inout.cc",
     hdrs = ["return_struct_with_inout.h"],
-    backend = "tfhe",
+    encryption = "tfhe",
     optimizer = "xls",
 )
 
@@ -215,7 +219,8 @@ fhe_cc_library(
     name = "return_struct_with_inout_interpreted_tfhe",
     src = "return_struct_with_inout.cc",
     hdrs = ["return_struct_with_inout.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     optimizer = "xls",
 )
 
@@ -223,7 +228,7 @@ fhe_cc_library(
     name = "return_struct_with_inout_palisade",
     src = "return_struct_with_inout.cc",
     hdrs = ["return_struct_with_inout.h"],
-    backend = "palisade",
+    encryption = "palisade",
     optimizer = "xls",
 )
 
@@ -231,7 +236,8 @@ fhe_cc_library(
     name = "return_struct_with_inout_yosys_interpreted_tfhe",
     src = "return_struct_with_inout.cc",
     hdrs = ["return_struct_with_inout.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     optimizer = "yosys",
 )
 
@@ -295,7 +301,7 @@ fhe_cc_library(
     name = "simple_struct_tfhe",
     src = "simple_struct.cc",
     hdrs = ["simple_struct.h"],
-    backend = "tfhe",
+    encryption = "tfhe",
     optimizer = "xls",
 )
 
@@ -303,7 +309,7 @@ fhe_cc_library(
     name = "simple_struct_palisade",
     src = "simple_struct.cc",
     hdrs = ["simple_struct.h"],
-    backend = "palisade",
+    encryption = "palisade",
     optimizer = "xls",
 )
 
@@ -341,7 +347,7 @@ fhe_cc_library(
     name = "struct_of_structs_tfhe",
     src = "struct_of_structs.cc",
     hdrs = ["struct_of_structs.h"],
-    backend = "tfhe",
+    encryption = "tfhe",
     optimizer = "xls",
 )
 
@@ -349,7 +355,7 @@ fhe_cc_library(
     name = "struct_of_structs_cleartext",
     src = "struct_of_structs.cc",
     hdrs = ["struct_of_structs.h"],
-    backend = "cleartext",
+    encryption = "cleartext",
     optimizer = "xls",
 )
 
@@ -357,7 +363,8 @@ fhe_cc_library(
     name = "struct_of_structs_yosys_cleartext",
     src = "struct_of_structs.cc",
     hdrs = ["struct_of_structs.h"],
-    backend = "cleartext",
+    encryption = "cleartext",
+    interpreter = True,
     optimizer = "yosys",
 )
 
@@ -365,7 +372,8 @@ fhe_cc_library(
     name = "struct_of_structs_yosys_interpreted_tfhe",
     src = "struct_of_structs.cc",
     hdrs = ["struct_of_structs.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     optimizer = "yosys",
 )
 
@@ -428,7 +436,7 @@ fhe_cc_library(
     name = "struct_with_array_tfhe",
     src = "struct_with_array.cc",
     hdrs = ["struct_with_array.h"],
-    backend = "tfhe",
+    encryption = "tfhe",
     optimizer = "xls",
 )
 
@@ -436,7 +444,8 @@ fhe_cc_library(
     name = "struct_with_array_interpreted_tfhe",
     src = "struct_with_array.cc",
     hdrs = ["struct_with_array.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     optimizer = "xls",
 )
 
@@ -444,7 +453,7 @@ fhe_cc_library(
     name = "struct_with_array_cleartext",
     src = "struct_with_array.cc",
     hdrs = ["struct_with_array.h"],
-    backend = "cleartext",
+    encryption = "cleartext",
     optimizer = "xls",
 )
 
@@ -452,7 +461,8 @@ fhe_cc_library(
     name = "struct_with_array_yosys_cleartext",
     src = "struct_with_array.cc",
     hdrs = ["struct_with_array.h"],
-    backend = "cleartext",
+    encryption = "cleartext",
+    interpreter = True,
     optimizer = "yosys",
 )
 
@@ -460,7 +470,8 @@ fhe_cc_library(
     name = "struct_with_array_yosys_interpreted_tfhe",
     src = "struct_with_array.cc",
     hdrs = ["struct_with_array.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     optimizer = "yosys",
 )
 
@@ -533,7 +544,7 @@ fhe_cc_library(
     name = "struct_with_struct_array_tfhe",
     src = "struct_with_struct_array.cc",
     hdrs = ["struct_with_struct_array.h"],
-    backend = "tfhe",
+    encryption = "tfhe",
     optimizer = "xls",
 )
 
@@ -541,7 +552,8 @@ fhe_cc_library(
     name = "struct_with_struct_array_interpreted_tfhe",
     src = "struct_with_struct_array.cc",
     hdrs = ["struct_with_struct_array.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     optimizer = "xls",
 )
 
@@ -549,7 +561,8 @@ fhe_cc_library(
     name = "struct_with_struct_array_yosys_interpreted_tfhe",
     src = "struct_with_struct_array.cc",
     hdrs = ["struct_with_struct_array.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     optimizer = "yosys",
 )
 

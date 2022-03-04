@@ -34,18 +34,18 @@ class YosysTranspiler {
   static absl::StatusOr<std::string> Translate(
       const xlscc_metadata::MetadataOutput& metadata,
       const absl::string_view cell_library_text,
-      const absl::string_view netlist_text, Backend backend);
+      const absl::string_view netlist_text, Encryption encryption);
 
   static absl::StatusOr<std::string> TranslateHeader(
       const xlscc_metadata::MetadataOutput& metadata,
-      absl::string_view header_path, Backend backend);
+      absl::string_view header_path, Encryption encryption);
 
   static absl::StatusOr<std::string> FunctionSignature(
-      const xlscc_metadata::MetadataOutput& metadata, Backend backend);
+      const xlscc_metadata::MetadataOutput& metadata, Encryption encryption);
 
  private:
   static absl::StatusOr<std::string> PathToHeaderGuard(
-      absl::string_view header_path, Backend backend);
+      absl::string_view header_path, Encryption encryption);
 };
 
 }  // namespace transpiler

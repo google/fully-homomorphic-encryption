@@ -7,7 +7,7 @@ fhe_cc_library(
     name = "calculator_tfhe",
     src = "calculator.cc",
     hdrs = ["calculator.h"],
-    backend = "tfhe",
+    encryption = "tfhe",
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -16,7 +16,8 @@ fhe_cc_library(
     name = "calculator_interpreted_tfhe",
     src = "calculator.cc",
     hdrs = ["calculator.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -25,7 +26,7 @@ fhe_cc_library(
     name = "calculator_palisade",
     src = "calculator.cc",
     hdrs = ["calculator.h"],
-    backend = "palisade",
+    encryption = "palisade",
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -34,7 +35,8 @@ fhe_cc_library(
     name = "calculator_interpreted_palisade",
     src = "calculator.cc",
     hdrs = ["calculator.h"],
-    backend = "interpreted_palisade",
+    encryption = "palisade",
+    interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -119,7 +121,7 @@ fhe_cc_library(
     name = "calculator_cleartext",
     src = "calculator.cc",
     hdrs = ["calculator.h"],
-    backend = "cleartext",
+    encryption = "cleartext",
     num_opt_passes = 2,
     optimizer = "xls",
 )

@@ -16,7 +16,7 @@ _PRIMITIVE_TYPES = [
             name = "%s_tfhe" % i,
             src = "%s.cc" % i,
             hdrs = [],
-            backend = "tfhe",
+            encryption = "tfhe",
             num_opt_passes = 2,
             optimizer = "xls",
         ),
@@ -24,7 +24,7 @@ _PRIMITIVE_TYPES = [
             name = "%s_palisade" % i,
             src = "%s.cc" % i,
             hdrs = [],
-            backend = "palisade",
+            encryption = "palisade",
             num_opt_passes = 2,
             optimizer = "xls",
         ),
@@ -111,7 +111,7 @@ _CONTROL_STRUCTURE = [
             name = "%s_tfhe" % i,
             src = "%s.cc" % i,
             hdrs = [],
-            backend = "tfhe",
+            encryption = "tfhe",
             num_opt_passes = 2,
             optimizer = "xls",
         ),
@@ -119,7 +119,7 @@ _CONTROL_STRUCTURE = [
             name = "%s_palisade" % i,
             src = "%s.cc" % i,
             hdrs = [],
-            backend = "palisade",
+            encryption = "palisade",
             num_opt_passes = 2,
             optimizer = "xls",
         ),
@@ -165,7 +165,7 @@ fhe_cc_library(
     name = "function_cleartext",
     src = "function.cc",
     hdrs = [],
-    backend = "cleartext",
+    encryption = "cleartext",
     num_opt_passes = 1,
     optimizer = "xls",
 )
@@ -174,7 +174,7 @@ fhe_cc_library(
     name = "out_params_cleartext",
     src = "out_params.cc",
     hdrs = [],
-    backend = "cleartext",
+    encryption = "cleartext",
     optimizer = "xls",
 )
 
@@ -182,7 +182,7 @@ fhe_cc_library(
     name = "out_params_with_return_cleartext",
     src = "out_params_with_return.cc",
     hdrs = [],
-    backend = "cleartext",
+    encryption = "cleartext",
     optimizer = "xls",
 )
 
@@ -190,7 +190,7 @@ fhe_cc_library(
     name = "single_out_param_cleartext",
     src = "single_out_param.cc",
     hdrs = [],
-    backend = "cleartext",
+    encryption = "cleartext",
     optimizer = "xls",
 )
 
@@ -198,7 +198,7 @@ fhe_cc_library(
     name = "single_out_param_with_return_cleartext",
     src = "single_out_param_with_return.cc",
     hdrs = [],
-    backend = "cleartext",
+    encryption = "cleartext",
     optimizer = "xls",
 )
 

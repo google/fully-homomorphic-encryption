@@ -49,7 +49,7 @@
 
 namespace {
 
-using fully_homomorphic_encryption::transpiler::Backend;
+using fully_homomorphic_encryption::transpiler::Encryption;
 using fully_homomorphic_encryption::transpiler::Optimizer;
 
 }  // namespace
@@ -70,14 +70,18 @@ ABSL_FLAG(Optimizer, optimizer, Optimizer::kXLS,
           "{xls, yosys}. 'xls' uses the built-in XLS tools to transform the "
           "program into an optimized Boolean circuit; 'yosys' uses Yosys to "
           "synthesize a circuit that targets the given backend.");
-ABSL_FLAG(Backend, backend, Backend::kTFHE,
-          "FHE execution backend to target. Choices are {tfhe, palisade, "
-          "interpreted_tfhe, interpreted_palisade, cleartext}. 'cleartext' "
-          "executes the resulting circuit in cleartext, skipping encryption; "
-          "this has zero security, but is useful for debugging the pipeline.");
 ABSL_FLAG(std::string, liberty_path, "",
           "Path to cell-definition library in Liberty format; required when "
           "using the Yosys optimizer, and otherwise has no effect.");
+ABSL_FLAG(Encryption, encryption, Encryption::kTFHE,
+          "FHE encryption scheme used by the resulting program. Choices are "
+          "{tfhe, palisade, cleartext}. 'cleartext' means the program runs in "
+          "cleartext, skipping encryption; this has zero security, but is "
+          "useful for debugging.");
+ABSL_FLAG(bool, interpreter, false,
+          "Build a program that invokes a multi-threaded interpreter. If not "
+          "set, it instead directly implements the circuit in single-threaded "
+          "C++.");
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {
@@ -101,65 +105,76 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
         "--optimizer=yosys requires --liberty_path.");
   }
 
-  Backend backend = absl::GetFlag(FLAGS_backend);
+  Encryption encryption = absl::GetFlag(FLAGS_encryption);
+  bool interpreter = absl::GetFlag(FLAGS_interpreter);
 
   const std::string& function_name = metadata.top_func_proto().name().name();
 
   XLS_ASSIGN_OR_RETURN(std::string ir_text, xls::GetFileContents(ir_path));
   std::string fn_body, fn_header;
   if (optimizer == Optimizer::kYosys) {
+    if (!interpreter) {
+      return absl::UnimplementedError(
+          "The Yosys pipeline only implements interpreter execution.");
+    }
     XLS_ASSIGN_OR_RETURN(fn_header,
                          YosysTranspiler::TranslateHeader(
-                             metadata, header_path.string(), backend));
+                             metadata, header_path.string(), encryption));
     XLS_ASSIGN_OR_RETURN(std::string cell_library_text,
                          xls::GetFileContents(liberty_path));
     XLS_ASSIGN_OR_RETURN(fn_body,
                          YosysTranspiler::Translate(metadata, cell_library_text,
-                                                    ir_text, backend));
+                                                    ir_text, encryption));
   } else {
     XLS_ASSIGN_OR_RETURN(auto package, xls::Parser::ParsePackage(ir_text));
     XLS_ASSIGN_OR_RETURN(xls::Function * function,
                          package->GetFunction(function_name));
 
-    switch (backend) {
-      case Backend::kTFHE: {
-        XLS_ASSIGN_OR_RETURN(fn_body,
-                             TfheTranspiler::Translate(function, metadata));
-        XLS_ASSIGN_OR_RETURN(
-            fn_header, TfheTranspiler::TranslateHeader(function, metadata,
+    switch (encryption) {
+      case Encryption::kTFHE: {
+        if (interpreter) {
+          XLS_ASSIGN_OR_RETURN(fn_body, InterpretedTfheTranspiler::Translate(
+                                            function, metadata));
+          XLS_ASSIGN_OR_RETURN(fn_header,
+                               InterpretedTfheTranspiler::TranslateHeader(
+                                   function, metadata, header_path.string()));
+        } else {
+          XLS_ASSIGN_OR_RETURN(fn_body,
+                               TfheTranspiler::Translate(function, metadata));
+          XLS_ASSIGN_OR_RETURN(
+              fn_header, TfheTranspiler::TranslateHeader(function, metadata,
+                                                         header_path.string()));
+        }
+        break;
+      }
+      case Encryption::kPALISADE: {
+        if (interpreter) {
+          XLS_ASSIGN_OR_RETURN(
+              fn_body,
+              InterpretedPalisadeTranspiler::Translate(function, metadata));
+          XLS_ASSIGN_OR_RETURN(fn_header,
+                               InterpretedPalisadeTranspiler::TranslateHeader(
+                                   function, metadata, header_path.string()));
+        } else {
+          XLS_ASSIGN_OR_RETURN(
+              fn_body, PalisadeTranspiler::Translate(function, metadata));
+          XLS_ASSIGN_OR_RETURN(fn_header,
+                               PalisadeTranspiler::TranslateHeader(
+                                   function, metadata, header_path.string()));
+        }
+        break;
+      }
+      case Encryption::kCleartext: {
+        if (interpreter) {
+          return absl::UnimplementedError(
+              "No XLS interpreter for cleartext is currently implemented.");
+        } else {
+          XLS_ASSIGN_OR_RETURN(fn_body,
+                               CcTranspiler::Translate(function, metadata));
+          XLS_ASSIGN_OR_RETURN(
+              fn_header, CcTranspiler::TranslateHeader(function, metadata,
                                                        header_path.string()));
-        break;
-      }
-      case Backend::kPALISADE: {
-        XLS_ASSIGN_OR_RETURN(fn_body,
-                             PalisadeTranspiler::Translate(function, metadata));
-        XLS_ASSIGN_OR_RETURN(fn_header,
-                             PalisadeTranspiler::TranslateHeader(
-                                 function, metadata, header_path.string()));
-        break;
-      }
-      case Backend::kInterpretedTFHE: {
-        XLS_ASSIGN_OR_RETURN(
-            fn_body, InterpretedTfheTranspiler::Translate(function, metadata));
-        XLS_ASSIGN_OR_RETURN(fn_header,
-                             InterpretedTfheTranspiler::TranslateHeader(
-                                 function, metadata, header_path.string()));
-        break;
-      }
-      case Backend::kInterpretedPALISADE: {
-        XLS_ASSIGN_OR_RETURN(fn_body, InterpretedPalisadeTranspiler::Translate(
-                                          function, metadata));
-        XLS_ASSIGN_OR_RETURN(fn_header,
-                             InterpretedPalisadeTranspiler::TranslateHeader(
-                                 function, metadata, header_path.string()));
-        break;
-      }
-      case Backend::kCleartext: {
-        XLS_ASSIGN_OR_RETURN(fn_body,
-                             CcTranspiler::Translate(function, metadata));
-        XLS_ASSIGN_OR_RETURN(
-            fn_header, CcTranspiler::TranslateHeader(function, metadata,
-                                                     header_path.string()));
+        }
         break;
       }
     }

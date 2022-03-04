@@ -20,11 +20,11 @@
 #include "transpiler/data/tfhe_data.h"
 
 #ifdef USE_YOSYS_OPTIMIZER
-#include "transpiler/benchmarks/add_char_yosys_interpreted_tfhe.h"
-#include "transpiler/benchmarks/add_int_yosys_interpreted_tfhe.h"
+#include "transpiler/benchmarks/add_char_yosys_tfhe.h"
+#include "transpiler/benchmarks/add_int_yosys_tfhe.h"
 #else
-#include "transpiler/benchmarks/add_char_xls_interpreted_tfhe.h"
-#include "transpiler/benchmarks/add_int_xls_interpreted_tfhe.h"
+#include "transpiler/benchmarks/add_char_xls_tfhe.h"
+#include "transpiler/benchmarks/add_int_xls_tfhe.h"
 #endif
 
 // TFHE parameters

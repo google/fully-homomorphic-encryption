@@ -31,7 +31,7 @@ fhe_cc_library(
     name = "hangman_api_tfhe",
     src = "hangman_api.cc",
     hdrs = ["hangman_api.h"],
-    backend = "tfhe",
+    encryption = "tfhe",
     num_opt_passes = 2,
     optimizer = "xls",
 )

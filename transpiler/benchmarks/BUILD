@@ -10,17 +10,18 @@ INT_TYPES = [
 
 [
     fhe_cc_library(
-        name = "add_{}_{}_{}".format(int_type, optimizer, backend),
+        name = "add_{}_{}_{}".format(int_type, optimizer, encryption),
         src = "add_{}.cc".format(int_type),
         hdrs = [],
-        backend = backend,
+        encryption = encryption,
+        interpreter = True,
         num_opt_passes = 2,
         optimizer = optimizer,
     )
     for int_type in INT_TYPES
-    for backend in [
-        "interpreted_tfhe",
-        "interpreted_palisade",
+    for encryption in [
+        "tfhe",
+        "palisade",
     ]
     for optimizer in [
         "xls",
@@ -46,7 +47,7 @@ cc_test(
         "@com_google_xls//xls/common/status:matchers",
         "//transpiler/data:tfhe_data",
         "@tfhe//:libtfhe",
-    ] + [":add_{}_yosys_interpreted_tfhe".format(int_type) for int_type in INT_TYPES],
+    ] + [":add_{}_yosys_tfhe".format(int_type) for int_type in INT_TYPES],
 )
 
 cc_test(
@@ -58,7 +59,7 @@ cc_test(
         "@com_google_xls//xls/common/status:matchers",
         "//transpiler/data:tfhe_data",
         "@tfhe//:libtfhe",
-    ] + [":add_{}_xls_interpreted_tfhe".format(int_type) for int_type in INT_TYPES],
+    ] + [":add_{}_xls_tfhe".format(int_type) for int_type in INT_TYPES],
 )
 
 cc_test(
@@ -71,7 +72,7 @@ cc_test(
         "@com_google_xls//xls/common/status:matchers",
         "//transpiler/data:palisade_data",
         "@palisade//:binfhe",
-    ] + [":add_{}_yosys_interpreted_palisade".format(int_type) for int_type in INT_TYPES],
+    ] + [":add_{}_yosys_palisade".format(int_type) for int_type in INT_TYPES],
 )
 
 cc_test(
@@ -83,5 +84,5 @@ cc_test(
         "@com_google_xls//xls/common/status:matchers",
         "//transpiler/data:palisade_data",
         "@palisade//:binfhe",
-    ] + [":add_{}_xls_interpreted_palisade".format(int_type) for int_type in INT_TYPES],
+    ] + [":add_{}_xls_palisade".format(int_type) for int_type in INT_TYPES],
 )

@@ -22,7 +22,7 @@ fhe_cc_library(
     name = "string_reverse_tfhe",
     src = "string_reverse.cc",
     hdrs = ["string_reverse.h"],
-    backend = "tfhe",
+    encryption = "tfhe",
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -31,7 +31,8 @@ fhe_cc_library(
     name = "string_reverse_interpreted_tfhe",
     src = "string_reverse.cc",
     hdrs = ["string_reverse.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -40,7 +41,7 @@ fhe_cc_library(
     name = "string_reverse_palisade",
     src = "string_reverse.cc",
     hdrs = ["string_reverse.h"],
-    backend = "palisade",
+    encryption = "palisade",
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -49,7 +50,8 @@ fhe_cc_library(
     name = "string_reverse_interpreted_palisade",
     src = "string_reverse.cc",
     hdrs = ["string_reverse.h"],
-    backend = "interpreted_palisade",
+    encryption = "palisade",
+    interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -58,7 +60,7 @@ fhe_cc_library(
     name = "string_reverse_cleartext",
     src = "string_reverse.cc",
     hdrs = ["string_reverse.h"],
-    backend = "cleartext",
+    encryption = "cleartext",
     num_opt_passes = 2,
     optimizer = "xls",
 )

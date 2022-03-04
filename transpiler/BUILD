@@ -129,9 +129,9 @@ cc_library(
 )
 
 cc_library(
-    name = "yosys_interpreted_tfhe_runner",
-    srcs = ["yosys_interpreted_tfhe_runner.cc"],
-    hdrs = ["yosys_interpreted_tfhe_runner.h"],
+    name = "yosys_tfhe_runner",
+    srcs = ["yosys_tfhe_runner.cc"],
+    hdrs = ["yosys_tfhe_runner.h"],
     deps = [
         "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/container:flat_hash_map",
@@ -155,9 +155,9 @@ cc_library(
 )
 
 cc_library(
-    name = "yosys_interpreted_palisade_runner",
-    srcs = ["yosys_interpreted_palisade_runner.cc"],
-    hdrs = ["yosys_interpreted_palisade_runner.h"],
+    name = "yosys_palisade_runner",
+    srcs = ["yosys_palisade_runner.cc"],
+    hdrs = ["yosys_palisade_runner.h"],
     deps = [
         "//transpiler/data:palisade_data",
         "@com_google_absl//absl/container:flat_hash_map",

@@ -36,23 +36,23 @@ namespace transpiler {
 
 namespace {
 
-absl::StatusOr<std::string> ElementType(Backend backend) {
-  switch (backend) {
-    case Backend::kCleartext:
+absl::StatusOr<std::string> ElementType(Encryption encryption) {
+  switch (encryption) {
+    case Encryption::kCleartext:
       return "bool";
-    case Backend::kInterpretedTFHE:
+    case Encryption::kTFHE:
       return "LweSample";
-    case Backend::kInterpretedPALISADE:
+    case Encryption::kPALISADE:
       return "lbcrypto::LWECiphertext";
     default:
       return absl::UnimplementedError(absl::Substitute(
-          "The Yosys pipeline does not currently implement the '$0' backend.",
-          AbslUnparseFlag(backend)));
+          "The Yosys pipeline does not currently implement '$0' encryption.",
+          AbslUnparseFlag(encryption)));
   }
 }
 
-absl::StatusOr<std::string> DataType(Backend backend) {
-  XLS_ASSIGN_OR_RETURN(std::string element_type, ElementType(backend));
+absl::StatusOr<std::string> DataType(Encryption encryption) {
+  XLS_ASSIGN_OR_RETURN(std::string element_type, ElementType(encryption));
   return absl::Substitute("absl::Span<$0>", element_type);
 }
 
@@ -61,7 +61,7 @@ absl::StatusOr<std::string> DataType(Backend backend) {
 absl::StatusOr<std::string> YosysTranspiler::Translate(
     const xlscc_metadata::MetadataOutput& metadata,
     const absl::string_view cell_library_text,
-    const absl::string_view netlist_text, Backend backend) {
+    const absl::string_view netlist_text, Encryption encryption) {
   static constexpr absl::string_view kSourceTemplate =
       R"source(#include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -96,8 +96,8 @@ $3 {
 })source";
 
   XLS_ASSIGN_OR_RETURN(const std::string signature,
-                       FunctionSignature(metadata, backend));
-  XLS_ASSIGN_OR_RETURN(const std::string data_type, DataType(backend));
+                       FunctionSignature(metadata, encryption));
+  XLS_ASSIGN_OR_RETURN(const std::string data_type, DataType(encryption));
   std::string return_param = absl::Substitute("$0()", data_type);
 
   if (!metadata.top_func_proto().return_type().has_as_void()) {
@@ -120,38 +120,38 @@ $3 {
 
   std::string runner_prefix;
   std::string args_suffix;
-  switch (backend) {
-    case Backend::kInterpretedTFHE:
+  switch (encryption) {
+    case Encryption::kTFHE:
       runner_prefix = "Tfhe";
       args_suffix = ", bk";
       break;
-    case Backend::kInterpretedPALISADE:
+    case Encryption::kPALISADE:
       runner_prefix = "Palisade";
       args_suffix = ", cc";
       break;
-    case Backend::kCleartext:
+    case Encryption::kCleartext:
       // Uses YosysRunner; no prefix needed.
       // No key argument required.
       break;
     default:
       return absl::UnimplementedError(absl::Substitute(
-          "The Yosys pipeline does not currently implement the '$0' backend.",
-          AbslUnparseFlag(backend)));
+          "The Yosys pipeline does not currently implement '$0' encryption.",
+          AbslUnparseFlag(encryption)));
   }
 
   return absl::Substitute(
       kSourceTemplate, netlist_text, metadata_text, cell_library_text,
       signature, return_param, absl::StrJoin(in_param_entries, ", "),
       absl::Substitute(R"hdr(#include "transpiler/yosys_$0_runner.h")hdr",
-                       AbslUnparseFlag(backend)),
+                       AbslUnparseFlag(encryption)),
       runner_prefix, args_suffix, absl::StrJoin(inout_param_entries, ", "));
 }
 
 absl::StatusOr<std::string> YosysTranspiler::TranslateHeader(
     const xlscc_metadata::MetadataOutput& metadata,
-    absl::string_view header_path, Backend backend) {
+    absl::string_view header_path, Encryption encryption) {
   XLS_ASSIGN_OR_RETURN(const std::string header_guard,
-                       PathToHeaderGuard(header_path, backend));
+                       PathToHeaderGuard(header_path, encryption));
   static constexpr absl::string_view kHeaderTemplate =
       R"(#ifndef $1
 #define $1
@@ -165,15 +165,15 @@ $0;
 $3#endif  // $1
 )";
   XLS_ASSIGN_OR_RETURN(std::string signature,
-                       FunctionSignature(metadata, backend));
+                       FunctionSignature(metadata, encryption));
 
-  XLS_ASSIGN_OR_RETURN(std::string data_type, DataType(backend));
+  XLS_ASSIGN_OR_RETURN(std::string data_type, DataType(encryption));
 
   absl::optional<std::string> typed_overload;
   std::string types_include;
   std::string scheme_data_header;
-  switch (backend) {
-    case Backend::kInterpretedTFHE:
+  switch (encryption) {
+    case Encryption::kTFHE:
       typed_overload = TypedOverload(metadata, "Tfhe", data_type,
                                      "const TFheGateBootstrappingCloudKeySet*");
       scheme_data_header = R"hdr(
@@ -182,7 +182,7 @@ $3#endif  // $1
 #include "tfhe/tfhe_io.h"
 )hdr";
       break;
-    case Backend::kInterpretedPALISADE:
+    case Encryption::kPALISADE:
       typed_overload = TypedOverload(metadata, "Palisade", data_type,
                                      "lbcrypto::BinFHEContext");
       scheme_data_header = R"hdr(
@@ -190,7 +190,7 @@ $3#endif  // $1
 #include "palisade/binfhe/binfhecontext.h"
 )hdr";
       break;
-    case Backend::kCleartext:
+    case Encryption::kCleartext:
       typed_overload =
           TypedOverload(metadata, "Encoded", data_type, absl::nullopt);
       scheme_data_header = R"hdr(
@@ -199,8 +199,8 @@ $3#endif  // $1
       break;
     default:
       return absl::UnimplementedError(absl::Substitute(
-          "The Yosys pipeline does not currently implement the '$0' backend.",
-          AbslUnparseFlag(backend)));
+          "The Yosys pipeline does not currently implement '$0' encryption.",
+          AbslUnparseFlag(encryption)));
   }
 
   types_include =
@@ -217,30 +217,31 @@ $1
 }
 
 absl::StatusOr<std::string> YosysTranspiler::FunctionSignature(
-    const xlscc_metadata::MetadataOutput& metadata, Backend backend) {
-  XLS_ASSIGN_OR_RETURN(const std::string element_type, ElementType(backend));
-  switch (backend) {
-    case Backend::kInterpretedTFHE:
+    const xlscc_metadata::MetadataOutput& metadata, Encryption encryption) {
+  XLS_ASSIGN_OR_RETURN(const std::string element_type, ElementType(encryption));
+  switch (encryption) {
+    case Encryption::kTFHE:
       return transpiler::FunctionSignature(
           metadata, element_type, "const TFheGateBootstrappingCloudKeySet*",
           "bk");
-    case Backend::kInterpretedPALISADE:
+    case Encryption::kPALISADE:
       return transpiler::FunctionSignature(metadata, element_type,
                                            "lbcrypto::BinFHEContext", "cc");
-    case Backend::kCleartext:
+    case Encryption::kCleartext:
       return transpiler::FunctionSignature(metadata, element_type,
                                            absl::nullopt);
     default:
       return absl::UnimplementedError(absl::Substitute(
-          "The Yosys pipeline does not currently implement the '$0' backend.",
-          AbslUnparseFlag(backend)));
+          "The Yosys pipeline does not currently implement '$0' encryption.",
+          AbslUnparseFlag(encryption)));
   }
 }
 
 absl::StatusOr<std::string> YosysTranspiler::PathToHeaderGuard(
-    absl::string_view header_path, Backend backend) {
-  std::string stem = absl::Substitute(
-      "YOSYS_$0_GENERATE_H_", absl::AsciiStrToUpper(AbslUnparseFlag(backend)));
+    absl::string_view header_path, Encryption encryption) {
+  std::string stem =
+      absl::Substitute("YOSYS_$0_GENERATE_H_",
+                       absl::AsciiStrToUpper(AbslUnparseFlag(encryption)));
   return transpiler::PathToHeaderGuard(stem, header_path);
 }
 

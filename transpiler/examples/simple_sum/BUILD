@@ -13,7 +13,7 @@ fhe_cc_library(
     name = "simple_sum_tfhe",
     src = "simple_sum.cc",
     hdrs = ["simple_sum.h"],
-    backend = "tfhe",
+    encryption = "tfhe",
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -22,7 +22,8 @@ fhe_cc_library(
     name = "simple_sum_interpreted_tfhe",
     src = "simple_sum.cc",
     hdrs = ["simple_sum.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -31,7 +32,7 @@ fhe_cc_library(
     name = "simple_sum_palisade",
     src = "simple_sum.cc",
     hdrs = ["simple_sum.h"],
-    backend = "palisade",
+    encryption = "palisade",
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -40,7 +41,8 @@ fhe_cc_library(
     name = "simple_sum_interpreted_palisade",
     src = "simple_sum.cc",
     hdrs = ["simple_sum.h"],
-    backend = "interpreted_palisade",
+    encryption = "palisade",
+    interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -49,7 +51,7 @@ fhe_cc_library(
     name = "simple_sum_cleartext",
     src = "simple_sum.cc",
     hdrs = ["simple_sum.h"],
-    backend = "cleartext",
+    encryption = "cleartext",
     num_opt_passes = 2,
     optimizer = "xls",
 )

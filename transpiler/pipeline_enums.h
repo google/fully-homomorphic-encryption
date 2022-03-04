@@ -50,50 +50,36 @@ inline std::string AbslUnparseFlag(Optimizer in) {
   return "unknown";
 }
 
-enum class Backend {
+enum class Encryption {
   kTFHE,
   kPALISADE,
-  kInterpretedTFHE,
-  kInterpretedPALISADE,
   kCleartext,
 };
 
-inline bool AbslParseFlag(absl::string_view text, Backend* out,
+inline bool AbslParseFlag(absl::string_view text, Encryption* out,
                           std::string* error) {
   if (absl::EqualsIgnoreCase(text, "tfhe")) {
-    *out = Backend::kTFHE;
+    *out = Encryption::kTFHE;
     return true;
   }
   if (absl::EqualsIgnoreCase(text, "palisade")) {
-    *out = Backend::kPALISADE;
-    return true;
-  }
-  if (absl::EqualsIgnoreCase(text, "interpreted_tfhe")) {
-    *out = Backend::kInterpretedTFHE;
-    return true;
-  }
-  if (absl::EqualsIgnoreCase(text, "interpreted_palisade")) {
-    *out = Backend::kInterpretedPALISADE;
+    *out = Encryption::kPALISADE;
     return true;
   }
   if (absl::EqualsIgnoreCase(text, "cleartext")) {
-    *out = Backend::kCleartext;
+    *out = Encryption::kCleartext;
     return true;
   }
   *error = "Unrecognized backend.";
   return false;
 }
-inline std::string AbslUnparseFlag(Backend in) {
+inline std::string AbslUnparseFlag(Encryption in) {
   switch (in) {
-    case Backend::kTFHE:
+    case Encryption::kTFHE:
       return "tfhe";
-    case Backend::kPALISADE:
+    case Encryption::kPALISADE:
       return "palisade";
-    case Backend::kInterpretedTFHE:
-      return "interpreted_tfhe";
-    case Backend::kInterpretedPALISADE:
-      return "interpreted_palisade";
-    case Backend::kCleartext:
+    case Encryption::kCleartext:
       return "cleartext";
   }
   return "unknown";

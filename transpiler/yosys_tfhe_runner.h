@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_YOSYS_RUNNER_H_
-#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_YOSYS_RUNNER_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_YOSYS_TFHE_RUNNER_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_YOSYS_TFHE_RUNNER_H_
 
 #include <memory>
 
@@ -256,4 +256,4 @@ class YosysTfheRunner {
 }  // namespace transpiler
 }  // namespace fully_homomorphic_encryption
 
-#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_YOSYS_RUNNER_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_YOSYS_TFHE_RUNNER_H_

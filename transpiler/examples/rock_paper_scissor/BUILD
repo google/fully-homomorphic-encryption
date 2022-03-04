@@ -13,7 +13,7 @@ fhe_cc_library(
     name = "rock_paper_scissor_tfhe",
     src = "rock_paper_scissor.cc",
     hdrs = ["rock_paper_scissor.h"],
-    backend = "tfhe",
+    encryption = "tfhe",
     optimizer = "xls",
 )
 
@@ -21,7 +21,8 @@ fhe_cc_library(
     name = "rock_paper_scissor_interpreted_tfhe",
     src = "rock_paper_scissor.cc",
     hdrs = ["rock_paper_scissor.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     optimizer = "xls",
 )
 
@@ -29,7 +30,7 @@ fhe_cc_library(
     name = "rock_paper_scissor_palisade",
     src = "rock_paper_scissor.cc",
     hdrs = ["rock_paper_scissor.h"],
-    backend = "palisade",
+    encryption = "palisade",
     optimizer = "xls",
 )
 
@@ -37,7 +38,8 @@ fhe_cc_library(
     name = "rock_paper_scissor_interpreted_palisade",
     src = "rock_paper_scissor.cc",
     hdrs = ["rock_paper_scissor.h"],
-    backend = "interpreted_palisade",
+    encryption = "palisade",
+    interpreter = True,
     optimizer = "xls",
 )
 

@@ -7,7 +7,7 @@ fhe_cc_library(
     name = "string_cap_char_tfhe",
     src = "string_cap_char.cc",
     hdrs = ["string_cap_char.h"],
-    backend = "tfhe",
+    encryption = "tfhe",
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -16,7 +16,8 @@ fhe_cc_library(
     name = "string_cap_char_interpreted_tfhe",
     src = "string_cap_char.cc",
     hdrs = ["string_cap_char.h"],
-    backend = "interpreted_tfhe",
+    encryption = "tfhe",
+    interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -25,7 +26,7 @@ fhe_cc_library(
     name = "string_cap_char_palisade",
     src = "string_cap_char.cc",
     hdrs = ["string_cap_char.h"],
-    backend = "palisade",
+    encryption = "palisade",
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -34,7 +35,7 @@ fhe_cc_library(
     name = "string_cap_char_cleartext",
     src = "string_cap_char.cc",
     hdrs = ["string_cap_char.h"],
-    backend = "cleartext",
+    encryption = "cleartext",
     num_opt_passes = 2,
     optimizer = "xls",
 )
