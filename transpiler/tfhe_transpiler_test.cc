@@ -65,7 +65,7 @@ absl::StatusOr<std::unique_ptr<xls::Package>> BooleanizeIr(xls::Package* p) {
           booleanifier_path,
           absl::StrCat("--ir_path=",
                        static_cast<std::string>(temp_file.path())),
-          absl::StrCat("--function=", p->EntryFunction().value()->name()),
+          absl::StrCat("--function=", p->GetTop().value()->name()),
       }));
   return xls::Parser::ParsePackage(std::get<0>(out_err));
 }
