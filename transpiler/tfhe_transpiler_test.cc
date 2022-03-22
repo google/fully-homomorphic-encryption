@@ -59,14 +59,13 @@ absl::StatusOr<std::unique_ptr<xls::Package>> BooleanizeIr(xls::Package* p) {
 
   XLS_ASSIGN_OR_RETURN(std::string booleanifier_path,
                        GetRunfilePath(kBooleanifierPath, "com_google_xls"));
-  XLS_ASSIGN_OR_RETURN(
-      auto out_err,
-      InvokeSubprocess({
-          booleanifier_path,
-          absl::StrCat("--ir_path=",
-                       static_cast<std::string>(temp_file.path())),
-          absl::StrCat("--function=", p->GetTop().value()->name()),
-      }));
+  XLS_ASSIGN_OR_RETURN(auto out_err,
+                       InvokeSubprocess({
+                           booleanifier_path,
+                           absl::StrCat("--ir_path=", static_cast<std::string>(
+                                                          temp_file.path())),
+                           absl::StrCat("--top=", p->GetTop().value()->name()),
+                       }));
   return xls::Parser::ParsePackage(std::get<0>(out_err));
 }
 
