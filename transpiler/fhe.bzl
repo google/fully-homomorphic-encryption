@@ -917,11 +917,14 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
             if interpreter:
                 fail("No XLS interpreter for cleartext is currently implemented.")
             deps.extend([
+                "//transpiler/data:cleartext_value",
                 "//transpiler/data:boolean_data",
             ])
         elif encryption == "tfhe":
             deps.extend([
                 "@tfhe//:libtfhe",
+                "//transpiler/data:cleartext_value",
+                "//transpiler/data:tfhe_value",
                 "//transpiler/data:boolean_data",
                 "//transpiler/data:tfhe_data",
             ])
@@ -933,6 +936,8 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
                 ])
         elif encryption == "palisade":
             deps.extend([
+                "//transpiler/data:cleartext_value",
+                "//transpiler/data:palisade_value",
                 "//transpiler/data:boolean_data",
                 "//transpiler/data:palisade_data",
                 "@palisade//:binfhe",
@@ -950,6 +955,7 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
             deps.extend([
                 "@com_google_absl//absl/status:statusor",
                 "//transpiler:yosys_cleartext_runner",
+                "//transpiler/data:cleartext_value",
                 "//transpiler/data:boolean_data",
                 "@com_google_xls//xls/common/status:status_macros",
             ])
@@ -958,6 +964,8 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
                 "@com_google_absl//absl/status:statusor",
                 "//transpiler:yosys_tfhe_runner",
                 "//transpiler/data:boolean_data",
+                "//transpiler/data:cleartext_value",
+                "//transpiler/data:tfhe_value",
                 "//transpiler/data:tfhe_data",
                 "@tfhe//:libtfhe",
                 "@com_google_xls//xls/common/status:status_macros",
@@ -966,6 +974,8 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
             deps.extend([
                 "@com_google_absl//absl/status:statusor",
                 "//transpiler:yosys_palisade_runner",
+                "//transpiler/data:cleartext_value",
+                "//transpiler/data:palisade_value",
                 "//transpiler/data:boolean_data",
                 "//transpiler/data:palisade_data",
                 "@palisade//:binfhe",

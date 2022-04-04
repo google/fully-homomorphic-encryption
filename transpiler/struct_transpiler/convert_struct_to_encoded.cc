@@ -526,8 +526,8 @@ constexpr const char kFileTemplate[] = R"(#ifndef $2
 
 #include "absl/types/span.h"
 #include "transpiler/common_runner.h"
+#include "transpiler/data/cleartext_value.h"
 $0
-#include "transpiler/data/boolean_data.h"
 
 template <class Sample, class PublicKey>
 void Unencrypted(absl::Span<const bool> value, const PublicKey* key, Sample* out);
@@ -767,6 +767,7 @@ constexpr const char kBoolFileTemplate[] = R"(#ifndef $0
 
 #include <memory>
 
+#include "transpiler/data/cleartext_value.h"
 #include "$1"
 #include "absl/types/span.h"
 
@@ -860,9 +861,9 @@ constexpr const char kTfheFileTemplate[] = R"(#ifndef $0
 
 #include <memory>
 
+#include "transpiler/data/tfhe_value.h"
 #include "$1"
 #include "absl/types/span.h"
-#include "transpiler/data/tfhe_data.h"
 #include "tfhe/tfhe.h"
 
 template<>
@@ -929,9 +930,9 @@ constexpr const char kPalisadeFileTemplate[] = R"(#ifndef $0
 
 #include <memory>
 
+#include "transpiler/data/palisade_value.h"
 #include "$1"
 #include "absl/types/span.h"
-#include "transpiler/data/palisade_data.h"
 #include "palisade/binfhe/binfhecontext.h"
 
 template<>

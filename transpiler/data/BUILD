@@ -1,10 +1,48 @@
 licenses(["notice"])
 
 cc_library(
+    name = "cleartext_value",
+    hdrs = ["cleartext_value.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_absl//absl/base",
+        "@com_google_absl//absl/container:fixed_array",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_library(
+    name = "tfhe_value",
+    hdrs = ["tfhe_value.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":cleartext_value",
+        "@com_google_absl//absl/base",
+        "@com_google_absl//absl/container:fixed_array",
+        "@com_google_absl//absl/types:span",
+        "@tfhe//:libtfhe",
+    ],
+)
+
+cc_library(
+    name = "palisade_value",
+    hdrs = ["palisade_value.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":cleartext_value",
+        "@com_google_absl//absl/base",
+        "@com_google_absl//absl/container:fixed_array",
+        "@com_google_absl//absl/types:span",
+        "@palisade//:binfhe",
+    ],
+)
+
+cc_library(
     name = "boolean_data",
     hdrs = ["boolean_data.h"],
     visibility = ["//visibility:public"],
     deps = [
+        ":cleartext_value",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/types:span",
@@ -17,6 +55,8 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":boolean_data",
+        ":cleartext_value",
+        ":tfhe_value",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/types:span",
         "@tfhe//:libtfhe",
@@ -29,6 +69,8 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":boolean_data",
+        ":cleartext_value",
+        ":palisade_value",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/types:span",
         "@palisade//:binfhe",
