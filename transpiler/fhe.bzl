@@ -27,23 +27,43 @@ _ABC = "@abc//:abc_bin"
 _TFHE_CELLS_LIBERTY = "//transpiler:tfhe_cells.liberty"
 _PALISADE_CELLS_LIBERTY = "//transpiler:palisade_cells.liberty"
 
-def _run(ctx, inputs, out_ext, tool, args, entry = None):
+FHE_ENCRYPTION_SCHEMES = {
+    "tfhe": _TFHE_CELLS_LIBERTY,
+    "palisade": _PALISADE_CELLS_LIBERTY,
+    "cleartext": _TFHE_CELLS_LIBERTY,
+}
+
+FHE_OPTIMIZERS = [
+    "xls",
+    "yosys",
+]
+
+def _executable_attr(label):
+    """A helper for declaring internal executable dependencies."""
+    return attr.label(
+        default = Label(label),
+        allow_single_file = True,
+        executable = True,
+        cfg = "exec",
+    )
+
+def _run_with_stem(ctx, stem, inputs, out_ext, tool, args, entry = None):
     """A helper to run a shell script and capture the output.
 
     ctx:  The blaze context.
+    stem: Stem for the output file.
     inputs: A list of files used by the shell.
     out_ext: An extension to add to the current label for the output file.
     tool: What tool to run.
     args: A list of arguments to pass to the tool.
-    entry: If specified, it points to a file contianing the entry point; that
+    entry: If specified, it points to a file containing the entry point; that
            information is extracted and provided as value to the --top
            command-line switch.
 
     Returns:
       The File output.
     """
-    library_name = ctx.attr.library_name or ctx.label.name
-    out = ctx.actions.declare_file("%s%s" % (library_name, out_ext))
+    out = ctx.actions.declare_file("%s%s" % (stem, out_ext))
     arguments = " ".join(args)
     if entry != None:
         arguments += " --top $(cat {})".format(entry.path)
@@ -55,27 +75,33 @@ def _run(ctx, inputs, out_ext, tool, args, entry = None):
     )
     return out
 
-def _get_top_func(ctx, metadata_file):
+def _get_top_func(ctx, library_name, metadata_file):
     """Extract the name of the entry function from the metadata file."""
-    return _run(
+    return _run_with_stem(
         ctx,
+        library_name,
         [metadata_file],
         ".entry",
         ctx.executable._get_top_func_from_proto,
         [metadata_file.path],
     )
 
-def _build_ir(ctx):
+def _get_cc_to_xls_ir_library_name(ctx):
+    """Derive a stem from a file name (e.g., myfile.cc -- myfile)."""
+    (library_name, _, _) = ctx.attr.src.label.name.rpartition(".cc")
+    return library_name
+
+def _build_ir(ctx, library_name):
     """Build the XLS IR from a C++ source.
 
     Args:
       ctx: The Blaze context.
+      library_name: The stem for the output file.
 
     Returns:
       A File containing the generated IR and one containing metadata about
       the translated function (signature, etc.).
     """
-    library_name = ctx.attr.library_name or ctx.label.name
     ir_file = ctx.actions.declare_file("%s.ir" % library_name)
     metadata_file = ctx.actions.declare_file("%s_meta.proto" % library_name)
     ctx.actions.run_shell(
@@ -89,91 +115,11 @@ def _build_ir(ctx):
             ir_file.path,
         ),
     )
-    return (ir_file, metadata_file, _get_top_func(ctx, metadata_file))
+    return (ir_file, metadata_file, _get_top_func(ctx, library_name, metadata_file))
 
-def _optimize_ir(ctx, src, extension, entry, options = []):
-    """Optimize XLS IR."""
-    return _run(ctx, [src, entry], extension, ctx.executable._xls_opt, [src.path] + options, entry)
-
-def _booleanify_ir(ctx, src, extension, entry):
-    """Optimize XLS IR."""
-    return _run(ctx, [src, entry], extension, ctx.executable._xls_booleanify, ["--ir_path", src.path], entry)
-
-def _optimize_and_booleanify_repeatedly(ctx, ir_file, entry):
-    """Runs several passes of optimization followed by booleanification.
-
-    Returns [%.opt.ir, %.opt.bool.ir, %.opt.bool.opt.ir, %.opt.bool.opt.bool.ir, ...]
-    """
-    results = [ir_file]
-    suffix = ""
-
-    # With zero optimization passes, we still want to run the optimizer with an
-    # inlining pass, as the booleanifier expects a single function.
-    if ctx.attr.num_opt_passes == 0:
-        suffix += ".opt"
-        results.append(_optimize_ir(ctx, results[-1], suffix + ".ir", entry, ["--run_only_passes=inlining"]))
-        suffix += ".bool"
-        results.append(_booleanify_ir(ctx, results[-1], suffix + ".ir", entry))
-    else:
-        for _ in range(ctx.attr.num_opt_passes):
-            suffix += ".opt"
-            results.append(_optimize_ir(ctx, results[-1], suffix + ".ir", entry))
-            suffix += ".bool"
-            results.append(_booleanify_ir(ctx, results[-1], suffix + ".ir", entry))
-    return results[1:]
-
-def _pick_last_bool_file(optimized_files):
-    """ Pick the last booleanifed IR file from a list of file produced by _optimize_and_booleanify_repeatedly().
-
-    The last %.*.bool.ir file may or may not be the smallest one.  For some IR
-    inputs, an additional optimization/booleanification pass results in a
-    larger file.  This is why we have num_opt_passes.
-    """
-
-    # structure is [%.opt.ir, %.opt.bool.ir, %.opt.bool.opt.ir,
-    # %.opt.bool.opt.bool.ir, ...], so every other file is the result of an
-    # optimization + booleanification pass.
-    return optimized_files[-1]
-
-def _fhe_transpile_ir(ctx, src, metadata, optimizer, encryption, interpreter):
-    """Transpile XLS IR into C++ source."""
-    library_name = ctx.attr.library_name or ctx.label.name
-    out_cc = ctx.actions.declare_file("%s.cc" % library_name)
-    out_h = ctx.actions.declare_file("%s.h" % library_name)
-
-    args = [
-        "-ir_path",
-        src.path,
-        "-metadata_path",
-        metadata.path,
-        "-cc_path",
-        out_cc.path,
-        "-header_path",
-        out_h.path,
-        "-optimizer",
-        optimizer,
-        "-encryption",
-        encryption,
-    ]
-    if interpreter:
-        args.append("-interpreter")
-
-    if optimizer == "yosys":
-        args += ["-liberty_path", ctx.file.cell_library.path]
-
-    ctx.actions.run(
-        inputs = [src, metadata, ctx.file.cell_library],
-        outputs = [out_cc, out_h],
-        executable = ctx.executable._fhe_transpiler,
-        arguments = args,
-    )
-    return [out_cc, out_h]
-
-def _generate_struct_header(ctx, metadata, encryption):
-    """Transpile XLS IR into C++ source."""
-    library_name = ctx.attr.library_name or ctx.label.name
+def _generate_generic_struct_header(ctx, library_name, metadata):
+    """Transpile XLS C++ structs/classes into generic FHE base classes."""
     generic_struct_h = ctx.actions.declare_file("%s.generic.types.h" % library_name)
-    specific_struct_h = ctx.actions.declare_file("%s.types.h" % library_name)
 
     args = [
         "-metadata_path",
@@ -190,29 +136,498 @@ def _generate_struct_header(ctx, metadata, encryption):
         arguments = args,
     )
 
+    return generic_struct_h
+
+XlsCcOutputInfo = provider(
+    """The output of compiling C++ using XLScc.""",
+    fields = {
+        "ir": "XLS IR file generated by XLScc compiler",
+        "metadata": "XLS IR protobuf by XLScc compiler",
+        "metadata_entry": "Text file containing the entry point for the program",
+        "generic_struct_header": "Templates for generic encodings of C++ structs in the source headers",
+        "library_name": "Library name; if empty, stem is used to derive names.",
+        "stem": "Name stem derived from input source C++ file (e.g., 'myfile' from 'myfile.cc'.)",
+        "hdrs": "Input C++ headers",
+    },
+)
+
+def _cc_to_xls_ir_impl(ctx):
+    stem = _get_cc_to_xls_ir_library_name(ctx)
+    library_name = ctx.attr.library_name or stem
+    ir_file, metadata_file, metadata_entry_file = _build_ir(ctx, library_name)
+    generic_struct_h = _generate_generic_struct_header(ctx, library_name, metadata_file)
+
+    outputs = [
+        ir_file,
+        metadata_file,
+        metadata_entry_file,
+        generic_struct_h,
+    ]
+
+    return [
+        DefaultInfo(files = depset(outputs)),
+        XlsCcOutputInfo(
+            ir = depset([ir_file]),
+            metadata = depset([metadata_file]),
+            metadata_entry = depset([metadata_entry_file]),
+            generic_struct_header = depset([generic_struct_h]),
+            library_name = library_name,
+            stem = stem,
+            hdrs = ctx.attr.hdrs,
+        ),
+    ]
+
+cc_to_xls_ir = rule(
+    doc = """
+      This rule uses XLScc to tanspile C++ code to XLS IR.  It emits the IR
+      file, the protobuf-metadata file, a file containing the entry point.  It
+      also transpiles C++ structs/classes to generic FHE encodings.
+      """,
+    implementation = _cc_to_xls_ir_impl,
+    attrs = {
+        "src": attr.label(
+            doc = "A single C++ source file to transpile.",
+            allow_single_file = [".cc"],
+        ),
+        "hdrs": attr.label_list(
+            doc = "Any headers necessary for conversion to XLS IR.",
+            allow_files = [".h"],
+        ),
+        "library_name": attr.string(
+            doc = """
+            The name used for the output files (<library_name>.cc and <library_name>.h);
+            If not specified, the default is derived from the basename of the source file.
+            """,
+        ),
+        "_xlscc": _executable_attr(_XLSCC),
+        "_get_top_func_from_proto": attr.label(
+            default = Label(_GET_TOP_FUNC_FROM_PROTO),
+            executable = True,
+            cfg = "exec",
+        ),
+        "_struct_header_generator": _executable_attr(_STRUCT_HEADER_GENERATOR),
+    },
+)
+
+def _optimize_ir(ctx, stem, src, extension, entry, options = []):
+    """Optimize XLS IR."""
+    return _run_with_stem(ctx, stem, [src, entry], extension, ctx.executable._xls_opt, [src.path] + options, entry)
+
+def _booleanify_ir(ctx, stem, src, extension, entry):
+    """Booleanify XLS IR."""
+    return _run_with_stem(ctx, stem, [src, entry], extension, ctx.executable._xls_booleanify, ["--ir_path", src.path], entry)
+
+def _optimize_and_booleanify_repeatedly(ctx, stem, ir_file, entry):
+    """Runs several passes of optimization followed by booleanification.
+
+    Returns [%.opt.ir, %.opt.bool.ir, %.opt.bool.opt.ir, %.opt.bool.opt.bool.ir, ...]
+    """
+    results = [ir_file]
+    suffix = ""
+
+    # With zero optimization passes, we still want to run the optimizer with an
+    # inlining pass, as the booleanifier expects a single function.
+    if ctx.attr.num_opt_passes == 0:
+        suffix += ".opt"
+        results.append(_optimize_ir(ctx, stem, results[-1], suffix + ".ir", entry, ["--run_only_passes=inlining"]))
+        suffix += ".bool"
+        results.append(_booleanify_ir(ctx, stem, results[-1], suffix + ".ir", entry))
+    else:
+        for _ in range(ctx.attr.num_opt_passes):
+            suffix += ".opt"
+            results.append(_optimize_ir(ctx, stem, results[-1], suffix + ".ir", entry))
+            suffix += ".bool"
+            results.append(_booleanify_ir(ctx, stem, results[-1], suffix + ".ir", entry))
+    return results[1:]
+
+def _pick_last_bool_file(optimized_files):
+    """Pick the last booleanifed IR file from a list of file produced by _optimize_and_booleanify_repeatedly().
+
+    The last %.*.bool.ir file may or may not be the smallest one.  For some IR
+    inputs, an additional optimization/booleanification pass results in a
+    larger file.  This is why we have num_opt_passes.
+    """
+
+    # structure is [%.opt.ir, %.opt.bool.ir, %.opt.bool.opt.ir,
+    # %.opt.bool.opt.bool.ir, ...], so every other file is the result of an
+    # optimization + booleanification pass.
+    return optimized_files[-1]
+
+BooleanifiedIrOutputInfo = provider(
+    """The output of booleanifying XLS IR emitted by XLScc.""",
+    fields = {
+        "ir": "XLS IR file generated by XLScc compiler",
+        "metadata": "XLS IR protobuf by XLScc compiler",
+        "generic_struct_header": "Templates for generic encodings of C++ structs in the source headers",
+        "hdrs": "Input C++ headers",
+    },
+)
+
+BooleanifiedIrInfo = provider(
+    """Non-file attributes passed forward from XlsCcOutputInfo.""",
+    fields = {
+        "library_name": "Library name; if empty, stem is used to derive names.",
+        "stem": "Name stem derived from input source C++ file (e.g., 'myfile' from 'myfile.cc'.)",
+        "optimizer": "Optimizer used to generate the IR",
+    },
+)
+
+def _xls_ir_to_bool_ir_impl(ctx):
+    src = ctx.attr.src
+    ir_input = src[XlsCcOutputInfo].ir.to_list()[0]
+    metadata_file = src[XlsCcOutputInfo].metadata.to_list()[0]
+    metadata_entry_file = src[XlsCcOutputInfo].metadata_entry.to_list()[0]
+    generic_struct_header = src[XlsCcOutputInfo].generic_struct_header.to_list()[0]
+    library_name = src[XlsCcOutputInfo].library_name
+    stem = src[XlsCcOutputInfo].stem
+
+    optimized_files = _optimize_and_booleanify_repeatedly(ctx, library_name, ir_input, metadata_entry_file)
+    ir_output = _pick_last_bool_file(optimized_files)
+
+    return [
+        DefaultInfo(files = depset(optimized_files + [ir_output] + src[DefaultInfo].files.to_list())),
+        BooleanifiedIrOutputInfo(
+            ir = depset([ir_output]),
+            metadata = depset([metadata_file]),
+            generic_struct_header = depset([generic_struct_header]),
+            hdrs = depset(src[XlsCcOutputInfo].hdrs),
+        ),
+        BooleanifiedIrInfo(
+            library_name = library_name,
+            stem = stem,
+            optimizer = "xls",
+        ),
+    ]
+
+xls_ir_to_bool_ir = rule(
+    doc = """
+      This rule takes XLS IR output by XLScc and goes through zero or more
+      phases of booleanification and optimization.  The output is an optimized
+      booleanified XLS IR file.
+      """,
+    implementation = _xls_ir_to_bool_ir_impl,
+    attrs = {
+        "src": attr.label(
+            providers = [XlsCcOutputInfo],
+            doc = "A single XLS IR source file (emitted by XLScc).",
+            mandatory = True,
+        ),
+        "num_opt_passes": attr.int(
+            doc = """
+            The number of optimization passes to run on XLS IR (default 1).
+            Values <= 0 will skip optimization altogether.
+            """,
+            default = 1,
+        ),
+        "_xls_booleanify": _executable_attr(_XLS_BOOLEANIFY),
+        "_xls_opt": _executable_attr(_XLS_OPT),
+    },
+)
+
+VerilogOutputInfo = provider(
+    """Files generated by the conversion of XLS IR to Verilog, as well as file
+       attributes passed along from other providers.""",
+    fields = {
+        "verilog_ir_file": "Optimizer used to generate the IR",
+        "metadata": "XLS IR protobuf by XLScc compiler",
+        "metadata_entry": "Text file containing the entry point for the program",
+        "generic_struct_header": "Templates for generic encodings of C++ structs in the source headers",
+        "hdrs": "Input C++ headers",
+    },
+)
+
+VerilogInfo = provider(
+    """Non-file attributes passed along from other providers.""",
+    fields = {
+        "library_name": "Library name; if empty, stem is used to derive names.",
+        "stem": "Name stem derived from input source C++ file (e.g., 'myfile' from 'myfile.cc'.)",
+    },
+)
+
+def _xls_ir_to_verilog_impl(ctx):
+    src = ctx.attr.src
+    ir_input = src[XlsCcOutputInfo].ir.to_list()[0]
+    metadata_file = src[XlsCcOutputInfo].metadata.to_list()[0]
+    metadata_entry_file = src[XlsCcOutputInfo].metadata_entry.to_list()[0]
+    generic_struct_header = src[XlsCcOutputInfo].generic_struct_header.to_list()[0]
+    library_name = src[XlsCcOutputInfo].library_name
+    stem = src[XlsCcOutputInfo].stem
+
+    optimized_ir_file = _optimize_ir(ctx, library_name, ir_input, ".opt.ir", metadata_entry_file)
+    verilog_ir_file = _generate_verilog(ctx, library_name, optimized_ir_file, ".v", metadata_entry_file)
+
+    return [
+        DefaultInfo(files = depset([optimized_ir_file, verilog_ir_file] + src[DefaultInfo].files.to_list())),
+        VerilogOutputInfo(
+            verilog_ir_file = depset([verilog_ir_file]),
+            metadata = depset([metadata_file]),
+            metadata_entry = depset([metadata_entry_file]),
+            generic_struct_header = depset([generic_struct_header]),
+            hdrs = depset(src[XlsCcOutputInfo].hdrs),
+        ),
+        VerilogInfo(
+            library_name = library_name,
+            stem = stem,
+        ),
+    ]
+
+xls_ir_to_verilog = rule(
+    doc = """
+      This rule takes XLS IR output by XLScc and emits synthesizeable
+      combinational Verilog."
+      """,
+    implementation = _xls_ir_to_verilog_impl,
+    attrs = {
+        "src": attr.label(
+            providers = [XlsCcOutputInfo],
+            doc = "A single XLS IR source file (emitted by XLScc).",
+            mandatory = True,
+        ),
+        "_xls_opt": _executable_attr(_XLS_OPT),
+        "_xls_codegen": _executable_attr(_XLS_CODEGEN),
+    },
+)
+
+NetlistEncryptionInfo = provider(
+    """Passes along the encryption attribute.""",
+    fields = {
+        "encryption": "Encryption scheme used",
+    },
+)
+
+def _verilog_to_netlist_impl(ctx):
+    src = ctx.attr.src
+    metadata_file = src[VerilogOutputInfo].metadata.to_list()[0]
+    metadata_entry_file = src[VerilogOutputInfo].metadata_entry.to_list()[0]
+    verilog_ir_file = src[VerilogOutputInfo].verilog_ir_file.to_list()[0]
+    generic_struct_header = src[VerilogOutputInfo].generic_struct_header.to_list()[0]
+    library_name = src[VerilogInfo].library_name
+    stem = src[VerilogInfo].stem
+
+    name = stem + "_" + ctx.attr.encryption
+    if stem != library_name:
+        name = library_name
+    netlist_file, yosys_script_file = _generate_netlist(ctx, name, verilog_ir_file, metadata_entry_file)
+
+    outputs = [netlist_file, yosys_script_file]
+    return [
+        DefaultInfo(files = depset(outputs + src[DefaultInfo].files.to_list())),
+        BooleanifiedIrOutputInfo(
+            ir = depset([netlist_file]),
+            metadata = depset([metadata_file]),
+            generic_struct_header = depset([generic_struct_header]),
+            hdrs = depset(src[VerilogOutputInfo].hdrs.to_list()),
+        ),
+        BooleanifiedIrInfo(
+            library_name = library_name,
+            stem = stem,
+            optimizer = "yosys",
+        ),
+        NetlistEncryptionInfo(
+            encryption = ctx.attr.encryption,
+        ),
+    ]
+
+_verilog_to_netlist = rule(
+    doc = """
+      This rule takex XLS IR output by XLScc, and converts it to a Verilog
+      netlist using the basic primitives defined in a cell library.
+      """,
+    implementation = _verilog_to_netlist_impl,
+    attrs = {
+        "src": attr.label(
+            providers = [VerilogOutputInfo, VerilogInfo],
+            doc = "A single XLS IR source file (emitted by XLScc).",
+            mandatory = True,
+        ),
+        "encryption": attr.string(
+            doc = """
+            FHE encryption scheme used by the resulting program. Choices are
+            {tfhe, palisade, cleartext}. 'cleartext' means the program runs in cleartext,
+            skipping encryption; this has zero security, but is useful for debugging.
+            """,
+            values = FHE_ENCRYPTION_SCHEMES.keys(),
+            default = "tfhe",
+        ),
+        "cell_library": attr.label(
+            doc = "A single cell-definition library in Liberty format.",
+            allow_single_file = [".liberty"],
+        ),
+        "_yosys": _executable_attr(_YOSYS),
+        "_abc": _executable_attr(_ABC),
+    },
+)
+
+def verilog_to_netlist(name, src, encryption):
+    if encryption in FHE_ENCRYPTION_SCHEMES:
+        _verilog_to_netlist(name = name, src = src, encryption = encryption, cell_library = FHE_ENCRYPTION_SCHEMES[encryption])
+    else:
+        fail("Invalid encryption value:", encryption)
+
+def _fhe_transpile_ir(ctx, library_name, stem, src, metadata, optimizer, encryption, encryption_specific_transpiled_structs_header, interpreter):
+    """Transpile XLS IR into C++ source."""
+
+    if library_name == stem:
+        name = stem + ("_yosys" if optimizer == "yosys" else "") + ("_interpreted" if interpreter else "") + "_" + encryption
+    else:
+        name = library_name
+    out_cc = ctx.actions.declare_file("%s.cc" % name)
+    out_h = ctx.actions.declare_file("%s.h" % name)
+
+    args = [
+        "-ir_path",
+        src.path,
+        "-metadata_path",
+        metadata.path,
+        "-cc_path",
+        out_cc.path,
+        "-header_path",
+        out_h.path,
+        "-optimizer",
+        optimizer,
+        "-encryption",
+        encryption,
+        "-encryption_specific_transpiled_structs_header_path",
+        encryption_specific_transpiled_structs_header.short_path,
+    ]
+    if interpreter:
+        args.append("-interpreter")
+
+    ctx.actions.run(
+        inputs = [src, metadata, encryption_specific_transpiled_structs_header],
+        outputs = [out_cc, out_h],
+        executable = ctx.executable._fhe_transpiler,
+        arguments = args,
+    )
+    return [out_cc, out_h]
+
+def _fhe_transpile_netlist(ctx, library_name, stem, src, metadata, optimizer, encryption, encryption_specific_transpiled_structs_header, interpreter):
+    """Transpile XLS IR into C++ source."""
+
+    if library_name == stem:
+        name = stem + ("_yosys" if optimizer == "yosys" else "") + ("_interpreted" if interpreter else "") + "_" + encryption
+    else:
+        name = library_name
+    out_cc = ctx.actions.declare_file("%s.cc" % name)
+    out_h = ctx.actions.declare_file("%s.h" % name)
+
+    args = [
+        "-ir_path",
+        src.path,
+        "-metadata_path",
+        metadata.path,
+        "-cc_path",
+        out_cc.path,
+        "-header_path",
+        out_h.path,
+        "-optimizer",
+        optimizer,
+        "-encryption",
+        encryption,
+        "-encryption_specific_transpiled_structs_header_path",
+        encryption_specific_transpiled_structs_header.short_path,
+    ]
+    if interpreter:
+        args.append("-interpreter")
+
+    args += ["-liberty_path", ctx.file.cell_library.path]
+
+    ctx.actions.run(
+        inputs = [src, metadata, encryption_specific_transpiled_structs_header, ctx.file.cell_library],
+        outputs = [out_cc, out_h],
+        executable = ctx.executable._fhe_transpiler,
+        arguments = args,
+    )
+    return [out_cc, out_h]
+
+def _generate_encryption_specific_transpiled_structs_header_path(ctx, library_name, stem, metadata, generic_struct_header, encryption):
+    """Transpile XLS C++ structs/classes into scheme-specific FHE base classes."""
+    header_name = stem + "_" + encryption
+    if stem != library_name:
+        header_name = library_name
+    specific_struct_h = ctx.actions.declare_file("%s.types.h" % header_name)
+
     args = [
         "-metadata_path",
         metadata.path,
         "-output_path",
         specific_struct_h.path,
         "-generic_header_path",
-        generic_struct_h.path,
+        generic_struct_header.path,
         "-backend_type",
         encryption,
     ]
     ctx.actions.run(
-        inputs = [metadata, generic_struct_h],
+        inputs = [metadata, generic_struct_header],
         outputs = [specific_struct_h],
         executable = ctx.executable._struct_header_generator,
         arguments = args,
     )
 
-    return [generic_struct_h, specific_struct_h]
+    return specific_struct_h
 
-def _generate_verilog(ctx, src, extension, entry):
-    """Convert optimized XLS IR to Verilog."""
-    return _run(
+XlsCcTranspiledStructsOutputInfo = provider(
+    """Provide file attribute representing scheme-specific transpiled-structs header.""",
+    fields = {
+        "encryption_specific_transpiled_structs_header": "Scheme-specific encodings of XLScc structs",
+    },
+)
+
+def _xls_cc_transpiled_structs_impl(ctx):
+    src = ctx.attr.src
+    encryption = ctx.attr.encryption
+
+    metadata = src[XlsCcOutputInfo].metadata.to_list()[0]
+    generic_struct_header = src[XlsCcOutputInfo].generic_struct_header.to_list()[0]
+    library_name = src[XlsCcOutputInfo].library_name
+    stem = src[XlsCcOutputInfo].stem
+
+    specific_struct_h = _generate_encryption_specific_transpiled_structs_header_path(
         ctx,
+        library_name,
+        stem,
+        metadata,
+        generic_struct_header,
+        encryption,
+    )
+
+    return [
+        DefaultInfo(files = depset([specific_struct_h])),
+        XlsCcTranspiledStructsOutputInfo(
+            encryption_specific_transpiled_structs_header = depset([specific_struct_h]),
+        ),
+    ]
+
+xls_cc_transpiled_structs = rule(
+    doc = """
+      This rule produces transpiled C++ code that can be included in other
+      libraries and binaries.
+      """,
+    implementation = _xls_cc_transpiled_structs_impl,
+    attrs = {
+        "src": attr.label(
+            providers = [XlsCcOutputInfo],
+            doc = "A target generated by rule cc_to_xls_ir",
+            mandatory = True,
+        ),
+        "encryption": attr.string(
+            doc = """
+            FHE encryption scheme used by the resulting program. Choices are
+            {tfhe, palisade, cleartext}. 'cleartext' means the program runs in cleartext,
+            skipping encryption; this has zero security, but is useful for debugging.
+            """,
+            values = FHE_ENCRYPTION_SCHEMES.keys(),
+            default = "tfhe",
+        ),
+        "_struct_header_generator": _executable_attr(_STRUCT_HEADER_GENERATOR),
+    },
+)
+
+def _generate_verilog(ctx, stem, src, extension, entry):
+    """Convert optimized XLS IR to Verilog."""
+    return _run_with_stem(
+        ctx,
+        stem,
         [src, entry],
         extension,
         ctx.executable._xls_codegen,
@@ -226,9 +641,8 @@ def _generate_verilog(ctx, src, extension, entry):
         entry,
     )
 
-def _generate_yosys_script(ctx, verilog, netlist_path, entry, cell_library):
-    library_name = ctx.attr.library_name or ctx.label.name
-    ys_script = ctx.actions.declare_file("%s.ys" % library_name)
+def _generate_yosys_script(ctx, stem, verilog, netlist_path, entry):
+    ys_script = ctx.actions.declare_file("%s.ys" % stem)
     sh_cmd = """cat>{script}<<EOF
 # read_verilog -sv {verilog} # if we want to use SV
 read_verilog {verilog}
@@ -248,7 +662,7 @@ EOF
         script = ys_script.path,
         verilog = verilog.path,
         entry = entry.path,
-        cell_library = cell_library.path,
+        cell_library = ctx.file.cell_library.path,
         netlist_path = netlist_path,
     )
 
@@ -260,10 +674,10 @@ EOF
 
     return ys_script
 
-def _generate_netlist(ctx, verilog, entry):
-    library_name = ctx.attr.library_name or ctx.label.name
-    netlist = ctx.actions.declare_file("%s.netlist.v" % library_name)
-    script = _generate_yosys_script(ctx, verilog, netlist.path, entry, ctx.file.cell_library)
+def _generate_netlist(ctx, stem, verilog, entry):
+    netlist = ctx.actions.declare_file("%s.netlist.v" % stem)
+
+    script = _generate_yosys_script(ctx, stem, verilog, netlist.path, entry)
 
     yosys_runfiles_dir = ctx.executable._yosys.path + ".runfiles"
 
@@ -287,91 +701,97 @@ def _generate_netlist(ctx, verilog, entry):
 
     return (netlist, script)
 
-def _fhe_transpile_impl(ctx):
-    ir_file, metadata_file, metadata_entry_file = _build_ir(ctx)
+FheIrLibraryOutputInfo = provider(
+    """Provides the generates headers by the FHE transpiler, as well as the
+       passed-along headers directly provided by the user.""",
+    fields = {
+        "hdrs": "Input C++ headers",
+    },
+)
 
-    optimizer = ctx.attr.optimizer
-    encryption = ctx.attr.encryption
+def _cc_fhe_ir_library_impl(ctx):
     interpreter = ctx.attr.interpreter
+    encryption = ctx.attr.encryption
+    src = ctx.attr.src
+    transpiled_structs = ctx.attr.transpiled_structs
 
-    outputs = []
-    optimized_files = []
-    netlist_file = None
+    all_files = src[DefaultInfo].files
+    ir = src[BooleanifiedIrOutputInfo].ir.to_list()[0]
+    metadata = src[BooleanifiedIrOutputInfo].metadata.to_list()[0]
+    library_name = src[BooleanifiedIrInfo].library_name
+    stem = src[BooleanifiedIrInfo].stem
+    optimizer = src[BooleanifiedIrInfo].optimizer
+    generic_transpiled_structs_header = src[BooleanifiedIrOutputInfo].generic_struct_header.to_list()[0]
+    encryption_specific_transpiled_structs_header = transpiled_structs[XlsCcTranspiledStructsOutputInfo].encryption_specific_transpiled_structs_header.to_list()[0]
+
+    # Netlists need to be generated with knowledge of the encryption scheme,
+    # since the scheme affects the choice of cell library.  Make sure that the
+    # netlist was generated to target the correct encryption scheme.
+    if NetlistEncryptionInfo in src:
+        src_encryption = src[NetlistEncryptionInfo].encryption
+        if encryption != src_encryption:
+            fail("Netlist was not generated for the same encryption scheme! Expecting {} but src has {}.".format(encryption, src_encryption))
+
     if optimizer == "yosys":
-        optimized_ir_file = _optimize_ir(ctx, ir_file, ".opt.ir", metadata_entry_file)
-        optimized_files.append(optimized_ir_file)
-        verilog_ir_file = _generate_verilog(ctx, optimized_ir_file, ".v", metadata_entry_file)
-        netlist_file, yosys_script_file = _generate_netlist(ctx, verilog_ir_file, metadata_entry_file)
-        outputs.extend([verilog_ir_file, netlist_file, yosys_script_file])
-        ir_input = netlist_file
+        out_cc, out_h = _fhe_transpile_netlist(
+            ctx,
+            library_name,
+            stem,
+            ir,
+            metadata,
+            optimizer,
+            encryption,
+            encryption_specific_transpiled_structs_header,
+            interpreter,
+        )
     else:
-        optimized_files = _optimize_and_booleanify_repeatedly(ctx, ir_file, metadata_entry_file)
-        ir_input = _pick_last_bool_file(optimized_files)
+        out_cc, out_h = _fhe_transpile_ir(
+            ctx,
+            library_name,
+            stem,
+            ir,
+            metadata,
+            optimizer,
+            encryption,
+            encryption_specific_transpiled_structs_header,
+            interpreter,
+        )
 
-    hdrs = _generate_struct_header(ctx, metadata_file, encryption)
+    input_headers = []
+    for hdr in src[BooleanifiedIrOutputInfo].hdrs.to_list():
+        input_headers.extend(hdr.files.to_list())
 
-    out_cc, out_h = _fhe_transpile_ir(
-        ctx,
-        ir_input,
-        metadata_file,
-        optimizer,
-        encryption,
-        interpreter,
-    )
-    hdrs.append(out_h)
-
-    outputs = [
-        ir_file,
-        metadata_file,
-        metadata_entry_file,
-        out_cc,
-    ] + optimized_files + hdrs + outputs
-
+    output_hdrs = [
+        out_h,
+        generic_transpiled_structs_header,
+        encryption_specific_transpiled_structs_header,
+    ]
+    outputs = [out_cc] + output_hdrs
     return [
-        DefaultInfo(files = depset(outputs)),
+        DefaultInfo(files = depset(outputs + all_files.to_list())),
         OutputGroupInfo(
             sources = depset([out_cc]),
-            headers = depset(hdrs),
+            headers = depset(output_hdrs),
+            input_headers = input_headers,
         ),
     ]
 
-def _executable_attr(label):
-    """A helper for declaring internal executable dependencies."""
-    return attr.label(
-        default = Label(label),
-        allow_single_file = True,
-        executable = True,
-        cfg = "exec",
-    )
-
-fhe_transpile = rule(
+_cc_fhe_bool_ir_library = rule(
     doc = """
       This rule produces transpiled C++ code that can be included in other
       libraries and binaries.
       """,
-    implementation = _fhe_transpile_impl,
+    implementation = _cc_fhe_ir_library_impl,
     attrs = {
         "src": attr.label(
-            doc = "A single C++ source file to transpile.",
-            allow_single_file = [".cc"],
+            providers = [BooleanifiedIrOutputInfo, BooleanifiedIrInfo],
+            doc = "A single consumable IR source file.",
+            mandatory = True,
         ),
-        "hdrs": attr.label_list(
-            doc = "Any headers necessary for conversion to XLS IR.",
-            allow_files = [".h"],
-        ),
-        "library_name": attr.string(
-            doc = """
-            The name used for the output files (<library_name>.cc and <library_name>.h);
-            defaults to the name of this target.
-            """,
-        ),
-        "num_opt_passes": attr.int(
-            doc = """
-            The number of optimization passes to run on XLS IR (default 1).
-            Values <= 0 will skip optimization altogether.
-            (Only affects the XLS optimizer.)
-            """,
-            default = 1,
+        "transpiled_structs": attr.label(
+            providers = [XlsCcTranspiledStructsOutputInfo],
+            doc = "Target with scheme-specific encodings of XLScc data types",
+            mandatory = True,
         ),
         "encryption": attr.string(
             doc = """
@@ -379,25 +799,45 @@ fhe_transpile = rule(
             {tfhe, palisade, cleartext}. 'cleartext' means the program runs in cleartext,
             skipping encryption; this has zero security, but is useful for debugging.
             """,
-            values = [
-                "tfhe",
-                "palisade",
-                "cleartext",
-            ],
+            values = FHE_ENCRYPTION_SCHEMES.keys(),
             default = "tfhe",
         ),
-        "optimizer": attr.string(
+        "interpreter": attr.bool(
             doc = """
-            Optimizing/lowering pipeline to use in transpilation. Choices are {xls, yosys}.
-            'xls' uses the built-in XLS tools to transform the program into an optimized
-            Boolean circuit; 'yosys' uses Yosys to synthesize a circuit that targets the
-            given backend.
+            Controls whether the resulting program executes directly (single-threaded C++),
+            or invokes a multi-threaded interpreter.
             """,
-            values = [
-                "xls",
-                "yosys",
-            ],
-            default = "xls",
+            default = False,
+        ),
+        "_fhe_transpiler": _executable_attr(_FHE_TRANSPILER),
+    },
+)
+
+_cc_fhe_netlist_library = rule(
+    doc = """
+      This rule produces transpiled C++ code that can be included in other
+      libraries and binaries.
+      """,
+    implementation = _cc_fhe_ir_library_impl,
+    attrs = {
+        "src": attr.label(
+            providers = [BooleanifiedIrOutputInfo, BooleanifiedIrInfo, NetlistEncryptionInfo],
+            doc = "A single consumable IR source file.",
+            mandatory = True,
+        ),
+        "transpiled_structs": attr.label(
+            providers = [XlsCcTranspiledStructsOutputInfo],
+            doc = "Target with scheme-specific encodings of XLScc data types",
+            mandatory = False,
+        ),
+        "encryption": attr.string(
+            doc = """
+            FHE encryption scheme used by the resulting program. Choices are
+            {tfhe, palisade, cleartext}. 'cleartext' means the program runs in cleartext,
+            skipping encryption; this has zero security, but is useful for debugging.
+            """,
+            values = FHE_ENCRYPTION_SCHEMES.keys(),
+            default = "tfhe",
         ),
         "interpreter": attr.bool(
             doc = """
@@ -410,21 +850,161 @@ fhe_transpile = rule(
             doc = "A single cell-definition library in Liberty format.",
             allow_single_file = [".liberty"],
         ),
-        "_xlscc": _executable_attr(_XLSCC),
-        "_xls_booleanify": _executable_attr(_XLS_BOOLEANIFY),
-        "_xls_opt": _executable_attr(_XLS_OPT),
         "_fhe_transpiler": _executable_attr(_FHE_TRANSPILER),
-        "_struct_header_generator": _executable_attr(_STRUCT_HEADER_GENERATOR),
-        "_get_top_func_from_proto": attr.label(
-            default = Label(_GET_TOP_FUNC_FROM_PROTO),
-            executable = True,
-            cfg = "exec",
-        ),
-        "_yosys": _executable_attr(_YOSYS),
-        "_abc": _executable_attr(_ABC),
-        "_xls_codegen": _executable_attr(_XLS_CODEGEN),
     },
 )
+
+def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption, interpreter, hdrs = [], copts = [], **kwargs):
+    tags = kwargs.pop("tags", None)
+
+    transpiled_files = "{}.transpiled_files".format(name)
+
+    if encryption in FHE_ENCRYPTION_SCHEMES:
+        if optimizer not in FHE_OPTIMIZERS:
+            fail("Invalid optimizer:", optimizer)
+        if optimizer == "xls":
+            _cc_fhe_bool_ir_library(
+                name = transpiled_files,
+                src = src,
+                transpiled_structs = transpiled_structs,
+                encryption = encryption,
+                interpreter = interpreter,
+            )
+        else:  # optimizer == "yosys":
+            _cc_fhe_netlist_library(
+                name = transpiled_files,
+                src = src,
+                transpiled_structs = transpiled_structs,
+                encryption = encryption,
+                interpreter = interpreter,
+                cell_library = FHE_ENCRYPTION_SCHEMES[encryption],
+            )
+    else:
+        fail("Invalid encryption value:", encryption)
+
+    transpiled_source = "{}.srcs".format(name)
+    native.filegroup(
+        name = transpiled_source,
+        srcs = [":" + transpiled_files],
+        output_group = "sources",
+        tags = tags,
+    )
+
+    transpiled_headers = "{}.hdrs".format(name)
+    native.filegroup(
+        name = transpiled_headers,
+        srcs = [":" + transpiled_files],
+        output_group = "headers",
+        tags = tags,
+    )
+
+    input_headers = "{}.input.hdrs".format(name)
+    native.filegroup(
+        name = input_headers,
+        srcs = [":" + transpiled_files],
+        output_group = "input_headers",
+        tags = tags,
+    )
+
+    deps = [
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/types:span",
+        "//transpiler:common_runner",
+    ]
+
+    if optimizer == "xls":
+        if encryption == "cleartext":
+            if interpreter:
+                fail("No XLS interpreter for cleartext is currently implemented.")
+            deps.extend([
+                "//transpiler/data:boolean_data",
+            ])
+        elif encryption == "tfhe":
+            deps.extend([
+                "@tfhe//:libtfhe",
+                "//transpiler/data:boolean_data",
+                "//transpiler/data:tfhe_data",
+            ])
+            if interpreter:
+                deps.extend([
+                    "@com_google_absl//absl/status:statusor",
+                    "//transpiler:tfhe_runner",
+                    "@com_google_xls//xls/common/status:status_macros",
+                ])
+        elif encryption == "palisade":
+            deps.extend([
+                "//transpiler/data:boolean_data",
+                "//transpiler/data:palisade_data",
+                "@palisade//:binfhe",
+            ])
+            if interpreter:
+                deps.extend([
+                    "@com_google_absl//absl/status:statusor",
+                    "//transpiler:palisade_runner",
+                    "@com_google_xls//xls/common/status:status_macros",
+                ])
+    else:
+        if not interpreter:
+            fail("The Yosys pipeline only implements interpreter execution.")
+        if encryption == "cleartext":
+            deps.extend([
+                "@com_google_absl//absl/status:statusor",
+                "//transpiler:yosys_cleartext_runner",
+                "//transpiler/data:boolean_data",
+                "@com_google_xls//xls/common/status:status_macros",
+            ])
+        elif encryption == "tfhe":
+            deps.extend([
+                "@com_google_absl//absl/status:statusor",
+                "//transpiler:yosys_tfhe_runner",
+                "//transpiler/data:boolean_data",
+                "//transpiler/data:tfhe_data",
+                "@tfhe//:libtfhe",
+                "@com_google_xls//xls/common/status:status_macros",
+            ])
+        elif encryption == "palisade":
+            deps.extend([
+                "@com_google_absl//absl/status:statusor",
+                "//transpiler:yosys_palisade_runner",
+                "//transpiler/data:boolean_data",
+                "//transpiler/data:palisade_data",
+                "@palisade//:binfhe",
+                "@com_google_xls//xls/common/status:status_macros",
+            ])
+
+    native.cc_library(
+        name = name,
+        srcs = [":" + transpiled_source],
+        hdrs = [":" + transpiled_headers, ":" + input_headers] + hdrs,
+        copts = ["-O0"] + copts,
+        tags = tags,
+        deps = deps,
+        **kwargs
+    )
+
+def cc_fhe_bool_ir_library(name, src, transpiled_structs, encryption, interpreter, copts = [], **kwargs):
+    _cc_fhe_common_library(
+        name = name,
+        optimizer = "xls",
+        src = src,
+        transpiled_structs = transpiled_structs,
+        encryption = encryption,
+        interpreter = interpreter,
+        copts = copts,
+        **kwargs
+    )
+
+def cc_fhe_netlist_library(name, src, encryption, transpiled_structs, interpreter, copts = [], **kwargs):
+    _cc_fhe_common_library(
+        name = name,
+        optimizer = "yosys",
+        src = src,
+        transpiled_structs = transpiled_structs,
+        encryption = encryption,
+        interpreter = interpreter,
+        copts = copts,
+        **kwargs
+    )
 
 def fhe_cc_library(
         name,
@@ -472,118 +1052,64 @@ def fhe_cc_library(
       optimizer: Defaults to "xls"; optimizing/lowering pipeline to use in transpilation.
             Choices are {xls, yosys}. 'xls' uses the built-in XLS tools to transform the
             program into an optimized Boolean circuit; 'yosys' uses Yosys to synthesize
-            a circuit that targets the given backend. (In most cases, Yosys's optimizer
+            a circuit that targets the given encryption. (In most cases, Yosys's optimizer
             is more powerful.)
       interpreter: Defaults to False; controls whether the resulting program executes
             directly (single-threaded C++), or invokes a multi-threaded interpreter.
       **kwargs: Keyword arguments to pass through to the cc_library target.
     """
-    tags = kwargs.pop("tags", None)
-
-    transpiled_files = "{}.transpiled_files".format(name)
-    cell_library = _TFHE_CELLS_LIBERTY
-    if encryption == "palisade":
-        cell_library = _PALISADE_CELLS_LIBERTY
-    fhe_transpile(
-        name = transpiled_files,
+    transpiled_xlscc_files = "{}.cc_to_xls_ir".format(name)
+    cc_to_xls_ir(
+        name = transpiled_xlscc_files,
+        library_name = name,
         src = src,
         hdrs = hdrs,
-        library_name = name,
-        num_opt_passes = num_opt_passes,
+    )
+
+    transpiled_structs_headers = "{}.xls_cc_transpiled_structs".format(name)
+    xls_cc_transpiled_structs(
+        name = transpiled_structs_headers,
+        src = ":" + transpiled_xlscc_files,
         encryption = encryption,
-        optimizer = optimizer,
-        interpreter = interpreter,
-        tags = tags,
-        cell_library = cell_library,
     )
 
-    transpiled_source = "{}.srcs".format(name)
-    native.filegroup(
-        name = transpiled_source,
-        srcs = [":" + transpiled_files],
-        output_group = "sources",
-        tags = tags,
-    )
+    if optimizer not in FHE_OPTIMIZERS:
+        fail("Invalid optimizer:", optimizer)
 
-    transpiled_headers = "{}.hdrs".format(name)
-    native.filegroup(
-        name = transpiled_headers,
-        srcs = [":" + transpiled_files],
-        output_group = "headers",
-        tags = tags,
-    )
-
-    deps = [
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/types:span",
-        "//transpiler:common_runner",
-    ]
-    if optimizer == "yosys":
-        if not interpreter:
-            fail("The Yosys pipeline only implements interpreter execution.")
-        if encryption == "cleartext":
-            deps.extend([
-                "@com_google_absl//absl/status:statusor",
-                "//transpiler:yosys_cleartext_runner",
-                "//transpiler/data:boolean_data",
-                "@com_google_xls//xls/common/status:status_macros",
-            ])
-        elif encryption == "tfhe":
-            deps.extend([
-                "@com_google_absl//absl/status:statusor",
-                "//transpiler:yosys_tfhe_runner",
-                "//transpiler/data:boolean_data",
-                "//transpiler/data:tfhe_data",
-                "@tfhe//:libtfhe",
-                "@com_google_xls//xls/common/status:status_macros",
-            ])
-        elif encryption == "palisade":
-            deps.extend([
-                "@com_google_absl//absl/status:statusor",
-                "//transpiler:yosys_palisade_runner",
-                "//transpiler/data:boolean_data",
-                "//transpiler/data:palisade_data",
-                "@palisade//:binfhe",
-                "@com_google_xls//xls/common/status:status_macros",
-            ])
-    elif optimizer == "xls":
-        if encryption == "cleartext":
-            if interpreter:
-                fail("No XLS interpreter for cleartext is currently implemented.")
-            deps.extend([
-                "//transpiler/data:boolean_data",
-            ])
-        elif encryption == "tfhe":
-            deps.extend([
-                "@tfhe//:libtfhe",
-                "//transpiler/data:boolean_data",
-                "//transpiler/data:tfhe_data",
-            ])
-            if interpreter:
-                deps.extend([
-                    "@com_google_absl//absl/status:statusor",
-                    "//transpiler:tfhe_runner",
-                    "@com_google_xls//xls/common/status:status_macros",
-                ])
-        elif encryption == "palisade":
-            deps.extend([
-                "//transpiler/data:boolean_data",
-                "//transpiler/data:palisade_data",
-                "@palisade//:binfhe",
-            ])
-            if interpreter:
-                deps.extend([
-                    "@com_google_absl//absl/status:statusor",
-                    "//transpiler:palisade_runner",
-                    "@com_google_xls//xls/common/status:status_macros",
-                ])
-
-    native.cc_library(
-        name = name,
-        srcs = [":" + transpiled_source],
-        hdrs = [":" + transpiled_headers] + hdrs,
-        copts = ["-O0"] + copts,
-        tags = tags,
-        deps = deps,
-        **kwargs
-    )
+    if optimizer == "xls":
+        optimized_intermediate_files = "{}.optimized_bool_ir".format(name)
+        xls_ir_to_bool_ir(
+            name = optimized_intermediate_files,
+            src = ":" + transpiled_xlscc_files,
+            num_opt_passes = num_opt_passes,
+        )
+        cc_fhe_bool_ir_library(
+            name = name,
+            src = ":" + optimized_intermediate_files,
+            encryption = encryption,
+            interpreter = interpreter,
+            transpiled_structs = ":" + transpiled_structs_headers,
+            copts = copts,
+            **kwargs
+        )
+    else:
+        verilog = "{}.verilog".format(name)
+        xls_ir_to_verilog(
+            name = verilog,
+            src = ":" + transpiled_xlscc_files,
+        )
+        netlist = "{}.netlist".format(name)
+        verilog_to_netlist(
+            name = netlist,
+            src = ":" + verilog,
+            encryption = encryption,
+        )
+        cc_fhe_netlist_library(
+            name = name,
+            src = ":" + netlist,
+            encryption = encryption,
+            interpreter = interpreter,
+            transpiled_structs = ":" + transpiled_structs_headers,
+            copts = copts,
+            **kwargs
+        )

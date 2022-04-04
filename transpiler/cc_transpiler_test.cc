@@ -53,9 +53,7 @@ TEST(CcTranspilerLibTest, TranslateHeader_NoParam) {
       R"(#ifndef TEST_H
 #define TEST_H
 
-// clang-format off
 #include "test.types.h"
-// clang-format on
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 #include "transpiler/data/boolean_data.h"
@@ -66,9 +64,9 @@ absl::Status test_fn() {
 }
 #endif  // TEST_H
 )";
-  XLS_ASSERT_OK_AND_ASSIGN(
-      std::string actual,
-      CcTranspiler::TranslateHeader(function, metadata, "test.h"));
+  XLS_ASSERT_OK_AND_ASSIGN(std::string actual,
+                           CcTranspiler::TranslateHeader(
+                               function, metadata, "test.h", "test.types.h"));
   EXPECT_EQ(actual, expected_header);
 }
 
@@ -93,9 +91,7 @@ TEST(CcTranspilerLibTest, TranslateHeader_Param) {
       R"(#ifndef TEST_H
 #define TEST_H
 
-// clang-format off
 #include "test.types.h"
-// clang-format on
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 #include "transpiler/data/boolean_data.h"
@@ -106,9 +102,9 @@ absl::Status test_fn(const EncodedValueRef<uint32_t> param) {
 }
 #endif  // TEST_H
 )";
-  XLS_ASSERT_OK_AND_ASSIGN(
-      std::string actual,
-      CcTranspiler::TranslateHeader(function, metadata, "test.h"));
+  XLS_ASSERT_OK_AND_ASSIGN(std::string actual,
+                           CcTranspiler::TranslateHeader(
+                               function, metadata, "test.h", "test.types.h"));
   EXPECT_EQ(actual, expected_header);
 }
 
@@ -138,9 +134,7 @@ TEST(CcTranspilerLibTest, TranslateHeader_MultipleParams) {
       R"(#ifndef TEST_H
 #define TEST_H
 
-// clang-format off
 #include "test.types.h"
-// clang-format on
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 #include "transpiler/data/boolean_data.h"
@@ -166,9 +160,9 @@ absl::Status test_fn($1) {
       absl::StrJoin(expected_overloaded_params, ", "),
       absl::StrJoin(param_names, ", "));
 
-  XLS_ASSERT_OK_AND_ASSIGN(
-      std::string actual,
-      CcTranspiler::TranslateHeader(function, metadata, "test.h"));
+  XLS_ASSERT_OK_AND_ASSIGN(std::string actual,
+                           CcTranspiler::TranslateHeader(
+                               function, metadata, "test.h", "test.types.h"));
   EXPECT_EQ(actual, expected_header);
 }
 

@@ -78,6 +78,9 @@ ABSL_FLAG(Encryption, encryption, Encryption::kTFHE,
           "{tfhe, palisade, cleartext}. 'cleartext' means the program runs in "
           "cleartext, skipping encryption; this has zero security, but is "
           "useful for debugging.");
+ABSL_FLAG(std::string, encryption_specific_transpiled_structs_header_path, "",
+          "Path to generate the C++ header file. May be omitted, if the source "
+          "C++ code does not define any user-data types.");
 ABSL_FLAG(bool, interpreter, false,
           "Build a program that invokes a multi-threaded interpreter. If not "
           "set, it instead directly implements the circuit in single-threaded "
@@ -89,7 +92,9 @@ namespace transpiler {
 absl::Status RealMain(const std::filesystem::path& ir_path,
                       const std::filesystem::path& header_path,
                       const std::filesystem::path& cc_path,
-                      const std::filesystem::path& metadata_path) {
+                      const std::filesystem::path& metadata_path,
+                      const std::filesystem::path&
+                          encryption_specific_transpiled_structs_header_path) {
   XLS_ASSIGN_OR_RETURN(std::string proto_text,
                        xls::GetFileContents(metadata_path));
   xlscc_metadata::MetadataOutput metadata;
@@ -117,9 +122,11 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
       return absl::UnimplementedError(
           "The Yosys pipeline only implements interpreter execution.");
     }
-    XLS_ASSIGN_OR_RETURN(fn_header,
-                         YosysTranspiler::TranslateHeader(
-                             metadata, header_path.string(), encryption));
+    XLS_ASSIGN_OR_RETURN(
+        fn_header,
+        YosysTranspiler::TranslateHeader(
+            metadata, header_path.string(), encryption,
+            encryption_specific_transpiled_structs_header_path.string()));
     XLS_ASSIGN_OR_RETURN(std::string cell_library_text,
                          xls::GetFileContents(liberty_path));
     XLS_ASSIGN_OR_RETURN(fn_body,
@@ -135,15 +142,19 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
         if (interpreter) {
           XLS_ASSIGN_OR_RETURN(fn_body, InterpretedTfheTranspiler::Translate(
                                             function, metadata));
-          XLS_ASSIGN_OR_RETURN(fn_header,
-                               InterpretedTfheTranspiler::TranslateHeader(
-                                   function, metadata, header_path.string()));
+          XLS_ASSIGN_OR_RETURN(
+              fn_header,
+              InterpretedTfheTranspiler::TranslateHeader(
+                  function, metadata, header_path.string(),
+                  encryption_specific_transpiled_structs_header_path.string()));
         } else {
           XLS_ASSIGN_OR_RETURN(fn_body,
                                TfheTranspiler::Translate(function, metadata));
           XLS_ASSIGN_OR_RETURN(
-              fn_header, TfheTranspiler::TranslateHeader(function, metadata,
-                                                         header_path.string()));
+              fn_header,
+              TfheTranspiler::TranslateHeader(
+                  function, metadata, header_path.string(),
+                  encryption_specific_transpiled_structs_header_path.string()));
         }
         break;
       }
@@ -152,15 +163,19 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
           XLS_ASSIGN_OR_RETURN(
               fn_body,
               InterpretedPalisadeTranspiler::Translate(function, metadata));
-          XLS_ASSIGN_OR_RETURN(fn_header,
-                               InterpretedPalisadeTranspiler::TranslateHeader(
-                                   function, metadata, header_path.string()));
+          XLS_ASSIGN_OR_RETURN(
+              fn_header,
+              InterpretedPalisadeTranspiler::TranslateHeader(
+                  function, metadata, header_path.string(),
+                  encryption_specific_transpiled_structs_header_path.string()));
         } else {
           XLS_ASSIGN_OR_RETURN(
               fn_body, PalisadeTranspiler::Translate(function, metadata));
-          XLS_ASSIGN_OR_RETURN(fn_header,
-                               PalisadeTranspiler::TranslateHeader(
-                                   function, metadata, header_path.string()));
+          XLS_ASSIGN_OR_RETURN(
+              fn_header,
+              PalisadeTranspiler::TranslateHeader(
+                  function, metadata, header_path.string(),
+                  encryption_specific_transpiled_structs_header_path.string()));
         }
         break;
       }
@@ -172,8 +187,10 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
           XLS_ASSIGN_OR_RETURN(fn_body,
                                CcTranspiler::Translate(function, metadata));
           XLS_ASSIGN_OR_RETURN(
-              fn_header, CcTranspiler::TranslateHeader(function, metadata,
-                                                       header_path.string()));
+              fn_header,
+              CcTranspiler::TranslateHeader(
+                  function, metadata, header_path.string(),
+                  encryption_specific_transpiled_structs_header_path.string()));
         }
         break;
       }
@@ -209,7 +226,8 @@ int main(int argc, char* argv[]) {
 
   absl::Status status = fully_homomorphic_encryption::transpiler::RealMain(
       absl::GetFlag(FLAGS_ir_path), absl::GetFlag(FLAGS_header_path),
-      absl::GetFlag(FLAGS_cc_path), metadata_path);
+      absl::GetFlag(FLAGS_cc_path), metadata_path,
+      absl::GetFlag(FLAGS_encryption_specific_transpiled_structs_header_path));
   if (!status.ok()) {
     std::cerr << status.ToString() << std::endl;
     return 1;

@@ -544,14 +544,12 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_NoParam) {
       R"(#ifndef A_B_C_TEST_H
 #define A_B_C_TEST_H
 
-// clang-format off
 #include "test.types.h"
-// clang-format on
 #include "absl/status/status.h"
 #include "absl/types/span.h"
+#include "transpiler/data/tfhe_data.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
-#include "transpiler/data/tfhe_data.h"
 
 absl::Status test_fn_UNSAFE(const TFheGateBootstrappingCloudKeySet* bk);
 
@@ -562,7 +560,8 @@ absl::Status test_fn(const TFheGateBootstrappingCloudKeySet* bk) {
 )";
   XLS_ASSERT_OK_AND_ASSIGN(
       std::string actual,
-      TfheTranspiler::TranslateHeader(function, metadata, "a/b/c/test.h"));
+      TfheTranspiler::TranslateHeader(function, metadata, "a/b/c/test.h",
+                                      "test.types.h"));
   EXPECT_EQ(actual, expected_header);
 }
 
@@ -590,14 +589,12 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_Param) {
       R"(#ifndef TEST_H
 #define TEST_H
 
-// clang-format off
 #include "test.types.h"
-// clang-format on
 #include "absl/status/status.h"
 #include "absl/types/span.h"
+#include "transpiler/data/tfhe_data.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
-#include "transpiler/data/tfhe_data.h"
 
 absl::Status test_fn_UNSAFE(absl::Span<const LweSample> param, const TFheGateBootstrappingCloudKeySet* bk);
 
@@ -607,9 +604,9 @@ absl::Status test_fn(const TfheValueRef<int16_t> param,
 }
 #endif  // TEST_H
 )";
-  XLS_ASSERT_OK_AND_ASSIGN(
-      std::string actual,
-      TfheTranspiler::TranslateHeader(function, metadata, "test.h"));
+  XLS_ASSERT_OK_AND_ASSIGN(std::string actual,
+                           TfheTranspiler::TranslateHeader(
+                               function, metadata, "test.h", "test.types.h"));
   EXPECT_EQ(actual, expected_header);
 }
 
@@ -639,14 +636,12 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_MultipleParams) {
       R"(#ifndef TEST_H
 #define TEST_H
 
-// clang-format off
 #include "test.types.h"
-// clang-format on
 #include "absl/status/status.h"
 #include "absl/types/span.h"
+#include "transpiler/data/tfhe_data.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
-#include "transpiler/data/tfhe_data.h"
 
 absl::Status test_fn_UNSAFE($0, const TFheGateBootstrappingCloudKeySet* bk);
 
@@ -656,7 +651,6 @@ absl::Status test_fn(const TfheValueRef<bool> param_0, const TfheValueRef<bool> 
 }
 #endif  // TEST_H
 )";
-  // clang-format on
   std::vector<std::string> expected_params;
   for (int param_index = 0; param_index < kParamNum; param_index++) {
     expected_params.push_back(
@@ -665,9 +659,9 @@ absl::Status test_fn(const TfheValueRef<bool> param_0, const TfheValueRef<bool> 
   std::string expected_header = absl::Substitute(
       expected_header_template, absl::StrJoin(expected_params, ", "));
 
-  XLS_ASSERT_OK_AND_ASSIGN(
-      std::string actual,
-      TfheTranspiler::TranslateHeader(function, metadata, "test.h"));
+  XLS_ASSERT_OK_AND_ASSIGN(std::string actual,
+                           TfheTranspiler::TranslateHeader(
+                               function, metadata, "test.h", "test.types.h"));
   EXPECT_EQ(actual, expected_header);
 }
 

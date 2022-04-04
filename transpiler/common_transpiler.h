@@ -41,8 +41,6 @@ std::string FunctionSignature(const xlscc_metadata::MetadataOutput& metadata,
 std::string PathToHeaderGuard(std::string_view default_value,
                               std::string_view header_path);
 
-std::string GetTypeHeader(absl::string_view header_path);
-
 }  // namespace transpiler
 }  // namespace fully_homomorphic_encryption
 

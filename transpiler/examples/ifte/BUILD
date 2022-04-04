@@ -1,56 +1,141 @@
-load("//transpiler:fhe.bzl", "fhe_cc_library")
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("//transpiler:fhe.bzl", "cc_fhe_bool_ir_library", "cc_fhe_netlist_library", "cc_to_xls_ir", "verilog_to_netlist", "xls_cc_transpiled_structs", "xls_ir_to_bool_ir", "xls_ir_to_verilog")
 
 licenses(["notice"])
 
-fhe_cc_library(
-    name = "ifte_yosys_cleartext",
+# Convert C++ to XLS IR and generate generic struct encodings
+
+cc_to_xls_ir(
+    name = "ifte_xls_ir",
     src = "ifte.cc",
     hdrs = ["ifte.h"],
+)
+
+# Generate struct encodings for each encryption scheme
+
+xls_cc_transpiled_structs(
+    name = "ifte_tfhe_structs",
+    src = ":ifte_xls_ir",
+    encryption = "tfhe",
+)
+
+xls_cc_transpiled_structs(
+    name = "ifte_palisade_structs",
+    src = ":ifte_xls_ir",
+    encryption = "palisade",
+)
+
+xls_cc_transpiled_structs(
+    name = "ifte_cleartext_structs",
+    src = ":ifte_xls_ir",
+    encryption = "cleartext",
+)
+
+# Generate optimized and booleanified IR (scheme-independent)
+
+xls_ir_to_bool_ir(
+    name = "ifte_optimized_booleanified_xls_ir",
+    src = ":ifte_xls_ir",
+    num_opt_passes = 1,
+)
+
+# Generate synthesizeable verilog from the XLS IR
+
+xls_ir_to_verilog(
+    name = "ifte_verilog",
+    src = ":ifte_xls_ir",
+)
+
+# Generate netlists for each encryption scheme (these should be subsumed)
+
+verilog_to_netlist(
+    name = "ifte_tfhe_netlist",
+    src = ":ifte_verilog",
+    encryption = "tfhe",
+)
+
+verilog_to_netlist(
+    name = "ifte_cleartext_netlist",
+    src = ":ifte_verilog",
+    encryption = "cleartext",
+)
+
+verilog_to_netlist(
+    name = "ifte_palisade_netlist",
+    src = ":ifte_verilog",
+    encryption = "palisade",
+)
+
+# Generate C++ libraries for various combinations of schemes and interpretation modes.
+
+cc_fhe_bool_ir_library(
+    name = "ifte_xls_cleartext",
+    src = ":ifte_optimized_booleanified_xls_ir",
+    encryption = "cleartext",
+    interpreter = False,
+    transpiled_structs = ":ifte_cleartext_structs",
+)
+
+cc_fhe_netlist_library(
+    name = "ifte_netlist_cleartext_interpreted",
+    src = ":ifte_cleartext_netlist",
     encryption = "cleartext",
     interpreter = True,
-    optimizer = "yosys",
+    transpiled_structs = ":ifte_cleartext_structs",
 )
 
-fhe_cc_library(
-    name = "ifte_yosys_interpreted_tfhe",
-    src = "ifte.cc",
-    hdrs = ["ifte.h"],
+cc_fhe_bool_ir_library(
+    name = "ifte_xls_tfhe_interpreted",
+    src = ":ifte_optimized_booleanified_xls_ir",
     encryption = "tfhe",
     interpreter = True,
-    optimizer = "yosys",
+    transpiled_structs = ":ifte_tfhe_structs",
 )
 
-fhe_cc_library(
-    name = "ifte_yosys_interpreted_palisade",
-    src = "ifte.cc",
-    hdrs = ["ifte.h"],
+cc_fhe_bool_ir_library(
+    name = "ifte_xls_tfhe",
+    src = ":ifte_optimized_booleanified_xls_ir",
+    encryption = "tfhe",
+    interpreter = False,
+    transpiled_structs = ":ifte_tfhe_structs",
+)
+
+cc_fhe_bool_ir_library(
+    name = "ifte_xls_palisade",
+    src = ":ifte_optimized_booleanified_xls_ir",
+    encryption = "palisade",
+    interpreter = False,
+    transpiled_structs = ":ifte_palisade_structs",
+)
+
+cc_fhe_bool_ir_library(
+    name = "ifte_xls_palisade_interpreted",
+    src = ":ifte_optimized_booleanified_xls_ir",
     encryption = "palisade",
     interpreter = True,
-    optimizer = "yosys",
+    transpiled_structs = ":ifte_palisade_structs",
 )
 
-fhe_cc_library(
-    name = "ifte_cleartext",
-    src = "ifte.cc",
-    hdrs = ["ifte.h"],
-    encryption = "cleartext",
-    optimizer = "xls",
-)
-
-fhe_cc_library(
-    name = "ifte_tfhe",
-    src = "ifte.cc",
-    hdrs = ["ifte.h"],
+cc_fhe_netlist_library(
+    name = "ifte_netlist_tfhe_interpreted",
+    src = ":ifte_tfhe_netlist",
     encryption = "tfhe",
-    optimizer = "xls",
+    interpreter = True,
+    transpiled_structs = ":ifte_tfhe_structs",
+)
+
+cc_fhe_netlist_library(
+    name = "ifte_netlist_palisade_interpreted",
+    src = ":ifte_palisade_netlist",
+    encryption = "palisade",
+    interpreter = True,
+    transpiled_structs = ":ifte_palisade_structs",
 )
 
 cc_binary(
     name = "ifte_cleartext_testbench",
     srcs = ["ifte_cleartext_testbench.cc"],
     deps = [
-        ":ifte_cleartext",
+        ":ifte_xls_cleartext",
         "//transpiler/data:boolean_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
@@ -59,11 +144,11 @@ cc_binary(
 )
 
 cc_binary(
-    name = "ifte_yosys_cleartext_testbench",
+    name = "ifte_yosys_interpreted_cleartext_testbench",
     srcs = ["ifte_cleartext_testbench.cc"],
-    copts = ["-DUSE_YOSYS_CLEARTEXT"],
+    copts = ["-DUSE_YOSYS_INTERPRETED_CLEARTEXT"],
     deps = [
-        ":ifte_yosys_cleartext",
+        ":ifte_netlist_cleartext_interpreted",
         "//transpiler/data:boolean_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
@@ -75,7 +160,7 @@ cc_binary(
     name = "ifte_tfhe_testbench",
     srcs = ["ifte_tfhe_testbench.cc"],
     deps = [
-        ":ifte_tfhe",
+        ":ifte_xls_tfhe",
         "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
@@ -89,7 +174,7 @@ cc_binary(
     srcs = ["ifte_tfhe_testbench.cc"],
     copts = ["-DUSE_YOSYS_INTERPRETED_TFHE"],
     deps = [
-        ":ifte_yosys_interpreted_tfhe",
+        ":ifte_netlist_tfhe_interpreted",
         "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
@@ -103,7 +188,7 @@ cc_binary(
     srcs = ["ifte_palisade_testbench.cc"],
     copts = ["-DUSE_YOSYS_INTERPRETED_PALISADE"],
     deps = [
-        ":ifte_yosys_interpreted_palisade",
+        ":ifte_netlist_palisade_interpreted",
         "//transpiler/data:palisade_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",

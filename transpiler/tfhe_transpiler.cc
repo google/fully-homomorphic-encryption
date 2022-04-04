@@ -149,21 +149,21 @@ absl::StatusOr<std::string> TfheTranspiler::Execute(const Node* node) {
 absl::StatusOr<std::string> TfheTranspiler::TranslateHeader(
     const xls::Function* function,
     const xlscc_metadata::MetadataOutput& metadata,
-    absl::string_view header_path) {
+    absl::string_view header_path,
+    const absl::string_view
+        encryption_specific_transpiled_structs_header_path) {
   XLS_ASSIGN_OR_RETURN(const std::string header_guard,
                        PathToHeaderGuard(header_path));
   static constexpr absl::string_view kHeaderTemplate =
       R"(#ifndef $2
 #define $2
 
-// clang-format off
 #include "$3"
-// clang-format on
 #include "absl/status/status.h"
 #include "absl/types/span.h"
+#include "transpiler/data/tfhe_data.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
-#include "transpiler/data/tfhe_data.h"
 
 $0;
 
@@ -176,7 +176,7 @@ $1#endif  // $2
                     "const TFheGateBootstrappingCloudKeySet*");
   return absl::Substitute(kHeaderTemplate, signature,
                           typed_overload.value_or(""), header_guard,
-                          GetTypeHeader(header_path));
+                          encryption_specific_transpiled_structs_header_path);
 }
 
 absl::StatusOr<std::string> TfheTranspiler::FunctionSignature(

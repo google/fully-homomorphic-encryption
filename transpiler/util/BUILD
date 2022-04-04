@@ -1,8 +1,5 @@
 # Build rules for general utilities not directly tied to transpilation logic.
 
-load("//transpiler:fhe.bzl", "fhe_cc_library")
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-
 package(
     default_visibility = ["//visibility:public"],
     licenses = ["notice"],  # Apache 2.0

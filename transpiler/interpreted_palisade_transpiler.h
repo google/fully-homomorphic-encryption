@@ -43,7 +43,9 @@ class InterpretedPalisadeTranspiler {
   static absl::StatusOr<std::string> TranslateHeader(
       const xls::Function* function,
       const xlscc_metadata::MetadataOutput& metadata,
-      absl::string_view header_path);
+      absl::string_view header_path,
+      const absl::string_view
+          encryption_specific_transpiled_structs_header_path);
 
   static absl::StatusOr<std::string> FunctionSignature(
       const xls::Function* function,

@@ -183,13 +183,5 @@ std::string PathToHeaderGuard(std::string_view default_value,
   return header_guard;
 }
 
-std::string GetTypeHeader(absl::string_view header_path) {
-  std::vector<absl::string_view> path_components =
-      absl::StrSplit(header_path, '/');
-  absl::string_view header_name = path_components.back();
-  XLS_CHECK(absl::ConsumeSuffix(&header_name, ".h"));
-  return absl::StrCat(header_name, ".types.h");
-}
-
 }  // namespace transpiler
 }  // namespace fully_homomorphic_encryption

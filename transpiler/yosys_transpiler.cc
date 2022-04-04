@@ -149,7 +149,9 @@ $3 {
 
 absl::StatusOr<std::string> YosysTranspiler::TranslateHeader(
     const xlscc_metadata::MetadataOutput& metadata,
-    absl::string_view header_path, Encryption encryption) {
+    absl::string_view header_path, Encryption encryption,
+    const absl::string_view
+        encryption_specific_transpiled_structs_header_path) {
   XLS_ASSIGN_OR_RETURN(const std::string header_guard,
                        PathToHeaderGuard(header_path, encryption));
   static constexpr absl::string_view kHeaderTemplate =
@@ -203,14 +205,12 @@ $3#endif  // $1
           AbslUnparseFlag(encryption)));
   }
 
-  types_include =
-      absl::Substitute(R"hdr(
-// clang-format off
+  types_include = absl::Substitute(
+      R"hdr(
 #include "$0"
-// clang-format on
 $1
                           )hdr",
-                       GetTypeHeader(header_path), scheme_data_header);
+      encryption_specific_transpiled_structs_header_path, scheme_data_header);
 
   return absl::Substitute(kHeaderTemplate, signature, header_guard,
                           types_include, typed_overload.value_or(""));

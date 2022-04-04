@@ -15,6 +15,6 @@
 #ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_IFTE_H_
 #define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_IFTE_H_
 
-unsigned char ifte(unsigned char i, unsigned char t, unsigned char e);
+char ifte(bool i, char t, char e);
 
 #endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_IFTE_H_
