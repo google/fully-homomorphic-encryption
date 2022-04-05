@@ -940,7 +940,7 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
                 "//transpiler/data:palisade_value",
                 "//transpiler/data:boolean_data",
                 "//transpiler/data:palisade_data",
-                "@palisade//:binfhe",
+                "@openfhe//:binfhe",
             ])
             if interpreter:
                 deps.extend([
@@ -978,7 +978,7 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
                 "//transpiler/data:palisade_value",
                 "//transpiler/data:boolean_data",
                 "//transpiler/data:palisade_data",
-                "@palisade//:binfhe",
+                "@openfhe//:binfhe",
                 "@com_google_xls//xls/common/status:status_macros",
             ])
 

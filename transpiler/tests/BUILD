@@ -60,7 +60,7 @@ cc_library(
         "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest",
         "@com_google_xls//xls/common/status:matchers",
-        "@palisade//:binfhe",
+        "@openfhe//:binfhe",
     ],
 )
 
@@ -92,7 +92,7 @@ cc_test(
         "@com_google_absl//absl/strings",
         "@com_google_xls//xls/common/status:matchers",
         "//transpiler/data:palisade_data",
-        "@palisade//:binfhe",
+        "@openfhe//:binfhe",
     ],
 )
 
@@ -156,7 +156,7 @@ cc_test(
         "@com_google_absl//absl/strings",
         "@com_google_xls//xls/common/status:matchers",
         "//transpiler/data:palisade_data",
-        "@palisade//:binfhe",
+        "@openfhe//:binfhe",
     ],
 )
 

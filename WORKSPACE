@@ -34,7 +34,7 @@ http_archive(
 # Install PALISADE
 
 new_git_repository(
-    name = "palisade",
+    name = "openfhe",
     build_file = "//patches:palisade.BUILD",
     remote = "https://gitlab.com/palisade/palisade-release.git",
     # tag: v1.11.5

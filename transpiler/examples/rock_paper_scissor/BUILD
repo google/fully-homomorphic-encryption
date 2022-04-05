@@ -75,7 +75,7 @@ cc_binary(
         "//transpiler/data:palisade_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
-        "@palisade//:binfhe",
+        "@openfhe//:binfhe",
     ],
 )
 
@@ -88,7 +88,7 @@ cc_binary(
         "//transpiler/data:palisade_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
-        "@palisade//:binfhe",
+        "@openfhe//:binfhe",
     ],
 )
 

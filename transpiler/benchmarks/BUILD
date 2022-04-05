@@ -70,7 +70,7 @@ cc_test(
         "@com_google_googletest//:gtest_main",
         "@com_google_xls//xls/common/status:matchers",
         "//transpiler/data:palisade_data",
-        "@palisade//:binfhe",
+        "@openfhe//:binfhe",
     ] + [":add_{}_yosys_palisade".format(int_type) for int_type in INT_TYPES],
 )
 
@@ -82,6 +82,6 @@ cc_test(
         "@com_google_googletest//:gtest_main",
         "@com_google_xls//xls/common/status:matchers",
         "//transpiler/data:palisade_data",
-        "@palisade//:binfhe",
+        "@openfhe//:binfhe",
     ] + [":add_{}_xls_palisade".format(int_type) for int_type in INT_TYPES],
 )

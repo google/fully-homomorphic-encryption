@@ -33,7 +33,7 @@ cc_library(
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/types:span",
-        "@palisade//:binfhe",
+        "@openfhe//:binfhe",
     ],
 )
 
@@ -73,7 +73,7 @@ cc_library(
         ":palisade_value",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/types:span",
-        "@palisade//:binfhe",
+        "@openfhe//:binfhe",
     ],
 )
 

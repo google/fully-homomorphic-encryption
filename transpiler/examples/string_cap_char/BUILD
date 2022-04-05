@@ -87,7 +87,7 @@ cc_binary(
         "@com_google_absl//absl/time",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
-        "@palisade//:binfhe",
+        "@openfhe//:binfhe",
     ],
 )
 

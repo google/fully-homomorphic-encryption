@@ -132,7 +132,7 @@ cc_binary(
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
-        "@palisade//:binfhe",
+        "@openfhe//:binfhe",
     ],
 )
 
@@ -149,7 +149,7 @@ cc_binary(
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
-        "@palisade//:binfhe",
+        "@openfhe//:binfhe",
     ],
 )
 
@@ -166,7 +166,7 @@ cc_binary(
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
-        "@palisade//:binfhe",
+        "@openfhe//:binfhe",
     ],
 )
 

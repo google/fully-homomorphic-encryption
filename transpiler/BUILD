@@ -176,7 +176,7 @@ cc_library(
         "@com_google_xls//xls/netlist:interpreter",
         "@com_google_xls//xls/netlist:lib_parser",
         "@com_google_xls//xls/netlist:netlist_parser",
-        "@palisade//:binfhe",
+        "@openfhe//:binfhe",
     ],
 )
 
@@ -256,7 +256,7 @@ cc_library(
         ":abstract_xls_runner",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/types:optional",
-        "@palisade//:binfhe",
+        "@openfhe//:binfhe",
     ],
 )
 
