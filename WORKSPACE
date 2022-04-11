@@ -11,12 +11,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 # Install TFHE
 http_archive(
     name = "rules_foreign_cc",
-    sha256 = "e2753b15ca6384d8f3afbe3d92375dfbec3545caff91001d6713bbefeb1ca5fa",
-    strip_prefix = "rules_foreign_cc-40b03b42eb2d3ac65b58e95e6c7fce7e8c902117",
-    # We need to use a pre-release version of rules_foreign_cc, as our OpenFHE
-    # integration requires the `includes` parameter... which was added to
-    # rules_foreign_cc just *after* the 0.7.0 release closed.
-    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/40b03b42eb2d3ac65b58e95e6c7fce7e8c902117.zip",
+    sha256 = "bcd0c5f46a49b85b384906daae41d277b3dc0ff27c7c752cc51e43048a58ec83",
+    strip_prefix = "rules_foreign_cc-0.7.1",
+    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/0.7.1.tar.gz",
 )
 
 load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_dependencies")
