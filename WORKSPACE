@@ -13,7 +13,7 @@ http_archive(
     name = "rules_foreign_cc",
     sha256 = "e2753b15ca6384d8f3afbe3d92375dfbec3545caff91001d6713bbefeb1ca5fa",
     strip_prefix = "rules_foreign_cc-40b03b42eb2d3ac65b58e95e6c7fce7e8c902117",
-    # We need to use a pre-release version of rules_foreign_cc, as our PALISADE
+    # We need to use a pre-release version of rules_foreign_cc, as our OpenFHE
     # integration requires the `includes` parameter... which was added to
     # rules_foreign_cc just *after* the 0.7.0 release closed.
     url = "https://github.com/bazelbuild/rules_foreign_cc/archive/40b03b42eb2d3ac65b58e95e6c7fce7e8c902117.zip",
@@ -31,20 +31,20 @@ http_archive(
     url = "https://github.com/tfhe/tfhe/archive/a085efe91314f994285fcb06ab8bdae3d55e4505.tar.gz",
 )
 
-# Install PALISADE
+# Install OpenFHE
 
 new_git_repository(
     name = "openfhe",
-    build_file = "//patches:palisade.BUILD",
-    remote = "https://gitlab.com/palisade/palisade-release.git",
-    # tag: v1.11.5
-    commit = "d76213499af44558170cca6c72c5314755fec23c",
+    build_file = "//patches:openfhe.BUILD",
+    remote = "https://github.com/openfheorg/openfhe-development.git",
+    # HEAD as of 2022-04-08
+    commit = "7d8e1e63e30f642ff6d8fc9493dd286b01e9c8a2",
     init_submodules = True,
-    shallow_since = "1631909486 +0000",
+    shallow_since = "1649455211 -0400",
 )
 
 # Install XLS with transitive dependencies.
-# 2022-03-013-013-01
+# 2022-03-01
 http_archive(
     name = "com_google_xls",
     patches = [

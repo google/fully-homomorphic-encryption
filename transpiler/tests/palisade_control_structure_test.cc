@@ -72,7 +72,7 @@ struct IfTestCaseInput {
 };
 
 using TranspilerControlStructureIfTestCase =
-    TranspilerControlStructureTestCase<IfTestCaseInput, int>;
+    TranspilerControlStructureTestCase<IfTestCaseInput, char>;
 class TranspilerControlStructureIfTest
     : public TranspilerTestBase,
       public WithParamInterface<TranspilerControlStructureIfTestCase> {};
