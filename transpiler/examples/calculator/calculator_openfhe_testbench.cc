@@ -21,13 +21,13 @@
 #include <vector>
 
 #include "palisade/binfhe/binfhecontext.h"
-#include "transpiler/data/palisade_data.h"
+#include "transpiler/data/openfhe_data.h"
 #include "xls/common/logging/logging.h"
 
-#ifdef USE_INTERPRETED_PALISADE
-#include "transpiler/examples/calculator/calculator_interpreted_palisade.h"
+#ifdef USE_INTERPRETED_OPENFHE
+#include "transpiler/examples/calculator/calculator_interpreted_openfhe.h"
 #else
-#include "transpiler/examples/calculator/calculator_palisade.h"
+#include "transpiler/examples/calculator/calculator_openfhe.h"
 #endif
 
 using namespace std;
@@ -38,9 +38,9 @@ void calculate(short x, short y, char op, lbcrypto::BinFHEContext cc,
                lbcrypto::LWEPrivateKey sk) {
   cout << "inputs are " << x << " " << op << " " << y << endl;
   // Encrypt data
-  auto encryptedX = PalisadeShort::Encrypt(x, cc, sk);
-  auto encryptedY = PalisadeShort::Encrypt(y, cc, sk);
-  auto encryptedOp = PalisadeChar::Encrypt(op, cc, sk);
+  auto encryptedX = OpenFheShort::Encrypt(x, cc, sk);
+  auto encryptedY = OpenFheShort::Encrypt(y, cc, sk);
+  auto encryptedOp = OpenFheChar::Encrypt(op, cc, sk);
 
   cout << "Encryption done" << endl;
   cout << "Initial state check by decryption: " << endl;
@@ -55,8 +55,8 @@ void calculate(short x, short y, char op, lbcrypto::BinFHEContext cc,
   cout << "\n";
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform computation
-  PalisadeShort encryptedResult(cc);
-  PalisadeCalculator calc(cc);
+  OpenFheShort encryptedResult(cc);
+  OpenFheCalculator calc(cc);
   calc.SetUnencrypted(Calculator(), &cc);
 
   absl::Time start_time = absl::Now();

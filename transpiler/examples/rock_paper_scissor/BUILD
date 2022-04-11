@@ -26,18 +26,18 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "rock_paper_scissor_palisade",
+    name = "rock_paper_scissor_openfhe",
     src = "rock_paper_scissor.cc",
     hdrs = ["rock_paper_scissor.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     optimizer = "xls",
 )
 
 fhe_cc_library(
-    name = "rock_paper_scissor_interpreted_palisade",
+    name = "rock_paper_scissor_interpreted_openfhe",
     src = "rock_paper_scissor.cc",
     hdrs = ["rock_paper_scissor.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     interpreter = True,
     optimizer = "xls",
 )
@@ -68,11 +68,11 @@ cc_binary(
 )
 
 cc_binary(
-    name = "rock_paper_scissor_palisade_testbench",
-    srcs = ["rock_paper_scissor_palisade_testbench.cc"],
+    name = "rock_paper_scissor_openfhe_testbench",
+    srcs = ["rock_paper_scissor_openfhe_testbench.cc"],
     deps = [
-        ":rock_paper_scissor_palisade",
-        "//transpiler/data:palisade_data",
+        ":rock_paper_scissor_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
@@ -80,12 +80,12 @@ cc_binary(
 )
 
 cc_binary(
-    name = "rock_paper_scissor_interpreted_palisade_testbench",
-    srcs = ["rock_paper_scissor_palisade_testbench.cc"],
-    copts = ["-DUSE_INTERPRETED_PALISADE"],
+    name = "rock_paper_scissor_interpreted_openfhe_testbench",
+    srcs = ["rock_paper_scissor_openfhe_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_OPENFHE"],
     deps = [
-        ":rock_paper_scissor_interpreted_palisade",
-        "//transpiler/data:palisade_data",
+        ":rock_paper_scissor_interpreted_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",

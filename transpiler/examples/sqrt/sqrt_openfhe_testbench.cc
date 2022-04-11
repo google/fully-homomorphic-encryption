@@ -1,4 +1,3 @@
-//
 // Copyright 2021 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,35 +11,35 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
 
+#include <stdio.h>
 #include <time.h>
 
 #include <array>
-#include <cstdint>
+#include <cassert>
 #include <iostream>
 #include <string>
+#include <type_traits>
+#include <vector>
 
-#include "absl/time/clock.h"
-#include "absl/time/time.h"
-#include "transpiler/data/palisade_data.h"
-#include "transpiler/examples/string_reverse/string_reverse.h"
+#include "absl/strings/numbers.h"
+#include "transpiler/data/openfhe_data.h"
 #include "xls/common/logging/logging.h"
 
-#ifdef USE_INTERPRETED_PALISADE
-#include "transpiler/examples/string_reverse/string_reverse_interpreted_palisade.h"
+#ifdef USE_INTERPRETED_OPENFHE
+#include "transpiler/examples/sqrt/sqrt_interpreted_openfhe.h"
 #else
-#include "transpiler/examples/string_reverse/string_reverse_palisade.h"
+#include "transpiler/examples/sqrt/sqrt_openfhe.h"
 #endif
 
 constexpr auto kSecurityLevel = lbcrypto::MEDIUM;
 
-void PalisadeStringReverse(PalisadeString& ciphertext,
-                           lbcrypto::BinFHEContext cc) {
-  std::cout << "Starting!" << std::endl;
+OpenFheShort FHESqrt(OpenFheShort& ciphertext, lbcrypto::BinFHEContext cc) {
   absl::Time start_time = absl::Now();
   double cpu_start_time = clock();
-  XLS_CHECK_OK(ReverseString(ciphertext, cc));
+  std::cout << "Starting!" << std::endl;
+  OpenFheShort result(cc);
+  XLS_CHECK_OK(isqrt(result, ciphertext, cc));
   double cpu_end_time = clock();
   absl::Time end_time = absl::Now();
   std::cout << "\t\t\t\t\tTotal time: "
@@ -49,17 +48,18 @@ void PalisadeStringReverse(PalisadeString& ciphertext,
   std::cout << "\t\t\t\t\t  CPU time: "
             << (cpu_end_time - cpu_start_time) / 1'000'000 << " secs"
             << std::endl;
+  return result;
 }
 
 int main(int argc, char** argv) {
   if (argc < 2) {
-    std::cerr << "Usage: string_reverse_fhe_testbench string_input"
-              << std::endl;
+    fprintf(stderr, "Usage: sqrt_tfhe_testbench num\n\n");
     return 1;
   }
 
-  std::string input = argv[1];
-  input.resize(MAX_LENGTH, '\0');
+  int input;
+  XLS_CHECK(absl::SimpleAtoi(argv[1], &input));
+  std::cout << "input: " << input << std::endl;
 
   // generate a keyset
   auto cc = lbcrypto::BinFHEContext();
@@ -71,22 +71,20 @@ int main(int argc, char** argv) {
   auto sk = cc.KeyGen();
   cc.BTKeyGen(sk);
 
-  std::string plaintext(input);
-  std::cout << "plaintext: '" << plaintext << "'" << std::endl;
+  // Encode data
+  auto ciphertext = OpenFheShort::Encrypt(input, cc, sk);
+  std::cout << "Encoding done" << std::endl;
 
-  // Encrypt data
-  auto ciphertext = PalisadeString::Encrypt(plaintext, cc, sk);
-  std::cout << "Encryption done" << std::endl;
-
-  std::cout << "Initial state check by decryption: " << std::endl;
+  std::cout << "Initial state check by decrypting: " << std::endl;
+  // Decode results.
   std::cout << ciphertext.Decrypt(sk) << "\n";
-  std::cout << "\n";
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
-  // Perform string reverse
-  PalisadeStringReverse(ciphertext, cc);
+  // Compute the square root.
+  OpenFheShort result = FHESqrt(ciphertext, cc);
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 
-  std::cout << "Decrypted result: " << ciphertext.Decrypt(sk) << "\n";
-  std::cout << "Decryption done" << std::endl;
+  // Decode results.
+  std::cout << "Decoded result: " << result.Decrypt(sk) << "\n";
+  std::cout << "Decoding done" << std::endl;
 }

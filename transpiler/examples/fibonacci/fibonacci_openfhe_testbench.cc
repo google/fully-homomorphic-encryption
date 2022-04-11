@@ -21,13 +21,13 @@
 #include <vector>
 
 #include "palisade/binfhe/binfhecontext.h"
-#include "transpiler/data/palisade_data.h"
+#include "transpiler/data/openfhe_data.h"
 #include "xls/common/logging/logging.h"
 
-#ifdef USE_INTERPRETED_PALISADE
-#include "transpiler/examples/fibonacci/fibonacci_interpreted_palisade.h"
+#ifdef USE_INTERPRETED_OPENFHE
+#include "transpiler/examples/fibonacci/fibonacci_interpreted_openfhe.h"
 #else
-#include "transpiler/examples/fibonacci/fibonacci_palisade.h"
+#include "transpiler/examples/fibonacci/fibonacci_openfhe.h"
 #endif
 
 using namespace std;
@@ -58,14 +58,14 @@ void test_fibonacci_number() {
     cout << "input n = " << n << endl;
 
     // Encrypt the input value
-    auto encryptedN = PalisadeValue<int>::Encrypt(n, cc, sk);
+    auto encryptedN = OpenFheValue<int>::Encrypt(n, cc, sk);
     cout << "Encryption done" << endl;
     cout << "Initial state check by decryption: " << endl;
     cout << "Decrypted input: " << encryptedN.Decrypt(sk) << endl;
 
     // Perform computation
     cout << "\t\t\t\t\tServer side computation:" << endl;
-    PalisadeValue<int> encryptedResult(cc);
+    OpenFheValue<int> encryptedResult(cc);
 
     absl::Time start_time = absl::Now();
     double cpu_start_time = clock();

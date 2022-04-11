@@ -7,7 +7,7 @@ it.
 This transpiler connects Google’s [XLS library](https://google.github.io/xls/)
 to multiple FHE backends (currently the
 [TFHE library](https://tfhe.github.io/tfhe/) and
-[PALISADE](https://palisade-crypto.org/)'s BinFHE library). It will allow
+[OpenFHE](https://palisade-crypto.org/)'s BinFHE library). It will allow
 developers (including those without expertise in cryptography) to write code
 that runs on encrypted data, without revealing the data contents or the
 computations’ result. This system should help lay the groundwork for further
@@ -20,7 +20,7 @@ This system is currently only supported on Linux, and requires GCC version 9
 This is currently an exploratory proof-of-concept. While it could be deployed in
 practice, the run-times of the FHE-C++ operations are likely to be too long to
 be practical at this time. This transpiler heavily relies on the chosen FHE
-library for security guarantees. Since both the PALISADE and TFHE libraries are
+library for security guarantees. Since both the OpenFHE and TFHE libraries are
 relatively new, there are not yet robust widely-accepted cryptanalyses for them.
 Thus, before including this system's output in a live production deployment, be
 aware that there may be yet undiscovered vulnerabilities in either library.
@@ -185,18 +185,18 @@ without the server knowing the integers or the result.
       ```shell
       bazel run //transpiler/examples/calculator:calculator_tfhe_testbench
       ```
-   * Using PALISADE:
+   * Using OpenFHE:
      ```shell
-     bazel run //transpiler/examples/calculator:calculator_palisade_testbench
+     bazel run //transpiler/examples/calculator:calculator_openfhe_testbench
      ```
 *  Multi-core interpreter command:
     * Using TFHE:
       ```shell
       bazel run //transpiler/examples/calculator:calculator_interpreted_tfhe_testbench
       ```
-    * Using PALISADE
+    * Using OpenFHE
       ```shell
-      bazel run //transpiler/examples/calculator:calculator_interpreted_palisade_testbench
+      bazel run //transpiler/examples/calculator:calculator_interpreted_openfhe_testbench
       ```
 
 ### Fibonacci
@@ -209,18 +209,18 @@ n<sup>th</sup> integer in the sequence.
       ```shell
       bazel run //transpiler/examples/fibonacci:fibonacci_tfhe_testbench
       ```
-   * Using PALISADE:
+   * Using OpenFHE:
      ```shell
-     bazel run //transpiler/examples/fibonacci:fibonacci_palisade_testbench
+     bazel run //transpiler/examples/fibonacci:fibonacci_openfhe_testbench
      ```
 *  Multi-core interpreter command:
     * Using TFHE:
       ```shell
       bazel run //transpiler/examples/fibonacci:fibonacci_interpreted_tfhe_testbench
       ```
-   * Using PALISADE:
+   * Using OpenFHE:
      ```shell
-     bazel run //transpiler/examples/fibonacci:fibonacci_interpreted_palisade_testbench
+     bazel run //transpiler/examples/fibonacci:fibonacci_interpreted_openfhe_testbench
      ```
 
 ### Hangman
@@ -273,18 +273,18 @@ or the resulting sum.
       ```shell
       bazel run //transpiler/examples/simple_sum:simple_sum_tfhe_testbench
       ```
-   * Using PALISADE:
+   * Using OpenFHE:
      ```shell
-     bazel run //transpiler/examples/simple_sum:simple_sum_palisade_testbench
+     bazel run //transpiler/examples/simple_sum:simple_sum_openfhe_testbench
      ```
 *  Multi-core interpreter command:
     * Using TFHE:
       ```shell
       bazel run //transpiler/examples/simple_sum:simple_sum_interpreted_tfhe_testbench
       ```
-   * Using PALISADE:
+   * Using OpenFHE:
      ```shell
-     bazel run //transpiler/examples/simple_sum:simple_sum_interpreted_palisade_testbench
+     bazel run //transpiler/examples/simple_sum:simple_sum_interpreted_openfhe_testbench
      ```
 
 ### String capitalization
@@ -302,18 +302,18 @@ There are two versions of this demo:
           ```shell
           bazel run //transpiler/examples/string_cap:string_cap_tfhe_testbench -- "do or do not; there is no try"
           ```
-        * Using PALISADE:
+        * Using OpenFHE:
           ```shell
-          bazel run //transpiler/examples/string_cap:string_cap_palisade_testbench -- "do or do not; there is no try"
+          bazel run //transpiler/examples/string_cap:string_cap_openfhe_testbench -- "do or do not; there is no try"
           ```
     *  Multi-core interpreter command:
         * Using TFHE:
           ```shell
           bazel run //transpiler/examples/string_cap:string_cap_interpreted_tfhe_testbench -- "do or do not; there is no try"
           ```
-        * Using PALISADE:
+        * Using OpenFHE:
           ```shell
-          bazel run //transpiler/examples/string_cap:string_cap_interpreted_palisade_testbench -- "do or do not; there is no try"
+          bazel run //transpiler/examples/string_cap:string_cap_interpreted_openfhe_testbench -- "do or do not; there is no try"
           ```
 
 2.  In the `string_cap_char` example, the FHE-C++ code operates on one
@@ -325,18 +325,18 @@ There are two versions of this demo:
           ```shell
           bazel run //transpiler/examples/string_cap_char:string_cap_char_tfhe_testbench -- "do or do not; there is no try"
           ```
-        * Using PALISADE:
+        * Using OpenFHE:
           ```shell
-          bazel run //transpiler/examples/string_cap_char:string_cap_char_palisade_testbench -- "do or do not; there is no try"
+          bazel run //transpiler/examples/string_cap_char:string_cap_char_openfhe_testbench -- "do or do not; there is no try"
           ```
     *  Multi-core interpreter command:
         * Using TFHE:
           ```shell
           bazel run //transpiler/examples/string_cap_char:string_cap_char_interpreted_tfhe_testbench -- "do or do not; there is no try"
           ```
-       * Using PALISADE:
+       * Using OpenFHE:
          ```shell
-         bazel run //transpiler/examples/string_cap_char:string_cap_char_interpreted_palisade_testbench -- "do or do not; there is no try"
+         bazel run //transpiler/examples/string_cap_char:string_cap_char_interpreted_openfhe_testbench -- "do or do not; there is no try"
          ```
     ```
 
@@ -352,18 +352,18 @@ server knowing the input or the result.
       ```shell
       bazel run //transpiler/examples/sqrt:sqrt_tfhe_testbench -- 15875
       ```
-   * Using PALISADE:
+   * Using OpenFHE:
      ```shell
-     bazel run //transpiler/examples/sqrt:sqrt_palisade_testbench -- 15875
+     bazel run //transpiler/examples/sqrt:sqrt_openfhe_testbench -- 15875
      ```
 *  Multi-core interpreter command:
     * Using TFHE:
       ```shell
       bazel run //transpiler/examples/sqrt:sqrt_interpreted_tfhe_testbench -- 15875
       ```
-   * Using PALISADE:
+   * Using OpenFHE:
      ```shell
-     bazel run //transpiler/examples/sqrt:sqrt_interpreted_palisade_testbench -- 15875
+     bazel run //transpiler/examples/sqrt:sqrt_interpreted_openfhe_testbench -- 15875
      ```
 
 ### Rock paper scissors
@@ -423,7 +423,7 @@ following five stages:
     FHE-C++.
 5.  The **FHE testbench stage** runs the FHE-C++ with the appropriate library:
     either [TFHE](https://tfhe.github.io/tfhe/) or
-    [PALISADE](https://palisade-crypto.org/)'s BinFHE.
+    [OpenFHE](https://palisade-crypto.org/)'s BinFHE.
 
 This system includes the code for the first four stages, but users of this
 transpiler will need to write their own C++ code to be transpiled, as well as
@@ -447,7 +447,7 @@ Two things of note occur during this stage. First, the optimized XLS IR is
 re-written in terms of its operations' fundamental Boolean operations (e.g.,
 AND, OR, NOT). Next, all operations are modified to be carried out on
 individual bits (since [TFHE](https://tfhe.github.io/tfhe/) and
-[PALISADE](https://palisade-crypto.org/) BinFHE both encrypt data one bit at a
+[OpenFHE](https://palisade-crypto.org/) BinFHE both encrypt data one bit at a
 time).
 
 This produces a Booleanified graph representing the operations
@@ -494,7 +494,7 @@ client-server interaction as described and illustrated below.
 
 ![Illustration of FHE client-server data processing and interaction](./images/FHE-testbench.png)
 
-The PALISADE testbenches are similar, handling `LWECiphertext`s rather than
+The OpenFHE testbenches are similar, handling `LWECiphertext`s rather than
 `LWESample`s.
 
 While this repository does not include a working example of the client and

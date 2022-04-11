@@ -16,15 +16,15 @@
 #include <iostream>
 
 #include "palisade/binfhe/binfhecontext.h"
-#include "transpiler/data/palisade_data.h"
+#include "transpiler/data/openfhe_data.h"
 #include "xls/common/logging/logging.h"
 
-#if defined(USE_INTERPRETED_PALISADE)
-#include "transpiler/examples/ifte/ifte_interpreted_palisade.h"
-#elif defined(USE_YOSYS_INTERPRETED_PALISADE)
-#include "transpiler/examples/ifte/ifte_yosys_interpreted_palisade.h"
+#if defined(USE_INTERPRETED_OPENFHE)
+#include "transpiler/examples/ifte/ifte_interpreted_openfhe.h"
+#elif defined(USE_YOSYS_INTERPRETED_OPENFHE)
+#include "transpiler/examples/ifte/ifte_yosys_interpreted_openfhe.h"
 #else
-#include "transpiler/examples/ifte/ifte_palisade.h"
+#include "transpiler/examples/ifte/ifte_openfhe.h"
 #endif
 
 constexpr auto kSecurityLevel = lbcrypto::MEDIUM;
@@ -55,9 +55,9 @@ int main(int argc, char** argv) {
   std::cout << "e: " << e << std::endl;
 
   // Encrypt data
-  auto ciphertext_i = PalisadeBool::Encrypt(i, cc, sk);
-  auto ciphertext_t = PalisadeChar::Encrypt(t, cc, sk);
-  auto ciphertext_e = PalisadeChar::Encrypt(e, cc, sk);
+  auto ciphertext_i = OpenFheBool::Encrypt(i, cc, sk);
+  auto ciphertext_t = OpenFheChar::Encrypt(t, cc, sk);
+  auto ciphertext_e = OpenFheChar::Encrypt(e, cc, sk);
 
   std::cout << "Encryption done" << std::endl;
 
@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform addition
-  PalisadeChar cipher_result(cc);
+  OpenFheChar cipher_result(cc);
   XLS_CHECK_OK(
       ifte(cipher_result, ciphertext_i, ciphertext_t, ciphertext_e, cc));
 

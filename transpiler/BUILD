@@ -154,11 +154,11 @@ cc_library(
 )
 
 cc_library(
-    name = "yosys_palisade_runner",
-    srcs = ["yosys_palisade_runner.cc"],
-    hdrs = ["yosys_palisade_runner.h"],
+    name = "yosys_openfhe_runner",
+    srcs = ["yosys_openfhe_runner.cc"],
+    hdrs = ["yosys_openfhe_runner.h"],
     deps = [
-        "//transpiler/data:palisade_data",
+        "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/memory",
         "@com_google_absl//absl/status",
@@ -249,9 +249,9 @@ cc_library(
 )
 
 cc_library(
-    name = "palisade_runner",
-    srcs = ["palisade_runner.cc"],
-    hdrs = ["palisade_runner.h"],
+    name = "openfhe_runner",
+    srcs = ["openfhe_runner.cc"],
+    hdrs = ["openfhe_runner.h"],
     deps = [
         ":abstract_xls_runner",
         "@com_google_absl//absl/status:statusor",
@@ -297,9 +297,9 @@ cc_test(
 )
 
 cc_library(
-    name = "palisade_transpiler",
-    srcs = ["palisade_transpiler.cc"],
-    hdrs = ["palisade_transpiler.h"],
+    name = "openfhe_transpiler",
+    srcs = ["openfhe_transpiler.cc"],
+    hdrs = ["openfhe_transpiler.h"],
     deps = [
         ":abstract_xls_transpiler",
         ":common_transpiler",
@@ -315,9 +315,9 @@ cc_library(
 )
 
 cc_library(
-    name = "interpreted_palisade_transpiler",
-    srcs = ["interpreted_palisade_transpiler.cc"],
-    hdrs = ["interpreted_palisade_transpiler.h"],
+    name = "interpreted_openfhe_transpiler",
+    srcs = ["interpreted_openfhe_transpiler.cc"],
+    hdrs = ["interpreted_openfhe_transpiler.h"],
     deps = [
         ":common_transpiler",
         "@com_google_absl//absl/status",
@@ -347,9 +347,9 @@ cc_binary(
     ],
     deps = [
         ":cc_transpiler",
-        ":interpreted_palisade_transpiler",
+        ":interpreted_openfhe_transpiler",
         ":interpreted_tfhe_transpiler",
-        ":palisade_transpiler",
+        ":openfhe_transpiler",
         ":pipeline_enums",
         ":tfhe_transpiler",
         ":yosys_transpiler",

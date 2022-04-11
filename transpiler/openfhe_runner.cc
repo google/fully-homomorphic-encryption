@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "transpiler/palisade_runner.h"
+#include "transpiler/openfhe_runner.h"
 
 #include <vector>
 
@@ -23,47 +23,47 @@
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 
-PalisadeCiphertext PalisadeRunner::PalisadeOperations::And(
-    PalisadeCiphertextConstRef lhs, PalisadeCiphertextConstRef rhs) {
+OpenFheCiphertext OpenFheRunner::OpenFheOperations::And(
+    OpenFheCiphertextConstRef lhs, OpenFheCiphertextConstRef rhs) {
   if (lhs == rhs) {
     return lhs;
   }
   return cc_.EvalBinGate(lbcrypto::AND, lhs, rhs);
 }
-PalisadeCiphertext PalisadeRunner::PalisadeOperations::Or(
-    PalisadeCiphertextConstRef lhs, PalisadeCiphertextConstRef rhs) {
+OpenFheCiphertext OpenFheRunner::OpenFheOperations::Or(
+    OpenFheCiphertextConstRef lhs, OpenFheCiphertextConstRef rhs) {
   if (lhs == rhs) {
     return lhs;
   }
   return cc_.EvalBinGate(lbcrypto::OR, lhs, rhs);
 }
-PalisadeCiphertext PalisadeRunner::PalisadeOperations::Not(
-    PalisadeCiphertextConstRef in) {
+OpenFheCiphertext OpenFheRunner::OpenFheOperations::Not(
+    OpenFheCiphertextConstRef in) {
   return cc_.EvalNOT(in);
 }
 
-PalisadeCiphertext PalisadeRunner::PalisadeOperations::Constant(bool value) {
+OpenFheCiphertext OpenFheRunner::OpenFheOperations::Constant(bool value) {
   return cc_.EvalConstant(value);
 }
 
-void PalisadeRunner::PalisadeOperations::Copy(PalisadeCiphertextConstRef src,
-                                              PalisadeCiphertextRef& dst) {
+void OpenFheRunner::OpenFheOperations::Copy(OpenFheCiphertextConstRef src,
+                                            OpenFheCiphertextRef& dst) {
   *dst = *src;
 }
 
-PalisadeCiphertext PalisadeRunner::PalisadeOperations::CopyOf(
-    PalisadeCiphertextConstRef src) {
+OpenFheCiphertext OpenFheRunner::OpenFheOperations::CopyOf(
+    OpenFheCiphertextConstRef src) {
   return std::make_shared<lbcrypto::LWECiphertextImpl>(*src);
 }
 
-absl::Status PalisadeRunner::Run(
-    absl::Span<PalisadeCiphertextRef> result,
-    absl::flat_hash_map<std::string, absl::Span<PalisadeCiphertextConstRef>>
+absl::Status OpenFheRunner::Run(
+    absl::Span<OpenFheCiphertextRef> result,
+    absl::flat_hash_map<std::string, absl::Span<OpenFheCiphertextConstRef>>
         in_args,
-    absl::flat_hash_map<std::string, absl::Span<PalisadeCiphertextRef>>
+    absl::flat_hash_map<std::string, absl::Span<OpenFheCiphertextRef>>
         inout_args,
     lbcrypto::BinFHEContext cc) {
-  PalisadeOperations op(cc);
+  OpenFheOperations op(cc);
   return Base::Run(result, in_args, inout_args, &op);
 }
 

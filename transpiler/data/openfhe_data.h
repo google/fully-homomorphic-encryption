@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_PALISADE_DATA_H_
-#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_PALISADE_DATA_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_OPENFHE_DATA_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_OPENFHE_DATA_H_
 
 #include <assert.h>
 #include <stddef.h>
@@ -29,39 +29,39 @@
 #include "palisade/binfhe/binfhecontext.h"
 #include "transpiler/data/boolean_data.h"
 #include "transpiler/data/cleartext_value.h"
-#include "transpiler/data/palisade_value.h"
+#include "transpiler/data/openfhe_value.h"
 
-// PALISADE representation of an array of objects of a single type, encoded as
+// OpenFHE representation of an array of objects of a single type, encoded as
 // a bit array.
 template <typename ValueType>
-class PalisadeArray<ValueType,
-                    typename std::enable_if_t<std::is_integral_v<ValueType>>> {
+class OpenFheArray<ValueType,
+                   typename std::enable_if_t<std::is_integral_v<ValueType>>> {
  public:
-  PalisadeArray(size_t length, lbcrypto::BinFHEContext cc)
+  OpenFheArray(size_t length, lbcrypto::BinFHEContext cc)
       : length_(length), ciphertext_(bit_width()), cc_(cc) {
     for (auto& bit : ciphertext_) {
       bit = cc.EvalConstant(false);
     }
   }
 
-  operator const PalisadeArrayRef<ValueType>() const& {
-    return PalisadeArrayRef<ValueType>(absl::MakeConstSpan(ciphertext_), cc_);
+  operator const OpenFheArrayRef<ValueType>() const& {
+    return OpenFheArrayRef<ValueType>(absl::MakeConstSpan(ciphertext_), cc_);
   }
-  operator PalisadeArrayRef<ValueType>() & {
-    return PalisadeArrayRef<ValueType>(absl::MakeSpan(ciphertext_), cc_);
+  operator OpenFheArrayRef<ValueType>() & {
+    return OpenFheArrayRef<ValueType>(absl::MakeSpan(ciphertext_), cc_);
   }
 
-  static PalisadeArray<ValueType> Unencrypted(
+  static OpenFheArray<ValueType> Unencrypted(
       absl::Span<const ValueType> plaintext, lbcrypto::BinFHEContext cc) {
-    PalisadeArray<ValueType> shared_value(plaintext.length(), cc);
+    OpenFheArray<ValueType> shared_value(plaintext.length(), cc);
     shared_value.SetUnencrypted(plaintext);
     return plaintext;
   }
 
-  static PalisadeArray<ValueType> Encrypt(absl::Span<const ValueType> plaintext,
-                                          lbcrypto::BinFHEContext cc,
-                                          lbcrypto::LWEPrivateKey sk) {
-    PalisadeArray<ValueType> private_value(plaintext.length(), cc);
+  static OpenFheArray<ValueType> Encrypt(absl::Span<const ValueType> plaintext,
+                                         lbcrypto::BinFHEContext cc,
+                                         lbcrypto::LWEPrivateKey sk) {
+    OpenFheArray<ValueType> private_value(plaintext.length(), cc);
     private_value.SetEncrypted(plaintext, sk);
     return private_value;
   }
@@ -90,7 +90,7 @@ class PalisadeArray<ValueType,
     return absl::MakeConstSpan(ciphertext_);
   }
 
-  PalisadeValueRef<ValueType> operator[](size_t pos) {
+  OpenFheValueRef<ValueType> operator[](size_t pos) {
     return {get().subspan(pos * kValueWidth, kValueWidth), context()};
   }
 
@@ -111,11 +111,11 @@ class PalisadeArray<ValueType,
 };
 
 template <typename ValueType>
-class PalisadeArrayRef<
+class OpenFheArrayRef<
     ValueType, typename std::enable_if_t<std::is_integral_v<ValueType>>> {
  public:
-  PalisadeArrayRef(absl::Span<lbcrypto::LWECiphertext> data,
-                   lbcrypto::BinFHEContext cc)
+  OpenFheArrayRef(absl::Span<lbcrypto::LWECiphertext> data,
+                  lbcrypto::BinFHEContext cc)
       : data_(data), cc_(cc) {}
 
   absl::Span<lbcrypto::LWECiphertext> get() { return data_; }
@@ -128,32 +128,32 @@ class PalisadeArrayRef<
   lbcrypto::BinFHEContext cc_;
 };
 
-// Represents a string as an PalisadeArray of the template parameter CharT.
+// Represents a string as an OpenFheArray of the template parameter CharT.
 // Corresponds to std::basic_string
 template <typename CharT>
-class PalisadeBasicString : public PalisadeArray<CharT> {
+class OpenFheBasicString : public OpenFheArray<CharT> {
  public:
   using SizeType = typename std::basic_string<CharT>::size_type;
 
-  using PalisadeArray<CharT>::PalisadeArray;
+  using OpenFheArray<CharT>::OpenFheArray;
 
-  static PalisadeBasicString<CharT> Unencrypted(
+  static OpenFheBasicString<CharT> Unencrypted(
       absl::Span<const CharT> plaintext, lbcrypto::BinFHEContext cc) {
-    PalisadeBasicString<CharT> shared_value(plaintext.length(), cc);
+    OpenFheBasicString<CharT> shared_value(plaintext.length(), cc);
     shared_value.SetUnencrypted(plaintext);
     return shared_value;
   }
 
-  static PalisadeBasicString<CharT> Encrypt(absl::Span<const CharT> plaintext,
-                                            lbcrypto::BinFHEContext cc,
-                                            lbcrypto::LWEPrivateKey sk) {
-    PalisadeBasicString<CharT> private_value(plaintext.length(), cc);
+  static OpenFheBasicString<CharT> Encrypt(absl::Span<const CharT> plaintext,
+                                           lbcrypto::BinFHEContext cc,
+                                           lbcrypto::LWEPrivateKey sk) {
+    OpenFheBasicString<CharT> private_value(plaintext.length(), cc);
     private_value.SetEncrypted(plaintext, sk);
     return private_value;
   }
 
   std::basic_string<CharT> Decrypt(lbcrypto::LWEPrivateKey sk) const {
-    const absl::FixedArray<CharT> array = PalisadeArray<CharT>::Decrypt(sk);
+    const absl::FixedArray<CharT> array = OpenFheArray<CharT>::Decrypt(sk);
     return std::basic_string<CharT>(array.begin(), array.end());
   }
 };
@@ -161,17 +161,17 @@ class PalisadeBasicString : public PalisadeArray<CharT> {
 // Instantiates a FHE representation of a string as an array of chars, which
 // are themselves arrays of bits.
 // Corresponds to std::string
-using PalisadeString = PalisadeBasicString<char>;
-using PalisadeStringRef = PalisadeArrayRef<char>;
+using OpenFheString = OpenFheBasicString<char>;
+using OpenFheStringRef = OpenFheArrayRef<char>;
 // Corresponds to int
-using PalisadeInt = PalisadeValue<int>;
+using OpenFheInt = OpenFheValue<int>;
 // Corresponds to short
-using PalisadeShort = PalisadeValue<short>;
+using OpenFheShort = OpenFheValue<short>;
 // Corresponds to char
-using PalisadeChar = PalisadeValue<char>;
-using PalisadeCharRef = PalisadeValueRef<char>;
+using OpenFheChar = OpenFheValue<char>;
+using OpenFheCharRef = OpenFheValueRef<char>;
 // Corresponds to bool
-using PalisadeBit = PalisadeValue<bool>;
-using PalisadeBool = PalisadeValue<bool>;
+using OpenFheBit = OpenFheValue<bool>;
+using OpenFheBool = OpenFheValue<bool>;
 
-#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_PALISADE_DATA_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_OPENFHE_DATA_H_

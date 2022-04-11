@@ -25,8 +25,8 @@ cc_library(
 )
 
 cc_library(
-    name = "palisade_value",
-    hdrs = ["palisade_value.h"],
+    name = "openfhe_value",
+    hdrs = ["openfhe_value.h"],
     visibility = ["//visibility:public"],
     deps = [
         ":cleartext_value",
@@ -64,13 +64,13 @@ cc_library(
 )
 
 cc_library(
-    name = "palisade_data",
-    hdrs = ["palisade_data.h"],
+    name = "openfhe_data",
+    hdrs = ["openfhe_data.h"],
     visibility = ["//visibility:public"],
     deps = [
         ":boolean_data",
         ":cleartext_value",
-        ":palisade_value",
+        ":openfhe_value",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/types:span",
         "@openfhe//:binfhe",
@@ -102,10 +102,10 @@ cc_test(
 )
 
 cc_test(
-    name = "palisade_data_test",
-    srcs = ["palisade_data_test.cc"],
+    name = "openfhe_data_test",
+    srcs = ["openfhe_data_test.cc"],
     deps = [
-        "//transpiler/data:palisade_data",
+        "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",

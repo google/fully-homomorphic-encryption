@@ -25,16 +25,16 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "palisade/binfhe/binfhecontext.h"
-#include "transpiler/data/palisade_data.h"
-#include "transpiler/examples/string_cap_char/string_cap_char_palisade.h"
-#include "transpiler/examples/string_cap_char/string_cap_char_palisade.types.h"
+#include "transpiler/data/openfhe_data.h"
+#include "transpiler/examples/string_cap_char/string_cap_char_openfhe.h"
+#include "transpiler/examples/string_cap_char/string_cap_char_openfhe.types.h"
 #include "xls/common/logging/logging.h"
 
 constexpr int kMainMinimumLambda = 120;
 
-void PalisadeStringCap(PalisadeString& cipherresult, PalisadeString& ciphertext,
-                       int data_size, PalisadeState& cipherstate,
-                       lbcrypto::BinFHEContext cc) {
+void OpenFheStringCap(OpenFheString& cipherresult, OpenFheString& ciphertext,
+                      int data_size, OpenFheState& cipherstate,
+                      lbcrypto::BinFHEContext cc) {
   absl::Duration total_time = absl::ZeroDuration();
   double total_cpu_time = 0.0;
   for (int i = 0; i < data_size; i++) {
@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
   std::cout << "plaintext(" << data_size << "):" << plaintext << std::endl;
 
   // Encrypt data
-  auto ciphertext = PalisadeString::Encrypt(plaintext, cc, sk);
+  auto ciphertext = OpenFheString::Encrypt(plaintext, cc, sk);
   std::cout << "Encryption done" << std::endl;
 
   std::cout << "Initial state check by decryption: " << std::endl;
@@ -96,12 +96,12 @@ int main(int argc, char** argv) {
   std::cout << "\n";
 
   State st;
-  PalisadeState cipherstate(cc);
+  OpenFheState cipherstate(cc);
   cipherstate.SetEncrypted(st, sk);
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform string capitalization
-  PalisadeString cipher_result = {data_size, cc};
-  PalisadeStringCap(cipher_result, ciphertext, data_size, cipherstate, cc);
+  OpenFheString cipher_result = {data_size, cc};
+  OpenFheStringCap(cipher_result, ciphertext, data_size, cipherstate, cc);
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 
   std::cout << "Decrypted result: ";

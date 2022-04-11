@@ -31,9 +31,9 @@
 #include "absl/strings/str_split.h"
 #include "absl/strings/string_view.h"
 #include "transpiler/cc_transpiler.h"
-#include "transpiler/interpreted_palisade_transpiler.h"
+#include "transpiler/interpreted_openfhe_transpiler.h"
 #include "transpiler/interpreted_tfhe_transpiler.h"
-#include "transpiler/palisade_transpiler.h"
+#include "transpiler/openfhe_transpiler.h"
 #include "transpiler/pipeline_enums.h"
 #include "transpiler/tfhe_transpiler.h"
 #include "transpiler/util/subprocess.h"
@@ -75,7 +75,7 @@ ABSL_FLAG(std::string, liberty_path, "",
           "using the Yosys optimizer, and otherwise has no effect.");
 ABSL_FLAG(Encryption, encryption, Encryption::kTFHE,
           "FHE encryption scheme used by the resulting program. Choices are "
-          "{tfhe, palisade, cleartext}. 'cleartext' means the program runs in "
+          "{tfhe, openfhe, cleartext}. 'cleartext' means the program runs in "
           "cleartext, skipping encryption; this has zero security, but is "
           "useful for debugging.");
 ABSL_FLAG(std::string, encryption_specific_transpiled_structs_header_path, "",
@@ -158,22 +158,21 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
         }
         break;
       }
-      case Encryption::kPALISADE: {
+      case Encryption::kOpenFHE: {
         if (interpreter) {
-          XLS_ASSIGN_OR_RETURN(
-              fn_body,
-              InterpretedPalisadeTranspiler::Translate(function, metadata));
+          XLS_ASSIGN_OR_RETURN(fn_body, InterpretedOpenFheTranspiler::Translate(
+                                            function, metadata));
           XLS_ASSIGN_OR_RETURN(
               fn_header,
-              InterpretedPalisadeTranspiler::TranslateHeader(
+              InterpretedOpenFheTranspiler::TranslateHeader(
                   function, metadata, header_path.string(),
                   encryption_specific_transpiled_structs_header_path.string()));
         } else {
           XLS_ASSIGN_OR_RETURN(
-              fn_body, PalisadeTranspiler::Translate(function, metadata));
+              fn_body, OpenFheTranspiler::Translate(function, metadata));
           XLS_ASSIGN_OR_RETURN(
               fn_header,
-              PalisadeTranspiler::TranslateHeader(
+              OpenFheTranspiler::TranslateHeader(
                   function, metadata, header_path.string(),
                   encryption_specific_transpiled_structs_header_path.string()));
         }

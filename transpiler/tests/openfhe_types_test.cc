@@ -18,12 +18,12 @@
 #include "absl/container/fixed_array.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "transpiler/data/palisade_data.h"
-#include "transpiler/tests/array_palisade.h"
-#include "transpiler/tests/char_palisade.h"
-#include "transpiler/tests/int_palisade.h"
-#include "transpiler/tests/long_palisade.h"
-#include "transpiler/tests/palisade_test_util.h"
+#include "transpiler/data/openfhe_data.h"
+#include "transpiler/tests/array_openfhe.h"
+#include "transpiler/tests/char_openfhe.h"
+#include "transpiler/tests/int_openfhe.h"
+#include "transpiler/tests/long_openfhe.h"
+#include "transpiler/tests/openfhe_test_util.h"
 #include "xls/common/status/matchers.h"
 
 namespace fully_homomorphic_encryption {
@@ -35,29 +35,29 @@ using ::fully_homomorphic_encryption::transpiler::TranspilerTestBase;
 class TranspilerTypesTest : public TranspilerTestBase {};
 
 TEST_F(TranspilerTypesTest, TestArray) {
-  auto ciphertext = PalisadeString::Encrypt("abcd", cc(), sk());
-  PalisadeString result(4, cc());
+  auto ciphertext = OpenFheString::Encrypt("abcd", cc(), sk());
+  OpenFheString result(4, cc());
   XLS_ASSERT_OK(test_array(ciphertext, result, cc()));
   EXPECT_EQ(result.Decrypt(sk()), "acce");
 }
 
 TEST_F(TranspilerTypesTest, TestChar) {
-  auto ciphertext = PalisadeChar::Encrypt('a', cc(), sk());
-  PalisadeValue<char> result(cc());
+  auto ciphertext = OpenFheChar::Encrypt('a', cc(), sk());
+  OpenFheValue<char> result(cc());
   XLS_ASSERT_OK(test_char(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), 'b');
 }
 
 TEST_F(TranspilerTypesTest, TestInt) {
-  auto ciphertext = PalisadeInt::Encrypt(100, cc(), sk());
-  PalisadeInt result(cc());
+  auto ciphertext = OpenFheInt::Encrypt(100, cc(), sk());
+  OpenFheInt result(cc());
   XLS_ASSERT_OK(test_int(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), 101);
 }
 
 TEST_F(TranspilerTypesTest, TestLong) {
-  auto ciphertext = PalisadeValue<long>::Encrypt(100, cc(), sk());
-  PalisadeValue<long> result(cc());
+  auto ciphertext = OpenFheValue<long>::Encrypt(100, cc(), sk());
+  OpenFheValue<long> result(cc());
   XLS_ASSERT_OK(test_long(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), 101);
 }

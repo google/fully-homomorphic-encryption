@@ -16,13 +16,13 @@
 #include <iostream>
 
 #include "palisade/binfhe/binfhecontext.h"
-#include "transpiler/data/palisade_data.h"
+#include "transpiler/data/openfhe_data.h"
 #include "xls/common/logging/logging.h"
 
-#ifdef USE_INTERPRETED_PALISADE
-#include "transpiler/examples/rock_paper_scissor/rock_paper_scissor_interpreted_palisade.h"
+#ifdef USE_INTERPRETED_OPENFHE
+#include "transpiler/examples/rock_paper_scissor/rock_paper_scissor_interpreted_openfhe.h"
 #else
-#include "transpiler/examples/rock_paper_scissor/rock_paper_scissor_palisade.h"
+#include "transpiler/examples/rock_paper_scissor/rock_paper_scissor_openfhe.h"
 #endif
 
 constexpr auto kSecurityLevel = lbcrypto::MEDIUM;
@@ -62,8 +62,8 @@ int main(int argc, char** argv) {
   std::cout << "Player A selected " << player_a << " and Player B selected "
             << player_b << std::endl;
   // Encrypt data
-  auto ciphertext_x = PalisadeChar::Encrypt(player_a, cc, sk);
-  auto ciphertext_y = PalisadeChar::Encrypt(player_b, cc, sk);
+  auto ciphertext_x = OpenFheChar::Encrypt(player_a, cc, sk);
+  auto ciphertext_y = OpenFheChar::Encrypt(player_b, cc, sk);
 
   std::cout << "Encryption done" << std::endl;
 
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform addition
-  PalisadeChar cipher_result(cc);
+  OpenFheChar cipher_result(cc);
   XLS_CHECK_OK(
       rock_paper_scissor(cipher_result, ciphertext_x, ciphertext_y, cc));
 

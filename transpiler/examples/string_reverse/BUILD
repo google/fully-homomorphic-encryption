@@ -37,19 +37,19 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "string_reverse_palisade",
+    name = "string_reverse_openfhe",
     src = "string_reverse.cc",
     hdrs = ["string_reverse.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     num_opt_passes = 2,
     optimizer = "xls",
 )
 
 fhe_cc_library(
-    name = "string_reverse_interpreted_palisade",
+    name = "string_reverse_interpreted_openfhe",
     src = "string_reverse.cc",
     hdrs = ["string_reverse.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
@@ -100,14 +100,14 @@ cc_binary(
 )
 
 cc_binary(
-    name = "string_reverse_palisade_testbench",
+    name = "string_reverse_openfhe_testbench",
     srcs = [
         "string_reverse.h",
-        "string_reverse_palisade_testbench.cc",
+        "string_reverse_openfhe_testbench.cc",
     ],
     deps = [
-        ":string_reverse_palisade",
-        "//transpiler/data:palisade_data",
+        ":string_reverse_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/time",
         "@com_google_xls//xls/common/logging",
@@ -117,15 +117,15 @@ cc_binary(
 )
 
 cc_binary(
-    name = "string_reverse_interpreted_palisade_testbench",
+    name = "string_reverse_interpreted_openfhe_testbench",
     srcs = [
         "string_reverse.h",
-        "string_reverse_palisade_testbench.cc",
+        "string_reverse_openfhe_testbench.cc",
     ],
-    copts = ["-DUSE_INTERPRETED_PALISADE"],
+    copts = ["-DUSE_INTERPRETED_OPENFHE"],
     deps = [
-        ":string_reverse_interpreted_palisade",
-        "//transpiler/data:palisade_data",
+        ":string_reverse_interpreted_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/time",
         "@com_google_xls//xls/common/logging",

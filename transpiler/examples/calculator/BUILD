@@ -22,19 +22,19 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "calculator_palisade",
+    name = "calculator_openfhe",
     src = "calculator.cc",
     hdrs = ["calculator.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     num_opt_passes = 2,
     optimizer = "xls",
 )
 
 fhe_cc_library(
-    name = "calculator_interpreted_palisade",
+    name = "calculator_interpreted_openfhe",
     src = "calculator.cc",
     hdrs = ["calculator.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
@@ -69,11 +69,11 @@ cc_binary(
 )
 
 cc_binary(
-    name = "calculator_palisade_testbench",
-    srcs = ["calculator_palisade_testbench.cc"],
+    name = "calculator_openfhe_testbench",
+    srcs = ["calculator_openfhe_testbench.cc"],
     deps = [
-        ":calculator_palisade",
-        "//transpiler/data:palisade_data",
+        ":calculator_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
@@ -82,12 +82,12 @@ cc_binary(
 )
 
 cc_binary(
-    name = "calculator_interpreted_palisade_testbench",
-    srcs = ["calculator_palisade_testbench.cc"],
-    copts = ["-DUSE_INTERPRETED_PALISADE"],
+    name = "calculator_interpreted_openfhe_testbench",
+    srcs = ["calculator_openfhe_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_OPENFHE"],
     deps = [
-        ":calculator_interpreted_palisade",
-        "//transpiler/data:palisade_data",
+        ":calculator_interpreted_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/status",
         "@com_google_xls//xls/common/logging",

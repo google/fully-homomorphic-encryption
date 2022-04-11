@@ -14,24 +14,32 @@
 
 // Helper functions for FHE IR Transpiler.
 
-#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_PALISADE_TRANSPILER_H_
-#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_PALISADE_TRANSPILER_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_INTERPRETED_OPENFHE_TRANSPILER_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_INTERPRETED_OPENFHE_TRANSPILER_H_
 
 #include <string>
 
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
-#include "transpiler/abstract_xls_transpiler.h"
+#include "xls/contrib/xlscc/metadata_output.pb.h"
 #include "xls/ir/function.h"
 #include "xls/ir/node.h"
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 
-// Converts booleanified XLS functions into PALISADE-based C++, using the gate
-// ops from PALISADE's BinFHE library.
-class PalisadeTranspiler : public AbstractXLSTranspiler<PalisadeTranspiler> {
+// Converts booleanified XLS functions into a C++ function that invokes a
+// OpenFHE-based interpreter for each gate.
+class InterpretedOpenFheTranspiler {
  public:
+  // Takes as input an XLS Function node and expected output and returns an FHE
+  // C++ method that uses the gate ops from the OpenFHE BinFHE library.
+  static absl::StatusOr<std::string> Translate(
+      const xls::Function* function,
+      const xlscc_metadata::MetadataOutput& metadata);
+
+  // Takes as input an XLS Function node and returns an FHE
+  // C++ header file.
   static absl::StatusOr<std::string> TranslateHeader(
       const xls::Function* function,
       const xlscc_metadata::MetadataOutput& metadata,
@@ -43,22 +51,12 @@ class PalisadeTranspiler : public AbstractXLSTranspiler<PalisadeTranspiler> {
       const xls::Function* function,
       const xlscc_metadata::MetadataOutput& metadata);
 
-  static std::string CopyNodeToOutput(absl::string_view output_arg, int offset,
-                                      const xls::Node* node);
-  static std::string CopyParamToNode(const xls::Node* node,
-                                     const xls::Node* param, int offset);
-  static std::string InitializeNode(const xls::Node* node);
-
-  static absl::StatusOr<std::string> Execute(const xls::Node* node);
-
-  static absl::StatusOr<std::string> Prelude(
-      const xls::Function* function,
-      const xlscc_metadata::MetadataOutput& metadata);
-
-  static absl::StatusOr<std::string> Conclusion();
+ private:
+  static absl::StatusOr<std::string> PathToHeaderGuard(
+      absl::string_view header_path);
 };
 
 }  // namespace transpiler
 }  // namespace fully_homomorphic_encryption
 
-#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_PALISADE_TRANSPILER_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_INTERPRETED_OPENFHE_TRANSPILER_H_

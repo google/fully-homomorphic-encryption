@@ -16,13 +16,13 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "transpiler/data/palisade_data.h"
-#include "transpiler/tests/for_palisade.h"
-#include "transpiler/tests/function_palisade.h"
-#include "transpiler/tests/if_palisade.h"
-#include "transpiler/tests/nested_for_palisade.h"
-#include "transpiler/tests/palisade_test_util.h"
-#include "transpiler/tests/switch_palisade.h"
+#include "transpiler/data/openfhe_data.h"
+#include "transpiler/tests/for_openfhe.h"
+#include "transpiler/tests/function_openfhe.h"
+#include "transpiler/tests/if_openfhe.h"
+#include "transpiler/tests/nested_for_openfhe.h"
+#include "transpiler/tests/openfhe_test_util.h"
+#include "transpiler/tests/switch_openfhe.h"
 #include "xls/common/status/matchers.h"
 
 namespace fully_homomorphic_encryption {
@@ -49,8 +49,8 @@ class TranspilerControlStructureSwitchTest
 
 TEST_P(TranspilerControlStructureSwitchTest, TestSwitch) {
   const TranspilerControlStructureSwitchTestCase& test_case = GetParam();
-  auto ciphertext = PalisadeChar::Encrypt(test_case.input, cc(), sk());
-  PalisadeInt result(cc());
+  auto ciphertext = OpenFheChar::Encrypt(test_case.input, cc(), sk());
+  OpenFheInt result(cc());
   XLS_ASSERT_OK(test_switch(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), test_case.expected_output);
 }
@@ -79,9 +79,9 @@ class TranspilerControlStructureIfTest
 
 TEST_P(TranspilerControlStructureIfTest, TestIf) {
   const TranspilerControlStructureIfTestCase& test_case = GetParam();
-  auto lhs_ciphertext = PalisadeShort::Encrypt(test_case.input.lhs, cc(), sk());
-  auto rhs_ciphertext = PalisadeShort::Encrypt(test_case.input.rhs, cc(), sk());
-  PalisadeValue<char> result(cc());
+  auto lhs_ciphertext = OpenFheShort::Encrypt(test_case.input.lhs, cc(), sk());
+  auto rhs_ciphertext = OpenFheShort::Encrypt(test_case.input.rhs, cc(), sk());
+  OpenFheValue<char> result(cc());
 
   XLS_ASSERT_OK(test_if(result, lhs_ciphertext, rhs_ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), test_case.expected_output);
@@ -106,8 +106,8 @@ class TranspilerControlStructureForLoopTest
 
 TEST_P(TranspilerControlStructureForLoopTest, TestFor) {
   const TranspilerControlStructureForLoopTestCase& test_case = GetParam();
-  auto ciphertext = PalisadeShort::Encrypt(test_case.input, cc(), sk());
-  PalisadeShort result(cc());
+  auto ciphertext = OpenFheShort::Encrypt(test_case.input, cc(), sk());
+  OpenFheShort result(cc());
 
   XLS_ASSERT_OK(test_for(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), test_case.expected_output);
@@ -115,8 +115,8 @@ TEST_P(TranspilerControlStructureForLoopTest, TestFor) {
 
 TEST_P(TranspilerControlStructureForLoopTest, TestNestedFor) {
   const TranspilerControlStructureForLoopTestCase& test_case = GetParam();
-  auto ciphertext = PalisadeShort::Encrypt(test_case.input, cc(), sk());
-  PalisadeShort result(cc());
+  auto ciphertext = OpenFheShort::Encrypt(test_case.input, cc(), sk());
+  OpenFheShort result(cc());
 
   XLS_ASSERT_OK(test_nested_for(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), test_case.expected_output);
@@ -140,8 +140,8 @@ class TranspilerControlStructureFunctionTest
 
 TEST_P(TranspilerControlStructureFunctionTest, TestFunction) {
   const TranspilerControlStructureFunctionTestCase& test_case = GetParam();
-  auto ciphertext = PalisadeInt::Encrypt(test_case.input, cc(), sk());
-  PalisadeInt result(cc());
+  auto ciphertext = OpenFheInt::Encrypt(test_case.input, cc(), sk());
+  OpenFheInt result(cc());
 
   XLS_ASSERT_OK(test_function(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), test_case.expected_output);

@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Helper functions and fixtures for PALISADE tests.
+// Helper functions and fixtures for OpenFHE tests.
 
-#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TESTS_PALISADE_TEST_UTIL_H_
-#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TESTS_PALISADE_TEST_UTIL_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TESTS_OPENFHE_TEST_UTIL_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TESTS_OPENFHE_TEST_UTIL_H_
 
 #include <array>
 
 #include "absl/memory/memory.h"
 #include "gtest/gtest.h"
 #include "palisade/binfhe/binfhecontext.h"
-#include "transpiler/data/palisade_data.h"
+#include "transpiler/data/openfhe_data.h"
 
 constexpr lbcrypto::BINFHEPARAMSET kSecurityLevel = lbcrypto::MEDIUM;
 
@@ -56,4 +56,4 @@ class TranspilerTestBase : public ::testing::Test {
 }  // namespace transpiler
 }  // namespace fully_homomorphic_encryption
 
-#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TESTS_PALISADE_TEST_UTIL_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TESTS_OPENFHE_TEST_UTIL_H_

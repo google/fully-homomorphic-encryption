@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "transpiler/yosys_palisade_runner.h"
+#include "transpiler/yosys_openfhe_runner.h"
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/substitute.h"
@@ -29,27 +29,27 @@ namespace transpiler {
 
 using EvalFn = xls::netlist::rtl::CellOutputEvalFn<lbcrypto::LWECiphertext>;
 
-// NOTE: The input order to methods YosysPalisadeRunner::PalisadeOp_* is the
+// NOTE: The input order to methods YosysOpenFheRunner::OpenFheOp_* is the
 // same as the order in which the pins are declared in the Liberty file.  This
 // is generally as you expect.
 
-absl::StatusOr<PalisadeBoolValue> YosysPalisadeRunner::PalisadeOp_inv(
-    const std::vector<PalisadeBoolValue>& args) {
+absl::StatusOr<OpenFheBoolValue> YosysOpenFheRunner::OpenFheOp_inv(
+    const std::vector<OpenFheBoolValue>& args) {
   XLS_CHECK_EQ(args.size(), 1);
-  return PalisadeBoolValue(state_->cc_.EvalNOT(args[0].lwe()), state_->cc_);
+  return OpenFheBoolValue(state_->cc_.EvalNOT(args[0].lwe()), state_->cc_);
 }
 
-absl::StatusOr<PalisadeBoolValue> YosysPalisadeRunner::PalisadeOp_buffer(
-    const std::vector<PalisadeBoolValue>& args) {
+absl::StatusOr<OpenFheBoolValue> YosysOpenFheRunner::OpenFheOp_buffer(
+    const std::vector<OpenFheBoolValue>& args) {
   XLS_CHECK_EQ(args.size(), 1);
   return args[0];
 }
 
 #define IMPL2(cell, GATE)                                                      \
-  absl::StatusOr<PalisadeBoolValue> YosysPalisadeRunner::PalisadeOp_##cell(    \
-      const std::vector<PalisadeBoolValue>& args) {                            \
+  absl::StatusOr<OpenFheBoolValue> YosysOpenFheRunner::OpenFheOp_##cell(       \
+      const std::vector<OpenFheBoolValue>& args) {                             \
     XLS_CHECK_EQ(args.size(), 2);                                              \
-    return PalisadeBoolValue(                                                  \
+    return OpenFheBoolValue(                                                   \
         state_->cc_.EvalBinGate(lbcrypto::GATE, args[0].lwe(), args[1].lwe()), \
         state_->cc_);                                                          \
   }
@@ -62,46 +62,46 @@ IMPL2(xor2, XOR_FAST);
 IMPL2(xnor2, XNOR_FAST);
 #undef IMPL2
 
-absl::Status YosysPalisadeRunner::Run(
+absl::Status YosysOpenFheRunner::Run(
     absl::Span<lbcrypto::LWECiphertext> result,
     std::vector<absl::Span<const lbcrypto::LWECiphertext>> in_args,
     std::vector<absl::Span<lbcrypto::LWECiphertext>> inout_args,
     lbcrypto::BinFHEContext cc) {
-#define OP(name)                                               \
-  {                                                            \
-#name, {                                                   \
-      {                                                        \
-        "Y",                                                   \
-            [this](const std::vector<PalisadeBoolValue>& args) \
-                -> absl::StatusOr<PalisadeBoolValue> {         \
-              return this->PalisadeOp_##name(args);            \
-            }                                                  \
-      }                                                        \
-    }                                                          \
+#define OP(name)                                              \
+  {                                                           \
+#name, {                                                  \
+      {                                                       \
+        "Y",                                                  \
+            [this](const std::vector<OpenFheBoolValue>& args) \
+                -> absl::StatusOr<OpenFheBoolValue> {         \
+              return this->OpenFheOp_##name(args);            \
+            }                                                 \
+      }                                                       \
+    }                                                         \
   }
   if (state_ == nullptr) {
-    xls::netlist::rtl::CellToOutputEvalFns<PalisadeBoolValue> palisade_eval_map{
+    xls::netlist::rtl::CellToOutputEvalFns<OpenFheBoolValue> openfhe_eval_map{
         OP(inv), OP(buffer), OP(and2), OP(nand2),
         OP(or2), OP(nor2),   OP(xor2), OP(xnor2),
     };
 
-    XLS_RETURN_IF_ERROR(InitializeOnce(cc, palisade_eval_map));
+    XLS_RETURN_IF_ERROR(InitializeOnce(cc, openfhe_eval_map));
   }
 #undef OP
 
   return state_->Run(result, in_args, inout_args);
 }
 
-absl::Status YosysPalisadeRunner::InitializeOnce(
+absl::Status YosysOpenFheRunner::InitializeOnce(
     lbcrypto::BinFHEContext cc,
-    const xls::netlist::rtl::CellToOutputEvalFns<PalisadeBoolValue>& eval_fns) {
+    const xls::netlist::rtl::CellToOutputEvalFns<OpenFheBoolValue>& eval_fns) {
   if (state_ == nullptr) {
-    state_ = std::make_unique<YosysPalisadeRunnerState>(
+    state_ = std::make_unique<YosysOpenFheRunnerState>(
         cc, *xls::netlist::cell_lib::CharStream::FromText(liberty_text_),
         xls::netlist::rtl::Scanner(netlist_text_));
 
     state_->netlist_ = std::move(
-        *xls::netlist::rtl::AbstractParser<PalisadeBoolValue>::ParseNetlist(
+        *xls::netlist::rtl::AbstractParser<OpenFheBoolValue>::ParseNetlist(
             &state_->cell_library_, &state_->scanner_, state_->zero_,
             state_->one_));
 
@@ -113,7 +113,7 @@ absl::Status YosysPalisadeRunner::InitializeOnce(
   return absl::OkStatus();
 }
 
-absl::Status YosysPalisadeRunner::YosysPalisadeRunnerState::Run(
+absl::Status YosysOpenFheRunner::YosysOpenFheRunnerState::Run(
     absl::Span<lbcrypto::LWECiphertext> result,
     std::vector<absl::Span<const lbcrypto::LWECiphertext>> in_args,
     std::vector<absl::Span<lbcrypto::LWECiphertext>> inout_args) {
@@ -141,7 +141,7 @@ absl::Status YosysPalisadeRunner::YosysPalisadeRunnerState::Run(
   //    interpret the cell-output-pin-function definitions already provided in
   //    the cell library as part of the cell definitions, or to parse the
   //    functions but trap directly into our callback implementations (e.g.,
-  //    YosysPalisadeRunner::PalisadeOp_xor2) to do the actual evaluation.  For
+  //    YosysOpenFheRunner::OpenFheOp_xor2) to do the actual evaluation.  For
   //    the latter, we only need requirement (a) above, because all the actual
   //    operations are handled in the callbacks.  However, the Interpreter is
   //    coded to handle the case where a callback isn't available, and so it
@@ -157,11 +157,11 @@ absl::Status YosysPalisadeRunner::YosysPalisadeRunnerState::Run(
   // the interpreter, forcing it to evaluate everything.  That will still work
   // since the FHE objects act as bools.
 
-  using NetRef = xls::netlist::rtl::AbstractNetRef<PalisadeBoolValue>;
-  std::vector<PalisadeBoolValue> input_bits;
+  using NetRef = xls::netlist::rtl::AbstractNetRef<OpenFheBoolValue>;
+  std::vector<OpenFheBoolValue> input_bits;
   size_t in_i = 0, inout_i = 0;
   for (const auto& param : metadata_.top_func_proto().params()) {
-    std::vector<PalisadeBoolValue> arg_bits;
+    std::vector<OpenFheBoolValue> arg_bits;
     if (param.is_reference() && !param.is_const()) {
       XLS_CHECK(inout_i < inout_args.size());
       const auto& arg = inout_args[inout_i++];
@@ -181,7 +181,7 @@ absl::Status YosysPalisadeRunner::YosysPalisadeRunnerState::Run(
   }
   std::reverse(input_bits.begin(), input_bits.end());
 
-  xls::netlist::AbstractNetRef2Value<PalisadeBoolValue> input_nets;
+  xls::netlist::AbstractNetRef2Value<OpenFheBoolValue> input_nets;
   const std::vector<NetRef>& module_inputs = module->inputs();
   XLS_CHECK(module_inputs.size() == input_bits.size());
 
@@ -192,17 +192,17 @@ absl::Status YosysPalisadeRunner::YosysPalisadeRunnerState::Run(
         in, std::move(input_bits[module->GetInputPortOffset(in->name())]));
   }
 
-  auto zero = PalisadeBoolValue::Unencrypted(false, cc_);
-  auto one = PalisadeBoolValue::Unencrypted(true, cc_);
+  auto zero = OpenFheBoolValue::Unencrypted(false, cc_);
+  auto one = OpenFheBoolValue::Unencrypted(true, cc_);
   // *2 for hyperthreading opportunities
   const int num_threads = sysconf(_SC_NPROCESSORS_ONLN) * 2;
-  xls::netlist::AbstractInterpreter<PalisadeBoolValue> interpreter(
+  xls::netlist::AbstractInterpreter<OpenFheBoolValue> interpreter(
       netlist_.get(), zero, one, num_threads);
   XLS_ASSIGN_OR_RETURN(auto output_nets,
                        interpreter.InterpretModule(module, input_nets, {}));
 
-  // The return value output_nets is a map from NetRef to PalisadeBoolValue
-  // objects. Each of the PalisadeBoolValue objects contains an LWECiphertext,
+  // The return value output_nets is a map from NetRef to OpenFheBoolValue
+  // objects. Each of the OpenFheBoolValue objects contains an LWECiphertext,
   // which it either owns or has borrowed from elsewhere (whether it owns or has
   // borrowed does not matter here.)
   //

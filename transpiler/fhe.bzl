@@ -25,11 +25,11 @@ _XLS_CODEGEN = "@com_google_xls//xls/tools:codegen_main"
 _YOSYS = "@yosys//:yosys_bin"
 _ABC = "@abc//:abc_bin"
 _TFHE_CELLS_LIBERTY = "//transpiler:tfhe_cells.liberty"
-_PALISADE_CELLS_LIBERTY = "//transpiler:palisade_cells.liberty"
+_OPENFHE_CELLS_LIBERTY = "//transpiler:openfhe_cells.liberty"
 
 FHE_ENCRYPTION_SCHEMES = {
     "tfhe": _TFHE_CELLS_LIBERTY,
-    "palisade": _PALISADE_CELLS_LIBERTY,
+    "openfhe": _OPENFHE_CELLS_LIBERTY,
     "cleartext": _TFHE_CELLS_LIBERTY,
 }
 
@@ -443,7 +443,7 @@ _verilog_to_netlist = rule(
         "encryption": attr.string(
             doc = """
             FHE encryption scheme used by the resulting program. Choices are
-            {tfhe, palisade, cleartext}. 'cleartext' means the program runs in cleartext,
+            {tfhe, openfhe, cleartext}. 'cleartext' means the program runs in cleartext,
             skipping encryption; this has zero security, but is useful for debugging.
             """,
             values = FHE_ENCRYPTION_SCHEMES.keys(),
@@ -613,7 +613,7 @@ xls_cc_transpiled_structs = rule(
         "encryption": attr.string(
             doc = """
             FHE encryption scheme used by the resulting program. Choices are
-            {tfhe, palisade, cleartext}. 'cleartext' means the program runs in cleartext,
+            {tfhe, openfhe, cleartext}. 'cleartext' means the program runs in cleartext,
             skipping encryption; this has zero security, but is useful for debugging.
             """,
             values = FHE_ENCRYPTION_SCHEMES.keys(),
@@ -796,7 +796,7 @@ _cc_fhe_bool_ir_library = rule(
         "encryption": attr.string(
             doc = """
             FHE encryption scheme used by the resulting program. Choices are
-            {tfhe, palisade, cleartext}. 'cleartext' means the program runs in cleartext,
+            {tfhe, openfhe, cleartext}. 'cleartext' means the program runs in cleartext,
             skipping encryption; this has zero security, but is useful for debugging.
             """,
             values = FHE_ENCRYPTION_SCHEMES.keys(),
@@ -833,7 +833,7 @@ _cc_fhe_netlist_library = rule(
         "encryption": attr.string(
             doc = """
             FHE encryption scheme used by the resulting program. Choices are
-            {tfhe, palisade, cleartext}. 'cleartext' means the program runs in cleartext,
+            {tfhe, openfhe, cleartext}. 'cleartext' means the program runs in cleartext,
             skipping encryption; this has zero security, but is useful for debugging.
             """,
             values = FHE_ENCRYPTION_SCHEMES.keys(),
@@ -934,18 +934,18 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
                     "//transpiler:tfhe_runner",
                     "@com_google_xls//xls/common/status:status_macros",
                 ])
-        elif encryption == "palisade":
+        elif encryption == "openfhe":
             deps.extend([
                 "//transpiler/data:cleartext_value",
-                "//transpiler/data:palisade_value",
+                "//transpiler/data:openfhe_value",
                 "//transpiler/data:boolean_data",
-                "//transpiler/data:palisade_data",
+                "//transpiler/data:openfhe_data",
                 "@openfhe//:binfhe",
             ])
             if interpreter:
                 deps.extend([
                     "@com_google_absl//absl/status:statusor",
-                    "//transpiler:palisade_runner",
+                    "//transpiler:openfhe_runner",
                     "@com_google_xls//xls/common/status:status_macros",
                 ])
     else:
@@ -970,14 +970,14 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
                 "@tfhe//:libtfhe",
                 "@com_google_xls//xls/common/status:status_macros",
             ])
-        elif encryption == "palisade":
+        elif encryption == "openfhe":
             deps.extend([
                 "@com_google_absl//absl/status:statusor",
-                "//transpiler:yosys_palisade_runner",
+                "//transpiler:yosys_openfhe_runner",
                 "//transpiler/data:cleartext_value",
-                "//transpiler/data:palisade_value",
+                "//transpiler/data:openfhe_value",
                 "//transpiler/data:boolean_data",
-                "//transpiler/data:palisade_data",
+                "//transpiler/data:openfhe_data",
                 "@openfhe//:binfhe",
                 "@com_google_xls//xls/common/status:status_macros",
             ])
@@ -1056,7 +1056,7 @@ def fhe_cc_library(
             Values <= 0 will skip optimization altogether.
             (Only affects the XLS optimizer.)
       encryption: Defaults to "tfhe"; FHE encryption scheme used by the resulting program.
-            Choices are {tfhe, palisade, cleartext}. 'cleartext' means the program runs in
+            Choices are {tfhe, openfhe, cleartext}. 'cleartext' means the program runs in
             cleartext, skipping encryption; this has zero security, but is useful for
             debugging.
       optimizer: Defaults to "xls"; optimizing/lowering pipeline to use in transpilation.

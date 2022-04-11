@@ -16,12 +16,12 @@
 #include <iostream>
 
 #include "xls/common/logging/logging.h"
-#ifdef USE_INTERPRETED_PALISADE
-#include "transpiler/examples/structs/return_struct_interpreted_palisade.h"
-#include "transpiler/examples/structs/return_struct_interpreted_palisade.types.h"
+#ifdef USE_INTERPRETED_OPENFHE
+#include "transpiler/examples/structs/return_struct_interpreted_openfhe.h"
+#include "transpiler/examples/structs/return_struct_interpreted_openfhe.types.h"
 #else
-#include "transpiler/examples/structs/return_struct_palisade.h"
-#include "transpiler/examples/structs/return_struct_palisade.types.h"
+#include "transpiler/examples/structs/return_struct_openfhe.h"
+#include "transpiler/examples/structs/return_struct_openfhe.types.h"
 #endif
 #include "palisade/binfhe/binfhecontext.h"
 
@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
   embedded.b = 2;
   embedded.c = -4;
 
-  PalisadeEmbedded fhe_embedded(cc);
+  OpenFheEmbedded fhe_embedded(cc);
   fhe_embedded.SetEncrypted(embedded, sk);
 
   std::cout << "Initial round-trip check: " << std::endl;
@@ -53,9 +53,9 @@ int main(int argc, char** argv) {
   std::cout << "  C: " << static_cast<int>(round_trip.c) << std::endl;
 
   std::cout << "Starting computation." << std::endl;
-  PalisadeReturnStruct fhe_result(cc);
-  auto fhe_a = PalisadeChar::Encrypt(8, cc, sk);
-  auto fhe_c = PalisadeChar::Encrypt(16, cc, sk);
+  OpenFheReturnStruct fhe_result(cc);
+  auto fhe_a = OpenFheChar::Encrypt(8, cc, sk);
+  auto fhe_c = OpenFheChar::Encrypt(16, cc, sk);
   XLS_CHECK_OK(
       ConstructReturnStruct(fhe_result, fhe_a, fhe_embedded, fhe_c, cc));
 

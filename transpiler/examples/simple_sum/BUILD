@@ -28,19 +28,19 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "simple_sum_palisade",
+    name = "simple_sum_openfhe",
     src = "simple_sum.cc",
     hdrs = ["simple_sum.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     num_opt_passes = 2,
     optimizer = "xls",
 )
 
 fhe_cc_library(
-    name = "simple_sum_interpreted_palisade",
+    name = "simple_sum_interpreted_openfhe",
     src = "simple_sum.cc",
     hdrs = ["simple_sum.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
@@ -81,11 +81,11 @@ cc_binary(
 )
 
 cc_binary(
-    name = "simple_sum_palisade_testbench",
-    srcs = ["simple_sum_palisade_testbench.cc"],
+    name = "simple_sum_openfhe_testbench",
+    srcs = ["simple_sum_openfhe_testbench.cc"],
     deps = [
-        ":simple_sum_palisade",
-        "//transpiler/data:palisade_data",
+        ":simple_sum_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
@@ -93,12 +93,12 @@ cc_binary(
 )
 
 cc_binary(
-    name = "simple_sum_interpreted_palisade_testbench",
-    srcs = ["simple_sum_palisade_testbench.cc"],
-    copts = ["-DUSE_INTERPRETED_PALISADE"],
+    name = "simple_sum_interpreted_openfhe_testbench",
+    srcs = ["simple_sum_openfhe_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_OPENFHE"],
     deps = [
-        ":simple_sum_interpreted_palisade",
-        "//transpiler/data:palisade_data",
+        ":simple_sum_interpreted_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",

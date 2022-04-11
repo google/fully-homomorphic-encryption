@@ -42,7 +42,7 @@ absl::StatusOr<std::string> ElementType(Encryption encryption) {
       return "bool";
     case Encryption::kTFHE:
       return "LweSample";
-    case Encryption::kPALISADE:
+    case Encryption::kOpenFHE:
       return "lbcrypto::LWECiphertext";
     default:
       return absl::UnimplementedError(absl::Substitute(
@@ -125,8 +125,8 @@ $3 {
       runner_prefix = "Tfhe";
       args_suffix = ", bk";
       break;
-    case Encryption::kPALISADE:
-      runner_prefix = "Palisade";
+    case Encryption::kOpenFHE:
+      runner_prefix = "OpenFhe";
       args_suffix = ", cc";
       break;
     case Encryption::kCleartext:
@@ -184,11 +184,11 @@ $3#endif  // $1
 #include "tfhe/tfhe_io.h"
 )hdr";
       break;
-    case Encryption::kPALISADE:
-      typed_overload = TypedOverload(metadata, "Palisade", data_type,
+    case Encryption::kOpenFHE:
+      typed_overload = TypedOverload(metadata, "OpenFhe", data_type,
                                      "lbcrypto::BinFHEContext");
       scheme_data_header = R"hdr(
-#include "transpiler/data/palisade_data.h"
+#include "transpiler/data/openfhe_data.h"
 #include "palisade/binfhe/binfhecontext.h"
 )hdr";
       break;
@@ -224,7 +224,7 @@ absl::StatusOr<std::string> YosysTranspiler::FunctionSignature(
       return transpiler::FunctionSignature(
           metadata, element_type, "const TFheGateBootstrappingCloudKeySet*",
           "bk");
-    case Encryption::kPALISADE:
+    case Encryption::kOpenFHE:
       return transpiler::FunctionSignature(metadata, element_type,
                                            "lbcrypto::BinFHEContext", "cc");
     case Encryption::kCleartext:

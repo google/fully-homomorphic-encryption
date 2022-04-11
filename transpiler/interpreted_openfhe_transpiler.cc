@@ -11,7 +11,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "transpiler/interpreted_palisade_transpiler.h"
+#include "transpiler/interpreted_openfhe_transpiler.h"
 
 #include <string>
 #include <utility>
@@ -35,14 +35,14 @@
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 
-absl::StatusOr<std::string> InterpretedPalisadeTranspiler::Translate(
+absl::StatusOr<std::string> InterpretedOpenFheTranspiler::Translate(
     const xls::Function* function,
     const xlscc_metadata::MetadataOutput& metadata) {
   static constexpr absl::string_view kSourceTemplate =
       R"(#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/types/span.h"
-#include "transpiler/palisade_runner.h"
+#include "transpiler/openfhe_runner.h"
 #include "transpiler/common_runner.h"
 #include "palisade/binfhe/binfhecontext.h"
 #include "xls/common/status/status_macros.h"
@@ -57,14 +57,14 @@ static constexpr char kFunctionMetadata[] = R"pb(
 $1
 )pb";
 
-using fully_homomorphic_encryption::transpiler::PalisadeRunner;
+using fully_homomorphic_encryption::transpiler::OpenFheRunner;
 
 }  // namespace
 
 static StructReverseEncodeOrderSetter ORDER;
 
 $2 {
-  XLS_ASSIGN_OR_RETURN(auto runner, PalisadeRunner::CreateFromStrings(
+  XLS_ASSIGN_OR_RETURN(auto runner, OpenFheRunner::CreateFromStrings(
                                     kXLSPackage, kFunctionMetadata));
   return runner->Run($3, {$4}, {$5}, cc);
 }
@@ -98,7 +98,7 @@ $2 {
                           absl::StrJoin(inout_param_entries, ", "));
 }
 
-absl::StatusOr<std::string> InterpretedPalisadeTranspiler::TranslateHeader(
+absl::StatusOr<std::string> InterpretedOpenFheTranspiler::TranslateHeader(
     const xls::Function* function,
     const xlscc_metadata::MetadataOutput& metadata,
     absl::string_view header_path,
@@ -113,7 +113,7 @@ absl::StatusOr<std::string> InterpretedPalisadeTranspiler::TranslateHeader(
 #include "$3"
 #include "absl/status/status.h"
 #include "absl/types/span.h"
-#include "transpiler/data/palisade_data.h"
+#include "transpiler/data/openfhe_data.h"
 #include "palisade/binfhe/binfhecontext.h"
 
 $0;
@@ -123,23 +123,23 @@ $1#endif  // $2
   XLS_ASSIGN_OR_RETURN(std::string signature,
                        FunctionSignature(function, metadata));
   absl::optional<std::string> typed_overload =
-      TypedOverload(metadata, "Palisade", "absl::Span<lbcrypto::LWECiphertext>",
+      TypedOverload(metadata, "OpenFhe", "absl::Span<lbcrypto::LWECiphertext>",
                     "lbcrypto::BinFHEContext", "cc");
   return absl::Substitute(kHeaderTemplate, signature,
                           typed_overload.value_or(""), header_guard,
                           encryption_specific_transpiled_structs_header_path);
 }
 
-absl::StatusOr<std::string> InterpretedPalisadeTranspiler::FunctionSignature(
+absl::StatusOr<std::string> InterpretedOpenFheTranspiler::FunctionSignature(
     const xls::Function* function,
     const xlscc_metadata::MetadataOutput& metadata) {
   return transpiler::FunctionSignature(metadata, "lbcrypto::LWECiphertext",
                                        "lbcrypto::BinFHEContext", "cc");
 }
 
-absl::StatusOr<std::string> InterpretedPalisadeTranspiler::PathToHeaderGuard(
+absl::StatusOr<std::string> InterpretedOpenFheTranspiler::PathToHeaderGuard(
     absl::string_view header_path) {
-  return transpiler::PathToHeaderGuard("PALISADE_GENERATE_H_", header_path);
+  return transpiler::PathToHeaderGuard("OPENFHE_GENERATE_H_", header_path);
 }
 
 }  // namespace transpiler

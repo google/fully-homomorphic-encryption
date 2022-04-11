@@ -52,7 +52,7 @@ inline std::string AbslUnparseFlag(Optimizer in) {
 
 enum class Encryption {
   kTFHE,
-  kPALISADE,
+  kOpenFHE,
   kCleartext,
 };
 
@@ -62,8 +62,8 @@ inline bool AbslParseFlag(absl::string_view text, Encryption* out,
     *out = Encryption::kTFHE;
     return true;
   }
-  if (absl::EqualsIgnoreCase(text, "palisade")) {
-    *out = Encryption::kPALISADE;
+  if (absl::EqualsIgnoreCase(text, "openfhe")) {
+    *out = Encryption::kOpenFHE;
     return true;
   }
   if (absl::EqualsIgnoreCase(text, "cleartext")) {
@@ -77,8 +77,8 @@ inline std::string AbslUnparseFlag(Encryption in) {
   switch (in) {
     case Encryption::kTFHE:
       return "tfhe";
-    case Encryption::kPALISADE:
-      return "palisade";
+    case Encryption::kOpenFHE:
+      return "openfhe";
     case Encryption::kCleartext:
       return "cleartext";
   }

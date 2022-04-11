@@ -40,19 +40,19 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "sqrt_palisade",
+    name = "sqrt_openfhe",
     src = "sqrt.cc",
     hdrs = ["sqrt.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     num_opt_passes = 2,
     optimizer = "xls",
 )
 
 fhe_cc_library(
-    name = "sqrt_interpreted_palisade",
+    name = "sqrt_interpreted_openfhe",
     src = "sqrt.cc",
     hdrs = ["sqrt.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
@@ -118,13 +118,13 @@ cc_binary(
 )
 
 cc_binary(
-    name = "sqrt_palisade_testbench",
+    name = "sqrt_openfhe_testbench",
     srcs = [
-        "sqrt_palisade_testbench.cc",
+        "sqrt_openfhe_testbench.cc",
     ],
     deps = [
-        ":sqrt_palisade",
-        "//transpiler/data:palisade_data",
+        ":sqrt_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/strings",
         "@com_google_xls//xls/common/logging",
@@ -134,14 +134,14 @@ cc_binary(
 )
 
 cc_binary(
-    name = "sqrt_interpreted_palisade_testbench",
+    name = "sqrt_interpreted_openfhe_testbench",
     srcs = [
-        "sqrt_palisade_testbench.cc",
+        "sqrt_openfhe_testbench.cc",
     ],
-    copts = ["-DUSE_INTERPRETED_PALISADE"],
+    copts = ["-DUSE_INTERPRETED_OPENFHE"],
     deps = [
-        ":sqrt_interpreted_palisade",
-        "//transpiler/data:palisade_data",
+        ":sqrt_interpreted_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/strings",
         "@com_google_xls//xls/common/logging",

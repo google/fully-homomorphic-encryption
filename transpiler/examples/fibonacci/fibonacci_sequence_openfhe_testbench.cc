@@ -22,13 +22,13 @@
 
 #include "absl/strings/str_format.h"
 #include "palisade/binfhe/binfhecontext.h"
-#include "transpiler/data/palisade_data.h"
+#include "transpiler/data/openfhe_data.h"
 #include "xls/common/logging/logging.h"
 
-#ifdef USE_INTERPRETED_PALISADE
-#include "transpiler/examples/fibonacci/fibonacci_sequence_interpreted_palisade.h"
+#ifdef USE_INTERPRETED_OPENFHE
+#include "transpiler/examples/fibonacci/fibonacci_sequence_interpreted_openfhe.h"
 #else
-#include "transpiler/examples/fibonacci/fibonacci_sequence_palisade.h"
+#include "transpiler/examples/fibonacci/fibonacci_sequence_openfhe.h"
 #endif
 
 constexpr auto kSecurityLevel = lbcrypto::MEDIUM;
@@ -44,12 +44,12 @@ int main(int argc, char** argv) {
 
   // Create inputs.
   int input = 5;
-  auto encrypted_input = PalisadeValue<int>::Encrypt(input, cc, sk);
+  auto encrypted_input = OpenFheValue<int>::Encrypt(input, cc, sk);
   std::cout << absl::StreamFormat("Decrypted input: %d",
                                   encrypted_input.Decrypt(sk))
             << std::endl;
 
-  PalisadeArray<int> encrypted_result(500, cc);
+  OpenFheArray<int> encrypted_result(500, cc);
   XLS_CHECK_OK(fibonacci_sequence(encrypted_input, encrypted_result, cc));
   absl::FixedArray<int> result = encrypted_result.Decrypt(sk);
   std::cout << absl::StrFormat("Result: %d, %d, %d, %d, %d", result[0],

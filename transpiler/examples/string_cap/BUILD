@@ -31,29 +31,29 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "string_cap_palisade",
+    name = "string_cap_openfhe",
     src = "string_cap.cc",
     hdrs = ["string_cap.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     num_opt_passes = 2,
     optimizer = "xls",
 )
 
 fhe_cc_library(
-    name = "string_cap_interpreted_palisade",
+    name = "string_cap_interpreted_openfhe",
     src = "string_cap.cc",
     hdrs = ["string_cap.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
 )
 
 fhe_cc_library(
-    name = "string_cap_yosys_interpreted_palisade",
+    name = "string_cap_yosys_interpreted_openfhe",
     src = "string_cap.cc",
     hdrs = ["string_cap.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     interpreter = True,
     num_opt_passes = 2,
     optimizer = "yosys",
@@ -121,14 +121,14 @@ cc_binary(
 )
 
 cc_binary(
-    name = "string_cap_palisade_testbench",
+    name = "string_cap_openfhe_testbench",
     srcs = [
         "string_cap.h",
-        "string_cap_palisade_testbench.cc",
+        "string_cap_openfhe_testbench.cc",
     ],
     deps = [
-        ":string_cap_palisade",
-        "//transpiler/data:palisade_data",
+        ":string_cap_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
@@ -137,15 +137,15 @@ cc_binary(
 )
 
 cc_binary(
-    name = "string_cap_interpreted_palisade_testbench",
+    name = "string_cap_interpreted_openfhe_testbench",
     srcs = [
         "string_cap.h",
-        "string_cap_palisade_testbench.cc",
+        "string_cap_openfhe_testbench.cc",
     ],
-    copts = ["-DUSE_INTERPRETED_PALISADE"],
+    copts = ["-DUSE_INTERPRETED_OPENFHE"],
     deps = [
-        ":string_cap_interpreted_palisade",
-        "//transpiler/data:palisade_data",
+        ":string_cap_interpreted_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
@@ -154,15 +154,15 @@ cc_binary(
 )
 
 cc_binary(
-    name = "string_cap_yosys_interpreted_palisade_testbench",
+    name = "string_cap_yosys_interpreted_openfhe_testbench",
     srcs = [
         "string_cap.h",
-        "string_cap_palisade_testbench.cc",
+        "string_cap_openfhe_testbench.cc",
     ],
-    copts = ["-DUSE_YOSYS_INTERPRETED_PALISADE"],
+    copts = ["-DUSE_YOSYS_INTERPRETED_OPENFHE"],
     deps = [
-        ":string_cap_yosys_interpreted_palisade",
-        "//transpiler/data:palisade_data",
+        ":string_cap_yosys_interpreted_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",

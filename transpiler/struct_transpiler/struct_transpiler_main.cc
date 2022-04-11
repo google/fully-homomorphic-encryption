@@ -30,7 +30,7 @@ enum class BackendType {
   kGeneric,
   kCleartext,
   kTFHE,
-  kPALISADE,
+  kOpenFHE,
 };
 inline bool AbslParseFlag(absl::string_view text, BackendType* out,
                           std::string* error) {
@@ -46,8 +46,8 @@ inline bool AbslParseFlag(absl::string_view text, BackendType* out,
     *out = BackendType::kTFHE;
     return true;
   }
-  if (absl::EqualsIgnoreCase(text, "palisade")) {
-    *out = BackendType::kPALISADE;
+  if (absl::EqualsIgnoreCase(text, "openfhe")) {
+    *out = BackendType::kOpenFHE;
     return true;
   }
   *error = "Unrecognized backend type.";
@@ -61,8 +61,8 @@ inline std::string AbslUnparseFlag(BackendType in) {
       return "cleartext";
     case BackendType::kTFHE:
       return "tfhe";
-    case BackendType::kPALISADE:
-      return "palisade";
+    case BackendType::kOpenFHE:
+      return "openfhe";
   }
   return "unknown";
 }
@@ -79,7 +79,7 @@ ABSL_FLAG(std::string, output_path, "",
           "If unspecified, output will be written to stdout.");
 ABSL_FLAG(BackendType, backend_type, BackendType::kGeneric,
           "Transpiler type: could be empty, 'cleartext', 'tfhe', or "
-          "'palisade'. If unspecified or empty, the generic template is "
+          "'openfhe'. If unspecified or empty, the generic template is "
           "created.");
 ABSL_FLAG(std::string, generic_header_path, "",
           "Path to which to the previously-generated template header file. "
@@ -122,9 +122,9 @@ absl::Status RealMain(absl::string_view metadata_path,
       std::cout << specific_result << std::endl;
       break;
     }
-    case BackendType::kPALISADE: {
+    case BackendType::kOpenFHE: {
       XLS_ASSIGN_OR_RETURN(std::string specific_result,
-                           ConvertStructsToEncodedPalisade(
+                           ConvertStructsToEncodedOpenFhe(
                                generic_header_path, metadata, output_path));
       if (!output_path.empty()) {
         return xls::SetFileContents(output_path, specific_result);

@@ -19,9 +19,9 @@ xls_cc_transpiled_structs(
 )
 
 xls_cc_transpiled_structs(
-    name = "ifte_palisade_structs",
+    name = "ifte_openfhe_structs",
     src = ":ifte_xls_ir",
-    encryption = "palisade",
+    encryption = "openfhe",
 )
 
 xls_cc_transpiled_structs(
@@ -60,9 +60,9 @@ verilog_to_netlist(
 )
 
 verilog_to_netlist(
-    name = "ifte_palisade_netlist",
+    name = "ifte_openfhe_netlist",
     src = ":ifte_verilog",
-    encryption = "palisade",
+    encryption = "openfhe",
 )
 
 # Generate C++ libraries for various combinations of schemes and interpretation modes.
@@ -100,19 +100,19 @@ cc_fhe_bool_ir_library(
 )
 
 cc_fhe_bool_ir_library(
-    name = "ifte_xls_palisade",
+    name = "ifte_xls_openfhe",
     src = ":ifte_optimized_booleanified_xls_ir",
-    encryption = "palisade",
+    encryption = "openfhe",
     interpreter = False,
-    transpiled_structs = ":ifte_palisade_structs",
+    transpiled_structs = ":ifte_openfhe_structs",
 )
 
 cc_fhe_bool_ir_library(
-    name = "ifte_xls_palisade_interpreted",
+    name = "ifte_xls_openfhe_interpreted",
     src = ":ifte_optimized_booleanified_xls_ir",
-    encryption = "palisade",
+    encryption = "openfhe",
     interpreter = True,
-    transpiled_structs = ":ifte_palisade_structs",
+    transpiled_structs = ":ifte_openfhe_structs",
 )
 
 cc_fhe_netlist_library(
@@ -124,11 +124,11 @@ cc_fhe_netlist_library(
 )
 
 cc_fhe_netlist_library(
-    name = "ifte_netlist_palisade_interpreted",
-    src = ":ifte_palisade_netlist",
-    encryption = "palisade",
+    name = "ifte_netlist_openfhe_interpreted",
+    src = ":ifte_openfhe_netlist",
+    encryption = "openfhe",
     interpreter = True,
-    transpiled_structs = ":ifte_palisade_structs",
+    transpiled_structs = ":ifte_openfhe_structs",
 )
 
 cc_binary(
@@ -184,12 +184,12 @@ cc_binary(
 )
 
 cc_binary(
-    name = "ifte_yosys_interpreted_palisade_testbench",
-    srcs = ["ifte_palisade_testbench.cc"],
-    copts = ["-DUSE_YOSYS_INTERPRETED_PALISADE"],
+    name = "ifte_yosys_interpreted_openfhe_testbench",
+    srcs = ["ifte_openfhe_testbench.cc"],
+    copts = ["-DUSE_YOSYS_INTERPRETED_OPENFHE"],
     deps = [
-        ":ifte_netlist_palisade_interpreted",
-        "//transpiler/data:palisade_data",
+        ":ifte_netlist_openfhe_interpreted",
+        "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",

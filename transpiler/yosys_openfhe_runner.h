@@ -24,7 +24,7 @@
 #include "google/protobuf/text_format.h"
 #include "palisade/binfhe/binfhecontext.h"
 #include "palisade/binfhe/ringcore.h"
-#include "transpiler/data/palisade_data.h"
+#include "transpiler/data/openfhe_data.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
 #include "xls/netlist/cell_library.h"
 #include "xls/netlist/function_extractor.h"
@@ -37,9 +37,9 @@ namespace transpiler {
 
 class YosysTfheRunner;
 
-// Class PalisadeBoolValue provides the glue that bridges the way the XLS
+// Class OpenFheBoolValue provides the glue that bridges the way the XLS
 // netlist AbstractInterpreter processes boolean values, and the way the
-// PALISADE BinFHE library handles them.  The former expects to see an object of
+// OpenFHE BinFHE library handles them.  The former expects to see an object of
 // a type that is source-code-compatible with bool, while the BinFHE library
 // uses opaque constructs of type LweCiphertext that have no source-level
 // compatibility with bool.
@@ -65,7 +65,7 @@ class YosysTfheRunner;
 //    interpret the cell-output-pin-function definitions already provided in
 //    the cell library as part of the cell definitions, or to parse the
 //    functions but trap directly into our callback implementations (e.g.,
-//    YosysTfheRunner::PalisadeOp_xor2) to do the actual evaluation.  For the
+//    YosysTfheRunner::OpenFheOp_xor2) to do the actual evaluation.  For the
 //    latter, we only need requirement (a) above, because all the actual
 //    operations are handled in the callbacks.  However, the Interpreter is
 //    coded to handle the case where a callback isn't available, and so it
@@ -80,43 +80,43 @@ class YosysTfheRunner;
 // interpret it.  In the extreme case, we can simply not pass TfheEvalMap to
 // the interpreter, forcing it to evaluate everything.  That will still work
 // since the FHE objects act as bools.
-class PalisadeBoolValue {
+class OpenFheBoolValue {
  public:
-  static PalisadeBoolValue Unencrypted(bool val, lbcrypto::BinFHEContext cc) {
-    return PalisadeBoolValue(cc.EvalConstant(val), cc);
+  static OpenFheBoolValue Unencrypted(bool val, lbcrypto::BinFHEContext cc) {
+    return OpenFheBoolValue(cc.EvalConstant(val), cc);
   }
 
-  PalisadeBoolValue(const PalisadeBoolValue& rhs)
+  OpenFheBoolValue(const OpenFheBoolValue& rhs)
       : lwe_(std::make_shared<lbcrypto::LWECiphertextImpl>(*rhs.lwe_)),
         cc_(rhs.cc_) {}
-  PalisadeBoolValue& operator=(const PalisadeBoolValue& rhs) {
+  OpenFheBoolValue& operator=(const OpenFheBoolValue& rhs) {
     lwe_ = std::make_shared<lbcrypto::LWECiphertextImpl>(*rhs.lwe_);
     cc_ = rhs.cc_;
     return *this;
   }
-  PalisadeBoolValue(PalisadeBoolValue&& rhs) {
+  OpenFheBoolValue(OpenFheBoolValue&& rhs) {
     cc_ = rhs.cc_;
     lwe_ = std::move(rhs.lwe_);
   }
-  PalisadeBoolValue& operator=(PalisadeBoolValue&& rhs) {
+  OpenFheBoolValue& operator=(OpenFheBoolValue&& rhs) {
     cc_ = rhs.cc_;
     lwe_ = std::move(rhs.lwe_);
     return *this;
   }
-  PalisadeBoolValue operator&(const PalisadeBoolValue& rhs) {
-    return PalisadeBoolValue(cc_.EvalBinGate(lbcrypto::AND, lwe_, rhs.lwe()),
-                             cc_);
+  OpenFheBoolValue operator&(const OpenFheBoolValue& rhs) {
+    return OpenFheBoolValue(cc_.EvalBinGate(lbcrypto::AND, lwe_, rhs.lwe()),
+                            cc_);
   }
-  PalisadeBoolValue operator|(const PalisadeBoolValue& rhs) {
-    return PalisadeBoolValue(cc_.EvalBinGate(lbcrypto::OR, lwe_, rhs.lwe()),
-                             cc_);
+  OpenFheBoolValue operator|(const OpenFheBoolValue& rhs) {
+    return OpenFheBoolValue(cc_.EvalBinGate(lbcrypto::OR, lwe_, rhs.lwe()),
+                            cc_);
   }
-  PalisadeBoolValue operator^(const PalisadeBoolValue& rhs) {
-    return PalisadeBoolValue(cc_.EvalBinGate(lbcrypto::XOR, lwe_, rhs.lwe()),
-                             cc_);
+  OpenFheBoolValue operator^(const OpenFheBoolValue& rhs) {
+    return OpenFheBoolValue(cc_.EvalBinGate(lbcrypto::XOR, lwe_, rhs.lwe()),
+                            cc_);
   }
-  PalisadeBoolValue operator!() {
-    return PalisadeBoolValue(cc_.EvalNOT(lwe_), cc_);
+  OpenFheBoolValue operator!() {
+    return OpenFheBoolValue(cc_.EvalNOT(lwe_), cc_);
   }
   lbcrypto::LWECiphertext lwe() const { return lwe_; }
 
@@ -124,14 +124,14 @@ class PalisadeBoolValue {
   lbcrypto::LWECiphertext lwe_;
 
  public:
-  PalisadeBoolValue(lbcrypto::LWECiphertext lwe, lbcrypto::BinFHEContext cc)
+  OpenFheBoolValue(lbcrypto::LWECiphertext lwe, lbcrypto::BinFHEContext cc)
       : lwe_(lwe), cc_(cc) {}
 
  private:
   lbcrypto::BinFHEContext cc_;
 };
 
-class YosysPalisadeRunner {
+class YosysOpenFheRunner {
  public:
   // char_stream: value
   //   --> lib_proto: value
@@ -142,9 +142,9 @@ class YosysPalisadeRunner {
   //
   //  &cell_library, &scanner
   //    --> netlist: pointer
-  YosysPalisadeRunner(const std::string& liberty_text,
-                      const std::string& netlist_text,
-                      const std::string& metadata_text)
+  YosysOpenFheRunner(const std::string& liberty_text,
+                     const std::string& netlist_text,
+                     const std::string& metadata_text)
       : liberty_text_(liberty_text),
         netlist_text_(netlist_text),
         metadata_text_(metadata_text),
@@ -152,8 +152,7 @@ class YosysPalisadeRunner {
 
   absl::Status InitializeOnce(
       lbcrypto::BinFHEContext cc,
-      const xls::netlist::rtl::CellToOutputEvalFns<PalisadeBoolValue>&
-          eval_fns);
+      const xls::netlist::rtl::CellToOutputEvalFns<OpenFheBoolValue>& eval_fns);
 
   absl::Status Run(
       absl::Span<lbcrypto::LWECiphertext> result,
@@ -161,23 +160,23 @@ class YosysPalisadeRunner {
       std::vector<absl::Span<lbcrypto::LWECiphertext>> inout_args,
       lbcrypto::BinFHEContext cc);
 
-  std::unique_ptr<PalisadeBoolValue> CreatePalisadeBoolValue(bool in) {
-    return std::make_unique<PalisadeBoolValue>(
-        PalisadeBoolValue::Unencrypted(in, state_->cc_));
+  std::unique_ptr<OpenFheBoolValue> CreateOpenFheBoolValue(bool in) {
+    return std::make_unique<OpenFheBoolValue>(
+        OpenFheBoolValue::Unencrypted(in, state_->cc_));
   }
 
  private:
-  struct YosysPalisadeRunnerState {
-    YosysPalisadeRunnerState(lbcrypto::BinFHEContext cc,
-                             xls::netlist::cell_lib::CharStream char_stream,
-                             xls::netlist::rtl::Scanner scanner)
+  struct YosysOpenFheRunnerState {
+    YosysOpenFheRunnerState(lbcrypto::BinFHEContext cc,
+                            xls::netlist::cell_lib::CharStream char_stream,
+                            xls::netlist::rtl::Scanner scanner)
         : cc_(cc),
-          zero_(PalisadeBoolValue::Unencrypted(false, cc_)),
-          one_(PalisadeBoolValue::Unencrypted(true, cc_)),
+          zero_(OpenFheBoolValue::Unencrypted(false, cc_)),
+          one_(OpenFheBoolValue::Unencrypted(true, cc_)),
           char_stream_(std::move(char_stream)),
           lib_proto_(*xls::netlist::function::ExtractFunctions(&char_stream_)),
           cell_library_(
-              *xls::netlist::AbstractCellLibrary<PalisadeBoolValue>::FromProto(
+              *xls::netlist::AbstractCellLibrary<OpenFheBoolValue>::FromProto(
                   lib_proto_, zero_, one_)),
           scanner_(scanner) {}
 
@@ -187,38 +186,38 @@ class YosysPalisadeRunner {
         std::vector<absl::Span<lbcrypto::LWECiphertext>> inout_args);
 
     lbcrypto::BinFHEContext cc_;
-    PalisadeBoolValue zero_;
-    PalisadeBoolValue one_;
+    OpenFheBoolValue zero_;
+    OpenFheBoolValue one_;
     xls::netlist::cell_lib::CharStream char_stream_;
     xls::netlist::CellLibraryProto lib_proto_;
-    xls::netlist::AbstractCellLibrary<PalisadeBoolValue> cell_library_;
+    xls::netlist::AbstractCellLibrary<OpenFheBoolValue> cell_library_;
     xls::netlist::rtl::Scanner scanner_;
-    std::unique_ptr<xls::netlist::rtl::AbstractNetlist<PalisadeBoolValue>>
+    std::unique_ptr<xls::netlist::rtl::AbstractNetlist<OpenFheBoolValue>>
         netlist_;
     xlscc_metadata::MetadataOutput metadata_;
   };
 
-  absl::StatusOr<PalisadeBoolValue> PalisadeOp_inv(
-      const std::vector<PalisadeBoolValue>& args);
-  absl::StatusOr<PalisadeBoolValue> PalisadeOp_buffer(
-      const std::vector<PalisadeBoolValue>& args);
-  absl::StatusOr<PalisadeBoolValue> PalisadeOp_and2(
-      const std::vector<PalisadeBoolValue>& args);
-  absl::StatusOr<PalisadeBoolValue> PalisadeOp_nand2(
-      const std::vector<PalisadeBoolValue>& args);
-  absl::StatusOr<PalisadeBoolValue> PalisadeOp_or2(
-      const std::vector<PalisadeBoolValue>& args);
-  absl::StatusOr<PalisadeBoolValue> PalisadeOp_nor2(
-      const std::vector<PalisadeBoolValue>& args);
-  absl::StatusOr<PalisadeBoolValue> PalisadeOp_xor2(
-      const std::vector<PalisadeBoolValue>& args);
-  absl::StatusOr<PalisadeBoolValue> PalisadeOp_xnor2(
-      const std::vector<PalisadeBoolValue>& args);
+  absl::StatusOr<OpenFheBoolValue> OpenFheOp_inv(
+      const std::vector<OpenFheBoolValue>& args);
+  absl::StatusOr<OpenFheBoolValue> OpenFheOp_buffer(
+      const std::vector<OpenFheBoolValue>& args);
+  absl::StatusOr<OpenFheBoolValue> OpenFheOp_and2(
+      const std::vector<OpenFheBoolValue>& args);
+  absl::StatusOr<OpenFheBoolValue> OpenFheOp_nand2(
+      const std::vector<OpenFheBoolValue>& args);
+  absl::StatusOr<OpenFheBoolValue> OpenFheOp_or2(
+      const std::vector<OpenFheBoolValue>& args);
+  absl::StatusOr<OpenFheBoolValue> OpenFheOp_nor2(
+      const std::vector<OpenFheBoolValue>& args);
+  absl::StatusOr<OpenFheBoolValue> OpenFheOp_xor2(
+      const std::vector<OpenFheBoolValue>& args);
+  absl::StatusOr<OpenFheBoolValue> OpenFheOp_xnor2(
+      const std::vector<OpenFheBoolValue>& args);
 
   const std::string liberty_text_;
   const std::string netlist_text_;
   const std::string metadata_text_;
-  std::unique_ptr<YosysPalisadeRunnerState> state_;
+  std::unique_ptr<YosysOpenFheRunnerState> state_;
 };
 
 }  // namespace transpiler

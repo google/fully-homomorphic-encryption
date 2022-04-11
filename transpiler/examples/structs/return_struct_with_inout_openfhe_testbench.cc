@@ -16,8 +16,8 @@
 #include <iostream>
 
 #include "palisade/binfhe/binfhecontext.h"
-#include "transpiler/examples/structs/return_struct_with_inout_palisade.h"
-#include "transpiler/examples/structs/return_struct_with_inout_palisade.types.h"
+#include "transpiler/examples/structs/return_struct_with_inout_openfhe.h"
+#include "transpiler/examples/structs/return_struct_with_inout_openfhe.types.h"
 #include "xls/common/logging/logging.h"
 
 constexpr auto kSecurityLevel = lbcrypto::MEDIUM;
@@ -48,11 +48,11 @@ int main(int argc, char** argv) {
   helper_c.b = 128;
   helper_c.c = -256;
 
-  PalisadeHelper fhe_helper_a(cc);
+  OpenFheHelper fhe_helper_a(cc);
   fhe_helper_a.SetEncrypted(helper_a, sk);
-  PalisadeHelper fhe_helper_b(cc);
+  OpenFheHelper fhe_helper_b(cc);
   fhe_helper_b.SetEncrypted(helper_b, sk);
-  PalisadeHelper fhe_helper_c(cc);
+  OpenFheHelper fhe_helper_c(cc);
   fhe_helper_c.SetEncrypted(helper_c, sk);
 
   std::cout << "Round trip check : helper_a: " << std::endl;
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
   std::cout << "  c: " << static_cast<int>(round_trip_c.c) << std::endl;
 
   std::cout << "Starting computation." << std::endl;
-  PalisadeReturnStruct fhe_result(cc);
+  OpenFheReturnStruct fhe_result(cc);
   XLS_CHECK_OK(ConstructReturnStructWithInout(fhe_result, fhe_helper_a,
                                               fhe_helper_b, fhe_helper_c, cc));
 

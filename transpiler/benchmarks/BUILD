@@ -20,7 +20,7 @@ INT_TYPES = [
     for int_type in INT_TYPES
     for encryption in [
         "tfhe",
-        "palisade",
+        "openfhe",
     ]
     for optimizer in [
         "xls",
@@ -62,26 +62,26 @@ cc_test(
 )
 
 cc_test(
-    name = "arithmetic_yosys_interpreted_palisade",
-    srcs = ["arithmetic_palisade.cc"],
+    name = "arithmetic_yosys_interpreted_openfhe",
+    srcs = ["arithmetic_openfhe.cc"],
     copts = ["-DUSE_YOSYS_OPTIMIZER"],
     tags = ["manual"],
     deps = [
         "@com_google_googletest//:gtest_main",
         "@com_google_xls//xls/common/status:matchers",
-        "//transpiler/data:palisade_data",
+        "//transpiler/data:openfhe_data",
         "@openfhe//:binfhe",
-    ] + [":add_{}_yosys_palisade".format(int_type) for int_type in INT_TYPES],
+    ] + [":add_{}_yosys_openfhe".format(int_type) for int_type in INT_TYPES],
 )
 
 cc_test(
-    name = "arithmetic_xls_interpreted_palisade",
-    srcs = ["arithmetic_palisade.cc"],
+    name = "arithmetic_xls_interpreted_openfhe",
+    srcs = ["arithmetic_openfhe.cc"],
     tags = ["manual"],
     deps = [
         "@com_google_googletest//:gtest_main",
         "@com_google_xls//xls/common/status:matchers",
-        "//transpiler/data:palisade_data",
+        "//transpiler/data:openfhe_data",
         "@openfhe//:binfhe",
-    ] + [":add_{}_xls_palisade".format(int_type) for int_type in INT_TYPES],
+    ] + [":add_{}_xls_openfhe".format(int_type) for int_type in INT_TYPES],
 )

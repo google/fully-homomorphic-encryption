@@ -16,8 +16,8 @@
 #include <iostream>
 
 #include "palisade/binfhe/binfhecontext.h"
-#include "transpiler/examples/structs/array_of_array_of_structs_palisade.h"
-#include "transpiler/examples/structs/array_of_array_of_structs_palisade.types.h"
+#include "transpiler/examples/structs/array_of_array_of_structs_openfhe.h"
+#include "transpiler/examples/structs/array_of_array_of_structs_openfhe.types.h"
 #include "xls/common/logging/logging.h"
 
 const int main_minimum_lambda = 120;
@@ -56,11 +56,11 @@ int main(int argc, char** argv) {
     }
   }
 
-  PalisadeBase palisade_input(cc);
-  palisade_input.SetEncrypted(input, sk);
+  OpenFheBase openfhe_input(cc);
+  openfhe_input.SetEncrypted(input, sk);
 
   std::cout << "Round trip check: " << std::endl;
-  Base round_trip = palisade_input.Decrypt(sk);
+  Base round_trip = openfhe_input.Decrypt(sk);
   for (int a = 0; a < A_ELEMENTS; a++) {
     for (int b = 0; b < B_ELEMENTS; b++) {
       for (int c = 0; c < C_ELEMENTS; c++) {
@@ -78,10 +78,10 @@ int main(int argc, char** argv) {
   }
 
   std::cout << "Starting computation." << std::endl;
-  PalisadeBase palisade_result(cc);
-  XLS_CHECK_OK(DoubleBase(palisade_result, palisade_input, cc));
+  OpenFheBase openfhe_result(cc);
+  XLS_CHECK_OK(DoubleBase(openfhe_result, openfhe_input, cc));
 
-  Base result = palisade_result.Decrypt(sk);
+  Base result = openfhe_result.Decrypt(sk);
   std::cout << "Done. Result: " << std::endl;
   for (int a = 0; a < A_ELEMENTS; a++) {
     for (int b = 0; b < B_ELEMENTS; b++) {

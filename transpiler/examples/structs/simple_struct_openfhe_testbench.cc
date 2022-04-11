@@ -16,8 +16,8 @@
 #include <iostream>
 
 #include "palisade/binfhe/binfhecontext.h"
-#include "transpiler/examples/structs/simple_struct_palisade.h"
-#include "transpiler/examples/structs/simple_struct_palisade.types.h"
+#include "transpiler/examples/structs/simple_struct_openfhe.h"
+#include "transpiler/examples/structs/simple_struct_openfhe.types.h"
 #include "xls/common/logging/logging.h"
 
 constexpr auto kSecurityLevel = lbcrypto::MEDIUM;
@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
   simple_struct.b = -4;
   simple_struct.c = 8;
 
-  PalisadeSimpleStruct fhe_simple_struct = {cc};
+  OpenFheSimpleStruct fhe_simple_struct = {cc};
   fhe_simple_struct.SetEncrypted(simple_struct, sk);
 
   std::cout << "Initial round-trip check: " << std::endl;
@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
             << std::endl;
 
   std::cout << "Starting computation." << std::endl;
-  PalisadeInt fhe_result = {cc};
+  OpenFheInt fhe_result = {cc};
   XLS_CHECK_OK(SumSimpleStruct(fhe_result, fhe_simple_struct, cc));
 
   int result = fhe_result.Decrypt(sk);

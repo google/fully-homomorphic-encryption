@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "transpiler/palisade_transpiler.h"
+#include "transpiler/openfhe_transpiler.h"
 
 #include <string>
 #include <utility>
@@ -68,22 +68,22 @@ std::string CopyTo(std::string destination, std::string source) {
 
 // Input: "result", 0, Node(id = 3)
 // Output: result[0] = temp_nodes[3];
-std::string PalisadeTranspiler::CopyNodeToOutput(absl::string_view output_arg,
-                                                 int offset,
-                                                 const xls::Node* node) {
+std::string OpenFheTranspiler::CopyNodeToOutput(absl::string_view output_arg,
+                                                int offset,
+                                                const xls::Node* node) {
   return CopyTo(OutputBitReference(output_arg, offset), NodeReference(node));
 }
 
 // Input: Node(id = 4), Param("some_param"), 3
 // Output: temp_nodes[4] = some_param[3];
-std::string PalisadeTranspiler::CopyParamToNode(const xls::Node* node,
-                                                const xls::Node* param,
-                                                int offset) {
+std::string OpenFheTranspiler::CopyParamToNode(const xls::Node* node,
+                                               const xls::Node* param,
+                                               int offset) {
   return CopyTo(NodeReference(node), ParamBitReference(param, offset));
 }
 
 // No-op
-std::string PalisadeTranspiler::InitializeNode(const Node* node) { return ""; }
+std::string OpenFheTranspiler::InitializeNode(const Node* node) { return ""; }
 
 // clang-format off
 //
@@ -94,7 +94,7 @@ std::string PalisadeTranspiler::InitializeNode(const Node* node) { return ""; }
 // Output: "  temp_nodes[5] = cc.EvalBinGate(lbcrypto::AND, temp_nodes[2], temp_nodes[3]);\n"
 //
 // clang-format on
-absl::StatusOr<std::string> PalisadeTranspiler::Execute(const Node* node) {
+absl::StatusOr<std::string> OpenFheTranspiler::Execute(const Node* node) {
   absl::ParsedFormat<'s', 's'> statement{
       "// Unsupported Op kind; arguments \"%s\", \"%s\"\n\n"};
   switch (node->op()) {
@@ -143,14 +143,14 @@ absl::StatusOr<std::string> PalisadeTranspiler::Execute(const Node* node) {
                          absl::StrJoin(arguments, ", "));
 }
 
-absl::StatusOr<std::string> PalisadeTranspiler::TranslateHeader(
+absl::StatusOr<std::string> OpenFheTranspiler::TranslateHeader(
     const xls::Function* function,
     const xlscc_metadata::MetadataOutput& metadata,
     absl::string_view header_path,
     const absl::string_view
         encryption_specific_transpiled_structs_header_path) {
   const std::string header_guard =
-      transpiler::PathToHeaderGuard("PALISADE_GENERATE_H_", header_path);
+      transpiler::PathToHeaderGuard("OPENFHE_GENERATE_H_", header_path);
   static constexpr absl::string_view kHeaderTemplate =
       R"(#ifndef $1
 #define $1
@@ -158,7 +158,7 @@ absl::StatusOr<std::string> PalisadeTranspiler::TranslateHeader(
 #include "$2"
 #include "absl/status/status.h"
 #include "absl/types/span.h"
-#include "transpiler/data/palisade_data.h"
+#include "transpiler/data/openfhe_data.h"
 #include "palisade/binfhe/binfhecontext.h"
 
 $0;
@@ -166,7 +166,7 @@ $0;
 $3#endif  // $1
 )";
   absl::optional<std::string> typed_overload =
-      TypedOverload(metadata, "Palisade", "absl::Span<lbcrypto::LWECiphertext>",
+      TypedOverload(metadata, "OpenFhe", "absl::Span<lbcrypto::LWECiphertext>",
                     "lbcrypto::BinFHEContext");
   XLS_ASSIGN_OR_RETURN(std::string signature,
                        FunctionSignature(function, metadata));
@@ -175,13 +175,13 @@ $3#endif  // $1
                           typed_overload.value_or(""));
 }
 
-absl::StatusOr<std::string> PalisadeTranspiler::FunctionSignature(
+absl::StatusOr<std::string> OpenFheTranspiler::FunctionSignature(
     const Function* function, const xlscc_metadata::MetadataOutput& metadata) {
   return transpiler::FunctionSignature(metadata, "lbcrypto::LWECiphertext",
                                        "lbcrypto::BinFHEContext", "cc");
 }
 
-absl::StatusOr<std::string> PalisadeTranspiler::Prelude(
+absl::StatusOr<std::string> OpenFheTranspiler::Prelude(
     const Function* function, const xlscc_metadata::MetadataOutput& metadata) {
   // $0: function name
   // $1: non-key parameter string
@@ -222,7 +222,7 @@ $0 {
   return absl::Substitute(kPrelude, signature);
 }
 
-absl::StatusOr<std::string> PalisadeTranspiler::Conclusion() {
+absl::StatusOr<std::string> OpenFheTranspiler::Conclusion() {
   return R"(  return absl::OkStatus();
 }
 )";

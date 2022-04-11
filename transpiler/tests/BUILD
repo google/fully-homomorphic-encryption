@@ -20,10 +20,10 @@ _PRIMITIVE_TYPES = [
             optimizer = "xls",
         ),
         fhe_cc_library(
-            name = "%s_palisade" % i,
+            name = "%s_openfhe" % i,
             src = "%s.cc" % i,
             hdrs = [],
-            encryption = "palisade",
+            encryption = "openfhe",
             num_opt_passes = 2,
             optimizer = "xls",
         ),
@@ -48,15 +48,15 @@ cc_library(
 )
 
 cc_library(
-    name = "palisade_test_util",
+    name = "openfhe_test_util",
     testonly = True,
-    srcs = ["palisade_test_util.cc"],
-    hdrs = ["palisade_test_util.h"],
+    srcs = ["openfhe_test_util.cc"],
+    hdrs = ["openfhe_test_util.h"],
     visibility = [
         "//:__subpackages__",
     ],
     deps = [
-        "//transpiler/data:palisade_data",
+        "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest",
         "@com_google_xls//xls/common/status:matchers",
@@ -81,17 +81,17 @@ cc_test(
 )
 
 cc_test(
-    name = "palisade_types_test",
-    srcs = ["palisade_types_test.cc"],
+    name = "openfhe_types_test",
+    srcs = ["openfhe_types_test.cc"],
     shard_count = 4,
-    deps = [":%s_palisade" % i for i in _PRIMITIVE_TYPES] + [
-        ":palisade_test_util",
+    deps = [":%s_openfhe" % i for i in _PRIMITIVE_TYPES] + [
+        ":openfhe_test_util",
         "@com_google_googletest//:gtest_main",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/strings",
         "@com_google_xls//xls/common/status:matchers",
-        "//transpiler/data:palisade_data",
+        "//transpiler/data:openfhe_data",
         "@openfhe//:binfhe",
     ],
 )
@@ -115,10 +115,10 @@ _CONTROL_STRUCTURE = [
             optimizer = "xls",
         ),
         fhe_cc_library(
-            name = "%s_palisade" % i,
+            name = "%s_openfhe" % i,
             src = "%s.cc" % i,
             hdrs = [],
-            encryption = "palisade",
+            encryption = "openfhe",
             num_opt_passes = 2,
             optimizer = "xls",
         ),
@@ -144,18 +144,18 @@ cc_test(
 )
 
 cc_test(
-    name = "palisade_control_structure_test",
+    name = "openfhe_control_structure_test",
     size = "medium",
-    srcs = ["palisade_control_structure_test.cc"],
+    srcs = ["openfhe_control_structure_test.cc"],
     shard_count = 8,
-    deps = [":%s_palisade" % i for i in _CONTROL_STRUCTURE] + [
-        ":palisade_test_util",
+    deps = [":%s_openfhe" % i for i in _CONTROL_STRUCTURE] + [
+        ":openfhe_test_util",
         "@com_google_googletest//:gtest_main",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/strings",
         "@com_google_xls//xls/common/status:matchers",
-        "//transpiler/data:palisade_data",
+        "//transpiler/data:openfhe_data",
         "@openfhe//:binfhe",
     ],
 )

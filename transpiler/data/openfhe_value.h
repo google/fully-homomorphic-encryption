@@ -1,5 +1,5 @@
-#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_PALISADE_VALUE_H_
-#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_PALISADE_VALUE_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_OPENFHE_VALUE_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_OPENFHE_VALUE_H_
 
 #include <assert.h>
 #include <stddef.h>
@@ -15,7 +15,7 @@
 #include "palisade/binfhe/binfhecontext.h"
 #include "transpiler/data/cleartext_value.h"
 
-struct PalisadePrivateKeySet {
+struct OpenFhePrivateKeySet {
   lbcrypto::BinFHEContext cc;
   lbcrypto::LWEPrivateKey sk;
 };
@@ -55,7 +55,7 @@ inline void Encrypt(absl::Span<const bool> value, lbcrypto::BinFHEContext cc,
 }
 
 inline void Encrypt(absl::Span<const bool> value,
-                    const PalisadePrivateKeySet* key,
+                    const OpenFhePrivateKeySet* key,
                     lbcrypto::LWECiphertext* out) {
   return Encrypt(value, key->cc, key->sk, absl::MakeSpan(out, value.size()));
 }
@@ -78,7 +78,7 @@ inline void Decrypt(lbcrypto::LWECiphertext* ciphertext,
 }
 
 inline void Decrypt(lbcrypto::LWECiphertext* ciphertext,
-                    const PalisadePrivateKeySet* key,
+                    const OpenFhePrivateKeySet* key,
                     absl::Span<bool> plaintext) {
   return Decrypt(absl::MakeSpan(ciphertext, plaintext.size()), key->cc, key->sk,
                  plaintext);
@@ -86,35 +86,35 @@ inline void Decrypt(lbcrypto::LWECiphertext* ciphertext,
 
 template <typename ValueType,
           std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>
-class PalisadeValueRef;
+class OpenFheValueRef;
 
 // FHE representation of a single object encoded as a bit array.
 template <typename ValueType,
           std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>
-class PalisadeValue {
+class OpenFheValue {
  public:
-  PalisadeValue(lbcrypto::BinFHEContext cc) : cc_(cc) {
+  OpenFheValue(lbcrypto::BinFHEContext cc) : cc_(cc) {
     for (auto& bit : ciphertext_) {
       bit = cc.EvalConstant(false);
     }
   }
 
-  PalisadeValue& operator=(const PalisadeValueRef<ValueType>& value) {
+  OpenFheValue& operator=(const OpenFheValueRef<ValueType>& value) {
     ::Copy(value.get(), get());
     return *this;
   }
 
-  static PalisadeValue<ValueType> Unencrypted(ValueType value,
-                                              lbcrypto::BinFHEContext cc) {
-    PalisadeValue<ValueType> plaintext(cc);
+  static OpenFheValue<ValueType> Unencrypted(ValueType value,
+                                             lbcrypto::BinFHEContext cc) {
+    OpenFheValue<ValueType> plaintext(cc);
     plaintext.SetUnencrypted(value);
     return plaintext;
   }
 
-  static PalisadeValue<ValueType> Encrypt(ValueType value,
-                                          lbcrypto::BinFHEContext cc,
-                                          lbcrypto::LWEPrivateKey sk) {
-    PalisadeValue<ValueType> ciphertext(cc);
+  static OpenFheValue<ValueType> Encrypt(ValueType value,
+                                         lbcrypto::BinFHEContext cc,
+                                         lbcrypto::LWEPrivateKey sk) {
+    OpenFheValue<ValueType> ciphertext(cc);
     ciphertext.SetEncrypted(value, sk);
     return ciphertext;
   }
@@ -154,15 +154,15 @@ class PalisadeValue {
 
 // Reference to an FHE representation of a single object encoded as a bit array.
 template <typename ValueType, std::enable_if_t<std::is_integral_v<ValueType>>*>
-class PalisadeValueRef {
+class OpenFheValueRef {
  public:
-  PalisadeValueRef(absl::Span<lbcrypto::LWECiphertext> ciphertext,
-                   lbcrypto::BinFHEContext cc)
+  OpenFheValueRef(absl::Span<lbcrypto::LWECiphertext> ciphertext,
+                  lbcrypto::BinFHEContext cc)
       : ciphertext_(ciphertext), cc_(cc) {}
-  PalisadeValueRef(PalisadeValue<ValueType>& value)
-      : PalisadeValueRef(value.get(), value.context()) {}
+  OpenFheValueRef(OpenFheValue<ValueType>& value)
+      : OpenFheValueRef(value.get(), value.context()) {}
 
-  PalisadeValueRef& operator=(const PalisadeValueRef<ValueType>& value) {
+  OpenFheValueRef& operator=(const OpenFheValueRef<ValueType>& value) {
     ::Copy(value.get(), get());
     return *this;
   }
@@ -180,9 +180,9 @@ class PalisadeValueRef {
 };
 
 template <typename ValueType, typename Enable = void, unsigned... Dimensions>
-class PalisadeArrayRef {};
+class OpenFheArrayRef {};
 
 template <typename ValueType, typename Enable = void, unsigned... Dimensions>
-class PalisadeArray {};
+class OpenFheArray {};
 
-#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_PALISADE_VALUE_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_OPENFHE_VALUE_H_

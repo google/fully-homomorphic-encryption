@@ -23,21 +23,21 @@
 #include <vector>
 
 #include "palisade/binfhe/binfhecontext.h"
-#include "transpiler/data/palisade_data.h"
+#include "transpiler/data/openfhe_data.h"
 #include "transpiler/examples/string_cap/string_cap.h"
 #include "xls/common/logging/logging.h"
 
-#ifdef USE_INTERPRETED_PALISADE
-#include "transpiler/examples/string_cap/string_cap_interpreted_palisade.h"
-#elif defined(USE_YOSYS_INTERPRETED_PALISADE)
-#include "transpiler/examples/string_cap/string_cap_yosys_interpreted_palisade.h"
+#ifdef USE_INTERPRETED_OPENFHE
+#include "transpiler/examples/string_cap/string_cap_interpreted_openfhe.h"
+#elif defined(USE_YOSYS_INTERPRETED_OPENFHE)
+#include "transpiler/examples/string_cap/string_cap_yosys_interpreted_openfhe.h"
 #else
-#include "transpiler/examples/string_cap/string_cap_palisade.h"
+#include "transpiler/examples/string_cap/string_cap_openfhe.h"
 #endif
 
 constexpr int kMainMinimumLambda = 120;
 
-void PalisadeStringCap(PalisadeString& ciphertext, lbcrypto::BinFHEContext cc) {
+void OpenFheStringCap(OpenFheString& ciphertext, lbcrypto::BinFHEContext cc) {
   absl::Time start_time = absl::Now();
   double cpu_start_time = clock();
   std::cout << "Starting!" << std::endl;
@@ -51,7 +51,7 @@ void PalisadeStringCap(PalisadeString& ciphertext, lbcrypto::BinFHEContext cc) {
 
 int main(int argc, char** argv) {
   if (argc < 2) {
-    fprintf(stderr, "Usage: string_cap_palisade_testbench string_input\n\n");
+    fprintf(stderr, "Usage: string_cap_openfhe_testbench string_input\n\n");
     return 1;
   }
 
@@ -85,7 +85,7 @@ int main(int argc, char** argv) {
   const absl::Time encryption_start = absl::Now();
 
   // Encrypt data
-  auto ciphertext = PalisadeString::Encrypt(plaintext, cc, sk);
+  auto ciphertext = OpenFheString::Encrypt(plaintext, cc, sk);
 
   std::cout << "Encryption done (" << ciphertext.bit_width() << " bits, "
             << absl::ToDoubleSeconds(absl::Now() - encryption_start) << " secs)"
@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform string capitalization
-  PalisadeStringCap(ciphertext, cc);
+  OpenFheStringCap(ciphertext, cc);
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 
   const absl::Time decryption_start = absl::Now();

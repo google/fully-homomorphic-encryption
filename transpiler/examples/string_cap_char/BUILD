@@ -22,10 +22,10 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "string_cap_char_palisade",
+    name = "string_cap_char_openfhe",
     src = "string_cap_char.cc",
     hdrs = ["string_cap_char.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     num_opt_passes = 2,
     optimizer = "xls",
 )
@@ -75,14 +75,14 @@ cc_binary(
 )
 
 cc_binary(
-    name = "string_cap_char_palisade_testbench",
+    name = "string_cap_char_openfhe_testbench",
     srcs = [
-        "string_cap_char_palisade_testbench.cc",
+        "string_cap_char_openfhe_testbench.cc",
     ],
     deps = [
         ":string_cap_char",
-        ":string_cap_char_palisade",
-        "//transpiler/data:palisade_data",
+        ":string_cap_char_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/time",
         "@com_google_xls//xls/common/logging",

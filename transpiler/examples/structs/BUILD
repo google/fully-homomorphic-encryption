@@ -17,10 +17,10 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "array_of_array_of_structs_palisade",
+    name = "array_of_array_of_structs_openfhe",
     src = "array_of_array_of_structs.cc",
     hdrs = ["array_of_array_of_structs.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     optimizer = "xls",
 )
 
@@ -37,11 +37,11 @@ cc_binary(
 )
 
 cc_binary(
-    name = "array_of_array_of_structs_palisade_testbench",
-    srcs = ["array_of_array_of_structs_palisade_testbench.cc"],
+    name = "array_of_array_of_structs_openfhe_testbench",
+    srcs = ["array_of_array_of_structs_openfhe_testbench.cc"],
     deps = [
-        ":array_of_array_of_structs_palisade",
-        "//transpiler/data:palisade_data",
+        ":array_of_array_of_structs_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
@@ -98,18 +98,18 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "return_struct_palisade",
+    name = "return_struct_openfhe",
     src = "return_struct.cc",
     hdrs = ["return_struct.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     optimizer = "xls",
 )
 
 fhe_cc_library(
-    name = "return_struct_interpreted_palisade",
+    name = "return_struct_interpreted_openfhe",
     src = "return_struct.cc",
     hdrs = ["return_struct.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     interpreter = True,
     optimizer = "xls",
 )
@@ -153,11 +153,11 @@ cc_binary(
 )
 
 cc_binary(
-    name = "return_struct_palisade_testbench",
-    srcs = ["return_struct_palisade_testbench.cc"],
+    name = "return_struct_openfhe_testbench",
+    srcs = ["return_struct_openfhe_testbench.cc"],
     deps = [
-        ":return_struct_palisade",
-        "//transpiler/data:palisade_data",
+        ":return_struct_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
@@ -165,12 +165,12 @@ cc_binary(
 )
 
 cc_binary(
-    name = "return_struct_interpreted_palisade_testbench",
-    srcs = ["return_struct_palisade_testbench.cc"],
-    copts = ["-DUSE_INTERPRETED_PALISADE"],
+    name = "return_struct_interpreted_openfhe_testbench",
+    srcs = ["return_struct_openfhe_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_OPENFHE"],
     deps = [
-        ":return_struct_interpreted_palisade",
-        "//transpiler/data:palisade_data",
+        ":return_struct_interpreted_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
@@ -224,10 +224,10 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "return_struct_with_inout_palisade",
+    name = "return_struct_with_inout_openfhe",
     src = "return_struct_with_inout.cc",
     hdrs = ["return_struct_with_inout.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     optimizer = "xls",
 )
 
@@ -279,11 +279,11 @@ cc_binary(
 )
 
 cc_binary(
-    name = "return_struct_with_inout_palisade_testbench",
-    srcs = ["return_struct_with_inout_palisade_testbench.cc"],
+    name = "return_struct_with_inout_openfhe_testbench",
+    srcs = ["return_struct_with_inout_openfhe_testbench.cc"],
     deps = [
-        ":return_struct_with_inout_palisade",
-        "//transpiler/data:palisade_data",
+        ":return_struct_with_inout_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
@@ -305,10 +305,10 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "simple_struct_palisade",
+    name = "simple_struct_openfhe",
     src = "simple_struct.cc",
     hdrs = ["simple_struct.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     optimizer = "xls",
 )
 
@@ -325,11 +325,11 @@ cc_binary(
 )
 
 cc_binary(
-    name = "simple_struct_palisade_testbench",
-    srcs = ["simple_struct_palisade_testbench.cc"],
+    name = "simple_struct_openfhe_testbench",
+    srcs = ["simple_struct_openfhe_testbench.cc"],
     deps = [
-        ":simple_struct_palisade",
-        "//transpiler/data:palisade_data",
+        ":simple_struct_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",

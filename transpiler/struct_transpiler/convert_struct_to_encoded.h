@@ -40,7 +40,7 @@ absl::StatusOr<std::string> ConvertStructsToEncodedTfhe(
     const xlscc_metadata::MetadataOutput& metadata,
     absl::string_view output_path);
 
-absl::StatusOr<std::string> ConvertStructsToEncodedPalisade(
+absl::StatusOr<std::string> ConvertStructsToEncodedOpenFhe(
     absl::string_view generic_header,
     const xlscc_metadata::MetadataOutput& metadata,
     absl::string_view output_path);

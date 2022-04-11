@@ -921,16 +921,16 @@ absl::StatusOr<std::string> ConvertStructsToEncodedTfhe(
                           absl::StrJoin(generated, "\n\n"));
 }
 
-// PALISADE header template
+// OpenFHE header template
 //  0: Header guard
 //  1: Generic header
 //  2: Class definitions
-constexpr const char kPalisadeFileTemplate[] = R"(#ifndef $0
+constexpr const char kOpenFheFileTemplate[] = R"(#ifndef $0
 #define $0
 
 #include <memory>
 
-#include "transpiler/data/palisade_value.h"
+#include "transpiler/data/openfhe_value.h"
 #include "$1"
 #include "absl/types/span.h"
 #include "palisade/binfhe/binfhecontext.h"
@@ -941,28 +941,28 @@ void Unencrypted<lbcrypto::LWECiphertext, lbcrypto::BinFHEContext>(absl::Span<co
 }
 
 template<>
-void Encrypt<lbcrypto::LWECiphertext, PalisadePrivateKeySet>(absl::Span<const bool> value, const PalisadePrivateKeySet* key, lbcrypto::LWECiphertext* out) {
+void Encrypt<lbcrypto::LWECiphertext, OpenFhePrivateKeySet>(absl::Span<const bool> value, const OpenFhePrivateKeySet* key, lbcrypto::LWECiphertext* out) {
   ::Encrypt(value, key, out);
 }
 
 template<>
-void Decrypt<lbcrypto::LWECiphertext, PalisadePrivateKeySet>(lbcrypto::LWECiphertext* ciphertext, const PalisadePrivateKeySet* key, absl::Span<bool> plaintext) {
+void Decrypt<lbcrypto::LWECiphertext, OpenFhePrivateKeySet>(lbcrypto::LWECiphertext* ciphertext, const OpenFhePrivateKeySet* key, absl::Span<bool> plaintext) {
   ::Decrypt(ciphertext, key, plaintext);
 }
 
 $2
 #endif//$0)";
 
-// PALISADE struct template
+// OpenFHE struct template
 //  0: Header guard
 //  1: Type name
-constexpr const char kPalisadeStructTemplate[] = R"(
-using PalisadeBase$0 = GenericEncoded$0<lbcrypto::LWECiphertext, std::default_delete<lbcrypto::LWECiphertext[]>, PalisadePrivateKeySet, lbcrypto::BinFHEContext>;
-class Palisade$0 : public PalisadeBase$0 {
+constexpr const char kOpenFheStructTemplate[] = R"(
+using OpenFheBase$0 = GenericEncoded$0<lbcrypto::LWECiphertext, std::default_delete<lbcrypto::LWECiphertext[]>, OpenFhePrivateKeySet, lbcrypto::BinFHEContext>;
+class OpenFhe$0 : public OpenFheBase$0 {
  public:
-  Palisade$0(lbcrypto::BinFHEContext cc)
-      : PalisadeBase$0(
-            new lbcrypto::LWECiphertext[Palisade$0::bit_width()],
+  OpenFhe$0(lbcrypto::BinFHEContext cc)
+      : OpenFheBase$0(
+            new lbcrypto::LWECiphertext[OpenFhe$0::bit_width()],
             std::default_delete<lbcrypto::LWECiphertext[]>()), cc_(cc) {
     // Initialize the LWECiphertexts.
     SetUnencrypted({}, &cc_);
@@ -970,22 +970,22 @@ class Palisade$0 : public PalisadeBase$0 {
 
   void SetEncrypted(const $1& value,
                     lbcrypto::LWEPrivateKey sk) {
-    PalisadePrivateKeySet key{cc_, sk};
-    PalisadeBase$0::SetEncrypted(value, &key);
+    OpenFhePrivateKeySet key{cc_, sk};
+    OpenFheBase$0::SetEncrypted(value, &key);
   }
 
   $1 Decrypt(lbcrypto::LWEPrivateKey sk) {
-    PalisadePrivateKeySet key{cc_, sk};
-    return PalisadeBase$0::Decrypt(&key);
+    OpenFhePrivateKeySet key{cc_, sk};
+    return OpenFheBase$0::Decrypt(&key);
   }
 
  private:
   lbcrypto::BinFHEContext cc_;
 };
 
-using Palisade$0Ref = GenericEncoded$0Ref<lbcrypto::LWECiphertext, std::default_delete<lbcrypto::LWECiphertext[]>, PalisadePrivateKeySet, lbcrypto::BinFHEContext>;)";
+using OpenFhe$0Ref = GenericEncoded$0Ref<lbcrypto::LWECiphertext, std::default_delete<lbcrypto::LWECiphertext[]>, OpenFhePrivateKeySet, lbcrypto::BinFHEContext>;)";
 
-absl::StatusOr<std::string> ConvertStructsToEncodedPalisade(
+absl::StatusOr<std::string> ConvertStructsToEncodedOpenFhe(
     absl::string_view generic_header,
     const xlscc_metadata::MetadataOutput& metadata,
     absl::string_view output_path) {
@@ -1000,12 +1000,12 @@ absl::StatusOr<std::string> ConvertStructsToEncodedPalisade(
     const StructType& struct_type = id_to_type.at(id).type;
     xlscc_metadata::CPPName struct_name = struct_type.name().as_inst().name();
     std::string struct_text =
-        absl::Substitute(kPalisadeStructTemplate, struct_name.name(),
+        absl::Substitute(kOpenFheStructTemplate, struct_name.name(),
                          struct_name.fully_qualified_name());
     generated.push_back(struct_text);
   }
 
-  return absl::Substitute(kPalisadeFileTemplate, header_guard, generic_header,
+  return absl::Substitute(kOpenFheFileTemplate, header_guard, generic_header,
                           absl::StrJoin(generated, "\n\n"));
 }
 

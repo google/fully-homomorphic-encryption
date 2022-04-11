@@ -22,19 +22,19 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "fibonacci_palisade",
+    name = "fibonacci_openfhe",
     src = "fibonacci.cc",
     hdrs = ["fibonacci.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     num_opt_passes = 2,
     optimizer = "xls",
 )
 
 fhe_cc_library(
-    name = "fibonacci_interpreted_palisade",
+    name = "fibonacci_interpreted_openfhe",
     src = "fibonacci.cc",
     hdrs = ["fibonacci.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
@@ -69,19 +69,19 @@ fhe_cc_library(
 )
 
 fhe_cc_library(
-    name = "fibonacci_sequence_palisade",
+    name = "fibonacci_sequence_openfhe",
     src = "fibonacci_sequence.cc",
     hdrs = ["fibonacci_sequence.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     num_opt_passes = 2,
     optimizer = "xls",
 )
 
 fhe_cc_library(
-    name = "fibonacci_sequence_interpreted_palisade",
+    name = "fibonacci_sequence_interpreted_openfhe",
     src = "fibonacci_sequence.cc",
     hdrs = ["fibonacci_sequence.h"],
-    encryption = "palisade",
+    encryption = "openfhe",
     interpreter = True,
     num_opt_passes = 2,
     optimizer = "xls",
@@ -115,11 +115,11 @@ cc_binary(
 )
 
 cc_binary(
-    name = "fibonacci_palisade_testbench",
-    srcs = ["fibonacci_palisade_testbench.cc"],
+    name = "fibonacci_openfhe_testbench",
+    srcs = ["fibonacci_openfhe_testbench.cc"],
     deps = [
-        ":fibonacci_palisade",
-        "//transpiler/data:palisade_data",
+        ":fibonacci_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
@@ -128,12 +128,12 @@ cc_binary(
 )
 
 cc_binary(
-    name = "fibonacci_interpreted_palisade_testbench",
-    srcs = ["fibonacci_palisade_testbench.cc"],
-    copts = ["-DUSE_INTERPRETED_PALISADE"],
+    name = "fibonacci_interpreted_openfhe_testbench",
+    srcs = ["fibonacci_openfhe_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_OPENFHE"],
     deps = [
-        ":fibonacci_interpreted_palisade",
-        "//transpiler/data:palisade_data",
+        ":fibonacci_interpreted_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
@@ -183,11 +183,11 @@ cc_binary(
 )
 
 cc_binary(
-    name = "fibonacci_sequence_palisade_testbench",
-    srcs = ["fibonacci_sequence_palisade_testbench.cc"],
+    name = "fibonacci_sequence_openfhe_testbench",
+    srcs = ["fibonacci_sequence_openfhe_testbench.cc"],
     deps = [
-        ":fibonacci_sequence_palisade",
-        "//transpiler/data:palisade_data",
+        ":fibonacci_sequence_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
@@ -196,12 +196,12 @@ cc_binary(
 )
 
 cc_binary(
-    name = "fibonacci_sequence_interpreted_palisade_testbench",
-    srcs = ["fibonacci_sequence_palisade_testbench.cc"],
-    copts = ["-DUSE_INTERPRETED_PALISADE"],
+    name = "fibonacci_sequence_interpreted_openfhe_testbench",
+    srcs = ["fibonacci_sequence_openfhe_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_OPENFHE"],
     deps = [
-        ":fibonacci_sequence_interpreted_palisade",
-        "//transpiler/data:palisade_data",
+        ":fibonacci_sequence_interpreted_openfhe",
+        "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
