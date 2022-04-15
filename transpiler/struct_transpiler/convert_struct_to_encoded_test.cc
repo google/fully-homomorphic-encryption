@@ -106,16 +106,13 @@ top_func_proto {
   ASSERT_THAT(actual, HasSubstr("result->first = encoded_first.Decode()"));
   ASSERT_THAT(actual, HasSubstr("result->second = encoded_second.Decode()"));
   ASSERT_THAT(actual, HasSubstr("result->third = encoded_third.Decode()"));
-  ASSERT_THAT(actual, HasSubstr("::Unencrypted(EncodedValue<uint8_t>(value."
-                                "first).get(), key, data);"));
-  ASSERT_THAT(
-      actual,
-      HasSubstr(
-          "::Encrypt(EncodedValue<uint8_t>(value.second).get(), key, data);"));
-  ASSERT_THAT(
-      actual,
-      HasSubstr(
-          "::Decrypt<Sample, SecretKey>(data, key, encoded_third.get());"));
+  ASSERT_THAT(actual,
+              HasSubstr("UnencryptedFn(EncodedValue<uint8_t>(value."
+                        "first).get(), key, absl::MakeSpan(data, 8));"));
+  ASSERT_THAT(actual, HasSubstr("EncryptFn(EncodedValue<uint8_t>(value.second)."
+                                "get(), key, absl::MakeSpan(data, 8));"));
+  ASSERT_THAT(actual, HasSubstr("DecryptFn(absl::MakeConstSpan(data, 16), key, "
+                                "encoded_third.get());"));
 }
 
 }  // namespace

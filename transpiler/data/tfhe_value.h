@@ -84,33 +84,33 @@ struct LweSampleArrayDeleter {
   }
 };
 
-inline void Copy(const LweSample* value, int32_t width,
-                 const TFheGateBootstrappingParameterSet* params,
-                 LweSample* out) {
-  for (int j = 0; j < width; ++j) {
+inline void TfheCopy(absl::Span<const LweSample> value,
+                     const TFheGateBootstrappingParameterSet* params,
+                     absl::Span<LweSample> out) {
+  for (int j = 0; j < out.size(); ++j) {
     lweCopy(&out[j], &value[j], params->in_out_params);
   }
 }
 
-inline void Unencrypted(absl::Span<const bool> value,
-                        const TFheGateBootstrappingCloudKeySet* key,
-                        LweSample* out) {
+inline void TfheUnencrypted(absl::Span<const bool> value,
+                            const TFheGateBootstrappingCloudKeySet* key,
+                            absl::Span<LweSample> out) {
   for (int j = 0; j < value.size(); ++j) {
     bootsCONSTANT(&out[j], value[j], key);
   }
 }
 
-inline void Encrypt(absl::Span<const bool> value,
-                    const TFheGateBootstrappingSecretKeySet* key,
-                    LweSample* out) {
-  for (int j = 0; j < value.size(); ++j) {
+inline void TfheEncrypt(absl::Span<const bool> value,
+                        const TFheGateBootstrappingSecretKeySet* key,
+                        absl::Span<LweSample> out) {
+  for (int j = 0; j < out.size(); ++j) {
     bootsSymEncrypt(&out[j], value[j], key);
   }
 }
 
-inline void Decrypt(LweSample* ciphertext,
-                    const TFheGateBootstrappingSecretKeySet* key,
-                    absl::Span<bool> plaintext) {
+inline void TfheDecrypt(absl::Span<const LweSample> ciphertext,
+                        const TFheGateBootstrappingSecretKeySet* key,
+                        absl::Span<bool> plaintext) {
   for (int j = 0; j < plaintext.size(); j++) {
     plaintext[j] = bootsSymDecrypt(&ciphertext[j], key) > 0;
   }
@@ -131,8 +131,7 @@ class TfheValue {
         params_(params) {}
 
   TfheValue& operator=(const TfheValueRef<ValueType>& value) {
-    ::Copy(absl::MakeConstSpan(value.get()).data(), value.size(), params(),
-           get().data());
+    ::TfheCopy(absl::MakeConstSpan(value.get()), params(), get());
     return *this;
   }
 
@@ -159,17 +158,17 @@ class TfheValue {
 
   void SetUnencrypted(const ValueType& value,
                       const TFheGateBootstrappingCloudKeySet* key) {
-    ::Unencrypted(EncodedValue<ValueType>(value).get(), key, array_.get());
+    ::TfheUnencrypted(EncodedValue<ValueType>(value).get(), key, this->get());
   }
 
   void SetEncrypted(const ValueType& value,
                     const TFheGateBootstrappingSecretKeySet* key) {
-    ::Encrypt(EncodedValue<ValueType>(value).get(), key, array_.get());
+    ::TfheEncrypt(EncodedValue<ValueType>(value).get(), key, this->get());
   }
 
   ValueType Decrypt(const TFheGateBootstrappingSecretKeySet* key) {
     EncodedValue<ValueType> plaintext;
-    ::Decrypt(array_.get(), key, plaintext.get());
+    ::TfheDecrypt(this->get(), key, plaintext.get());
     return plaintext.Decode();
   }
 
@@ -199,7 +198,7 @@ class TfheValueRef {
       : array_(array), params_(params) {}
 
   TfheValueRef& operator=(const TfheValueRef<ValueType>& value) {
-    ::Copy(value.get().data(), size(), params(), this->get().data());
+    ::TfheCopy(value.get(), params(), this->get());
     return *this;
   }
 

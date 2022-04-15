@@ -215,3 +215,65 @@ cc_test(
         "@com_google_xls//xls/common/status:matchers",
     ],
 )
+
+fhe_cc_library(
+    name = "struct_cleartext",
+    src = "struct.cc",
+    hdrs = ["struct.h"],
+    encryption = "cleartext",
+    optimizer = "xls",
+)
+
+fhe_cc_library(
+    name = "struct_tfhe",
+    src = "struct.cc",
+    hdrs = ["struct.h"],
+    encryption = "tfhe",
+    optimizer = "xls",
+)
+
+fhe_cc_library(
+    name = "struct_openfhe",
+    src = "struct.cc",
+    hdrs = ["struct.h"],
+    encryption = "openfhe",
+    optimizer = "xls",
+)
+
+cc_test(
+    name = "array_of_structs_cleartext_test",
+    srcs = ["array_of_structs_cleartext_test.cc"],
+    deps = [
+        ":struct_cleartext",
+        "//transpiler/data:boolean_data",
+        "@com_google_absl//absl/base",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_xls//xls/common/status:matchers",
+    ],
+)
+
+cc_test(
+    name = "array_of_structs_tfhe_test",
+    srcs = ["array_of_structs_tfhe_test.cc"],
+    deps = [
+        ":struct_tfhe",
+        ":test_util",
+        "//transpiler/data:boolean_data",
+        "@com_google_absl//absl/base",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_xls//xls/common/status:matchers",
+    ],
+)
+
+cc_test(
+    name = "array_of_structs_openfhe_test",
+    srcs = ["array_of_structs_openfhe_test.cc"],
+    deps = [
+        ":openfhe_test_util",
+        ":struct_openfhe",
+        "//transpiler/data:boolean_data",
+        "@com_google_absl//absl/base",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_xls//xls/common/status:matchers",
+    ],
+)

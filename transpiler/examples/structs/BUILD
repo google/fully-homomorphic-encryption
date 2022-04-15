@@ -2,6 +2,144 @@ load("//transpiler:fhe.bzl", "fhe_cc_library")
 
 licenses(["notice"])
 
+fhe_cc_library(
+    name = "array_of_structs_cleartext",
+    src = "array_of_structs.cc",
+    hdrs = ["array_of_structs.h"],
+    encryption = "cleartext",
+    optimizer = "xls",
+)
+
+fhe_cc_library(
+    name = "array_of_structs_yosys_interpreted_cleartext",
+    src = "array_of_structs.cc",
+    hdrs = ["array_of_structs.h"],
+    encryption = "cleartext",
+    interpreter = True,
+    optimizer = "yosys",
+)
+
+cc_binary(
+    name = "array_of_structs_cleartext_testbench",
+    srcs = ["array_of_structs_cleartext_testbench.cc"],
+    deps = [
+        ":array_of_structs_cleartext",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+    ],
+)
+
+cc_binary(
+    name = "array_of_structs_yosys_interpreted_cleartext_testbench",
+    srcs = ["array_of_structs_cleartext_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_YOSYS"],
+    deps = [
+        ":array_of_structs_yosys_interpreted_cleartext",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+    ],
+)
+
+fhe_cc_library(
+    name = "array_of_structs_3d_cleartext",
+    src = "array_of_structs_3d.cc",
+    hdrs = ["array_of_structs.h"],
+    encryption = "cleartext",
+)
+
+fhe_cc_library(
+    name = "array_of_structs_3d_yosys_interpreted_cleartext",
+    src = "array_of_structs_3d.cc",
+    hdrs = ["array_of_structs.h"],
+    encryption = "cleartext",
+    interpreter = True,
+    optimizer = "yosys",
+)
+
+fhe_cc_library(
+    name = "array_of_structs_3d_interpreted_tfhe",
+    src = "array_of_structs_3d.cc",
+    hdrs = ["array_of_structs.h"],
+    encryption = "tfhe",
+    interpreter = True,
+    optimizer = "xls",
+)
+
+fhe_cc_library(
+    name = "array_of_structs_3d_yosys_interpreted_tfhe",
+    src = "array_of_structs_3d.cc",
+    hdrs = ["array_of_structs.h"],
+    encryption = "tfhe",
+    interpreter = True,
+    optimizer = "yosys",
+)
+
+fhe_cc_library(
+    name = "array_of_structs_3d_interpreted_openfhe",
+    src = "array_of_structs_3d.cc",
+    hdrs = ["array_of_structs.h"],
+    encryption = "openfhe",
+    interpreter = True,
+    optimizer = "xls",
+)
+
+cc_binary(
+    name = "array_of_structs_3d_cleartext_testbench",
+    srcs = ["array_of_structs_3d_cleartext_testbench.cc"],
+    deps = [
+        ":array_of_structs_3d_cleartext",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+    ],
+)
+
+cc_binary(
+    name = "array_of_structs_3d_yosys_interpreted_cleartext_testbench",
+    srcs = ["array_of_structs_3d_cleartext_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_YOSYS"],
+    deps = [
+        ":array_of_structs_3d_yosys_interpreted_cleartext",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+    ],
+)
+
+cc_binary(
+    name = "array_of_structs_3d_interpreted_tfhe_testbench",
+    srcs = ["array_of_structs_3d_tfhe_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_TFHE"],
+    deps = [
+        ":array_of_structs_3d_interpreted_tfhe",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "array_of_structs_3d_yosys_interpreted_tfhe_testbench",
+    srcs = ["array_of_structs_3d_tfhe_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_YOSYS"],
+    deps = [
+        ":array_of_structs_3d_yosys_interpreted_tfhe",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@tfhe//:libtfhe",
+    ],
+)
+
+cc_binary(
+    name = "array_of_structs_3d_interpreted_openfhe_testbench",
+    srcs = ["array_of_structs_3d_openfhe_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_OPENFHE"],
+    deps = [
+        ":array_of_structs_3d_interpreted_openfhe",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@tfhe//:libtfhe",
+    ],
+)
+
 cc_library(
     name = "array_of_array_of_structs",
     srcs = ["array_of_array_of_structs.cc"],

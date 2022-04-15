@@ -50,14 +50,14 @@ class EncodedArray<ValueType,
   void Encode(absl::Span<const ValueType> plaintext) {
     assert(plaintext.size() == length_);
     for (int j = 0; j < plaintext.size(); j++) {
-      ::Encode(plaintext[j], (*this)[j].get());
+      ::CleartextEncode(plaintext[j], (*this)[j].get());
     }
   }
 
   absl::FixedArray<ValueType> Decode() {
     absl::FixedArray<ValueType> plaintext(length_);
     for (int j = 0; j < length_; j++) {
-      plaintext[j] = ::Decode<ValueType>((*this)[j].get());
+      plaintext[j] = ::CleartextDecode<ValueType>((*this)[j].get());
     }
     return plaintext;
   }

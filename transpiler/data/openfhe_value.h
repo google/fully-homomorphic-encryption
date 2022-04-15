@@ -20,49 +20,40 @@ struct OpenFhePrivateKeySet {
   lbcrypto::LWEPrivateKey sk;
 };
 
-inline void Copy(absl::Span<const lbcrypto::LWECiphertext> value,
-                 absl::Span<lbcrypto::LWECiphertext> out) {
+inline void OpenFheCopy(absl::Span<const lbcrypto::LWECiphertext> value,
+                        const void*, absl::Span<lbcrypto::LWECiphertext> out) {
   for (int j = 0; j < value.size(); ++j) {
     out[j] = value[j];
   }
 }
 
-inline void Unencrypted(absl::Span<const bool> value,
-                        lbcrypto::BinFHEContext cc,
-                        absl::Span<lbcrypto::LWECiphertext> out) {
+inline void OpenFheUnencrypted(absl::Span<const bool> value,
+                               const lbcrypto::BinFHEContext* cc,
+                               absl::Span<lbcrypto::LWECiphertext> out) {
   for (int j = 0; j < value.size(); ++j) {
-    out[j] = cc.EvalConstant(value[j]);
+    out[j] = cc->EvalConstant(value[j]);
   }
 }
 
-inline void Unencrypted(absl::Span<const bool> value,
-                        lbcrypto::BinFHEContext cc,
-                        lbcrypto::LWECiphertext* out) {
-  return Unencrypted(value, cc, absl::MakeSpan(out, value.size()));
-}
-
-inline void Encrypt(absl::Span<const bool> value, lbcrypto::BinFHEContext cc,
-                    lbcrypto::LWEPrivateKey sk,
-                    absl::Span<lbcrypto::LWECiphertext> out) {
+inline void OpenFheEncrypt(absl::Span<const bool> value,
+                           lbcrypto::BinFHEContext cc,
+                           lbcrypto::LWEPrivateKey sk,
+                           absl::Span<lbcrypto::LWECiphertext> out) {
   for (int j = 0; j < value.size(); ++j) {
     out[j] = cc.Encrypt(sk, value[j], lbcrypto::FRESH);
   }
 }
 
-inline void Encrypt(absl::Span<const bool> value, lbcrypto::BinFHEContext cc,
-                    lbcrypto::LWEPrivateKey sk, lbcrypto::LWECiphertext* out) {
-  return Encrypt(value, cc, sk, absl::MakeSpan(out, value.size()));
+inline void OpenFheEncrypt(absl::Span<const bool> value,
+                           const OpenFhePrivateKeySet* key,
+                           absl::Span<lbcrypto::LWECiphertext> out) {
+  return ::OpenFheEncrypt(value, key->cc, key->sk, out);
 }
 
-inline void Encrypt(absl::Span<const bool> value,
-                    const OpenFhePrivateKeySet* key,
-                    lbcrypto::LWECiphertext* out) {
-  return Encrypt(value, key->cc, key->sk, absl::MakeSpan(out, value.size()));
-}
-
-inline void Decrypt(absl::Span<const lbcrypto::LWECiphertext> ciphertext,
-                    lbcrypto::BinFHEContext cc, lbcrypto::LWEPrivateKey sk,
-                    absl::Span<bool> plaintext) {
+inline void OpenFheDecrypt(absl::Span<const lbcrypto::LWECiphertext> ciphertext,
+                           lbcrypto::BinFHEContext cc,
+                           lbcrypto::LWEPrivateKey sk,
+                           absl::Span<bool> plaintext) {
   for (int j = 0; j < plaintext.size(); j++) {
     lbcrypto::LWEPlaintext bit;
     cc.Decrypt(sk, ciphertext[j], &bit);
@@ -70,18 +61,10 @@ inline void Decrypt(absl::Span<const lbcrypto::LWECiphertext> ciphertext,
   }
 }
 
-inline void Decrypt(lbcrypto::LWECiphertext* ciphertext,
-                    lbcrypto::BinFHEContext cc, lbcrypto::LWEPrivateKey sk,
-                    absl::Span<bool> plaintext) {
-  return Decrypt(absl::MakeSpan(ciphertext, plaintext.size()), cc, sk,
-                 plaintext);
-}
-
-inline void Decrypt(lbcrypto::LWECiphertext* ciphertext,
-                    const OpenFhePrivateKeySet* key,
-                    absl::Span<bool> plaintext) {
-  return Decrypt(absl::MakeSpan(ciphertext, plaintext.size()), key->cc, key->sk,
-                 plaintext);
+inline void OpenFheDecrypt(absl::Span<const lbcrypto::LWECiphertext> ciphertext,
+                           const OpenFhePrivateKeySet* key,
+                           absl::Span<bool> plaintext) {
+  return OpenFheDecrypt(ciphertext, key->cc, key->sk, plaintext);
 }
 
 template <typename ValueType,
@@ -100,7 +83,7 @@ class OpenFheValue {
   }
 
   OpenFheValue& operator=(const OpenFheValueRef<ValueType>& value) {
-    ::Copy(value.get(), get());
+    ::OpenFheCopy(value.get(), nullptr, get());
     return *this;
   }
 
@@ -120,16 +103,16 @@ class OpenFheValue {
   }
 
   void SetUnencrypted(const ValueType& value) {
-    ::Unencrypted(EncodedValue<ValueType>(value).get(), cc_, get());
+    ::OpenFheUnencrypted(EncodedValue<ValueType>(value).get(), cc_, get());
   }
 
   void SetEncrypted(const ValueType& value, lbcrypto::LWEPrivateKey sk) {
-    ::Encrypt(EncodedValue<ValueType>(value).get(), cc_, sk, get());
+    ::OpenFheEncrypt(EncodedValue<ValueType>(value).get(), cc_, sk, get());
   }
 
   ValueType Decrypt(lbcrypto::LWEPrivateKey sk) {
     EncodedValue<ValueType> plaintext;
-    ::Decrypt(get(), cc_, sk, plaintext.get());
+    ::OpenFheDecrypt(get(), cc_, sk, plaintext.get());
     return plaintext.Decode();
   }
 
@@ -163,7 +146,7 @@ class OpenFheValueRef {
       : OpenFheValueRef(value.get(), value.context()) {}
 
   OpenFheValueRef& operator=(const OpenFheValueRef<ValueType>& value) {
-    ::Copy(value.get(), get());
+    ::OpenFheCopy(value.get(), nullptr, get());
     return *this;
   }
 

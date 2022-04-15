@@ -907,6 +907,7 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
     )
 
     deps = [
+        "@com_google_xls//xls/common/logging",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/types:span",
         "//transpiler:common_runner",

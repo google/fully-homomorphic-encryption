@@ -12,8 +12,26 @@
 #include "absl/container/fixed_array.h"
 #include "absl/types/span.h"
 
+inline void CleartextCopy(absl::Span<const bool> src, const void*,
+                          absl::Span<bool> dst) {
+  for (int j = 0; j < dst.size(); ++j) {
+    dst[j] = src[j];
+  }
+}
+
+inline void CleartextEncode(absl::Span<const bool> value, const void*,
+                            absl::Span<bool> out) {
+  ::CleartextCopy(value, nullptr, out);
+}
+
+inline void CleartextDecode(absl::Span<const bool> ciphertext, const void*,
+                            absl::Span<bool> plaintext) {
+  // Encode and decode are the same function--a copy.
+  ::CleartextCopy(ciphertext, nullptr, plaintext);
+}
+
 template <typename T>
-inline void Encode(const T& value, absl::Span<bool> out) {
+inline void CleartextEncode(const T& value, absl::Span<bool> out) {
   if constexpr (std::is_same_v<T, bool>) {
     out[0] = value;
   } else {
@@ -25,7 +43,7 @@ inline void Encode(const T& value, absl::Span<bool> out) {
 }
 
 template <typename T>
-inline T Decode(absl::Span<bool> value) {
+inline T CleartextDecode(absl::Span<bool> value) {
   if constexpr (std::is_same_v<T, bool>) {
     return value[0];
   } else {
@@ -66,9 +84,9 @@ class EncodedValue {
     return EncodedValueRef<ValueType>(absl::MakeSpan(array_));
   }
 
-  void Encode(const ValueType& value) { ::Encode(value, get()); }
+  void Encode(const ValueType& value) { ::CleartextEncode(value, get()); }
 
-  ValueType Decode() { return ::Decode<ValueType>(get()); }
+  ValueType Decode() { return ::CleartextDecode<ValueType>(get()); }
 
   absl::Span<bool> get() { return absl::MakeSpan(array_); }
 

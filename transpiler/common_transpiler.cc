@@ -2,8 +2,10 @@
 
 #include <string>
 
+#include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
 #include "absl/strings/substitute.h"
 #include "absl/types/span.h"
@@ -37,19 +39,38 @@ static std::string TypeReference(const xlscc_metadata::Type& type,
             "$0Value$1<$2int$3_t>", prefix, is_reference ? "Ref" : "",
             (int_type.is_signed() ? "" : "u"), int_type.width());
     }
+  } else if (type.has_as_struct()) {
+    const xlscc_metadata::StructType& struct_type = type.as_struct();
+    return absl::StrCat(prefix, struct_type.name().as_inst().name().name(),
+                        is_reference ? "Ref" : "");
+  } else if (type.has_as_inst()) {
+    const xlscc_metadata::InstanceType& inst_type = type.as_inst();
+    return absl::StrCat(prefix, inst_type.name().name(),
+                        is_reference ? "Ref" : "");
   } else if (type.has_as_array()) {
-    const xlscc_metadata::ArrayType& array_type = type.as_array();
-    const xlscc_metadata::Type& element_type = array_type.element_type();
+    std::vector<std::string> dimensions;
+    xlscc_metadata::Type iter_type = type;
+    xlscc_metadata::ArrayType array_type;
+    xlscc_metadata::Type element_type;
+    do {
+      array_type = iter_type.as_array();
+      element_type = array_type.element_type();
+      iter_type = element_type;
+      dimensions.push_back(absl::StrCat(array_type.size()));
+    } while (element_type.has_as_array());
+    std::string str_dimensions = absl::StrJoin(dimensions, ",");
 
     if (element_type.has_as_bool()) {
-      return absl::Substitute("$0Array$1<bool>", prefix,
-                              is_reference ? "Ref" : "");
+      return absl::Substitute("$0Array$1<bool,$2>", prefix,
+                              is_reference ? "Ref" : "", str_dimensions);
     } else if (element_type.has_as_int()) {
       const xlscc_metadata::IntType& element_int_type = element_type.as_int();
       switch (element_int_type.width()) {
         case 8:
           XLS_CHECK(element_int_type.has_is_declared_as_char());
-          if (element_int_type.is_declared_as_char()) {
+          // Emit a string only if the array is one-dimensional
+          if (element_int_type.is_declared_as_char() &&
+              dimensions.size() == 1) {
             return absl::Substitute("$0String$1", prefix,
                                     is_reference ? "Ref" : "");
           }
@@ -61,17 +82,18 @@ static std::string TypeReference(const xlscc_metadata::Type& type,
                                   is_reference ? "Ref" : "",
                                   (element_int_type.is_signed() ? "" : "u"),
                                   element_int_type.width());
+        default:
+          XLS_CHECK(false);
       }
+    } else {
+      XLS_CHECK(element_type.has_as_inst());
+      const xlscc_metadata::InstanceType& inst_type = element_type.as_inst();
+      return absl::Substitute("$0Array$1<$2,void,$3>", prefix,
+                              is_reference ? "Ref" : "",
+                              inst_type.name().name(), str_dimensions);
     }
-  } else if (type.has_as_struct()) {
-    const xlscc_metadata::StructType& struct_type = type.as_struct();
-    return absl::StrCat(prefix, struct_type.name().as_inst().name().name(),
-                        is_reference ? "Ref" : "");
-  } else if (type.has_as_inst()) {
-    const xlscc_metadata::InstanceType& inst_type = type.as_inst();
-    return absl::StrCat(prefix, inst_type.name().name(),
-                        is_reference ? "Ref" : "");
   }
+  XLS_CHECK(false);
   return default_type;
 }
 

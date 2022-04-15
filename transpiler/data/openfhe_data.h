@@ -68,18 +68,18 @@ class OpenFheArray<ValueType,
 
   void SetUnencrypted(absl::Span<const ValueType> plaintext) {
     assert(plaintext.length() == length_);
-    ::Unencrypted(EncodedArray<ValueType>(plaintext).get(), cc_, get());
+    ::OpenFheUnencrypted(EncodedArray<ValueType>(plaintext).get(), cc_, get());
   }
 
   void SetEncrypted(absl::Span<const ValueType> plaintext,
                     lbcrypto::LWEPrivateKey sk) {
     assert(plaintext.length() == length_);
-    ::Encrypt(EncodedArray<ValueType>(plaintext).get(), cc_, sk, get());
+    ::OpenFheEncrypt(EncodedArray<ValueType>(plaintext).get(), cc_, sk, get());
   }
 
   absl::FixedArray<ValueType> Decrypt(lbcrypto::LWEPrivateKey sk) const {
     EncodedArray<ValueType> encoded(length_);
-    ::Decrypt(get(), cc_, sk, encoded.get());
+    ::OpenFheDecrypt(get(), cc_, sk, encoded.get());
     return encoded.Decode();
   }
 

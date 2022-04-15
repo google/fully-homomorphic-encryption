@@ -70,19 +70,19 @@ class TfheArray<ValueType,
   void SetUnencrypted(absl::Span<const ValueType> plaintext,
                       const TFheGateBootstrappingCloudKeySet* key) {
     assert(plaintext.length() == length_);
-    ::Unencrypted(EncodedArray<ValueType>(plaintext).get(), key, array_.get());
+    ::TfheUnencrypted(EncodedArray<ValueType>(plaintext).get(), key, get());
   }
 
   void SetEncrypted(absl::Span<const ValueType> plaintext,
                     const TFheGateBootstrappingSecretKeySet* key) {
     assert(plaintext.length() == length_);
-    ::Encrypt(EncodedArray<ValueType>(plaintext).get(), key, array_.get());
+    ::TfheEncrypt(EncodedArray<ValueType>(plaintext).get(), key, get());
   }
 
   absl::FixedArray<ValueType> Decrypt(
       const TFheGateBootstrappingSecretKeySet* key) const {
     EncodedArray<ValueType> encoded(length_);
-    ::Decrypt(array_.get(), key, encoded.get());
+    ::TfheDecrypt(get(), key, encoded.get());
     return encoded.Decode();
   }
 
