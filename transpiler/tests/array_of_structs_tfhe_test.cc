@@ -42,7 +42,7 @@ TEST_F(TfheArrayOfStructsTest, DynamicOneDimArray) {
                      {'b', (short)0x5678, (int)0xc0deba7e}};
 
   // Dynamic array with 2 elements.
-  TfheArray<Struct> dyn_one_dim(2, params());
+  TfheStructArray<> dyn_one_dim(2, params());
   EXPECT_EQ(dyn_one_dim.length(), 2);
   EXPECT_EQ(dyn_one_dim.bit_width(), 2 * (1 + 2 + 4) * 8);
   EXPECT_EQ(dyn_one_dim.get().size(), dyn_one_dim.bit_width());
@@ -80,7 +80,7 @@ TEST_F(TfheArrayOfStructsTest, DynamicOneDimArray) {
 
   {
     // Get a reference to the whole array.
-    TfheArrayRef<Struct> dyn_one_dim_ref = dyn_one_dim;
+    TfheStructArrayRef<> dyn_one_dim_ref = dyn_one_dim;
     EXPECT_EQ(dyn_one_dim_ref.length(), 2);
     EXPECT_EQ(dyn_one_dim_ref.bit_width(), 2 * (1 + 2 + 4) * 8);
     EXPECT_EQ(dyn_one_dim_ref.get().size(), dyn_one_dim_ref.bit_width());
@@ -110,31 +110,6 @@ TEST_F(TfheArrayOfStructsTest, DynamicOneDimArray) {
     EXPECT_EQ(decoded_ref_via_ref.s, decoded[1].s);
     EXPECT_EQ(decoded_ref_via_ref.i, decoded[1].i);
   }
-
-  // Repeat but use the TfheStructArrayRef<> type
-  {
-    TfheStructArrayRef<> dyn_one_dim_ref = dyn_one_dim;
-    EXPECT_EQ(dyn_one_dim_ref.length(), 2);
-    EXPECT_EQ(dyn_one_dim_ref.bit_width(), 2 * (1 + 2 + 4) * 8);
-    EXPECT_EQ(dyn_one_dim_ref.get().size(), dyn_one_dim_ref.bit_width());
-
-    // Check the array again via the reference.
-    Struct decoded_via_ref[2];
-    dyn_one_dim.Decrypt(decoded_via_ref, 2, secret_key());
-    for (int i = 0; i < 2; i++) {
-      EXPECT_EQ(decoded_via_ref[i].c, decoded[i].c);
-      EXPECT_EQ(decoded_via_ref[i].s, decoded[i].s);
-      EXPECT_EQ(decoded_via_ref[i].i, decoded[i].i);
-    }
-    TfheStructRef ref_via_ref = dyn_one_dim_ref[1];
-    EXPECT_EQ(ref_via_ref.length(), 1);
-    EXPECT_EQ(ref_via_ref.bit_width(), (1 + 2 + 4) * 8);
-    EXPECT_EQ(ref_via_ref.get().size(), ref_via_ref.bit_width());
-    Struct decoded_ref_via_ref = ref_via_ref.Decrypt(secret_key());
-    EXPECT_EQ(decoded_ref_via_ref.c, decoded[1].c);
-    EXPECT_EQ(decoded_ref_via_ref.s, decoded[1].s);
-    EXPECT_EQ(decoded_ref_via_ref.i, decoded[1].i);
-  }
 }
 
 TEST_F(TfheArrayOfStructsTest, FixedWidthOneDimArray) {
@@ -142,7 +117,6 @@ TEST_F(TfheArrayOfStructsTest, FixedWidthOneDimArray) {
                      {'b', (short)0x5678, (int)0xc0deba7e}};
 
   // Static array with 2 elements.
-  // TfheArray<Struct, void, 2> fixed_one_dim;
   TfheStructArray<2> fixed_one_dim(params());
   EXPECT_EQ(fixed_one_dim.length(), 2);
   EXPECT_EQ(fixed_one_dim.bit_width(), 2 * (1 + 2 + 4) * 8);
@@ -194,23 +168,6 @@ TEST_F(TfheArrayOfStructsTest, FixedWidthOneDimArray) {
       EXPECT_EQ(decoded_via_ref[i].i, another_decoded_via_ref[i].i);
     }
   }
-
-  // Do the same using alternate declaration.
-  {
-    // Get a reference to the whole array.
-    TfheArrayRef<Struct, void, 2> fixed_one_dim_ref = fixed_one_dim;
-    EXPECT_EQ(fixed_one_dim_ref.length(), 2);
-    EXPECT_EQ(fixed_one_dim_ref.bit_width(), 2 * (1 + 2 + 4) * 8);
-
-    // Check the array again via the reference.
-    Struct decoded_via_ref[2];
-    fixed_one_dim.Decrypt(decoded_via_ref, secret_key());
-    for (int i = 0; i < 2; i++) {
-      EXPECT_EQ(decoded_via_ref[i].c, decoded[i].c);
-      EXPECT_EQ(decoded_via_ref[i].s, decoded[i].s);
-      EXPECT_EQ(decoded_via_ref[i].i, decoded[i].i);
-    }
-  }
 }
 
 TEST_F(TfheArrayOfStructsTest, FixedWidth4x3x2Array) {
@@ -243,7 +200,6 @@ TEST_F(TfheArrayOfStructsTest, FixedWidth4x3x2Array) {
                              {'x', (short)0x7878, (int)0xf0bcde9a}}}};
 
   // Static array with 4x3x2 elements.
-  // Equivalent declaration: TfheArray<Struct, void, 4, 3, 2> fixed_3x2dim;
   TfheStructArray<4, 3, 2> fixed_4x3x2dim(params());
   EXPECT_EQ(fixed_4x3x2dim.length(), 4);
   EXPECT_EQ(fixed_4x3x2dim.bit_width(), 4 * 3 * 2 * (1 + 2 + 4) * 8);

@@ -2086,7 +2086,9 @@ class OpenFhe$0Array<> : public OpenFheBase$0Array<> {
             length, std::default_delete<lbcrypto::LWECiphertext[]>()),
         cc_(cc) {
     // Initialize the LWECiphertexts.
-    OpenFheBase$0::SetUnencrypted({}, &cc_);
+    for (int i = 0; i < length; i++) {
+      OpenFheBase$0::SetUnencrypted({}, &cc_, i);
+    }
   }
 
   void SetEncrypted(const $1* value, size_t length,
@@ -2128,7 +2130,9 @@ class OpenFhe$0Array<D1> : public OpenFheBase$0Array<D1> {
             D1, std::default_delete<lbcrypto::LWECiphertext[]>()),
         cc_(cc) {
     // Initialize the LWECiphertexts.
-    OpenFheBase$0::SetUnencrypted({}, &cc_);
+    for (int i = 0; i < D1; i++) {
+      OpenFheBase$0::SetUnencrypted({}, &cc_, i);
+    }
   }
 
   void SetEncrypted(const typename OpenFheBase$0Array<D1>::ArrayT value,
@@ -2176,7 +2180,9 @@ class OpenFhe$0Array<D1, Dimensions...>
             std::default_delete<lbcrypto::LWECiphertext[]>()),
         cc_(cc) {
     // Initialize the LWECiphertexts.
-    OpenFheBase$0::SetUnencrypted({}, &cc_);
+    for (int i = 0; i < OpenFheBase$0Array<D1, Dimensions...>::VOLUME; i++) {
+      OpenFheBase$0::SetUnencrypted({}, &cc_, i);
+    }
   }
 
   void SetEncrypted(

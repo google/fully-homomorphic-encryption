@@ -37,12 +37,48 @@ using TranspilerControlStructureSwitchTestCase =
 
 class OpenFheArrayOfStructsTest : public TranspilerTestBase {};
 
+TEST_F(OpenFheArrayOfStructsTest, UninitializedDynamicArray) {
+  // Dynamic array with 2 elements.
+  OpenFheStructArray<> dyn_one_dim(2, cc());
+  EXPECT_EQ(dyn_one_dim.length(), 2);
+  EXPECT_EQ(dyn_one_dim.bit_width(), 2 * (1 + 2 + 4) * 8);
+  EXPECT_EQ(dyn_one_dim.get().size(), dyn_one_dim.bit_width());
+
+  // OpenFHE requires arrays be initialized, so decode the array prior to
+  // setting its value.  It should come back all zeroes.
+  Struct default_decoded[2];
+  dyn_one_dim.Decrypt(default_decoded, 2, sk());
+  for (int i = 0; i < 2; i++) {
+    EXPECT_EQ(0, default_decoded[i].c);
+    EXPECT_EQ(0, default_decoded[i].s);
+    EXPECT_EQ(0, default_decoded[i].i);
+  }
+}
+
+TEST_F(OpenFheArrayOfStructsTest, UninitializedFixedWidthArray) {
+  // Fixed-width array with 2 elements.
+  OpenFheStructArray<2> fixed_one_dim(cc());
+  EXPECT_EQ(fixed_one_dim.length(), 2);
+  EXPECT_EQ(fixed_one_dim.bit_width(), 2 * (1 + 2 + 4) * 8);
+  EXPECT_EQ(fixed_one_dim.get().size(), fixed_one_dim.bit_width());
+
+  // OpenFHE requires arrays be initialized, so decode the array prior to
+  // setting its value.  It should come back all zeroes.
+  Struct default_decoded[2];
+  fixed_one_dim.Decrypt(default_decoded, sk());
+  for (int i = 0; i < 2; i++) {
+    EXPECT_EQ(0, default_decoded[i].c);
+    EXPECT_EQ(0, default_decoded[i].s);
+    EXPECT_EQ(0, default_decoded[i].i);
+  }
+}
+
 TEST_F(OpenFheArrayOfStructsTest, DynamicOneDimArray) {
   Struct array[2] = {{'a', (short)0x1234, (int)0x789abcde},
                      {'b', (short)0x5678, (int)0xc0deba7e}};
 
   // Dynamic array with 2 elements.
-  OpenFheArray<Struct> dyn_one_dim(2, cc());
+  OpenFheStructArray<> dyn_one_dim(2, cc());
   EXPECT_EQ(dyn_one_dim.length(), 2);
   EXPECT_EQ(dyn_one_dim.bit_width(), 2 * (1 + 2 + 4) * 8);
   EXPECT_EQ(dyn_one_dim.get().size(), dyn_one_dim.bit_width());
@@ -81,7 +117,7 @@ TEST_F(OpenFheArrayOfStructsTest, DynamicOneDimArray) {
 
   // Get a reference to the whole array.
   {
-    OpenFheArrayRef<Struct> dyn_one_dim_ref = dyn_one_dim;
+    OpenFheStructArrayRef<> dyn_one_dim_ref = dyn_one_dim;
     EXPECT_EQ(dyn_one_dim_ref.length(), 2);
     EXPECT_EQ(dyn_one_dim_ref.bit_width(), 2 * (1 + 2 + 4) * 8);
     EXPECT_EQ(dyn_one_dim_ref.get().size(), dyn_one_dim_ref.bit_width());
@@ -111,31 +147,6 @@ TEST_F(OpenFheArrayOfStructsTest, DynamicOneDimArray) {
     EXPECT_EQ(decoded_ref_via_ref.s, decoded[1].s);
     EXPECT_EQ(decoded_ref_via_ref.i, decoded[1].i);
   }
-
-  // Repeat but use the OpenFheStructArrayRef<> type
-  {
-    OpenFheStructArrayRef<> dyn_one_dim_ref = dyn_one_dim;
-    EXPECT_EQ(dyn_one_dim_ref.length(), 2);
-    EXPECT_EQ(dyn_one_dim_ref.bit_width(), 2 * (1 + 2 + 4) * 8);
-    EXPECT_EQ(dyn_one_dim_ref.get().size(), dyn_one_dim_ref.bit_width());
-
-    // Check the array again via the reference.
-    Struct decoded_via_ref[2];
-    dyn_one_dim.Decrypt(decoded_via_ref, 2, sk());
-    for (int i = 0; i < 2; i++) {
-      EXPECT_EQ(decoded_via_ref[i].c, decoded[i].c);
-      EXPECT_EQ(decoded_via_ref[i].s, decoded[i].s);
-      EXPECT_EQ(decoded_via_ref[i].i, decoded[i].i);
-    }
-    OpenFheStructRef ref_via_ref = dyn_one_dim_ref[1];
-    EXPECT_EQ(ref_via_ref.length(), 1);
-    EXPECT_EQ(ref_via_ref.bit_width(), (1 + 2 + 4) * 8);
-    EXPECT_EQ(ref_via_ref.get().size(), ref_via_ref.bit_width());
-    Struct decoded_ref_via_ref = ref_via_ref.Decrypt(sk());
-    EXPECT_EQ(decoded_ref_via_ref.c, decoded[1].c);
-    EXPECT_EQ(decoded_ref_via_ref.s, decoded[1].s);
-    EXPECT_EQ(decoded_ref_via_ref.i, decoded[1].i);
-  }
 }
 
 TEST_F(OpenFheArrayOfStructsTest, FixedWidthOneDimArray) {
@@ -143,7 +154,6 @@ TEST_F(OpenFheArrayOfStructsTest, FixedWidthOneDimArray) {
                      {'b', (short)0x5678, (int)0xc0deba7e}};
 
   // Static array with 2 elements.
-  // OpenFheArray<Struct, void, 2> fixed_one_dim;
   OpenFheStructArray<2> fixed_one_dim(cc());
   EXPECT_EQ(fixed_one_dim.length(), 2);
   EXPECT_EQ(fixed_one_dim.bit_width(), 2 * (1 + 2 + 4) * 8);
@@ -198,7 +208,7 @@ TEST_F(OpenFheArrayOfStructsTest, FixedWidthOneDimArray) {
   // Do the same using alternate declaration.
   {
     // Get a reference to the whole array.
-    OpenFheArrayRef<Struct, void, 2> fixed_one_dim_ref = fixed_one_dim;
+    OpenFheStructArrayRef<2> fixed_one_dim_ref = fixed_one_dim;
     EXPECT_EQ(fixed_one_dim_ref.length(), 2);
     EXPECT_EQ(fixed_one_dim_ref.bit_width(), 2 * (1 + 2 + 4) * 8);
 
@@ -243,7 +253,6 @@ TEST_F(OpenFheArrayOfStructsTest, FixedWidth4x3x2Array) {
                              {'x', (short)0x7878, (int)0xf0bcde9a}}}};
 
   // Static array with 4x3x2 elements.
-  // Equivalent declaration: OpenFheArray<Struct, void, 4, 3, 2> fixed_3x2dim;
   OpenFheStructArray<4, 3, 2> fixed_4x3x2dim(cc());
   EXPECT_EQ(fixed_4x3x2dim.length(), 4);
   EXPECT_EQ(fixed_4x3x2dim.bit_width(), 4 * 3 * 2 * (1 + 2 + 4) * 8);
