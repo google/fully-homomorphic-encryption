@@ -1164,12 +1164,23 @@ class GenericEncoded$0ArrayRef<Sample, SampleArrayDeleter, SecretKey, PublicKey,
 
   absl::FixedArray<$1> Decrypt(const SecretKey* key) const {
     absl::FixedArray<$1> plaintext(this->length());
-    Decrypt(plaintext.data(), this->length(), key);
+    Decrypt(plaintext.data(), key);
     return plaintext;
   }
 
   using GenericEncoded$0Ref<Sample, SampleArrayDeleter, SecretKey,
                             PublicKey, BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn, DecryptFn>::get;
+
+  GenericEncoded$0Ref<Sample, SampleArrayDeleter, SecretKey, PublicKey,
+                      BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn,
+                      DecryptFn>
+  operator[](size_t pos) {
+    XLS_CHECK(pos < this->length());
+    auto span = this->get();
+    return GenericEncoded$0Ref<Sample, SampleArrayDeleter, SecretKey, PublicKey,
+                               BootstrappingKey, CopyFn, UnencryptedFn,
+                               EncryptFn, DecryptFn>(span.data() + pos * $5, 1);
+  }
 
   // The base will return the full length of the underlying array, when we want
   // to return the length of this level of the multi-dimensional array.
@@ -1545,8 +1556,6 @@ class Encoded$0ArrayRef<> : public EncodedBase$0ArrayRef<> {
 
   absl::FixedArray<$1> Decode() const { return Decrypt(nullptr); }
 
-  using EncodedBase$0ArrayRef<>::get;
-
  private:
   using EncodedBase$0ArrayRef<>::Decrypt;
   using EncodedBase$0ArrayRef<>::SetUnencrypted;
@@ -1565,6 +1574,10 @@ class Encoded$0ArrayRef<D1> : public EncodedBase$0ArrayRef<D1> {
       : Encoded$0ArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length()) {}
   Encoded$0ArrayRef(const EncodedBase$0Array<D1>& rhs)
       : Encoded$0ArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length()) {}
+  Encoded$0ArrayRef(const EncodedBase$0Array<>& rhs)
+      : Encoded$0ArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length()) {
+    XLS_CHECK_EQ(rhs.length(), D1);
+  }
 
   void Encode(std::add_const_t<typename EncodedBase$0ArrayRef<D1>::ArrayT> value) {
     SetEncrypted(value, nullptr);
@@ -1575,8 +1588,6 @@ class Encoded$0ArrayRef<D1> : public EncodedBase$0ArrayRef<D1> {
   }
 
   absl::FixedArray<$1> Decode() const { return Decrypt(nullptr); }
-
-  using EncodedBase$0ArrayRef<D1>::get;
 
  private:
   using EncodedBase$0ArrayRef<D1>::Decrypt;
@@ -1934,6 +1945,31 @@ class TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1> : pu
   }
 };
 
+template <unsigned D1, unsigned... Dimensions>
+class TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1, Dimensions...> : public Tfhe$0Array<D1, Dimensions...> {
+ public:
+  using Tfhe$0Array<D1, Dimensions...>::Tfhe$0Array;
+  using Tfhe$0Array<D1, Dimensions...>::get;
+
+  static TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1, Dimensions...> Unencrypted(
+     absl::Span<const $1> plaintext,
+     const TFheGateBootstrappingCloudKeySet* key) {
+    XLS_CHECK_EQ(plaintext.length(), D1);
+    TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1> shared_value(key->params);
+    shared_value.SetUnencrypted(plaintext.data(), key);
+    return shared_value;
+  }
+
+  static TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1, Dimensions...> Encrypt(
+      absl::Span<const $1> plaintext,
+      const TFheGateBootstrappingSecretKeySet* key) {
+    XLS_CHECK_EQ(plaintext.length(), D1);
+    TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1> private_value(key->params);
+    private_value.SetEncrypted(plaintext.data(), key);
+    return private_value;
+  }
+};
+
 )";
 
 absl::StatusOr<std::string> ConvertStructsToEncodedTfhe(
@@ -2118,6 +2154,7 @@ class OpenFhe$0Array<> : public OpenFheBase$0Array<> {
 
  private:
   friend OpenFhe$0ArrayRef<>;
+  template <unsigned...> friend class OpenFhe$0ArrayRef;
   lbcrypto::BinFHEContext cc_;
 };
 
@@ -2230,6 +2267,17 @@ class OpenFhe$0ArrayRef<> : public OpenFheBase$0ArrayRef<> {
     cc_ = rhs.cc_;
   }
 
+  void Decrypt($1* value, size_t length,
+               lbcrypto::LWEPrivateKey sk) const {
+    OpenFhePrivateKeySet key{cc_, sk};
+    OpenFheBase$0ArrayRef<>::Decrypt(value, length, &key);
+  }
+
+  absl::FixedArray<$1> Decrypt(lbcrypto::LWEPrivateKey sk) const {
+    OpenFhePrivateKeySet key{cc_, sk};
+    return OpenFheBase$0ArrayRef<>::Decrypt(&key);
+  }
+
   OpenFhe$0Ref operator[](size_t pos) {
     auto ref = this->OpenFheBase$0ArrayRef<>::operator[](pos);
     return OpenFhe$0Ref(ref, cc_);
@@ -2297,7 +2345,7 @@ class OpenFhe$0ArrayRef<D1> : public OpenFheBase$0ArrayRef<D1> {
 
   absl::FixedArray<$1> Decrypt(lbcrypto::LWEPrivateKey sk) const {
     OpenFhePrivateKeySet key{cc_, sk};
-    return this->OpenFheBase$0ArrayRef<>::Decrypt(&key);
+    return OpenFheBase$0ArrayRef<D1>::Decrypt(&key);
   }
 
   lbcrypto::BinFHEContext cc() { return cc_; }
@@ -2409,6 +2457,13 @@ template <>
 class OpenFheArrayRef<$1, typename std::enable_if_t<!std::is_integral_v<$1>>>: public OpenFhe$0ArrayRef<> {
 public:
   using OpenFhe$0ArrayRef<>::OpenFhe$0ArrayRef;
+};
+
+template <unsigned D1>
+class OpenFheArrayRef<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1>
+    : public OpenFhe$0ArrayRef<D1> {
+ public:
+  using OpenFhe$0ArrayRef<D1>::OpenFhe$0ArrayRef;
 };
 
 template <unsigned D1, unsigned... Dimensions>

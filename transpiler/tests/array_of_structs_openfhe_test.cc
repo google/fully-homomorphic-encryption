@@ -124,7 +124,44 @@ TEST_F(OpenFheArrayOfStructsTest, DynamicOneDimArray) {
 
     // Check the array again via the reference.
     Struct decoded_via_ref[2];
-    dyn_one_dim.Decrypt(decoded_via_ref, 2, sk());
+    dyn_one_dim_ref.Decrypt(decoded_via_ref, 2, sk());
+    for (int i = 0; i < 2; i++) {
+      EXPECT_EQ(decoded_via_ref[i].c, decoded[i].c);
+      EXPECT_EQ(decoded_via_ref[i].s, decoded[i].s);
+      EXPECT_EQ(decoded_via_ref[i].i, decoded[i].i);
+    }
+    absl::FixedArray<Struct> another_decoded_via_ref =
+        dyn_one_dim.Decrypt(sk());
+    for (int i = 0; i < 2; i++) {
+      EXPECT_EQ(decoded_via_ref[i].c, another_decoded_via_ref[i].c);
+      EXPECT_EQ(decoded_via_ref[i].s, another_decoded_via_ref[i].s);
+      EXPECT_EQ(decoded_via_ref[i].i, another_decoded_via_ref[i].i);
+    }
+
+    OpenFheStructRef ref_via_ref = dyn_one_dim_ref[1];
+    EXPECT_EQ(ref_via_ref.length(), 1);
+    EXPECT_EQ(ref_via_ref.bit_width(), (1 + 2 + 4) * 8);
+    EXPECT_EQ(ref_via_ref.get().size(), ref_via_ref.bit_width());
+    Struct decoded_ref_via_ref = ref_via_ref.Decrypt(sk());
+    EXPECT_EQ(decoded_ref_via_ref.c, decoded[1].c);
+    EXPECT_EQ(decoded_ref_via_ref.s, decoded[1].s);
+    EXPECT_EQ(decoded_ref_via_ref.i, decoded[1].i);
+  }
+
+  // Assign to a (fixed-length) OpenFheStructArrayRef<2> and
+  // OpenFheArrayRef<Struct, 2> type.  This tests the ability to pass
+  // dynamically-sized arrays to fixed-size references (the lengths are checked
+  // for equality dynamically).
+  {
+    OpenFheStructArrayRef<2> dyn_one_dim_ref = dyn_one_dim;
+    EXPECT_EQ(dyn_one_dim_ref.length(), 2);
+    EXPECT_EQ(dyn_one_dim_ref.bit_width(), 2 * (1 + 2 + 4) * 8);
+    EXPECT_EQ(dyn_one_dim_ref.get().size(), dyn_one_dim_ref.bit_width());
+
+    // Check the array again via the reference.
+    Struct decoded_via_ref[2];
+    // Reference is fixed-size, Decode does not take a length parameters.
+    dyn_one_dim_ref.Decrypt(decoded_via_ref, sk());
     for (int i = 0; i < 2; i++) {
       EXPECT_EQ(decoded_via_ref[i].c, decoded[i].c);
       EXPECT_EQ(decoded_via_ref[i].s, decoded[i].s);
