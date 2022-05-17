@@ -24,7 +24,7 @@
 
 #include "absl/container/fixed_array.h"
 #include "absl/strings/numbers.h"
-#include "transpiler/data/boolean_data.h"
+#include "transpiler/data/cleartext_data.h"
 #include "xls/common/logging/logging.h"
 #ifdef USE_YOSYS_CLEARTEXT
 #include "transpiler/examples/sqrt/sqrt_yosys_cleartext.h"

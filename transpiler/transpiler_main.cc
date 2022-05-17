@@ -85,11 +85,12 @@ ABSL_FLAG(bool, interpreter, false,
           "Build a program that invokes a multi-threaded interpreter. If not "
           "set, it instead directly implements the circuit in single-threaded "
           "C++.");
-ABSL_FLAG(bool, skip_scheme_data_deps, false,
-          "When set to True, it causes the transpiler to not emit depednencies "
-          "for tfhe_data.h, palisade_data.h, and boolean_data.h.  This is used "
-          "to avoid circular dependencies when generating C++ libraries for "
-          "the numeric primitives.");
+ABSL_FLAG(
+    bool, skip_scheme_data_deps, false,
+    "When set to True, it causes the transpiler to not emit depednencies "
+    "for tfhe_data.h, palisade_data.h, and cleartext_data.h.  This is used "
+    "to avoid circular dependencies when generating C++ libraries for "
+    "the numeric primitives.");
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {

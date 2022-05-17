@@ -23,7 +23,7 @@
 #include <vector>
 
 #include "absl/container/fixed_array.h"
-#include "transpiler/data/boolean_data.h"
+#include "transpiler/data/cleartext_data.h"
 #include "transpiler/examples/string_cap/string_cap.h"
 #include "transpiler/examples/string_cap/string_cap_cleartext.h"
 #include "xls/common/logging/logging.h"

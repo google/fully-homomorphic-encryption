@@ -843,7 +843,7 @@ _cc_fhe_bool_ir_library = rule(
         "skip_scheme_data_deps": attr.bool(
             doc = """
             When set to True, it causes the transpiler to not emit depednencies
-            for tfhe_data.h, openfhe_data.h, and boolean_data.h.  This is used
+            for tfhe_data.h, openfhe_data.h, and cleartext_data.h.  This is used
             to avoid circular dependencies when generating C++ libraries for
             the numeric primitives.
             """,
@@ -889,7 +889,7 @@ _cc_fhe_netlist_library = rule(
         "skip_scheme_data_deps": attr.bool(
             doc = """
             When set to True, it causes the transpiler to not emit depednencies
-            for tfhe_data.h, openfhe_data.h, and boolean_data.h.  This is used
+            for tfhe_data.h, openfhe_data.h, and cleartext_data.h.  This is used
             to avoid circular dependencies when generating C++ libraries for
             the numeric primitives.
 
@@ -986,11 +986,11 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
                 if interpreter:
                     fail("No XLS interpreter for cleartext is currently implemented.")
                 deps.extend([
-                    "//transpiler/data:boolean_data",
+                    "//transpiler/data:cleartext_data",
                 ])
             elif encryption == "tfhe":
                 deps.extend([
-                    "//transpiler/data:boolean_data",
+                    "//transpiler/data:cleartext_data",
                     "//transpiler/data:tfhe_data",
                 ])
                 if interpreter:
@@ -1001,7 +1001,7 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
                     ])
             elif encryption == "openfhe":
                 deps.extend([
-                    "//transpiler/data:boolean_data",
+                    "//transpiler/data:cleartext_data",
                     "//transpiler/data:openfhe_data",
                 ])
                 if interpreter:
@@ -1017,14 +1017,14 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
                 deps.extend([
                     "@com_google_absl//absl/status:statusor",
                     "//transpiler:yosys_cleartext_runner",
-                    "//transpiler/data:boolean_data",
+                    "//transpiler/data:cleartext_data",
                     "@com_google_xls//xls/common/status:status_macros",
                 ])
             elif encryption == "tfhe":
                 deps.extend([
                     "@com_google_absl//absl/status:statusor",
                     "//transpiler:yosys_tfhe_runner",
-                    "//transpiler/data:boolean_data",
+                    "//transpiler/data:cleartext_data",
                     "//transpiler/data:tfhe_data",
                     "@com_google_xls//xls/common/status:status_macros",
                 ])
@@ -1032,7 +1032,7 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
                 deps.extend([
                     "@com_google_absl//absl/status:statusor",
                     "//transpiler:yosys_openfhe_runner",
-                    "//transpiler/data:boolean_data",
+                    "//transpiler/data:cleartext_data",
                     "//transpiler/data:openfhe_data",
                     "@com_google_xls//xls/common/status:status_macros",
                 ])

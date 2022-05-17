@@ -130,7 +130,7 @@ cc_binary(
     srcs = ["calculator_cleartext_testbench.cc"],
     deps = [
         ":calculator_cleartext",
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",

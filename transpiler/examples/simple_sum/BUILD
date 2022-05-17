@@ -110,7 +110,7 @@ cc_binary(
     srcs = ["simple_sum_cleartext_testbench.cc"],
     deps = [
         ":simple_sum_cleartext",
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
     ],

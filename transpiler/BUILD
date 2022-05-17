@@ -185,7 +185,7 @@ cc_test(
     srcs = ["yosys_cleartext_runner_test.cc"],
     deps = [
         ":yosys_cleartext_runner",
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
         "@com_google_absl//absl/status",

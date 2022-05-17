@@ -173,7 +173,7 @@ cc_binary(
     srcs = ["fibonacci_sequence_cleartext_testbench.cc"],
     deps = [
         ":fibonacci_sequence_cleartext",
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_xls//xls/common/logging",

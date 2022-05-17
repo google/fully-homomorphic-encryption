@@ -19,7 +19,7 @@
 #include <iostream>
 #include <string>
 
-#include "transpiler/data/boolean_data.h"
+#include "transpiler/data/cleartext_data.h"
 #include "transpiler/examples/string_reverse/string_reverse.h"
 #include "transpiler/examples/string_reverse/string_reverse_cleartext.h"
 #include "xls/common/logging/logging.h"

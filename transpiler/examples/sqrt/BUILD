@@ -157,7 +157,7 @@ cc_binary(
     ],
     deps = [
         ":sqrt_cleartext",
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/strings",
         "@com_google_xls//xls/common/logging",
@@ -173,7 +173,7 @@ cc_binary(
     copts = ["-DUSE_YOSYS_CLEARTEXT"],
     deps = [
         ":sqrt_yosys_cleartext",
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/strings",
         "@com_google_xls//xls/common/logging",

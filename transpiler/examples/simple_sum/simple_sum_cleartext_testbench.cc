@@ -14,7 +14,7 @@
 
 #include <iostream>
 
-#include "transpiler/data/boolean_data.h"
+#include "transpiler/data/cleartext_data.h"
 #include "transpiler/examples/simple_sum/simple_sum_cleartext.h"
 #include "xls/common/logging/logging.h"
 

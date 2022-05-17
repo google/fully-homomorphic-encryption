@@ -56,7 +56,7 @@ TEST(CcTranspilerLibTest, TranslateHeader_NoParam) {
 #include "test.types.h"
 #include "absl/status/status.h"
 #include "absl/types/span.h"
-#include "transpiler/data/boolean_data.h"
+#include "transpiler/data/cleartext_data.h"
 
 absl::Status test_fn_UNSAFE();
 absl::Status test_fn() {
@@ -94,7 +94,7 @@ TEST(CcTranspilerLibTest, TranslateHeader_Param) {
 #include "test.types.h"
 #include "absl/status/status.h"
 #include "absl/types/span.h"
-#include "transpiler/data/boolean_data.h"
+#include "transpiler/data/cleartext_data.h"
 
 absl::Status test_fn_UNSAFE(absl::Span<const bool> param);
 absl::Status test_fn(const EncodedPrimitiveUnsignedIntRef param) {
@@ -137,7 +137,7 @@ TEST(CcTranspilerLibTest, TranslateHeader_MultipleParams) {
 #include "test.types.h"
 #include "absl/status/status.h"
 #include "absl/types/span.h"
-#include "transpiler/data/boolean_data.h"
+#include "transpiler/data/cleartext_data.h"
 
 absl::Status test_fn_UNSAFE($0);
 absl::Status test_fn($1) {

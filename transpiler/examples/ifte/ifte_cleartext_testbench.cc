@@ -15,7 +15,7 @@
 
 #include <iostream>
 
-#include "transpiler/data/boolean_data.h"
+#include "transpiler/data/cleartext_data.h"
 #include "xls/common/logging/logging.h"
 
 #ifdef USE_YOSYS_INTERPRETED_CLEARTEXT

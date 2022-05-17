@@ -16,7 +16,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "transpiler/data/boolean_data.h"
+#include "transpiler/data/cleartext_data.h"
 #include "xls/common/status/matchers.h"
 
 namespace fully_homomorphic_encryption {

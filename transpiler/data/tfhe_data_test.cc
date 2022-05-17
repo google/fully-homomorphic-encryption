@@ -23,7 +23,7 @@
 
 constexpr int kMainMinimumLambda = 120;
 
-TEST(BooleanDataTest, TfhePrimitives) {
+TEST(TfheDataTest, TfhePrimitives) {
   // generate a keyset
   TFHEParameters params(kMainMinimumLambda);
   // generate a random key
@@ -46,7 +46,7 @@ TEST(BooleanDataTest, TfhePrimitives) {
   EXPECT_EQ(signed_byte_value.Decrypt(key), (int8_t)0xab);
 }
 
-TEST(BooleanDataTest, TfheArraysSizeCheck) {
+TEST(TfheDataTest, TfheArraysSizeCheck) {
   // generate a keyset
   TFHEParameters params(kMainMinimumLambda);
   // generate a random key
@@ -64,7 +64,7 @@ TEST(BooleanDataTest, TfheArraysSizeCheck) {
   EXPECT_EQ(int_array_ref.get().size(), int_array.bit_width());
 }
 
-TEST(BooleanDataTest, TfheArrays) {
+TEST(TfheDataTest, TfheArrays) {
   // generate a keyset
   TFHEParameters params(kMainMinimumLambda);
   // generate a random key
@@ -81,7 +81,7 @@ TEST(BooleanDataTest, TfheArrays) {
   }
 }
 
-TEST(BooleanDataTest, TfheString) {
+TEST(TfheDataTest, TfheString) {
   // generate a keyset
   TFHEParameters params(kMainMinimumLambda);
   // generate a random key
@@ -95,7 +95,7 @@ TEST(BooleanDataTest, TfheString) {
   EXPECT_EQ(std::strncmp(decoded.c_str(), "test string", decoded.size()), 0);
 }
 
-TEST(BooleanDataTest, TfheRefs) {
+TEST(TfheDataTest, TfheRefs) {
   // generate a keyset
   TFHEParameters params(kMainMinimumLambda);
   // generate a random key

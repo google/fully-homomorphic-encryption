@@ -109,8 +109,8 @@ cc_library(
 )
 
 cc_library(
-    name = "boolean_data",
-    hdrs = ["boolean_data.h"],
+    name = "cleartext_data",
+    hdrs = ["cleartext_data.h"],
     visibility = ["//visibility:public"],
     deps = [
         ":cleartext_value",
@@ -126,7 +126,7 @@ cc_library(
     hdrs = ["tfhe_data.h"],
     visibility = ["//visibility:public"],
     deps = [
-        ":boolean_data",
+        ":cleartext_data",
         ":cleartext_value",
         ":primitives_tfhe",
         ":tfhe_value",
@@ -141,7 +141,7 @@ cc_library(
     hdrs = ["openfhe_data.h"],
     visibility = ["//visibility:public"],
     deps = [
-        ":boolean_data",
+        ":cleartext_data",
         ":cleartext_value",
         ":openfhe_value",
         ":primitives_openfhe",
@@ -152,10 +152,10 @@ cc_library(
 )
 
 cc_test(
-    name = "boolean_data_test",
-    srcs = ["boolean_data_test.cc"],
+    name = "cleartext_data_test",
+    srcs = ["cleartext_data_test.cc"],
     deps = [
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",

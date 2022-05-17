@@ -23,7 +23,7 @@
 
 constexpr auto kSecurityLevel = lbcrypto::MEDIUM;
 
-TEST(BooleanDataTest, OpenFhePrimitives) {
+TEST(OpenFheDataTest, OpenFhePrimitives) {
   // generate a keyset
   auto cc = lbcrypto::BinFHEContext();
 
@@ -48,7 +48,7 @@ TEST(BooleanDataTest, OpenFhePrimitives) {
   EXPECT_EQ(signed_byte_value.Decrypt(sk), (int8_t)0xab);
 }
 
-TEST(BooleanDataTest, OpenFheArraysSizeCheck) {
+TEST(OpenFheDataTest, OpenFheArraysSizeCheck) {
   // generate a keyset
   auto cc = lbcrypto::BinFHEContext();
 
@@ -68,7 +68,7 @@ TEST(BooleanDataTest, OpenFheArraysSizeCheck) {
   EXPECT_EQ(int_array_ref.get().size(), int_array.bit_width());
 }
 
-TEST(BooleanDataTest, OpenFheArrays) {
+TEST(OpenFheDataTest, OpenFheArrays) {
   // generate a keyset
   auto cc = lbcrypto::BinFHEContext();
 
@@ -87,7 +87,7 @@ TEST(BooleanDataTest, OpenFheArrays) {
   }
 }
 
-TEST(BooleanDataTest, OpenFheString) {
+TEST(OpenFheDataTest, OpenFheString) {
   // generate a keyset
   auto cc = lbcrypto::BinFHEContext();
 
@@ -103,7 +103,7 @@ TEST(BooleanDataTest, OpenFheString) {
   EXPECT_EQ(std::strncmp(decoded.c_str(), "test string", decoded.size()), 0);
 }
 
-TEST(BooleanDataTest, OpenFheRefs) {
+TEST(OpenFheDataTest, OpenFheRefs) {
   // generate a keyset
   auto cc = lbcrypto::BinFHEContext();
 

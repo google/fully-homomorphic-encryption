@@ -320,7 +320,7 @@ cc_binary(
     srcs = ["return_struct_cleartext_testbench.cc"],
     deps = [
         ":return_struct_cleartext",
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
     ],
@@ -332,7 +332,7 @@ cc_binary(
     copts = ["-DUSE_YOSYS_CLEARTEXT"],
     deps = [
         ":return_struct_yosys_cleartext",
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
     ],
@@ -519,7 +519,7 @@ cc_binary(
     srcs = ["struct_of_structs_cleartext_testbench.cc"],
     deps = [
         ":struct_of_structs_cleartext",
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
@@ -532,7 +532,7 @@ cc_binary(
     copts = ["-DUSE_YOSYS_CLEARTEXT"],
     deps = [
         ":struct_of_structs_yosys_cleartext",
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
     ],

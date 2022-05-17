@@ -19,7 +19,7 @@
 
 #include "absl/container/fixed_array.h"
 #include "absl/strings/str_format.h"
-#include "transpiler/data/boolean_data.h"
+#include "transpiler/data/cleartext_data.h"
 #include "transpiler/examples/fibonacci/fibonacci_sequence.h"
 #include "transpiler/examples/fibonacci/fibonacci_sequence_cleartext.h"
 #include "xls/common/logging/logging.h"

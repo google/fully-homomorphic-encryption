@@ -23,7 +23,7 @@
 #include "transpiler/examples/structs/struct_of_structs_cleartext.h"
 #include "transpiler/examples/structs/struct_of_structs_cleartext.types.h"
 #endif
-#include "transpiler/data/boolean_data.h"
+#include "transpiler/data/cleartext_data.h"
 
 int main(int argc, char** argv) {
   StructOfStructs sos;

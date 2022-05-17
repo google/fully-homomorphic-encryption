@@ -196,7 +196,7 @@ $3#endif  // $1
       typed_overload =
           TypedOverload(metadata, "Encoded", data_type, absl::nullopt);
       scheme_data_header = R"hdr(
-#include "transpiler/data/boolean_data.h"
+#include "transpiler/data/cleartext_data.h"
 )hdr";
       break;
     default:

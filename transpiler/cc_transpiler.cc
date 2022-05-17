@@ -152,12 +152,12 @@ $3#endif  // $1
                        FunctionSignature(function, metadata));
   absl::optional<std::string> typed_overload =
       TypedOverload(metadata, "Encoded", "absl::Span<bool>", absl::nullopt);
-  return absl::Substitute(kHeaderTemplate, signature, header_guard,
-                          encryption_specific_transpiled_structs_header_path,
-                          typed_overload.value_or(""),
-                          skip_scheme_data_deps
-                              ? ""
-                              : R"(#include "transpiler/data/boolean_data.h")");
+  return absl::Substitute(
+      kHeaderTemplate, signature, header_guard,
+      encryption_specific_transpiled_structs_header_path,
+      typed_overload.value_or(""),
+      skip_scheme_data_deps ? ""
+                            : R"(#include "transpiler/data/cleartext_data.h")");
 }
 
 absl::StatusOr<std::string> CcTranspiler::FunctionSignature(

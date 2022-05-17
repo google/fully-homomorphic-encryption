@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_BOOLEAN_DATA_H_
-#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_BOOLEAN_DATA_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_CLEARTEXT_DATA_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_CLEARTEXT_DATA_H_
 
 #include <assert.h>
 #include <stddef.h>
@@ -60,4 +60,4 @@ using EncodedBitRef = EncodedPrimitiveBoolRef;
 using EncodedBool = EncodedPrimitiveBool;
 using EncodedBoolRef = EncodedPrimitiveBoolRef;
 
-#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_BOOLEAN_DATA_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_CLEARTEXT_DATA_H_

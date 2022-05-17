@@ -209,7 +209,7 @@ cc_test(
         ":out_params_with_return_cleartext",
         ":single_out_param_cleartext",
         ":single_out_param_with_return_cleartext",
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
         "@com_google_googletest//:gtest_main",
         "@com_google_xls//xls/common/status:matchers",
@@ -245,7 +245,7 @@ cc_test(
     srcs = ["array_of_structs_cleartext_test.cc"],
     deps = [
         ":struct_cleartext",
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
         "@com_google_googletest//:gtest_main",
         "@com_google_xls//xls/common/status:matchers",
@@ -258,7 +258,7 @@ cc_test(
     deps = [
         ":struct_tfhe",
         ":test_util",
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
         "@com_google_googletest//:gtest_main",
         "@com_google_xls//xls/common/status:matchers",
@@ -271,7 +271,7 @@ cc_test(
     deps = [
         ":openfhe_test_util",
         ":struct_openfhe",
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
         "@com_google_googletest//:gtest_main",
         "@com_google_xls//xls/common/status:matchers",
@@ -282,7 +282,7 @@ cc_test(
     name = "array_of_scalars_cleartext_test",
     srcs = ["array_of_scalars_cleartext_test.cc"],
     deps = [
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
         "@com_google_googletest//:gtest_main",
         "@com_google_xls//xls/common/status:matchers",
@@ -294,7 +294,7 @@ cc_test(
     srcs = ["array_of_scalars_tfhe_test.cc"],
     deps = [
         ":test_util",
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
         "@com_google_googletest//:gtest_main",
         "@com_google_xls//xls/common/status:matchers",
@@ -306,7 +306,7 @@ cc_test(
     srcs = ["array_of_scalars_openfhe_test.cc"],
     deps = [
         ":openfhe_test_util",
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
         "@com_google_googletest//:gtest_main",
         "@com_google_xls//xls/common/status:matchers",

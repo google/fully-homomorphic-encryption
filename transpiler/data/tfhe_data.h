@@ -28,7 +28,7 @@
 #include "absl/types/span.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
-#include "transpiler/data/boolean_data.h"
+#include "transpiler/data/cleartext_data.h"
 #include "transpiler/data/cleartext_value.h"
 #include "transpiler/data/primitives_tfhe.types.h"
 #include "transpiler/data/tfhe_value.h"

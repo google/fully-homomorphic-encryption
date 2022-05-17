@@ -136,7 +136,7 @@ cc_binary(
     srcs = ["ifte_cleartext_testbench.cc"],
     deps = [
         ":ifte_xls_cleartext",
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
@@ -149,7 +149,7 @@ cc_binary(
     copts = ["-DUSE_YOSYS_INTERPRETED_CLEARTEXT"],
     deps = [
         ":ifte_netlist_cleartext_interpreted",
-        "//transpiler/data:boolean_data",
+        "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
