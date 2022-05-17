@@ -27,6 +27,8 @@
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 
+absl::optional<std::string> GetTypeName(const xlscc_metadata::Type& type);
+
 absl::optional<std::string> TypedOverload(
     const xlscc_metadata::MetadataOutput& metadata,
     const absl::string_view prefix, const std::string default_type,

@@ -97,7 +97,7 @@ TEST(CcTranspilerLibTest, TranslateHeader_Param) {
 #include "transpiler/data/boolean_data.h"
 
 absl::Status test_fn_UNSAFE(absl::Span<const bool> param);
-absl::Status test_fn(const EncodedValueRef<uint32_t> param) {
+absl::Status test_fn(const EncodedPrimitiveUnsignedIntRef param) {
   return test_fn_UNSAFE(param.get());
 }
 #endif  // TEST_H
@@ -152,8 +152,8 @@ absl::Status test_fn($1) {
     param_names.push_back(absl::StrCat("param_", param_index, ".get()"));
     expected_params.push_back(
         absl::StrCat("absl::Span<const bool> param_", param_index));
-    expected_overloaded_params.push_back(
-        absl::StrCat("const EncodedValueRef<uint32_t> param_", param_index));
+    expected_overloaded_params.push_back(absl::StrCat(
+        "const EncodedPrimitiveUnsignedIntRef param_", param_index));
   }
   std::string expected_header = absl::Substitute(
       expected_header_template, absl::StrJoin(expected_params, ", "),

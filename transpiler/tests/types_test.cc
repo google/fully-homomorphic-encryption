@@ -56,8 +56,8 @@ TEST_F(TranspilerTypesTest, TestInt) {
 }
 
 TEST_F(TranspilerTypesTest, TestLong) {
-  auto ciphertext = TfheValue<long>::Encrypt(100, secret_key());
-  TfheValue<long> result(params());
+  auto ciphertext = TfheLong::Encrypt(100, secret_key());
+  TfheLong result(params());
   XLS_ASSERT_OK(test_long(result, ciphertext, cloud_key()));
   EXPECT_EQ(result.Decrypt(secret_key()), 101);
 }

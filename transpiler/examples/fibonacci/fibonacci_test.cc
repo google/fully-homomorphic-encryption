@@ -72,7 +72,7 @@ TEST(FibonacciTest, InitialStateEncrypted) {
 
   // Create inputs.
   int input = 5;
-  auto encrypted_input = TfheValue<int>::Encrypt(input, key);
+  auto encrypted_input = TfheInt::Encrypt(input, key);
 
   TfheArray<int> encrypted_result(5, params);
   XLS_ASSERT_OK(

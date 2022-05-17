@@ -58,11 +58,11 @@ absl::Status RealMain() {
   std::cout << "Time to multiply/add, 16-bit version : "
             << absl::Now() - start_time << std::endl;
 
-  TfheChar char_result(params);
+  TfheUnsignedChar char_result(params);
   start_time = absl::Now();
-  status = Mul8(char_result, TfheValue<uint8_t>::Encrypt(a, key),
-                TfheValue<uint8_t>::Encrypt(b, key),
-                TfheValue<uint8_t>::Encrypt(c, key), key.cloud());
+  status = Mul8(char_result, TfheUnsignedChar::Encrypt(a, key),
+                TfheUnsignedChar::Encrypt(b, key),
+                TfheUnsignedChar::Encrypt(c, key), key.cloud());
   if (!status.ok()) {
     return status;
   }

@@ -29,15 +29,15 @@ namespace fully_homomorphic_encryption {
 // key.
 class CloudService {
  public:
-  explicit CloudService(TfheArray<RecordT> database)
+  explicit CloudService(TfheArray<RecordT, kDbSize> database)
       : database_(std::move(database)) {}
 
-  absl::Status QueryRecord(TfheValueRef<uint8_t> result,
-                           TfheValueRef<uint8_t> index,
+  absl::Status QueryRecord(TfheUnsignedCharRef result,
+                           TfheUnsignedCharRef index,
                            const TFheGateBootstrappingCloudKeySet* bk);
 
  private:
-  TfheArray<RecordT> database_;
+  TfheArray<RecordT, kDbSize> database_;
 };
 
 }  // namespace fully_homomorphic_encryption

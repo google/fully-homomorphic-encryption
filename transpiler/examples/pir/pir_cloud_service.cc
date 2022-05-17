@@ -26,7 +26,7 @@
 namespace fully_homomorphic_encryption {
 
 absl::Status CloudService::QueryRecord(
-    TfheValueRef<uint8_t> result, TfheValueRef<uint8_t> index,
+    TfheUnsignedCharRef result, TfheUnsignedCharRef index,
     const TFheGateBootstrappingCloudKeySet* bk) {
   return ::QueryRecord(result, index, database_, bk);
 }

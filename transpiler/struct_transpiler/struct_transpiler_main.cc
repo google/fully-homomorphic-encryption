@@ -84,6 +84,8 @@ ABSL_FLAG(BackendType, backend_type, BackendType::kGeneric,
 ABSL_FLAG(std::string, generic_header_path, "",
           "Path to which to the previously-generated template header file. "
           "Must be provided when --backend_type is used.");
+ABSL_FLAG(std::vector<std::string>, unwrap, std::vector<std::string>({}),
+          "Comma-separated list of struct names to unwrap.");
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {
@@ -99,13 +101,15 @@ absl::Status RealMain(absl::string_view metadata_path,
     return absl::InvalidArgumentError("Unable to parse input metadata proto.");
   }
 
+  std::vector<std::string> unwrap = absl::GetFlag(FLAGS_unwrap);
+
   switch (backend_type) {
     case BackendType::kGeneric: {
       std::vector<std::string> split_headers =
           absl::StrSplit(original_headers, ',');
       XLS_ASSIGN_OR_RETURN(std::string generic_result,
                            ConvertStructsToEncodedTemplate(
-                               metadata, split_headers, output_path));
+                               metadata, split_headers, output_path, unwrap));
       if (!output_path.empty()) {
         return xls::SetFileContents(output_path, generic_result);
       }
@@ -113,9 +117,10 @@ absl::Status RealMain(absl::string_view metadata_path,
       break;
     }
     case BackendType::kCleartext: {
-      XLS_ASSIGN_OR_RETURN(std::string specific_result,
-                           ConvertStructsToEncodedBool(generic_header_path,
-                                                       metadata, output_path));
+      XLS_ASSIGN_OR_RETURN(
+          std::string specific_result,
+          ConvertStructsToEncodedBool(generic_header_path, metadata,
+                                      output_path, unwrap));
       if (!output_path.empty()) {
         return xls::SetFileContents(output_path, specific_result);
       }
@@ -123,9 +128,10 @@ absl::Status RealMain(absl::string_view metadata_path,
       break;
     }
     case BackendType::kOpenFHE: {
-      XLS_ASSIGN_OR_RETURN(std::string specific_result,
-                           ConvertStructsToEncodedOpenFhe(
-                               generic_header_path, metadata, output_path));
+      XLS_ASSIGN_OR_RETURN(
+          std::string specific_result,
+          ConvertStructsToEncodedOpenFhe(generic_header_path, metadata,
+                                         output_path, unwrap));
       if (!output_path.empty()) {
         return xls::SetFileContents(output_path, specific_result);
       }
@@ -133,9 +139,10 @@ absl::Status RealMain(absl::string_view metadata_path,
       break;
     }
     case BackendType::kTFHE: {
-      XLS_ASSIGN_OR_RETURN(std::string specific_result,
-                           ConvertStructsToEncodedTfhe(generic_header_path,
-                                                       metadata, output_path));
+      XLS_ASSIGN_OR_RETURN(
+          std::string specific_result,
+          ConvertStructsToEncodedTfhe(generic_header_path, metadata,
+                                      output_path, unwrap));
       if (!output_path.empty()) {
         return xls::SetFileContents(output_path, specific_result);
       }

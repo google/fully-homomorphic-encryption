@@ -103,8 +103,8 @@ absl::StatusOr<std::string> InterpretedTfheTranspiler::TranslateHeader(
     const xls::Function* function,
     const xlscc_metadata::MetadataOutput& metadata,
     absl::string_view header_path,
-    const absl::string_view
-        encryption_specific_transpiled_structs_header_path) {
+    const absl::string_view encryption_specific_transpiled_structs_header_path,
+    bool skip_scheme_data_deps) {
   XLS_ASSIGN_OR_RETURN(const std::string header_guard,
                        PathToHeaderGuard(header_path));
   static constexpr absl::string_view kHeaderTemplate =
@@ -114,7 +114,7 @@ absl::StatusOr<std::string> InterpretedTfheTranspiler::TranslateHeader(
 #include "$3"
 #include "absl/status/status.h"
 #include "absl/types/span.h"
-#include "transpiler/data/tfhe_data.h"
+$4
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
 
@@ -127,9 +127,10 @@ $1#endif  // $2
   absl::optional<std::string> typed_overload =
       TypedOverload(metadata, "Tfhe", "absl::Span<LweSample>",
                     "const TFheGateBootstrappingCloudKeySet*");
-  return absl::Substitute(kHeaderTemplate, signature,
-                          typed_overload.value_or(""), header_guard,
-                          encryption_specific_transpiled_structs_header_path);
+  return absl::Substitute(
+      kHeaderTemplate, signature, typed_overload.value_or(""), header_guard,
+      encryption_specific_transpiled_structs_header_path,
+      skip_scheme_data_deps ? "" : R"(#include "transpiler/data/tfhe_data.h")");
 }
 
 absl::StatusOr<std::string> InterpretedTfheTranspiler::FunctionSignature(

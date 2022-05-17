@@ -140,8 +140,8 @@ class TranspilerControlStructureFunctionTest
 
 TEST_P(TranspilerControlStructureFunctionTest, TestFunction) {
   const TranspilerControlStructureFunctionTestCase& test_case = GetParam();
-  auto ciphertext = TfheValue<int>::Encrypt(test_case.input, secret_key());
-  TfheValue<int> result(params());
+  auto ciphertext = TfheInt::Encrypt(test_case.input, secret_key());
+  TfheInt result(params());
 
   XLS_ASSERT_OK(test_function(result, ciphertext, cloud_key()));
   EXPECT_EQ(result.Decrypt(secret_key()), test_case.expected_output);

@@ -147,8 +147,8 @@ absl::StatusOr<std::string> OpenFheTranspiler::TranslateHeader(
     const xls::Function* function,
     const xlscc_metadata::MetadataOutput& metadata,
     absl::string_view header_path,
-    const absl::string_view
-        encryption_specific_transpiled_structs_header_path) {
+    const absl::string_view encryption_specific_transpiled_structs_header_path,
+    bool skip_scheme_data_deps) {
   const std::string header_guard =
       transpiler::PathToHeaderGuard("OPENFHE_GENERATE_H_", header_path);
   static constexpr absl::string_view kHeaderTemplate =
@@ -158,7 +158,7 @@ absl::StatusOr<std::string> OpenFheTranspiler::TranslateHeader(
 #include "$2"
 #include "absl/status/status.h"
 #include "absl/types/span.h"
-#include "transpiler/data/openfhe_data.h"
+$4
 #include "palisade/binfhe/binfhecontext.h"
 
 $0;
@@ -172,7 +172,10 @@ $3#endif  // $1
                        FunctionSignature(function, metadata));
   return absl::Substitute(kHeaderTemplate, signature, header_guard,
                           encryption_specific_transpiled_structs_header_path,
-                          typed_overload.value_or(""));
+                          typed_overload.value_or(""),
+                          skip_scheme_data_deps
+                              ? ""
+                              : R"(#include "transpiler/data/openfhe_data.h")");
 }
 
 absl::StatusOr<std::string> OpenFheTranspiler::FunctionSignature(

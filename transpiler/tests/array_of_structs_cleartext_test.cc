@@ -66,7 +66,7 @@ TEST(ArrayOfStructsTest, DynamicOneDimArray) {
   EXPECT_EQ(decoded_ref.i, decoded[1].i);
 
   // Get a reference to the whole array.
-  EncodedStructArrayRef<> dyn_one_dim_ref = dyn_one_dim;
+  EncodedArrayRef<Struct> dyn_one_dim_ref = dyn_one_dim;
   EXPECT_EQ(dyn_one_dim_ref.length(), 2);
   EXPECT_EQ(dyn_one_dim_ref.bit_width(), 2 * (1 + 2 + 4) * 8);
   EXPECT_EQ(dyn_one_dim_ref.get().size(), dyn_one_dim_ref.bit_width());
@@ -98,12 +98,11 @@ TEST(ArrayOfStructsTest, DynamicOneDimArray) {
     EXPECT_EQ(decoded_ref_via_ref.i, decoded[1].i);
   }
 
-  // Assign to a (fixed-length) EncodedStructArrayRef<2> and
-  // EncodedArrayRef<Struct, 2> type.  This tests the ability to pass
-  // dynamically-sized arrays to fixed-size references (the lengths are checked
-  // for equality dynamically).
+  // Assign to a (fixed-length) EncodedArrayRef<Struct, 2> type.  This tests the
+  // ability to pass dynamically-sized arrays to fixed-size references (the
+  // lengths are checked for equality dynamically).
   {
-    EncodedStructArrayRef<2> dyn_one_dim_ref = dyn_one_dim;
+    EncodedArrayRef<Struct, 2> dyn_one_dim_ref = dyn_one_dim;
     EXPECT_EQ(dyn_one_dim_ref.length(), 2);
     EXPECT_EQ(dyn_one_dim_ref.bit_width(), 2 * (1 + 2 + 4) * 8);
     EXPECT_EQ(dyn_one_dim_ref.get().size(), dyn_one_dim_ref.bit_width());
@@ -133,7 +132,7 @@ TEST(ArrayOfStructsTest, FixedWidthOneDimArray) {
                      {'b', (short)0x5678, (int)0xc0deba7e}};
 
   // Static array with 2 elements.
-  EncodedStructArray<2> fixed_one_dim;
+  EncodedArray<Struct, 2> fixed_one_dim;
   EXPECT_EQ(fixed_one_dim.length(), 2);
   EXPECT_EQ(fixed_one_dim.bit_width(), 2 * (1 + 2 + 4) * 8);
 
@@ -162,7 +161,7 @@ TEST(ArrayOfStructsTest, FixedWidthOneDimArray) {
 
   {
     // Get a reference to the whole array.
-    EncodedStructArrayRef<2> fixed_one_dim_ref = fixed_one_dim;
+    EncodedArrayRef<Struct, 2> fixed_one_dim_ref = fixed_one_dim;
     EXPECT_EQ(fixed_one_dim_ref.length(), 2);
     EXPECT_EQ(fixed_one_dim_ref.bit_width(), 2 * (1 + 2 + 4) * 8);
 
@@ -180,6 +179,23 @@ TEST(ArrayOfStructsTest, FixedWidthOneDimArray) {
       EXPECT_EQ(decoded_via_ref[i].c, another_decoded_via_ref[i].c);
       EXPECT_EQ(decoded_via_ref[i].s, another_decoded_via_ref[i].s);
       EXPECT_EQ(decoded_via_ref[i].i, another_decoded_via_ref[i].i);
+    }
+  }
+
+  // Do the same using alternate declaration.
+  {
+    // Get a reference to the whole array.
+    EncodedArrayRef<Struct, 2> fixed_one_dim_ref = fixed_one_dim;
+    EXPECT_EQ(fixed_one_dim_ref.length(), 2);
+    EXPECT_EQ(fixed_one_dim_ref.bit_width(), 2 * (1 + 2 + 4) * 8);
+
+    // Check the array again via the reference.
+    Struct decoded_via_ref[2];
+    fixed_one_dim.Decode(decoded_via_ref);
+    for (int i = 0; i < 2; i++) {
+      EXPECT_EQ(decoded_via_ref[i].c, decoded[i].c);
+      EXPECT_EQ(decoded_via_ref[i].s, decoded[i].s);
+      EXPECT_EQ(decoded_via_ref[i].i, decoded[i].i);
     }
   }
 }
@@ -214,7 +230,7 @@ TEST(ArrayOfStructsTest, FixedWidth4x3x2Array) {
                              {'x', (short)0x7878, (int)0xf0bcde9a}}}};
 
   // Static array with 4x3x2 elements.
-  EncodedStructArray<4, 3, 2> fixed_4x3x2dim;
+  EncodedArray<Struct, 4, 3, 2> fixed_4x3x2dim;
   EXPECT_EQ(fixed_4x3x2dim.length(), 4);
   EXPECT_EQ(fixed_4x3x2dim.bit_width(), 4 * 3 * 2 * (1 + 2 + 4) * 8);
   EXPECT_EQ(fixed_4x3x2dim.get().size(), fixed_4x3x2dim.bit_width());
@@ -232,8 +248,7 @@ TEST(ArrayOfStructsTest, FixedWidth4x3x2Array) {
   }
 
   // Get a reference to the whole array and check it.
-  // EncodedStructArrayRef<4, 3, 2> fixed_4x3x2dim_ref = fixed_4x3x2dim;
-  EncodedStructArrayRef<4, 3, 2> fixed_4x3x2dim_ref = fixed_4x3x2dim;
+  EncodedArrayRef<Struct, 4, 3, 2> fixed_4x3x2dim_ref = fixed_4x3x2dim;
   EXPECT_EQ(fixed_4x3x2dim_ref.length(), 4);
   EXPECT_EQ(fixed_4x3x2dim_ref.bit_width(), 4 * 3 * 2 * (1 + 2 + 4) * 8);
   EXPECT_EQ(fixed_4x3x2dim_ref.get().size(), fixed_4x3x2dim_ref.bit_width());
@@ -250,7 +265,7 @@ TEST(ArrayOfStructsTest, FixedWidth4x3x2Array) {
   }
 
   // Obtain a copy of the whole-array reference
-  EncodedStructArrayRef<4, 3, 2> fixed_4x3x2dim_ref_ref = fixed_4x3x2dim_ref;
+  EncodedArrayRef<Struct, 4, 3, 2> fixed_4x3x2dim_ref_ref = fixed_4x3x2dim_ref;
   EXPECT_EQ(fixed_4x3x2dim_ref_ref.length(), 4);
   EXPECT_EQ(fixed_4x3x2dim_ref_ref.bit_width(), 4 * 3 * 2 * (1 + 2 + 4) * 8);
   EXPECT_EQ(fixed_4x3x2dim_ref_ref.get().size(),
@@ -258,7 +273,7 @@ TEST(ArrayOfStructsTest, FixedWidth4x3x2Array) {
 
   // Obtain a subarray from the array by subscript and check it.
   // TODO: replace this with auto and static-assert the type
-  EncodedStructArrayRef<3, 2> fixed_3x2dim_ref = fixed_4x3x2dim[1];
+  EncodedArrayRef<Struct, 3, 2> fixed_3x2dim_ref = fixed_4x3x2dim[1];
   EXPECT_EQ(fixed_3x2dim_ref.length(), 3);
   Struct subarray_3x2[3][2];
   fixed_3x2dim_ref.Decode(subarray_3x2);
@@ -271,7 +286,7 @@ TEST(ArrayOfStructsTest, FixedWidth4x3x2Array) {
   }
 
   // Obtain a subarray from the subarray via the reference, and check it.
-  EncodedStructArrayRef<2> fixed_2dim_ref = fixed_3x2dim_ref[2];
+  EncodedArrayRef<Struct, 2> fixed_2dim_ref = fixed_3x2dim_ref[2];
   EXPECT_EQ(fixed_2dim_ref.length(), 2);
   EXPECT_EQ(fixed_2dim_ref.bit_width(), 2 * (1 + 2 + 4) * 8);
   EXPECT_EQ(fixed_2dim_ref.get().size(), fixed_2dim_ref.bit_width());
@@ -284,7 +299,7 @@ TEST(ArrayOfStructsTest, FixedWidth4x3x2Array) {
   }
 
   // Obtain the subarray directly from the array.
-  EncodedStructArrayRef<2> fixed_2dim_direct_ref = fixed_4x3x2dim[1][2];
+  EncodedArrayRef<Struct, 2> fixed_2dim_direct_ref = fixed_4x3x2dim[1][2];
   EXPECT_EQ(fixed_2dim_direct_ref.length(), 2);
   EXPECT_EQ(fixed_2dim_direct_ref.bit_width(), 2 * (1 + 2 + 4) * 8);
   EXPECT_EQ(fixed_2dim_direct_ref.get().size(),

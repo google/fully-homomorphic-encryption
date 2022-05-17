@@ -113,10 +113,10 @@ class EncodedValueRef {
   absl::Span<bool> data_;
 };
 
-template <typename ValueType, typename Enable = void, unsigned... Dimensions>
-class EncodedArrayRef {};
+template <typename ValueType, unsigned... Dimensions>
+class EncodedArrayRef;
 
-template <typename ValueType, typename Enable = void, unsigned... Dimensions>
-class EncodedArray {};
+template <typename ValueType, unsigned... Dimensions>
+class EncodedArray;
 
 #endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_CLEARTEXT_VALUE_H_

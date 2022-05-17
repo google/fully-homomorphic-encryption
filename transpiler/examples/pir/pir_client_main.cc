@@ -36,8 +36,8 @@ using ::fully_homomorphic_encryption::CloudService;
 using ::fully_homomorphic_encryption::Index;
 using ::fully_homomorphic_encryption::RecordT;
 
-using TfheIndex = TfheValue<Index>;
-using TfheRecordT = TfheValue<RecordT>;
+using TfheIndex = TfheUnsignedChar;
+using TfheRecordT = TfheUnsignedChar;
 
 int main() {
   TFHEParameters params(kMainMinimumLambda);
@@ -67,7 +67,7 @@ int main() {
   // Pass encrypted "database" to CloudService, which retains ownership
   std::cout << "Establishing connection." << std::endl;
   auto database_ciphertext =
-      TfheArray<RecordT>::Encrypt(database_plaintext, key);
+      TfheArray<RecordT, kDbSize>::Encrypt(database_plaintext, key);
   CloudService service(std::move(database_ciphertext));
 
   while (true) {

@@ -66,8 +66,8 @@ TEST(BooleanDataTest, EncodedRefs) {
   // Test creating a reference to a value, passing that reference around, and
   // assigning it to another value.
   EncodedInt int_val_a = EncodedInt(0x12345678);
-  EncodedValueRef<int> int_val_a_ref = int_val_a;
-  EncodedValueRef<int> int_val_b_ref = int_val_a_ref;
+  EncodedIntRef int_val_a_ref = int_val_a;
+  EncodedIntRef int_val_b_ref = int_val_a_ref;
   EncodedInt int_val_b;
   int_val_b = int_val_b_ref;
   EXPECT_EQ(int_val_b.Decode(), 0x12345678);
@@ -79,8 +79,8 @@ TEST(BooleanDataTest, EncodedRefs) {
   const std::vector<int> expected_int_array = {1, 2};
   auto decoded = int_array.Decode();
   for (int i = 0; i < expected_int_array.size(); i++) {
-    EncodedValueRef<int> el_ref = int_array[i];
-    EncodedValueRef<int> el_ref_b = el_ref;
+    EncodedIntRef el_ref = int_array[i];
+    EncodedIntRef el_ref_b = el_ref;
     EncodedInt el;
     el = el_ref_b;
     EXPECT_EQ(decoded[i], expected_int_array[i]);

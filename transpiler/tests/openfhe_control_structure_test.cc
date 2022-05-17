@@ -81,7 +81,7 @@ TEST_P(TranspilerControlStructureIfTest, TestIf) {
   const TranspilerControlStructureIfTestCase& test_case = GetParam();
   auto lhs_ciphertext = OpenFheShort::Encrypt(test_case.input.lhs, cc(), sk());
   auto rhs_ciphertext = OpenFheShort::Encrypt(test_case.input.rhs, cc(), sk());
-  OpenFheValue<char> result(cc());
+  OpenFheChar result(cc());
 
   XLS_ASSERT_OK(test_if(result, lhs_ciphertext, rhs_ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), test_case.expected_output);

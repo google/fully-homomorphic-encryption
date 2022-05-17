@@ -58,14 +58,14 @@ void test_fibonacci_number() {
     cout << "input n = " << n << endl;
 
     // Encrypt the input value
-    auto encryptedN = TfheValue<int>::Encrypt(n, key);
+    auto encryptedN = TfheInt::Encrypt(n, key);
     cout << "Encryption done" << endl;
     cout << "Initial state check by decryption: " << endl;
     cout << "Decrypted input: " << encryptedN.Decrypt(key) << endl;
 
     // Perform computation
     cout << "\t\t\t\t\tServer side computation:" << endl;
-    TfheValue<int> encryptedResult(params);
+    TfheInt encryptedResult(params);
 
     absl::Time start_time = absl::Now();
     double cpu_start_time = clock();

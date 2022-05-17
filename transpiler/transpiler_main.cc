@@ -85,6 +85,11 @@ ABSL_FLAG(bool, interpreter, false,
           "Build a program that invokes a multi-threaded interpreter. If not "
           "set, it instead directly implements the circuit in single-threaded "
           "C++.");
+ABSL_FLAG(bool, skip_scheme_data_deps, false,
+          "When set to True, it causes the transpiler to not emit depednencies "
+          "for tfhe_data.h, palisade_data.h, and boolean_data.h.  This is used "
+          "to avoid circular dependencies when generating C++ libraries for "
+          "the numeric primitives.");
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {
@@ -94,7 +99,8 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
                       const std::filesystem::path& cc_path,
                       const std::filesystem::path& metadata_path,
                       const std::filesystem::path&
-                          encryption_specific_transpiled_structs_header_path) {
+                          encryption_specific_transpiled_structs_header_path,
+                      bool skip_scheme_data_deps) {
   XLS_ASSIGN_OR_RETURN(std::string proto_text,
                        xls::GetFileContents(metadata_path));
   xlscc_metadata::MetadataOutput metadata;
@@ -146,7 +152,8 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
               fn_header,
               InterpretedTfheTranspiler::TranslateHeader(
                   function, metadata, header_path.string(),
-                  encryption_specific_transpiled_structs_header_path.string()));
+                  encryption_specific_transpiled_structs_header_path.string(),
+                  skip_scheme_data_deps));
         } else {
           XLS_ASSIGN_OR_RETURN(fn_body,
                                TfheTranspiler::Translate(function, metadata));
@@ -154,7 +161,8 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
               fn_header,
               TfheTranspiler::TranslateHeader(
                   function, metadata, header_path.string(),
-                  encryption_specific_transpiled_structs_header_path.string()));
+                  encryption_specific_transpiled_structs_header_path.string(),
+                  skip_scheme_data_deps));
         }
         break;
       }
@@ -166,7 +174,8 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
               fn_header,
               InterpretedOpenFheTranspiler::TranslateHeader(
                   function, metadata, header_path.string(),
-                  encryption_specific_transpiled_structs_header_path.string()));
+                  encryption_specific_transpiled_structs_header_path.string(),
+                  skip_scheme_data_deps));
         } else {
           XLS_ASSIGN_OR_RETURN(
               fn_body, OpenFheTranspiler::Translate(function, metadata));
@@ -174,7 +183,8 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
               fn_header,
               OpenFheTranspiler::TranslateHeader(
                   function, metadata, header_path.string(),
-                  encryption_specific_transpiled_structs_header_path.string()));
+                  encryption_specific_transpiled_structs_header_path.string(),
+                  skip_scheme_data_deps));
         }
         break;
       }
@@ -189,7 +199,8 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
               fn_header,
               CcTranspiler::TranslateHeader(
                   function, metadata, header_path.string(),
-                  encryption_specific_transpiled_structs_header_path.string()));
+                  encryption_specific_transpiled_structs_header_path.string(),
+                  skip_scheme_data_deps));
         }
         break;
       }
@@ -226,7 +237,8 @@ int main(int argc, char* argv[]) {
   absl::Status status = fully_homomorphic_encryption::transpiler::RealMain(
       absl::GetFlag(FLAGS_ir_path), absl::GetFlag(FLAGS_header_path),
       absl::GetFlag(FLAGS_cc_path), metadata_path,
-      absl::GetFlag(FLAGS_encryption_specific_transpiled_structs_header_path));
+      absl::GetFlag(FLAGS_encryption_specific_transpiled_structs_header_path),
+      absl::GetFlag(FLAGS_skip_scheme_data_deps));
   if (!status.ok()) {
     std::cerr << status.ToString() << std::endl;
     return 1;

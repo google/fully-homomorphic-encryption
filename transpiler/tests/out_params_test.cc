@@ -26,33 +26,33 @@ namespace transpiler {
 namespace {
 
 TEST(OutParamsTest, TwoOutParams) {
-  auto x = EncodedValue<int>(10);
-  auto y = EncodedValue<int>(20);
-  XLS_ASSERT_OK(out_params(x.get(), y.get()));
+  auto x = EncodedInt(10);
+  auto y = EncodedInt(20);
+  XLS_ASSERT_OK(out_params(x, y));
   EXPECT_EQ(x.Decode(), 10);
   EXPECT_EQ(y.Decode(), 11);
 }
 
 TEST(OutParamsTest, TwoOutParamsWithReturn) {
-  auto x = EncodedValue<int>(10);
-  auto y = EncodedValue<int>(20);
-  EncodedValue<int> result;
-  XLS_ASSERT_OK(out_params_with_return(result.get(), x.get(), y.get()));
+  auto x = EncodedInt(10);
+  auto y = EncodedInt(20);
+  EncodedInt result;
+  XLS_ASSERT_OK(out_params_with_return(result, x, y));
   EXPECT_EQ(result.Decode(), 31);
   EXPECT_EQ(x.Decode(), 10);
   EXPECT_EQ(y.Decode(), 11);
 }
 
 TEST(OutParamsTest, OneOutParam) {
-  auto x = EncodedValue<int>(10);
-  XLS_ASSERT_OK(single_out_param(x.get()));
+  auto x = EncodedInt(10);
+  XLS_ASSERT_OK(single_out_param(x));
   EXPECT_EQ(x.Decode(), 11);
 }
 
 TEST(OutParamsTest, OneOutParamWithReturn) {
-  auto x = EncodedValue<int>(10);
-  EncodedValue<int> result;
-  XLS_ASSERT_OK(single_out_param_with_return(result.get(), x.get()));
+  auto x = EncodedInt(10);
+  EncodedInt result;
+  XLS_ASSERT_OK(single_out_param_with_return(result, x));
   EXPECT_EQ(result.Decode(), 27);
   EXPECT_EQ(x.Decode(), 11);
 }

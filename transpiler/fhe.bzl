@@ -117,7 +117,7 @@ def _build_ir(ctx, library_name):
     )
     return (ir_file, metadata_file, _get_top_func(ctx, library_name, metadata_file))
 
-def _generate_generic_struct_header(ctx, library_name, metadata):
+def _generate_generic_struct_header(ctx, library_name, metadata, unwrap = []):
     """Transpile XLS C++ structs/classes into generic FHE base classes."""
     generic_struct_h = ctx.actions.declare_file("%s.generic.types.h" % library_name)
 
@@ -129,6 +129,12 @@ def _generate_generic_struct_header(ctx, library_name, metadata):
         "-output_path",
         generic_struct_h.path,
     ]
+    if len(unwrap):
+        args += [
+            "-unwrap",
+            ",".join(unwrap),
+        ]
+
     ctx.actions.run(
         inputs = [metadata],
         outputs = [generic_struct_h],
@@ -155,7 +161,7 @@ def _cc_to_xls_ir_impl(ctx):
     stem = _get_cc_to_xls_ir_library_name(ctx)
     library_name = ctx.attr.library_name or stem
     ir_file, metadata_file, metadata_entry_file = _build_ir(ctx, library_name)
-    generic_struct_h = _generate_generic_struct_header(ctx, library_name, metadata_file)
+    generic_struct_h = _generate_generic_struct_header(ctx, library_name, metadata_file, ctx.attr.unwrap)
 
     outputs = [
         ir_file,
@@ -197,6 +203,13 @@ cc_to_xls_ir = rule(
             doc = """
             The name used for the output files (<library_name>.cc and <library_name>.h);
             If not specified, the default is derived from the basename of the source file.
+            """,
+        ),
+        "unwrap": attr.string_list(
+            doc = """
+            A list of struct names to unwrap.  To unwrap a struct is defined
+            only for structs that contain a single field.  When unwrapping a
+            struct, its type is replaced by the type of its field.
             """,
         ),
         "_xlscc": _executable_attr(_XLSCC),
@@ -464,7 +477,7 @@ def verilog_to_netlist(name, src, encryption):
     else:
         fail("Invalid encryption value:", encryption)
 
-def _fhe_transpile_ir(ctx, library_name, stem, src, metadata, optimizer, encryption, encryption_specific_transpiled_structs_header, interpreter):
+def _fhe_transpile_ir(ctx, library_name, stem, src, metadata, optimizer, encryption, encryption_specific_transpiled_structs_header, interpreter, skip_scheme_data_deps):
     """Transpile XLS IR into C++ source."""
 
     if library_name == stem:
@@ -492,6 +505,8 @@ def _fhe_transpile_ir(ctx, library_name, stem, src, metadata, optimizer, encrypt
     ]
     if interpreter:
         args.append("-interpreter")
+    if skip_scheme_data_deps:
+        args.append("-skip_scheme_data_deps")
 
     ctx.actions.run(
         inputs = [src, metadata, encryption_specific_transpiled_structs_header],
@@ -540,7 +555,7 @@ def _fhe_transpile_netlist(ctx, library_name, stem, src, metadata, optimizer, en
     )
     return [out_cc, out_h]
 
-def _generate_encryption_specific_transpiled_structs_header_path(ctx, library_name, stem, metadata, generic_struct_header, encryption):
+def _generate_encryption_specific_transpiled_structs_header_path(ctx, library_name, stem, metadata, generic_struct_header, encryption, unwrap = []):
     """Transpile XLS C++ structs/classes into scheme-specific FHE base classes."""
     header_name = stem + "_" + encryption
     if stem != library_name:
@@ -557,6 +572,12 @@ def _generate_encryption_specific_transpiled_structs_header_path(ctx, library_na
         "-backend_type",
         encryption,
     ]
+    if len(unwrap):
+        args += [
+            "-unwrap",
+            ",".join(unwrap),
+        ]
+
     ctx.actions.run(
         inputs = [metadata, generic_struct_header],
         outputs = [specific_struct_h],
@@ -589,6 +610,7 @@ def _xls_cc_transpiled_structs_impl(ctx):
         metadata,
         generic_struct_header,
         encryption,
+        ctx.attr.unwrap,
     )
 
     return [
@@ -618,6 +640,13 @@ xls_cc_transpiled_structs = rule(
             """,
             values = FHE_ENCRYPTION_SCHEMES.keys(),
             default = "tfhe",
+        ),
+        "unwrap": attr.string_list(
+            doc = """
+            A list of struct names to unwrap.  To unwrap a struct is defined
+            only for structs that contain a single field.  When unwrapping a
+            struct, its type is replaced by the type of its field.
+            """,
         ),
         "_struct_header_generator": _executable_attr(_STRUCT_HEADER_GENERATOR),
     },
@@ -714,6 +743,7 @@ def _cc_fhe_ir_library_impl(ctx):
     encryption = ctx.attr.encryption
     src = ctx.attr.src
     transpiled_structs = ctx.attr.transpiled_structs
+    skip_scheme_data_deps = ctx.attr.skip_scheme_data_deps
 
     all_files = src[DefaultInfo].files
     ir = src[BooleanifiedIrOutputInfo].ir.to_list()[0]
@@ -755,6 +785,7 @@ def _cc_fhe_ir_library_impl(ctx):
             encryption,
             encryption_specific_transpiled_structs_header,
             interpreter,
+            skip_scheme_data_deps,
         )
 
     input_headers = []
@@ -809,6 +840,15 @@ _cc_fhe_bool_ir_library = rule(
             """,
             default = False,
         ),
+        "skip_scheme_data_deps": attr.bool(
+            doc = """
+            When set to True, it causes the transpiler to not emit depednencies
+            for tfhe_data.h, openfhe_data.h, and boolean_data.h.  This is used
+            to avoid circular dependencies when generating C++ libraries for
+            the numeric primitives.
+            """,
+            default = False,
+        ),
         "_fhe_transpiler": _executable_attr(_FHE_TRANSPILER),
     },
 )
@@ -846,6 +886,17 @@ _cc_fhe_netlist_library = rule(
             """,
             default = False,
         ),
+        "skip_scheme_data_deps": attr.bool(
+            doc = """
+            When set to True, it causes the transpiler to not emit depednencies
+            for tfhe_data.h, openfhe_data.h, and boolean_data.h.  This is used
+            to avoid circular dependencies when generating C++ libraries for
+            the numeric primitives.
+
+            Always set to False when generating netlist libraries.
+            """,
+            default = False,
+        ),
         "cell_library": attr.label(
             doc = "A single cell-definition library in Liberty format.",
             allow_single_file = [".liberty"],
@@ -854,7 +905,7 @@ _cc_fhe_netlist_library = rule(
     },
 )
 
-def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption, interpreter, hdrs = [], copts = [], **kwargs):
+def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption, interpreter, hdrs = [], copts = [], skip_scheme_data_deps = False, **kwargs):
     tags = kwargs.pop("tags", None)
 
     transpiled_files = "{}.transpiled_files".format(name)
@@ -869,6 +920,7 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
                 transpiled_structs = transpiled_structs,
                 encryption = encryption,
                 interpreter = interpreter,
+                skip_scheme_data_deps = skip_scheme_data_deps,
             )
         else:  # optimizer == "yosys":
             _cc_fhe_netlist_library(
@@ -878,6 +930,7 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
                 encryption = encryption,
                 interpreter = interpreter,
                 cell_library = FHE_ENCRYPTION_SCHEMES[encryption],
+                skip_scheme_data_deps = False,
             )
     else:
         fail("Invalid encryption value:", encryption)
@@ -911,77 +964,78 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/types:span",
         "//transpiler:common_runner",
+        "//transpiler/data:cleartext_value",
     ]
 
-    if optimizer == "xls":
-        if encryption == "cleartext":
-            if interpreter:
-                fail("No XLS interpreter for cleartext is currently implemented.")
-            deps.extend([
-                "//transpiler/data:cleartext_value",
-                "//transpiler/data:boolean_data",
-            ])
-        elif encryption == "tfhe":
-            deps.extend([
-                "@tfhe//:libtfhe",
-                "//transpiler/data:cleartext_value",
-                "//transpiler/data:tfhe_value",
-                "//transpiler/data:boolean_data",
-                "//transpiler/data:tfhe_data",
-            ])
-            if interpreter:
+    if encryption == "cleartext":
+        pass
+    elif encryption == "tfhe":
+        deps.extend([
+            "@tfhe//:libtfhe",
+            "//transpiler/data:tfhe_value",
+        ])
+    elif encryption == "openfhe":
+        deps.extend([
+            "@openfhe//:binfhe",
+            "//transpiler/data:openfhe_value",
+        ])
+
+    if not skip_scheme_data_deps:
+        if optimizer == "xls":
+            if encryption == "cleartext":
+                if interpreter:
+                    fail("No XLS interpreter for cleartext is currently implemented.")
+                deps.extend([
+                    "//transpiler/data:boolean_data",
+                ])
+            elif encryption == "tfhe":
+                deps.extend([
+                    "//transpiler/data:boolean_data",
+                    "//transpiler/data:tfhe_data",
+                ])
+                if interpreter:
+                    deps.extend([
+                        "@com_google_absl//absl/status:statusor",
+                        "//transpiler:tfhe_runner",
+                        "@com_google_xls//xls/common/status:status_macros",
+                    ])
+            elif encryption == "openfhe":
+                deps.extend([
+                    "//transpiler/data:boolean_data",
+                    "//transpiler/data:openfhe_data",
+                ])
+                if interpreter:
+                    deps.extend([
+                        "@com_google_absl//absl/status:statusor",
+                        "//transpiler:openfhe_runner",
+                        "@com_google_xls//xls/common/status:status_macros",
+                    ])
+        else:
+            if not interpreter:
+                fail("The Yosys pipeline only implements interpreter execution.")
+            if encryption == "cleartext":
                 deps.extend([
                     "@com_google_absl//absl/status:statusor",
-                    "//transpiler:tfhe_runner",
+                    "//transpiler:yosys_cleartext_runner",
+                    "//transpiler/data:boolean_data",
                     "@com_google_xls//xls/common/status:status_macros",
                 ])
-        elif encryption == "openfhe":
-            deps.extend([
-                "//transpiler/data:cleartext_value",
-                "//transpiler/data:openfhe_value",
-                "//transpiler/data:boolean_data",
-                "//transpiler/data:openfhe_data",
-                "@openfhe//:binfhe",
-            ])
-            if interpreter:
+            elif encryption == "tfhe":
                 deps.extend([
                     "@com_google_absl//absl/status:statusor",
-                    "//transpiler:openfhe_runner",
+                    "//transpiler:yosys_tfhe_runner",
+                    "//transpiler/data:boolean_data",
+                    "//transpiler/data:tfhe_data",
                     "@com_google_xls//xls/common/status:status_macros",
                 ])
-    else:
-        if not interpreter:
-            fail("The Yosys pipeline only implements interpreter execution.")
-        if encryption == "cleartext":
-            deps.extend([
-                "@com_google_absl//absl/status:statusor",
-                "//transpiler:yosys_cleartext_runner",
-                "//transpiler/data:cleartext_value",
-                "//transpiler/data:boolean_data",
-                "@com_google_xls//xls/common/status:status_macros",
-            ])
-        elif encryption == "tfhe":
-            deps.extend([
-                "@com_google_absl//absl/status:statusor",
-                "//transpiler:yosys_tfhe_runner",
-                "//transpiler/data:boolean_data",
-                "//transpiler/data:cleartext_value",
-                "//transpiler/data:tfhe_value",
-                "//transpiler/data:tfhe_data",
-                "@tfhe//:libtfhe",
-                "@com_google_xls//xls/common/status:status_macros",
-            ])
-        elif encryption == "openfhe":
-            deps.extend([
-                "@com_google_absl//absl/status:statusor",
-                "//transpiler:yosys_openfhe_runner",
-                "//transpiler/data:cleartext_value",
-                "//transpiler/data:openfhe_value",
-                "//transpiler/data:boolean_data",
-                "//transpiler/data:openfhe_data",
-                "@openfhe//:binfhe",
-                "@com_google_xls//xls/common/status:status_macros",
-            ])
+            elif encryption == "openfhe":
+                deps.extend([
+                    "@com_google_absl//absl/status:statusor",
+                    "//transpiler:yosys_openfhe_runner",
+                    "//transpiler/data:boolean_data",
+                    "//transpiler/data:openfhe_data",
+                    "@com_google_xls//xls/common/status:status_macros",
+                ])
 
     native.cc_library(
         name = name,
@@ -993,7 +1047,7 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
         **kwargs
     )
 
-def cc_fhe_bool_ir_library(name, src, transpiled_structs, encryption, interpreter, copts = [], **kwargs):
+def cc_fhe_bool_ir_library(name, src, transpiled_structs, encryption, interpreter, copts = [], skip_scheme_data_deps = False, **kwargs):
     _cc_fhe_common_library(
         name = name,
         optimizer = "xls",
@@ -1002,6 +1056,7 @@ def cc_fhe_bool_ir_library(name, src, transpiled_structs, encryption, interprete
         encryption = encryption,
         interpreter = interpreter,
         copts = copts,
+        skip_scheme_data_deps = skip_scheme_data_deps,
         **kwargs
     )
 

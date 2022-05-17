@@ -277,3 +277,38 @@ cc_test(
         "@com_google_xls//xls/common/status:matchers",
     ],
 )
+
+cc_test(
+    name = "array_of_scalars_cleartext_test",
+    srcs = ["array_of_scalars_cleartext_test.cc"],
+    deps = [
+        "//transpiler/data:boolean_data",
+        "@com_google_absl//absl/base",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_xls//xls/common/status:matchers",
+    ],
+)
+
+cc_test(
+    name = "array_of_scalars_tfhe_test",
+    srcs = ["array_of_scalars_tfhe_test.cc"],
+    deps = [
+        ":test_util",
+        "//transpiler/data:boolean_data",
+        "@com_google_absl//absl/base",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_xls//xls/common/status:matchers",
+    ],
+)
+
+cc_test(
+    name = "array_of_scalars_openfhe_test",
+    srcs = ["array_of_scalars_openfhe_test.cc"],
+    deps = [
+        ":openfhe_test_util",
+        "//transpiler/data:boolean_data",
+        "@com_google_absl//absl/base",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_xls//xls/common/status:matchers",
+    ],
+)

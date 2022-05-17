@@ -107,8 +107,8 @@ TEST(BooleanDataTest, TfheRefs) {
   // Test creating a reference to a value, passing that reference around, and
   // assigning it to another value.
   TfheInt int_val_a = TfheInt::Encrypt(0x12345678, key);
-  TfheValueRef<int> int_val_a_ref = int_val_a;
-  TfheValueRef<int> int_val_b_ref = int_val_a_ref;
+  TfheIntRef int_val_a_ref = int_val_a;
+  TfheIntRef int_val_b_ref = int_val_a_ref;
   TfheInt int_val_b(params);
   int_val_b = int_val_b_ref;
   EXPECT_EQ(int_val_b.Decrypt(key), 0x12345678);
@@ -120,8 +120,8 @@ TEST(BooleanDataTest, TfheRefs) {
   const std::vector<int> expected_int_array = {1, 2};
   auto decoded = int_array.Decrypt(key);
   for (int i = 0; i < expected_int_array.size(); i++) {
-    TfheValueRef<int> el_ref = int_array[i];
-    TfheValueRef<int> el_ref_b = el_ref;
+    TfheIntRef el_ref = int_array[i];
+    TfheIntRef el_ref_b = el_ref;
     TfheInt el(params);
     el = el_ref_b;
     EXPECT_EQ(decoded[i], expected_int_array[i]);

@@ -41,6 +41,7 @@ cc_library(
     hdrs = ["convert_struct_to_encoded.h"],
     visibility = ["//visibility:public"],
     deps = [
+        "//transpiler:common_transpiler",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/container:flat_hash_set",
         "@com_google_absl//absl/status",

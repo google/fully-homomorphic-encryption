@@ -102,8 +102,9 @@ class AbstractXLSTranspiler {
   static absl::StatusOr<std::string> TranslateHeader(
       const xls::Function* function,
       const xlscc_metadata::MetadataOutput& metadata,
-      absl::string_view header_path) {
-    return TranspilerT::TranslateHeader(function, metadata, header_path);
+      absl::string_view header_path, bool skip_scheme_data_deps) {
+    return TranspilerT::TranslateHeader(function, metadata, header_path,
+                                        skip_scheme_data_deps);
   }
 
   static absl::StatusOr<std::string> PathToHeaderGuard(

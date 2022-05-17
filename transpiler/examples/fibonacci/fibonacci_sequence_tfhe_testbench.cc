@@ -16,6 +16,7 @@
 #include <time.h>
 
 #include <array>
+#include <cstddef>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -24,6 +25,7 @@
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
 #include "transpiler/data/tfhe_data.h"
+#include "transpiler/examples/fibonacci/fibonacci_sequence.h"
 #include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_TFHE
@@ -45,19 +47,19 @@ int main(int argc, char** argv) {
   TFHESecretKeySet key(params, seed);
 
   // Create inputs.
-  int input = 5;
-  auto encrypted_input = TfheValue<int>::Encrypt(input, key);
+  int input = 7;
+  auto encrypted_input = TfheInt::Encrypt(input, key);
   std::cout << absl::StreamFormat("Decrypted input: %d",
                                   encrypted_input.Decrypt(key))
             << std::endl;
 
-  TfheArray<int> encrypted_result(500, params);
+  TfheArray<int, FIBONACCI_SEQUENCE_SIZE> encrypted_result(params);
   XLS_CHECK_OK(
       fibonacci_sequence(encrypted_input, encrypted_result, key.cloud()));
   absl::FixedArray<int> result = encrypted_result.Decrypt(key);
-  std::cout << absl::StrFormat("Result: %d, %d, %d, %d, %d", result[0],
-                               result[1], result[2], result[3], result[4])
-            << std::endl;
+  for (int i = 0; i < result.size(); i++) {
+    std::cout << absl::StrFormat("Result %d: %d", i, result[i]) << std::endl;
+  }
 
   return 0;
 }

@@ -37,7 +37,8 @@ class OpenFheTranspiler : public AbstractXLSTranspiler<OpenFheTranspiler> {
       const xlscc_metadata::MetadataOutput& metadata,
       absl::string_view header_path,
       const absl::string_view
-          encryption_specific_transpiled_structs_header_path);
+          encryption_specific_transpiled_structs_header_path,
+      bool skip_scheme_data_deps = false);
 
   static absl::StatusOr<std::string> FunctionSignature(
       const xls::Function* function,

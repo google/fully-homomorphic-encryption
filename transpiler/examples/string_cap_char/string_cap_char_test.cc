@@ -73,7 +73,7 @@ TEST(StringCapCharTest, CorrectlyCapitalizesLongPhraseEncrypted) {
   int32_t data_size = plaintext.size();
 
   auto ciphertext = TfheString::Encrypt(plaintext, key);
-  TfheString cipher_result = {data_size, params};
+  TfheString cipher_result(data_size, params);
 
   TfheState state(params);
   state.SetUnencrypted(State(), key.cloud());

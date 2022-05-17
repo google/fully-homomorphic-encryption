@@ -36,8 +36,8 @@ using ::testing::TestParamInfo;
 using ::testing::ValuesIn;
 using ::testing::WithParamInterface;
 
-using TfheIndex = TfheValue<Index>;
-using TfheRecordT = TfheValue<RecordT>;
+using TfheIndex = TfheUnsignedChar;
+using TfheRecordT = TfheUnsignedChar;
 
 struct TranspilerExamplesPirTestCase {
   const std::string test_name;

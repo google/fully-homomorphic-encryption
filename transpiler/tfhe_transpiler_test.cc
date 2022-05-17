@@ -598,7 +598,7 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_Param) {
 
 absl::Status test_fn_UNSAFE(absl::Span<const LweSample> param, const TFheGateBootstrappingCloudKeySet* bk);
 
-absl::Status test_fn(const TfheValueRef<int16_t> param,
+absl::Status test_fn(const TfhePrimitiveSignedShortRef param,
  const TFheGateBootstrappingCloudKeySet* bk) {
   return test_fn_UNSAFE(param.get(), bk);
 }
@@ -645,7 +645,7 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_MultipleParams) {
 
 absl::Status test_fn_UNSAFE($0, const TFheGateBootstrappingCloudKeySet* bk);
 
-absl::Status test_fn(const TfheValueRef<bool> param_0, const TfheValueRef<bool> param_1, const TfheValueRef<bool> param_2, const TfheValueRef<bool> param_3, const TfheValueRef<bool> param_4,
+absl::Status test_fn(const TfhePrimitiveBoolRef param_0, const TfhePrimitiveBoolRef param_1, const TfhePrimitiveBoolRef param_2, const TfhePrimitiveBoolRef param_3, const TfhePrimitiveBoolRef param_4,
  const TFheGateBootstrappingCloudKeySet* bk) {
   return test_fn_UNSAFE(param_0.get(), param_1.get(), param_2.get(), param_3.get(), param_4.get(), bk);
 }

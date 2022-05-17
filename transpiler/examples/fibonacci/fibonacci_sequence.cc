@@ -15,7 +15,7 @@
 #include "fibonacci_sequence.h"  // NOLINT: xlscc currently needs locally-scoped includes.
 
 #pragma hls_top
-void fibonacci_sequence(int n, int output[5]) {
+void fibonacci_sequence(int n, int output[FIBONACCI_SEQUENCE_SIZE]) {
   if (n < 0 || n > 10) {
     return;
   }
@@ -43,7 +43,7 @@ void fibonacci_sequence(int n, int output[5]) {
     output[0] = cur;
   }
 #pragma hls_unroll yes
-  for (int i = 1; i < 5; i++) {
+  for (int i = 1; i < FIBONACCI_SEQUENCE_SIZE; i++) {
     temp = cur;
     cur = prev + cur;
     prev = temp;

@@ -117,8 +117,8 @@ TEST(BooleanDataTest, OpenFheRefs) {
   // Test creating a reference to a value, passing that reference around, and
   // assigning it to another value.
   OpenFheInt int_val_a = OpenFheInt::Encrypt(0x12345678, cc, sk);
-  OpenFheValueRef<int> int_val_a_ref = int_val_a;
-  OpenFheValueRef<int> int_val_b_ref = int_val_a_ref;
+  OpenFheIntRef int_val_a_ref = int_val_a;
+  OpenFheIntRef int_val_b_ref = int_val_a_ref;
   OpenFheInt int_val_b(cc);
   int_val_b = int_val_b_ref;
   EXPECT_EQ(int_val_b.Decrypt(sk), 0x12345678);
@@ -130,8 +130,8 @@ TEST(BooleanDataTest, OpenFheRefs) {
   const std::vector<int> expected_int_array = {1, 2};
   auto decoded = int_array.Decrypt(sk);
   for (int i = 0; i < expected_int_array.size(); i++) {
-    OpenFheValueRef<int> el_ref = int_array[i];
-    OpenFheValueRef<int> el_ref_b = el_ref;
+    OpenFheIntRef el_ref = int_array[i];
+    OpenFheIntRef el_ref_b = el_ref;
     OpenFheInt el(cc);
     el = el_ref_b;
     EXPECT_EQ(decoded[i], expected_int_array[i]);

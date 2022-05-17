@@ -43,7 +43,7 @@ TEST_F(TranspilerTypesTest, TestArray) {
 
 TEST_F(TranspilerTypesTest, TestChar) {
   auto ciphertext = OpenFheChar::Encrypt('a', cc(), sk());
-  OpenFheValue<char> result(cc());
+  OpenFheChar result(cc());
   XLS_ASSERT_OK(test_char(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), 'b');
 }
@@ -56,8 +56,8 @@ TEST_F(TranspilerTypesTest, TestInt) {
 }
 
 TEST_F(TranspilerTypesTest, TestLong) {
-  auto ciphertext = OpenFheValue<long>::Encrypt(100, cc(), sk());
-  OpenFheValue<long> result(cc());
+  auto ciphertext = OpenFheLong::Encrypt(100, cc(), sk());
+  OpenFheLong result(cc());
   XLS_ASSERT_OK(test_long(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), 101);
 }

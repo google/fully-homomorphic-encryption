@@ -20,19 +20,20 @@
 #include "absl/container/fixed_array.h"
 #include "absl/strings/str_format.h"
 #include "transpiler/data/boolean_data.h"
+#include "transpiler/examples/fibonacci/fibonacci_sequence.h"
 #include "transpiler/examples/fibonacci/fibonacci_sequence_cleartext.h"
 #include "xls/common/logging/logging.h"
 
 int main(int argc, char** argv) {
-  EncodedInt input(5);
-  EncodedArray<int> encoded_result({0, 0, 0, 0, 0});
+  EncodedInt input(7);
+  EncodedArray<int, FIBONACCI_SEQUENCE_SIZE> encoded_result({0, 0, 0, 0, 0});
 
   XLS_CHECK_OK(fibonacci_sequence(input, encoded_result));
-  absl::FixedArray<int> result = encoded_result.Decode();
 
-  std::cout << absl::StrFormat("Result: %d, %d, %d, %d, %d", result[0],
-                               result[1], result[2], result[3], result[4])
-            << std::endl;
+  absl::FixedArray<int> result = encoded_result.Decode();
+  for (int i = 0; i < result.size(); i++) {
+    std::cout << absl::StrFormat("Result %d: %d", i, result[i]) << std::endl;
+  }
 
   return 0;
 }

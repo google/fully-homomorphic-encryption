@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
   cipherstate.SetEncrypted(st, key.get());
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform string capitalization
-  TfheString cipher_result = {data_size, params};
+  TfheString cipher_result(data_size, params);
   TfheStringCap(cipher_result, ciphertext, data_size, cipherstate, key.cloud());
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 

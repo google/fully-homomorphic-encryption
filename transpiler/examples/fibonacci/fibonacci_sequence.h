@@ -15,8 +15,10 @@
 #ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_FIBONACCI_FIBONACCI_SEQUENCE_H_
 #define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_FIBONACCI_FIBONACCI_SEQUENCE_H_
 
+#define FIBONACCI_SEQUENCE_SIZE 5
+
 // Computes 5 values in Fibonacci sequence starting from n'th number.
 // n must be between 0 and 10.
-void fibonacci_sequence(int n, int output[5]);
+void fibonacci_sequence(int n, int output[FIBONACCI_SEQUENCE_SIZE]);
 
 #endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_FIBONACCI_FIBONACCI_SEQUENCE_H_

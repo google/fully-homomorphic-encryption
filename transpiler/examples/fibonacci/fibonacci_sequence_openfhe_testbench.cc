@@ -23,6 +23,7 @@
 #include "absl/strings/str_format.h"
 #include "palisade/binfhe/binfhecontext.h"
 #include "transpiler/data/openfhe_data.h"
+#include "transpiler/examples/fibonacci/fibonacci_sequence.h"
 #include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_OPENFHE
@@ -43,18 +44,19 @@ int main(int argc, char** argv) {
   cc.BTKeyGen(sk);
 
   // Create inputs.
-  int input = 5;
-  auto encrypted_input = OpenFheValue<int>::Encrypt(input, cc, sk);
+  int input = 7;
+  auto encrypted_input = OpenFheInt::Encrypt(input, cc, sk);
   std::cout << absl::StreamFormat("Decrypted input: %d",
                                   encrypted_input.Decrypt(sk))
             << std::endl;
 
-  OpenFheArray<int> encrypted_result(500, cc);
+  OpenFheArray<int, FIBONACCI_SEQUENCE_SIZE> encrypted_result(cc);
   XLS_CHECK_OK(fibonacci_sequence(encrypted_input, encrypted_result, cc));
+
   absl::FixedArray<int> result = encrypted_result.Decrypt(sk);
-  std::cout << absl::StrFormat("Result: %d, %d, %d, %d, %d", result[0],
-                               result[1], result[2], result[3], result[4])
-            << std::endl;
+  for (int i = 0; i < result.size(); i++) {
+    std::cout << absl::StrFormat("Result %d: %d", i, result[i]) << std::endl;
+  }
 
   return 0;
 }

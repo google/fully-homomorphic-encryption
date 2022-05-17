@@ -15,12 +15,41 @@
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 
+absl::optional<std::string> GetTypeName(const xlscc_metadata::Type& type) {
+  if (type.has_as_bool()) {
+    return "bool";
+  } else if (type.has_as_int()) {
+    const xlscc_metadata::IntType& int_type = type.as_int();
+    switch (int_type.width()) {
+      case 8:
+        XLS_CHECK(int_type.has_is_declared_as_char());
+        if (int_type.is_declared_as_char()) {
+          return "char";
+        }
+        [[fallthrough]];
+      case 16:
+      case 32:
+      case 64:
+        return absl::Substitute("$0int$1_t", (int_type.is_signed() ? "" : "u"),
+                                int_type.width());
+    }
+  } else if (type.has_as_struct()) {
+    const xlscc_metadata::StructType& struct_type = type.as_struct();
+    return struct_type.name().as_inst().name().name();
+  } else if (type.has_as_inst()) {
+    const xlscc_metadata::InstanceType& inst_type = type.as_inst();
+    return inst_type.name().name();
+  }
+
+  return absl::nullopt;
+}
+
 static std::string TypeReference(const xlscc_metadata::Type& type,
                                  bool is_reference,
                                  const absl::string_view prefix,
                                  const std::string default_type) {
   if (type.has_as_bool()) {
-    return absl::Substitute("$0Value$1<bool>", prefix,
+    return absl::Substitute("$0PrimitiveBool$1", prefix,
                             is_reference ? "Ref" : "");
   } else if (type.has_as_int()) {
     const xlscc_metadata::IntType& int_type = type.as_int();
@@ -28,16 +57,24 @@ static std::string TypeReference(const xlscc_metadata::Type& type,
       case 8:
         XLS_CHECK(int_type.has_is_declared_as_char());
         if (int_type.is_declared_as_char()) {
-          return absl::Substitute("$0Char$1", prefix,
+          return absl::Substitute("$0PrimitiveChar$1", prefix,
                                   is_reference ? "Ref" : "");
         }
-        [[fallthrough]];
+        return absl::Substitute("$0Primitive$1Char$2", prefix,
+                                (int_type.is_signed() ? "Signed" : "Unsigned"),
+                                is_reference ? "Ref" : "");
       case 16:
+        return absl::Substitute("$0Primitive$1Short$2", prefix,
+                                (int_type.is_signed() ? "Signed" : "Unsigned"),
+                                is_reference ? "Ref" : "");
       case 32:
+        return absl::Substitute("$0Primitive$1Int$2", prefix,
+                                (int_type.is_signed() ? "Signed" : "Unsigned"),
+                                is_reference ? "Ref" : "");
       case 64:
-        return absl::Substitute(
-            "$0Value$1<$2int$3_t>", prefix, is_reference ? "Ref" : "",
-            (int_type.is_signed() ? "" : "u"), int_type.width());
+        return absl::Substitute("$0Primitive$1Long$2", prefix,
+                                (int_type.is_signed() ? "Signed" : "Unsigned"),
+                                is_reference ? "Ref" : "");
     }
   } else if (type.has_as_struct()) {
     const xlscc_metadata::StructType& struct_type = type.as_struct();
@@ -78,17 +115,17 @@ static std::string TypeReference(const xlscc_metadata::Type& type,
         case 16:
         case 32:
         case 64:
-          return absl::Substitute("$0Array$1<$2int$3_t>", prefix,
+          return absl::Substitute("$0Array$1<$2int$3_t,$4>", prefix,
                                   is_reference ? "Ref" : "",
                                   (element_int_type.is_signed() ? "" : "u"),
-                                  element_int_type.width());
+                                  element_int_type.width(), str_dimensions);
         default:
           XLS_CHECK(false);
       }
     } else {
       XLS_CHECK(element_type.has_as_inst());
       const xlscc_metadata::InstanceType& inst_type = element_type.as_inst();
-      return absl::Substitute("$0Array$1<$2,void,$3>", prefix,
+      return absl::Substitute("$0Array$1<$2,$3>", prefix,
                               is_reference ? "Ref" : "",
                               inst_type.name().name(), str_dimensions);
     }

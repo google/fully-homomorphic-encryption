@@ -25,12 +25,14 @@
 #include "absl/container/flat_hash_set.h"
 #include "absl/status/status.h"
 #include "absl/strings/ascii.h"
+#include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_replace.h"
 #include "absl/strings/string_view.h"
 #include "absl/strings/substitute.h"
+#include "transpiler/common_transpiler.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
 
@@ -213,29 +215,33 @@ absl::StatusOr<std::string> GenerateSetOrEncryptStructElement(
     absl::string_view source_var, bool encrypt);
 
 absl::StatusOr<std::string> GenerateSetOrEncryptOneElement(
-    const IdToType& id_to_type, const StructField& field, bool encrypt) {
+    const IdToType& id_to_type, const StructField& field, bool encrypt,
+    bool use_field = true) {
   std::vector<std::string> lines;
+  std::string field_name = "value";
+  if (use_field) {
+    absl::StrAppend(&field_name, ".", field.name());
+  }
   if (field.type().has_as_array()) {
     XLS_ASSIGN_OR_RETURN(
         std::string array_lines,
-        GenerateSetOrEncryptArrayElement(id_to_type, field.name(),
+        GenerateSetOrEncryptArrayElement(id_to_type, field_name,
                                          field.type().as_array(), encrypt));
     lines.push_back(array_lines);
   } else if (field.type().has_as_bool()) {
-    XLS_ASSIGN_OR_RETURN(
-        std::string bool_lines,
-        GenerateSetOrEncryptBoolElement(field.name(), encrypt));
+    XLS_ASSIGN_OR_RETURN(std::string bool_lines,
+                         GenerateSetOrEncryptBoolElement(field_name, encrypt));
     lines.push_back(bool_lines);
   } else if (field.type().has_as_int()) {
-    XLS_ASSIGN_OR_RETURN(std::string int_lines,
-                         GenerateSetOrEncryptIntegralElement(
-                             field.type(), field.name(), encrypt));
+    XLS_ASSIGN_OR_RETURN(
+        std::string int_lines,
+        GenerateSetOrEncryptIntegralElement(field.type(), field_name, encrypt));
     lines.push_back(int_lines);
   } else if (field.type().has_as_inst()) {
     XLS_ASSIGN_OR_RETURN(
         std::string struct_lines,
         GenerateSetOrEncryptStructElement(id_to_type, field.type().as_inst(),
-                                          field.name(), encrypt));
+                                          field_name, encrypt));
     lines.push_back(struct_lines);
   } else {
     return absl::InvalidArgumentError(
@@ -292,10 +298,9 @@ absl::StatusOr<std::string> GenerateSetOrEncryptBoolElement(
     absl::string_view source, bool encrypt) {
   std::vector<std::string> lines;
   std::string op = encrypt ? "EncryptFn" : "UnencryptedFn";
-  lines.push_back(
-      absl::Substitute("        $0(EncodedValue<bool>(value.$1).get(), key, "
-                       "absl::MakeSpan(data, 1));",
-                       op, source));
+  lines.push_back(absl::Substitute(
+      "        $0(EncodedValue<bool>($1).get(), key, absl::MakeSpan(data, 1));",
+      op, source));
   lines.push_back("        data += 1;");
   return absl::StrJoin(lines, "\n");
 }
@@ -308,10 +313,9 @@ absl::StatusOr<std::string> GenerateSetOrEncryptIntegralElement(
   XLS_ASSIGN_OR_RETURN(std::string int_type_name,
                        XlsccToNativeIntegerType(int_type));
 
-  lines.push_back(
-      absl::Substitute("        $0(EncodedValue<$1>(value.$2).get(), key, "
-                       "absl::MakeSpan(data, $3));",
-                       op, int_type_name, source_var, int_type.width()));
+  lines.push_back(absl::Substitute(
+      "        $0(EncodedValue<$1>($2).get(), key, absl::MakeSpan(data, $3));",
+      op, int_type_name, source_var, int_type.width()));
   lines.push_back(absl::Substitute("        data += $0;", int_type.width()));
 
   return absl::StrJoin(lines, "\n");
@@ -329,7 +333,7 @@ absl::StatusOr<std::string> GenerateSetOrEncryptStructElement(
   lines.push_back(absl::Substitute(
       "        $2<Sample, SampleArrayDeleter, SecretKey, "
       "PublicKey, BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn, "
-      "DecryptFn>::Borrowed$0(value.$1, data, key);",
+      "DecryptFn>::Borrowed$0($1, data, key);",
       op, source_var, struct_name));
   lines.push_back(absl::Substitute("        data += $0;", type_data.bit_width));
 
@@ -337,19 +341,17 @@ absl::StatusOr<std::string> GenerateSetOrEncryptStructElement(
 }
 
 absl::StatusOr<std::string> GenerateSetOrEncryptFunction(
-    const IdToType& id_to_type, const StructType& struct_type, bool encrypt) {
+    const IdToType& id_to_type, const StructType& struct_type, bool encrypt,
+    bool use_field) {
   std::vector<std::string> lines;
-  std::vector<std::string> reversed_buffer_lines;
   for (int i = 0; i < struct_type.fields_size(); i++) {
-    XLS_ASSIGN_OR_RETURN(std::string line,
-                         GenerateSetOrEncryptOneElement(
-                             id_to_type, struct_type.fields(i), encrypt));
+    XLS_ASSIGN_OR_RETURN(
+        std::string line,
+        GenerateSetOrEncryptOneElement(id_to_type, struct_type.fields(i),
+                                       encrypt, use_field));
     lines.push_back(line);
-    XLS_ASSIGN_OR_RETURN(std::string reverse_buffer_line,
-                         GenerateSetOrEncryptOneElement(
-                             id_to_type, struct_type.fields(i), encrypt));
-    reversed_buffer_lines.push_back(reverse_buffer_line);
   }
+  std::vector<std::string> reversed_buffer_lines = lines;
   std::reverse(reversed_buffer_lines.begin(), reversed_buffer_lines.end());
   return absl::StrCat(
       "    if (GetStructEncodeOrder() == StructEncodeOrder::REVERSE) {\n",
@@ -445,7 +447,7 @@ absl::StatusOr<std::string> GenerateDecryptBool(const IdToType& id_to_type,
       "        DecryptFn(absl::MakeConstSpan(data, 1), key, encoded_$0.get());",
       temp_name));
   lines.push_back("        data += 1;");
-  lines.push_back(absl::Substitute("        result->$0 = encoded_$1.Decode();",
+  lines.push_back(absl::Substitute("        $0 = encoded_$1.Decode();",
                                    output_loc, temp_name));
   return absl::StrJoin(lines, "\n");
 }
@@ -462,7 +464,7 @@ absl::StatusOr<std::string> GenerateDecryptIntegral(
                        "encoded_$0.get());",
                        temp_name, int_type.width()));
   lines.push_back(absl::Substitute("        data += $0;", int_type.width()));
-  lines.push_back(absl::Substitute("        result->$0 = encoded_$1.Decode();",
+  lines.push_back(absl::Substitute("        $0 = encoded_$1.Decode();",
                                    output_loc, temp_name));
   return absl::StrJoin(lines, "\n");
 }
@@ -477,27 +479,31 @@ absl::StatusOr<std::string> GenerateDecryptStruct(
   lines.push_back(absl::Substitute(
       "        $0<Sample, SampleArrayDeleter, SecretKey, "
       "PublicKey, BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn, "
-      "DecryptFn>::BorrowedDecrypt(data, &result->$1, key);",
+      "DecryptFn>::BorrowedDecrypt(data, &$1, key);",
       struct_name, output_loc));
   lines.push_back(absl::Substitute("        data += $0;", type_data.bit_width));
   return absl::StrJoin(lines, "\n");
 }
 
 absl::StatusOr<std::string> GenerateDecryptFunction(
-    const IdToType& id_to_type, const StructType& struct_type) {
+    const IdToType& id_to_type, const StructType& struct_type,
+    bool use_field = true) {
   std::vector<std::string> lines;
   std::vector<std::string> reversed_buffer_lines;
   for (int i = 0; i < struct_type.fields_size(); i++) {
     const StructField& field = struct_type.fields(i);
-    XLS_ASSIGN_OR_RETURN(std::string line,
-                         GenerateDecryptOneElement(
-                             id_to_type, field, struct_type.fields(i).name()));
-    XLS_ASSIGN_OR_RETURN(std::string reversed_buffer_line,
-                         GenerateDecryptOneElement(
-                             id_to_type, field, struct_type.fields(i).name()));
+    std::string field_name = struct_type.fields(i).name();
+    std::string output_loc;
+    if (use_field) {
+      output_loc = absl::StrCat("result->", field_name);
+    } else {
+      output_loc = "(*result)";
+    }
+    XLS_ASSIGN_OR_RETURN(std::string line, GenerateDecryptOneElement(
+                                               id_to_type, field, output_loc));
     lines.push_back(line);
-    reversed_buffer_lines.push_back(reversed_buffer_line);
   }
+  reversed_buffer_lines = lines;
   std::reverse(reversed_buffer_lines.begin(), reversed_buffer_lines.end());
   return absl::StrCat(
       "    if (GetStructEncodeOrder() == StructEncodeOrder::REVERSE) {\n",
@@ -534,17 +540,6 @@ constexpr const char kFileTemplate[] = R"(#ifndef $2
 #include "transpiler/data/cleartext_value.h"
 $0
 
-template <class Sample, class BootstrappingKey>
-using CopyFnT = void(absl::Span<const Sample> value, const BootstrappingKey* key, absl::Span<Sample> out);
-
-template <class Sample, class PublicKey>
-using UnencryptedFnT = void(absl::Span<const bool> value, const PublicKey* key, absl::Span<Sample> out);
-
-template <class Sample, class SecretKey>
-using EncryptFnT = void(absl::Span<const bool> value, const SecretKey* key, absl::Span<Sample> out);
-
-template <class Sample, class SecretKey>
-using DecryptFnT = void(absl::Span<const Sample> ciphertext, const SecretKey* key, absl::Span<bool> plaintext);
 
 $1
 #endif//$2)";
@@ -1265,24 +1260,39 @@ class GenericEncoded$0ArrayRef<Sample, SampleArrayDeleter, SecretKey, PublicKey,
 };
 )";
 
-absl::StatusOr<std::string> ConvertStructToEncoded(const IdToType& id_to_type,
-                                                   int64_t id) {
+absl::StatusOr<std::string> ConvertStructToEncoded(
+    const IdToType& id_to_type, int64_t id,
+    const std::vector<std::string>& unwrap) {
   const StructType& struct_type = id_to_type.at(id).type;
-
-  int64_t bit_width = GetStructWidth(id_to_type, struct_type);
-
   xlscc_metadata::CPPName struct_name = struct_type.name().as_inst().name();
-  XLS_ASSIGN_OR_RETURN(std::string set_fn,
-                       GenerateSetOrEncryptFunction(id_to_type, struct_type,
-                                                    /*encrypt=*/false));
-  XLS_ASSIGN_OR_RETURN(std::string encrypt_fn,
-                       GenerateSetOrEncryptFunction(id_to_type, struct_type,
-                                                    /*encrypt=*/true));
-  XLS_ASSIGN_OR_RETURN(std::string decrypt_fn,
-                       GenerateDecryptFunction(id_to_type, struct_type));
-  std::string result = absl::Substitute(
-      kClassTemplate, struct_name.name(), struct_name.fully_qualified_name(),
-      set_fn, encrypt_fn, decrypt_fn, bit_width);
+  bool use_field = true;
+  std::string fully_qualified_name = struct_name.fully_qualified_name();
+  if (std::find(unwrap.begin(), unwrap.end(), struct_name.name()) !=
+      unwrap.end()) {
+    if (struct_type.fields_size() != 1) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Cannot unwrap struct %s, it has %d elements.",
+                          struct_name.name(), struct_type.fields_size()));
+    }
+    const StructField& field = struct_type.fields().Get(0);
+    fully_qualified_name = GetTypeName(field.type()).value();
+    use_field = false;
+  }
+
+  XLS_ASSIGN_OR_RETURN(std::string set_fn, GenerateSetOrEncryptFunction(
+                                               id_to_type, struct_type,
+                                               /*encrypt=*/false, use_field));
+  XLS_ASSIGN_OR_RETURN(
+      std::string encrypt_fn,
+      GenerateSetOrEncryptFunction(id_to_type, struct_type,
+                                   /*encrypt=*/true, use_field));
+  XLS_ASSIGN_OR_RETURN(
+      std::string decrypt_fn,
+      GenerateDecryptFunction(id_to_type, struct_type, use_field));
+  int64_t bit_width = GetStructWidth(id_to_type, struct_type);
+  std::string result =
+      absl::Substitute(kClassTemplate, struct_name.name(), fully_qualified_name,
+                       set_fn, encrypt_fn, decrypt_fn, bit_width);
   return result;
 }
 
@@ -1291,7 +1301,7 @@ absl::StatusOr<std::string> ConvertStructToEncoded(const IdToType& id_to_type,
 absl::StatusOr<std::string> ConvertStructsToEncodedTemplate(
     const xlscc_metadata::MetadataOutput& metadata,
     const std::vector<std::string>& original_headers,
-    absl::string_view output_path) {
+    absl::string_view output_path, const std::vector<std::string>& unwrap) {
   if (metadata.structs_size() == 0) {
     return "";
   }
@@ -1303,7 +1313,7 @@ absl::StatusOr<std::string> ConvertStructsToEncodedTemplate(
   std::vector<std::string> generated;
   for (int64_t id : struct_order) {
     XLS_ASSIGN_OR_RETURN(std::string struct_text,
-                         ConvertStructToEncoded(id_to_type, id));
+                         ConvertStructToEncoded(id_to_type, id, unwrap));
     generated.push_back(struct_text);
   }
 
@@ -1338,6 +1348,10 @@ $2
 // Bool struct template
 //  0: Struct name
 //  1: Fully-qualified struct-type name
+//  2: special insert for constructor and Decode method to string for fixed
+//     arrays
+//  3: special insert for constructor and Decode method to string for dynamic
+//     arrays
 constexpr const char kBoolStructTemplate[] = R"(
 using EncodedBase$0Ref =
     GenericEncoded$0Ref<bool, std::default_delete<bool[]>, void, void, void,
@@ -1635,27 +1649,31 @@ class Encoded$0ArrayRef : public EncodedBase$0ArrayRef<Dimensions...> {
 };
 
 template <>
-class EncodedArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>>: public Encoded$0Array<> {
+class EncodedArray<$1> : public Encoded$0Array<> {
  public:
   using Encoded$0Array<>::Encoded$0Array;
   EncodedArray<$1>(std::initializer_list<$1> list) :
     Encoded$0Array(list) {}
+
+$2
 };
 
 template <unsigned D1>
-class EncodedArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1> : public Encoded$0Array<D1> {
+class EncodedArray<$1, D1> : public Encoded$0Array<D1> {
  public:
   using Encoded$0Array<D1>::Encoded$0Array;
-  EncodedArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1>(std::initializer_list<$1> list) :
+  EncodedArray<$1, D1>(std::initializer_list<$1> list) :
     Encoded$0Array<D1>(list) {}
+
+$3
 };
 
 template <unsigned... Dimensions>
-class EncodedArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, Dimensions...> : public Encoded$0Array<Dimensions...> {};
+class EncodedArray<$1, Dimensions...> : public Encoded$0Array<Dimensions...> {};
 
 template <>
-class EncodedArrayRef<$1, typename std::enable_if_t<!std::is_integral_v<$1>>>: public Encoded$0ArrayRef<> {
-public:
+class EncodedArrayRef<$1> : public Encoded$0ArrayRef<> {
+ public:
   using Encoded$0ArrayRef<>::Encoded$0ArrayRef;
   EncodedArrayRef(const EncodedArray<$1>& rhs)
       : EncodedArrayRef<$1>(const_cast<bool*>(rhs.get().data()), rhs.length()) {
@@ -1663,12 +1681,12 @@ public:
 };
 
 template <unsigned D1, unsigned... Dimensions>
-class EncodedArrayRef<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1, Dimensions...>
+class EncodedArrayRef<$1, D1, Dimensions...>
     : public Encoded$0ArrayRef<D1, Dimensions...> {
  public:
   using Encoded$0ArrayRef<D1, Dimensions...>::Encoded$0ArrayRef;
-  EncodedArrayRef(const EncodedArray<$1, std::enable_if_t<!std::is_integral_v<$1>>, D1, Dimensions...>& rhs)
-      : EncodedArrayRef<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1, Dimensions...>(const_cast<bool*>(rhs.get().data()),
+  EncodedArrayRef(const EncodedArray<$1, D1, Dimensions...>& rhs)
+      : EncodedArrayRef<$1, D1, Dimensions...>(const_cast<bool*>(rhs.get().data()),
                         Encoded$0ArrayRef<D1, Dimensions...>::VOLUME) {
 
     XLS_CHECK_EQ(rhs.length(), D1);
@@ -1676,10 +1694,44 @@ class EncodedArrayRef<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1
 };
 )";
 
+// $0 -- struct type ("PrimitiveChar")
+// $1 -- this class' template parameters ("char" or "char, D1")
+// $2 -- CharT ("char")
+// $3 -- base class' template parameters ("" or "D1")
+constexpr absl::string_view kCleartextDecodeFromStringTemplate = R"(
+  EncodedArray<$1>(std::basic_string<$2>& val) :
+    Encoded$0Array<$3>(val.length() + 1) {
+    this->Encode(val.data(), val.length() + 1);
+  }
+
+  EncodedArray<$1>(const $2* val) :
+    Encoded$0Array<$3>(strlen(val) + 1) {
+    this->Encode(val, strlen(val) + 1);
+  }
+
+  std::basic_string<$2> Decode() {
+    const absl::FixedArray<$2> v = Encoded$0Array<$3>::Decode();
+    return std::basic_string<$2>(v.begin(), v.end());
+  }
+)";
+
+// $0 -- prefix ("Tfhe", "OpenFhe")
+// $1 -- struct type ("PrimitiveChar")
+// $2 -- char type ("char")
+// $3 -- template ("<>, <D1>")
+// $4 -- scheme-specific private-key parameter declarations
+// $5 -- scheme-specific private-key parameter names
+constexpr absl::string_view kDecodeFromStringTemplate = R"(
+  std::basic_string<$2> Decrypt($4) {
+    const absl::FixedArray<$2> v = $0$1Array$3::Decrypt($5);
+    return std::basic_string<$2>(v.begin(), v.end());
+  }
+)";
+
 absl::StatusOr<std::string> ConvertStructsToEncodedBool(
     absl::string_view generic_header,
     const xlscc_metadata::MetadataOutput& metadata,
-    absl::string_view output_path) {
+    absl::string_view output_path, const std::vector<std::string>& unwrap) {
   if (metadata.structs_size() == 0) {
     return "";
   }
@@ -1690,9 +1742,33 @@ absl::StatusOr<std::string> ConvertStructsToEncodedBool(
   for (int64_t id : struct_order) {
     const StructType& struct_type = id_to_type.at(id).type;
     xlscc_metadata::CPPName struct_name = struct_type.name().as_inst().name();
-    std::string struct_text =
-        absl::Substitute(kBoolStructTemplate, struct_name.name(),
-                         struct_name.fully_qualified_name());
+
+    std::string fully_qualified_name = struct_name.fully_qualified_name();
+    std::string special_decode_dyn;
+    std::string special_decode_fixed;
+    if (std::find(unwrap.begin(), unwrap.end(), struct_name.name()) !=
+        unwrap.end()) {
+      if (struct_type.fields_size() != 1) {
+        return absl::InvalidArgumentError(
+            absl::StrFormat("Cannot unwrap struct %s, it has %d elements.",
+                            struct_name.name(), struct_type.fields_size()));
+      }
+
+      const StructField& field = struct_type.fields().Get(0);
+      fully_qualified_name = GetTypeName(field.type()).value();
+      if (fully_qualified_name == "char") {
+        special_decode_dyn = absl::Substitute(
+            kCleartextDecodeFromStringTemplate, struct_name.name(), "char",
+            fully_qualified_name, "");
+        special_decode_fixed = absl::Substitute(
+            kCleartextDecodeFromStringTemplate, struct_name.name(), "char, D1",
+            fully_qualified_name, "D1");
+      }
+    }
+
+    std::string struct_text = absl::Substitute(
+        kBoolStructTemplate, struct_name.name(), fully_qualified_name,
+        special_decode_dyn, special_decode_fixed);
     generated.push_back(struct_text);
   }
 
@@ -1883,27 +1959,30 @@ class Tfhe$0ArrayRef : public TfheBase$0ArrayRef<Dimensions...> {
 };
 
 template <>
-class TfheArrayRef<$1, typename std::enable_if_t<!std::is_integral_v<$1>>>: public Tfhe$0ArrayRef<> {
+class TfheArrayRef<$1> : public Tfhe$0ArrayRef<> {
  public:
   using Tfhe$0ArrayRef<>::Tfhe$0ArrayRef;
   using Tfhe$0ArrayRef<>::get;
 };
 
 template <unsigned... Dimensions>
-class TfheArrayRef<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, Dimensions...>: public Tfhe$0ArrayRef<Dimensions...> {
+class TfheArrayRef<$1, Dimensions...> : public Tfhe$0ArrayRef<Dimensions...> {
  public:
   using Tfhe$0ArrayRef<Dimensions...>::Tfhe$0ArrayRef;
-  TfheArrayRef(const TfheArray<$1, std::enable_if_t<!std::is_integral_v<$1>>, Dimensions...>& rhs) : TfheArrayRef<$1, std::enable_if_t<!std::is_integral_v<$1>>, Dimensions...>(const_cast<LweSample*>(rhs.get().data()), Tfhe$0ArrayRef<Dimensions...>::VOLUME) {}
+  TfheArrayRef(const TfheArray<$1, Dimensions...>& rhs)
+      : TfheArrayRef<$1, Dimensions...>(
+            const_cast<LweSample*>(rhs.get().data()),
+            Tfhe$0ArrayRef<Dimensions...>::VOLUME) {}
   using Tfhe$0ArrayRef<Dimensions...>::get;
 };
 
 template <>
-class TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>>: public Tfhe$0Array<> {
+class TfheArray<$1> : public Tfhe$0Array<> {
  public:
   using Tfhe$0Array<>::Tfhe$0Array;
   using Tfhe$0Array<>::get;
 
-  static TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>> Unencrypted(
+  static TfheArray<$1> Unencrypted(
      absl::Span<const $1> plaintext,
      const TFheGateBootstrappingCloudKeySet* key) {
     TfheArray<$1> shared_value(plaintext.length(), key->params);
@@ -1911,60 +1990,62 @@ class TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>>: public 
     return shared_value;
   }
 
-  static TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>> Encrypt(
+  static TfheArray<$1> Encrypt(
       absl::Span<const $1> plaintext,
       const TFheGateBootstrappingSecretKeySet* key) {
     TfheArray<$1> private_value(plaintext.length(), key->params);
     private_value.SetEncrypted(plaintext.data(), plaintext.length(), key);
     return private_value;
   }
+$2
 };
 
 template <unsigned D1>
-class TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1> : public Tfhe$0Array<D1> {
+class TfheArray<$1, D1> : public Tfhe$0Array<D1> {
  public:
   using Tfhe$0Array<D1>::Tfhe$0Array;
   using Tfhe$0Array<D1>::get;
 
-  static TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1> Unencrypted(
+  static TfheArray<$1, D1> Unencrypted(
      absl::Span<const $1> plaintext,
      const TFheGateBootstrappingCloudKeySet* key) {
     XLS_CHECK_EQ(plaintext.length(), D1);
-    TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1> shared_value(key->params);
+    TfheArray<$1, D1> shared_value(key->params);
     shared_value.SetUnencrypted(plaintext.data(), key);
     return shared_value;
   }
 
-  static TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1> Encrypt(
+  static TfheArray<$1, D1> Encrypt(
       absl::Span<const $1> plaintext,
       const TFheGateBootstrappingSecretKeySet* key) {
     XLS_CHECK_EQ(plaintext.length(), D1);
-    TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1> private_value(key->params);
+    TfheArray<$1, D1> private_value(key->params);
     private_value.SetEncrypted(plaintext.data(), key);
     return private_value;
   }
+$3
 };
 
 template <unsigned D1, unsigned... Dimensions>
-class TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1, Dimensions...> : public Tfhe$0Array<D1, Dimensions...> {
+class TfheArray<$1, D1, Dimensions...> : public Tfhe$0Array<D1, Dimensions...> {
  public:
   using Tfhe$0Array<D1, Dimensions...>::Tfhe$0Array;
   using Tfhe$0Array<D1, Dimensions...>::get;
 
-  static TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1, Dimensions...> Unencrypted(
+  static TfheArray<$1, D1, Dimensions...> Unencrypted(
      absl::Span<const $1> plaintext,
      const TFheGateBootstrappingCloudKeySet* key) {
     XLS_CHECK_EQ(plaintext.length(), D1);
-    TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1> shared_value(key->params);
+    TfheArray<$1, D1> shared_value(key->params);
     shared_value.SetUnencrypted(plaintext.data(), key);
     return shared_value;
   }
 
-  static TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1, Dimensions...> Encrypt(
+  static TfheArray<$1, D1, Dimensions...> Encrypt(
       absl::Span<const $1> plaintext,
       const TFheGateBootstrappingSecretKeySet* key) {
     XLS_CHECK_EQ(plaintext.length(), D1);
-    TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1> private_value(key->params);
+    TfheArray<$1, D1> private_value(key->params);
     private_value.SetEncrypted(plaintext.data(), key);
     return private_value;
   }
@@ -1975,7 +2056,7 @@ class TfheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1, Dime
 absl::StatusOr<std::string> ConvertStructsToEncodedTfhe(
     absl::string_view generic_header,
     const xlscc_metadata::MetadataOutput& metadata,
-    absl::string_view output_path) {
+    absl::string_view output_path, const std::vector<std::string>& unwrap) {
   if (metadata.structs_size() == 0) {
     return "";
   }
@@ -1986,9 +2067,34 @@ absl::StatusOr<std::string> ConvertStructsToEncodedTfhe(
   for (int64_t id : struct_order) {
     const StructType& struct_type = id_to_type.at(id).type;
     xlscc_metadata::CPPName struct_name = struct_type.name().as_inst().name();
-    std::string struct_text =
-        absl::Substitute(kTfheStructTemplate, struct_name.name(),
-                         struct_name.fully_qualified_name());
+
+    std::string fully_qualified_name = struct_name.fully_qualified_name();
+    std::string special_decode_dyn;
+    std::string special_decode_fixed;
+    if (std::find(unwrap.begin(), unwrap.end(), struct_name.name()) !=
+        unwrap.end()) {
+      if (struct_type.fields_size() != 1) {
+        return absl::InvalidArgumentError(
+            absl::StrFormat("Cannot unwrap struct %s, it has %d elements.",
+                            struct_name.name(), struct_type.fields_size()));
+      }
+      const StructField& field = struct_type.fields().Get(0);
+      fully_qualified_name = GetTypeName(field.type()).value();
+      if (fully_qualified_name == "char") {
+        special_decode_dyn = absl::Substitute(
+            kDecodeFromStringTemplate, "Tfhe", struct_name.name(),
+            fully_qualified_name, "<>",
+            "const TFheGateBootstrappingSecretKeySet* key", "key");
+        special_decode_fixed = absl::Substitute(
+            kDecodeFromStringTemplate, "Tfhe", struct_name.name(),
+            fully_qualified_name, "<D1>",
+            "const TFheGateBootstrappingSecretKeySet* key", "key");
+      }
+    }
+
+    std::string struct_text = absl::Substitute(
+        kTfheStructTemplate, struct_name.name(), fully_qualified_name,
+        special_decode_dyn, special_decode_fixed);
     generated.push_back(struct_text);
   }
 
@@ -2415,66 +2521,68 @@ class OpenFhe$0ArrayRef<D1, Dimensions...>
 };
 
 template <>
-class OpenFheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>>: public OpenFhe$0Array<> {
+class OpenFheArray<$1> : public OpenFhe$0Array<> {
  public:
   using OpenFhe$0Array<>::OpenFhe$0Array;
 
   static OpenFheArray<$1> Encrypt(
       absl::Span<const $1> plaintext, lbcrypto::BinFHEContext cc,
       lbcrypto::LWEPrivateKey sk) {
-    OpenFheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>> private_value(plaintext.length(), cc);
+    OpenFheArray<$1> private_value(plaintext.length(), cc);
     private_value.SetEncrypted(plaintext.data(), plaintext.length(), sk);
     return private_value;
   }
+$2
 };
 
 template <unsigned D1>
-class OpenFheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1> : public OpenFhe$0Array<D1> {
+class OpenFheArray<$1, D1> : public OpenFhe$0Array<D1> {
  public:
   using OpenFhe$0Array<D1>::OpenFhe$0Array;
 
   static OpenFheArray<$1> Encrypt(
       absl::Span<const $1> plaintext, lbcrypto::BinFHEContext cc,
       lbcrypto::LWEPrivateKey sk) {
-    OpenFheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1> private_value(plaintext.length(), cc);
+    OpenFheArray<$1, D1> private_value(plaintext.length(), cc);
     private_value.SetEncrypted(plaintext.data(), plaintext.length(), sk);
     return private_value;
   }
+$2
 };
 
 template <unsigned D1, unsigned... Dimensions>
-class OpenFheArray<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1, Dimensions...> : public OpenFhe$0Array<D1, Dimensions...> {
+class OpenFheArray<$1, D1, Dimensions...> : public OpenFhe$0Array<D1, Dimensions...> {
  public:
   using OpenFhe$0Array<D1, Dimensions...>::OpenFhe$0Array;
 
-  OpenFheArrayRef<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, Dimensions...> operator[](size_t pos) {
+  OpenFheArrayRef<$1, Dimensions...> operator[](size_t pos) {
     auto ref = this->OpenFhe$0Array<D1, Dimensions...>::operator[](pos);
-    return OpenFheArrayRef<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, Dimensions...>(ref.get(), ref.cc());
+    return OpenFheArrayRef<$1, Dimensions...>(ref.get(), ref.cc());
   }
 };
 
 template <>
-class OpenFheArrayRef<$1, typename std::enable_if_t<!std::is_integral_v<$1>>>: public OpenFhe$0ArrayRef<> {
-public:
+class OpenFheArrayRef<$1> : public OpenFhe$0ArrayRef<> {
+ public:
   using OpenFhe$0ArrayRef<>::OpenFhe$0ArrayRef;
 };
 
 template <unsigned D1>
-class OpenFheArrayRef<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1>
+class OpenFheArrayRef<$1, D1>
     : public OpenFhe$0ArrayRef<D1> {
  public:
   using OpenFhe$0ArrayRef<D1>::OpenFhe$0ArrayRef;
 };
 
 template <unsigned D1, unsigned... Dimensions>
-class OpenFheArrayRef<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1, Dimensions...>
+class OpenFheArrayRef<$1, D1, Dimensions...>
     : public OpenFhe$0ArrayRef<D1, Dimensions...> {
  public:
   using OpenFhe$0ArrayRef<D1, Dimensions...>::OpenFhe$0ArrayRef;
 
-  OpenFheArrayRef<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, Dimensions...> operator[](size_t pos) {
+  OpenFheArrayRef<$1, Dimensions...> operator[](size_t pos) {
     auto ref = this->OpenFhe$0ArrayRef<D1, Dimensions...>::operator[](pos);
-    return OpenFheArrayRef<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, Dimensions...>(ref.get(), ref.cc());
+    return OpenFheArrayRef<$1, Dimensions...>(ref.get(), ref.cc());
   }
 };
 )";
@@ -2482,7 +2590,7 @@ class OpenFheArrayRef<$1, typename std::enable_if_t<!std::is_integral_v<$1>>, D1
 absl::StatusOr<std::string> ConvertStructsToEncodedOpenFhe(
     absl::string_view generic_header,
     const xlscc_metadata::MetadataOutput& metadata,
-    absl::string_view output_path) {
+    absl::string_view output_path, const std::vector<std::string>& unwrap) {
   if (metadata.structs_size() == 0) {
     return "";
   }
@@ -2493,9 +2601,32 @@ absl::StatusOr<std::string> ConvertStructsToEncodedOpenFhe(
   for (int64_t id : struct_order) {
     const StructType& struct_type = id_to_type.at(id).type;
     xlscc_metadata::CPPName struct_name = struct_type.name().as_inst().name();
-    std::string struct_text =
-        absl::Substitute(kOpenFheStructTemplate, struct_name.name(),
-                         struct_name.fully_qualified_name());
+
+    std::string fully_qualified_name = struct_name.fully_qualified_name();
+    std::string special_decode_fixed;
+    std::string special_decode_dyn;
+    if (std::find(unwrap.begin(), unwrap.end(), struct_name.name()) !=
+        unwrap.end()) {
+      if (struct_type.fields_size() != 1) {
+        return absl::InvalidArgumentError(
+            absl::StrFormat("Cannot unwrap struct %s, it has %d elements.",
+                            struct_name.name(), struct_type.fields_size()));
+      }
+      const StructField& field = struct_type.fields().Get(0);
+      fully_qualified_name = GetTypeName(field.type()).value();
+      if (fully_qualified_name == "char") {
+        special_decode_dyn = absl::Substitute(
+            kDecodeFromStringTemplate, "OpenFhe", struct_name.name(),
+            fully_qualified_name, "<>", "lbcrypto::LWEPrivateKey sk", "sk");
+        special_decode_fixed = absl::Substitute(
+            kDecodeFromStringTemplate, "OpenFhe", struct_name.name(),
+            fully_qualified_name, "<D1>", "lbcrypto::LWEPrivateKey sk", "sk");
+      }
+    }
+
+    std::string struct_text = absl::Substitute(
+        kOpenFheStructTemplate, struct_name.name(), fully_qualified_name,
+        special_decode_dyn, special_decode_fixed);
     generated.push_back(struct_text);
   }
 

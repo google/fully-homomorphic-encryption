@@ -39,8 +39,8 @@ TEST(SqrtTest, SmallPerfectSquareEncrypted) {
   std::array<uint32_t, 3> seed = {314, 1592, 657};
   TFHESecretKeySet key(params, seed);
 
-  auto ciphertext = TfheValue<short>::Encrypt(25, key);
-  TfheValue<short> result(key.params());
+  auto ciphertext = TfheShort::Encrypt(25, key);
+  TfheShort result(key.params());
   XLS_ASSERT_OK(isqrt(result, ciphertext, key.cloud()));
 
   ASSERT_EQ(result.Decrypt(key), 5);
@@ -57,8 +57,8 @@ TEST(SqrtTest, SmallSquareRootEncrypted) {
   std::array<uint32_t, 3> seed = {314, 1592, 657};
   TFHESecretKeySet key(params, seed);
 
-  auto ciphertext = TfheValue<short>::Encrypt(35, key);
-  TfheValue<short> result(key.params());
+  auto ciphertext = TfheShort::Encrypt(35, key);
+  TfheShort result(key.params());
   XLS_ASSERT_OK(isqrt(result, ciphertext, key.cloud()));
 
   ASSERT_EQ(result.Decrypt(key), 5);
@@ -75,8 +75,8 @@ TEST(SqrtTest, LargePerfectSquareEncrypted) {
   std::array<uint32_t, 3> seed = {314, 1592, 657};
   TFHESecretKeySet key(params, seed);
 
-  auto ciphertext = TfheValue<short>::Encrypt(22'500, key);
-  TfheValue<short> result(key.params());
+  auto ciphertext = TfheShort::Encrypt(22'500, key);
+  TfheShort result(key.params());
   XLS_ASSERT_OK(isqrt(result, ciphertext, key.cloud()));
 
   ASSERT_EQ(result.Decrypt(key), 150);
@@ -93,8 +93,8 @@ TEST(SqrtTest, LargeSquareRootEncrypted) {
   std::array<uint32_t, 3> seed = {314, 1592, 657};
   TFHESecretKeySet key(params, seed);
 
-  auto ciphertext = TfheValue<short>::Encrypt(22'800, key);
-  TfheValue<short> result(key.params());
+  auto ciphertext = TfheShort::Encrypt(22'800, key);
+  TfheShort result(key.params());
   XLS_ASSERT_OK(isqrt(result, ciphertext, key.cloud()));
 
   ASSERT_EQ(result.Decrypt(key), 150);
