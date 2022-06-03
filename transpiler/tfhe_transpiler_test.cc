@@ -41,10 +41,9 @@
 #include "xls/ir/function.h"
 #include "xls/ir/ir_parser.h"
 #include "xls/ir/node.h"
-#include "xls/ir/nodes.h"
 #include "xls/ir/package.h"
+#include "xls/ir/source_location.h"
 #include "xls/ir/type.h"
-#include "xls/public/function_builder.h"
 
 namespace fully_homomorphic_encryption::transpiler {
 namespace {
@@ -81,7 +80,7 @@ xls::BValue CreateOutputElement(xls::FunctionBuilder* builder,
     elements.push_back(builder->Literal(xls::UBits(1, 1)));
   }
 
-  return builder->Concat(elements, /*loc=*/absl::nullopt,
+  return builder->Concat(elements, xls::SourceInfo(),
                          name.has_value() ? name.value() : "");
 }
 
@@ -689,7 +688,7 @@ TEST(TfheIrTranspilerLibTest, Execute_AndOp) {
   xls::BValue rhs =
       CreateOutputElement(&builder, kInOutWidth, absl::StrCat("param_", 1));
   xls::BValue and_op =
-      builder.And(lhs, rhs, /*loc=*/absl::nullopt, "param_0_and_param_1");
+      builder.And(lhs, rhs, xls::SourceInfo(), "param_0_and_param_1");
 
   XLS_ASSERT_OK_AND_ASSIGN(std::string actual,
                            TfheTranspiler::Execute(and_op.node()));
@@ -709,7 +708,7 @@ TEST(TfheIrTranspilerLibTest, Execute_OrOp) {
   xls::BValue rhs =
       CreateOutputElement(&builder, kInOutWidth, absl::StrCat("param_", 1));
   xls::BValue or_op =
-      builder.Or(lhs, rhs, /*loc=*/absl::nullopt, "param_0_or_param_1");
+      builder.Or(lhs, rhs, xls::SourceInfo(), "param_0_or_param_1");
 
   XLS_ASSERT_OK_AND_ASSIGN(std::string actual,
                            TfheTranspiler::Execute(or_op.node()));
@@ -726,7 +725,7 @@ TEST(TfheIrTranspilerLibTest, Execute_NotOp) {
   xls::FunctionBuilder builder("test_fn", &package);
   xls::BValue param =
       CreateOutputElement(&builder, kInOutWidth, absl::StrCat("param_", 0));
-  xls::BValue not_op = builder.Not(param, /*loc=*/absl::nullopt, "not_param_0");
+  xls::BValue not_op = builder.Not(param, xls::SourceInfo(), "not_param_0");
 
   XLS_ASSERT_OK_AND_ASSIGN(std::string actual,
                            TfheTranspiler::Execute(not_op.node()));
@@ -744,7 +743,7 @@ TEST(TfheIrTranspilerLibTest, Execute_InvalidOp) {
   xls::BValue rhs =
       CreateOutputElement(&builder, kInOutWidth, absl::StrCat("param_", 1));
   xls::BValue eq_op =
-      builder.Eq(lhs, rhs, /*loc=*/absl::nullopt, "param_0_eq_param_1");
+      builder.Eq(lhs, rhs, xls::SourceInfo(), "param_0_eq_param_1");
 
   EXPECT_THAT(TfheTranspiler::Execute(eq_op.node()),
               StatusIs(absl::StatusCode::kInvalidArgument));

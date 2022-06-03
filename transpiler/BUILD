@@ -392,6 +392,7 @@ cc_test(
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
         "@com_google_xls//xls/ir",
         "@com_google_xls//xls/ir:ir_parser",
+        "@com_google_xls//xls/ir:source_location",
         "@com_google_xls//xls/ir:type",
         "@com_google_xls//xls/public:function_builder",
     ],

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM debian:bullseye-20211011
+FROM debian:bullseye-20220527
 
 # Install required packages.
 RUN apt-get update && apt-get install -y \
