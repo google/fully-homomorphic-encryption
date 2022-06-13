@@ -59,10 +59,6 @@ inline T CleartextDecode(absl::Span<bool> value) {
 
 template <typename ValueType,
           std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>
-class EncodedValueRef;
-
-template <typename ValueType,
-          std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>
 class EncodedValue {
  public:
   EncodedValue()
@@ -70,18 +66,6 @@ class EncodedValue {
   EncodedValue(ValueType value) : EncodedValue() { Encode(value); }
   EncodedValue(absl::Span<bool> encoded) : EncodedValue() {
     std::copy(encoded.begin(), encoded.end(), array_.begin());
-  }
-
-  EncodedValue& operator=(const EncodedValueRef<ValueType>& value) {
-    std::copy(value.get().cbegin(), value.get().cend(), get().begin());
-    return *this;
-  }
-
-  operator const EncodedValueRef<ValueType>() const& {
-    return EncodedValueRef<ValueType>(array_);
-  }
-  operator EncodedValueRef<ValueType>() & {
-    return EncodedValueRef<ValueType>(absl::MakeSpan(array_));
   }
 
   void Encode(const ValueType& value) { ::CleartextEncode(value, get()); }
@@ -94,23 +78,6 @@ class EncodedValue {
 
  private:
   absl::FixedArray<bool> array_;
-};
-
-template <typename ValueType, std::enable_if_t<std::is_integral_v<ValueType>>*>
-class EncodedValueRef {
- public:
-  EncodedValueRef(absl::Span<bool> data) : data_(data) {}
-
-  EncodedValueRef& operator=(const EncodedValueRef<ValueType>& value) {
-    std::copy(value.get().cbegin(), value.get().cend(), get());
-    return *this;
-  }
-
-  absl::Span<bool> get() { return data_; }
-  absl::Span<const bool> get() const { return data_; }
-
- private:
-  absl::Span<bool> data_;
 };
 
 template <typename ValueType, unsigned... Dimensions>

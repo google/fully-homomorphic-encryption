@@ -67,10 +67,6 @@ inline void OpenFheDecrypt(absl::Span<const lbcrypto::LWECiphertext> ciphertext,
   return OpenFheDecrypt(ciphertext, key->cc, key->sk, plaintext);
 }
 
-template <typename ValueType,
-          std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>
-class OpenFheValueRef;
-
 // FHE representation of a single object encoded as a bit array.
 template <typename ValueType,
           std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>
@@ -82,28 +78,12 @@ class OpenFheValue {
     }
   }
 
-  OpenFheValue& operator=(const OpenFheValueRef<ValueType>& value) {
-    ::OpenFheCopy(value.get(), nullptr, get());
-    return *this;
-  }
-
-  static OpenFheValue<ValueType> Unencrypted(ValueType value,
-                                             lbcrypto::BinFHEContext cc) {
-    OpenFheValue<ValueType> plaintext(cc);
-    plaintext.SetUnencrypted(value);
-    return plaintext;
-  }
-
   static OpenFheValue<ValueType> Encrypt(ValueType value,
                                          lbcrypto::BinFHEContext cc,
                                          lbcrypto::LWEPrivateKey sk) {
     OpenFheValue<ValueType> ciphertext(cc);
     ciphertext.SetEncrypted(value, sk);
     return ciphertext;
-  }
-
-  void SetUnencrypted(const ValueType& value) {
-    ::OpenFheUnencrypted(EncodedValue<ValueType>(value).get(), cc_, get());
   }
 
   void SetEncrypted(const ValueType& value, lbcrypto::LWEPrivateKey sk) {
@@ -132,33 +112,6 @@ class OpenFheValue {
       std::is_same_v<ValueType, bool> ? 1 : 8 * sizeof(ValueType);
 
   std::array<lbcrypto::LWECiphertext, kValueWidth> ciphertext_;
-  lbcrypto::BinFHEContext cc_;
-};
-
-// Reference to an FHE representation of a single object encoded as a bit array.
-template <typename ValueType, std::enable_if_t<std::is_integral_v<ValueType>>*>
-class OpenFheValueRef {
- public:
-  OpenFheValueRef(absl::Span<lbcrypto::LWECiphertext> ciphertext,
-                  lbcrypto::BinFHEContext cc)
-      : ciphertext_(ciphertext), cc_(cc) {}
-  OpenFheValueRef(OpenFheValue<ValueType>& value)
-      : OpenFheValueRef(value.get(), value.context()) {}
-
-  OpenFheValueRef& operator=(const OpenFheValueRef<ValueType>& value) {
-    ::OpenFheCopy(value.get(), nullptr, get());
-    return *this;
-  }
-
-  absl::Span<lbcrypto::LWECiphertext> get() { return ciphertext_; }
-  absl::Span<const lbcrypto::LWECiphertext> get() const { return ciphertext_; }
-
-  int32_t size() { return ciphertext_.size(); }
-
-  lbcrypto::BinFHEContext context() { return cc_; }
-
- private:
-  absl::Span<lbcrypto::LWECiphertext> ciphertext_;
   lbcrypto::BinFHEContext cc_;
 };
 

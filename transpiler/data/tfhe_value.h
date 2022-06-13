@@ -116,10 +116,6 @@ inline void TfheDecrypt(absl::Span<const LweSample> ciphertext,
   }
 }
 
-template <typename ValueType,
-          std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>
-class TfheValueRef;
-
 // TFHE representation of a single object encoded as a bit array.
 template <typename ValueType,
           std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>
@@ -130,35 +126,11 @@ class TfheValue {
                LweSampleArrayDeleter(kBitWidth)),
         params_(params) {}
 
-  TfheValue& operator=(const TfheValueRef<ValueType>& value) {
-    ::TfheCopy(absl::MakeConstSpan(value.get()), params(), get());
-    return *this;
-  }
-
-  static TfheValue<ValueType> Unencrypted(
-      ValueType value, const TFheGateBootstrappingCloudKeySet* key) {
-    TfheValue<ValueType> plaintext(key->params);
-    plaintext.SetUnencrypted(value, key);
-    return plaintext;
-  }
-
   static TfheValue<ValueType> Encrypt(
       ValueType value, const TFheGateBootstrappingSecretKeySet* key) {
     TfheValue<ValueType> ciphertext(key->params);
     ciphertext.SetEncrypted(value, key);
     return ciphertext;
-  }
-
-  operator const TfheValueRef<ValueType>() const& {
-    return TfheValueRef<ValueType>(array_.get(), params_);
-  }
-  operator TfheValueRef<ValueType>() & {
-    return TfheValueRef<ValueType>(array_.get(), params_);
-  }
-
-  void SetUnencrypted(const ValueType& value,
-                      const TFheGateBootstrappingCloudKeySet* key) {
-    ::TfheUnencrypted(EncodedValue<ValueType>(value).get(), key, this->get());
   }
 
   void SetEncrypted(const ValueType& value,
@@ -186,36 +158,6 @@ class TfheValue {
       std::is_same_v<ValueType, bool> ? 1 : 8 * sizeof(ValueType);
 
   std::unique_ptr<LweSample, LweSampleArrayDeleter> array_;
-  const TFheGateBootstrappingParameterSet* params_;
-};
-
-// Reference to a TFHE representation of a single object encoded as a bit array.
-template <typename ValueType, std::enable_if_t<std::is_integral_v<ValueType>>*>
-class TfheValueRef {
- public:
-  TfheValueRef(LweSample* array,
-               const TFheGateBootstrappingParameterSet* params)
-      : array_(array), params_(params) {}
-
-  TfheValueRef& operator=(const TfheValueRef<ValueType>& value) {
-    ::TfheCopy(value.get(), params(), this->get());
-    return *this;
-  }
-
-  int32_t size() const { return kBitWidth; }
-
-  absl::Span<LweSample> get() { return absl::MakeSpan(array_, size()); }
-  absl::Span<const LweSample> get() const {
-    return absl::MakeConstSpan(array_, size());
-  }
-
-  const TFheGateBootstrappingParameterSet* params() { return params_; }
-
- private:
-  static constexpr int32_t kBitWidth =
-      std::is_same_v<ValueType, bool> ? 1 : 8 * sizeof(ValueType);
-
-  LweSample* array_;
   const TFheGateBootstrappingParameterSet* params_;
 };
 
