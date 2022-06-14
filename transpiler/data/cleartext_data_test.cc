@@ -23,13 +23,13 @@
 #include "gtest/gtest.h"
 
 TEST(CleartextDataTest, EncodedPrimitives) {
-  auto bool_value = EncodedBool(true);
+  auto bool_value = Encoded<bool>(true);
   EXPECT_EQ(bool_value.Decode(), true);
-  auto char_value = EncodedChar('t');
+  auto char_value = Encoded<char>('t');
   EXPECT_EQ(char_value.Decode(), 't');
-  auto short_value = EncodedShort(0x1234);
+  auto short_value = Encoded<short>(0x1234);
   EXPECT_EQ(short_value.Decode(), 0x1234);
-  auto int_value = EncodedInt(0x12345678);
+  auto int_value = Encoded<int>(0x12345678);
   EXPECT_EQ(int_value.Decode(), 0x12345678);
   auto unsigned_byte_value = EncodedValue<uint8_t>(0x7b);
   EXPECT_EQ(unsigned_byte_value.Decode(), 0x7b);
@@ -57,7 +57,7 @@ TEST(CleartextDataTest, EncodedArrays) {
 }
 
 TEST(CleartextDataTest, EncodedString) {
-  auto str = EncodedString("test string");
+  auto str = EncodedArray<char>("test string");
   auto decoded = str.Decode();
   EXPECT_EQ(std::strncmp(decoded.c_str(), "test string", decoded.size()), 0);
 }
@@ -65,10 +65,10 @@ TEST(CleartextDataTest, EncodedString) {
 TEST(CleartextDataTest, EncodedRefs) {
   // Test creating a reference to a value, passing that reference around, and
   // assigning it to another value.
-  EncodedInt int_val_a = EncodedInt(0x12345678);
-  EncodedIntRef int_val_a_ref = int_val_a;
-  EncodedIntRef int_val_b_ref = int_val_a_ref;
-  EncodedInt int_val_b;
+  Encoded<int> int_val_a = Encoded<int>(0x12345678);
+  EncodedRef<int> int_val_a_ref = int_val_a;
+  EncodedRef<int> int_val_b_ref = int_val_a_ref;
+  Encoded<int> int_val_b;
   int_val_b = int_val_b_ref;
   EXPECT_EQ(int_val_b.Decode(), 0x12345678);
 
@@ -79,9 +79,9 @@ TEST(CleartextDataTest, EncodedRefs) {
   const std::vector<int> expected_int_array = {1, 2};
   auto decoded = int_array.Decode();
   for (int i = 0; i < expected_int_array.size(); i++) {
-    EncodedIntRef el_ref = int_array[i];
-    EncodedIntRef el_ref_b = el_ref;
-    EncodedInt el;
+    EncodedRef<int> el_ref = int_array[i];
+    EncodedRef<int> el_ref_b = el_ref;
+    Encoded<int> el;
     el = el_ref_b;
     EXPECT_EQ(decoded[i], expected_int_array[i]);
     EXPECT_EQ(el.Decode(), expected_int_array[i]);

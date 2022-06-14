@@ -28,7 +28,7 @@
 #include "transpiler/examples/string_cap/string_cap_cleartext.h"
 #include "xls/common/logging/logging.h"
 
-void BoolStringCap(EncodedString& ciphertext) {
+void BoolStringCap(EncodedArray<char>& ciphertext) {
   double start_time = clock();
   std::cout << "Starting!" << std::endl;
   XLS_CHECK_OK(CapitalizeString(ciphertext));
@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
   std::cout << "plaintext: '" << plaintext << "'" << std::endl;
 
   // Encode data
-  EncodedString ciphertext(plaintext);
+  EncodedArray<char> ciphertext(plaintext);
   std::cout << "Encoding done" << std::endl;
 
   std::cout << "Initial state check by decoding: " << std::endl;

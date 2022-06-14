@@ -26,9 +26,9 @@ const int int_size = 32;
 void calculate(short x, short y, char op) {
   cout << "inputs are " << x << " " << op << " " << y << endl;
   // Encode data
-  EncodedShort ciphertext_x(x);
-  EncodedShort ciphertext_y(y);
-  EncodedChar ciphertext_op(op);
+  Encoded<short> ciphertext_x(x);
+  Encoded<short> ciphertext_y(y);
+  Encoded<char> ciphertext_op(op);
   cout << "Encoding done" << endl;
 
   cout << "Initial state check: " << endl;
@@ -41,7 +41,7 @@ void calculate(short x, short y, char op) {
 
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform calculation
-  EncodedShort cipher_result(int_size);
+  Encoded<short> cipher_result(int_size);
   Encoded<Calculator> calc;
   calc.Encode(Calculator());
 

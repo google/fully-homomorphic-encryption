@@ -37,7 +37,7 @@
 
 constexpr int kMainMinimumLambda = 120;
 
-void TfheStringCap(TfheString& cipherresult, TfheString& ciphertext,
+void TfheStringCap(TfheArray<char>& cipherresult, TfheArray<char>& ciphertext,
                    int data_size, Tfhe<State>& cipherstate,
                    const TFheGateBootstrappingCloudKeySet* bk) {
   absl::Duration total_time = absl::ZeroDuration();
@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
   std::cout << "plaintext(" << data_size << "):" << plaintext << std::endl;
 
   // Encrypt data
-  auto ciphertext = TfheString::Encrypt(plaintext, key);
+  auto ciphertext = TfheArray<char>::Encrypt(plaintext, key);
   std::cout << "Encryption done" << std::endl;
 
   std::cout << "Initial state check by decryption: " << std::endl;
@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
   cipherstate.SetEncrypted(st, key.get());
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform string capitalization
-  TfheString cipher_result(data_size, params);
+  TfheArray<char> cipher_result(data_size, params);
   TfheStringCap(cipher_result, ciphertext, data_size, cipherstate, key.cloud());
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 

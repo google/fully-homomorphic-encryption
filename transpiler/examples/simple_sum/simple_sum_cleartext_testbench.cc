@@ -27,8 +27,8 @@ int main(int argc, char** argv) {
 
   cout << "inputs are " << x << " and " << y << ", sum: " << x + y << endl;
   // Encode data
-  EncodedInt ciphertext_x(x);
-  EncodedInt ciphertext_y(y);
+  Encoded<int> ciphertext_x(x);
+  Encoded<int> ciphertext_y(y);
   cout << "Encoding done" << endl;
 
   cout << "Initial state check: " << endl;
@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
 
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform addition
-  EncodedInt cipher_result;
+  Encoded<int> cipher_result;
   XLS_CHECK_OK(simple_sum(cipher_result, ciphertext_x, ciphertext_y));
 
   cout << "\t\t\t\t\tComputation done" << endl;

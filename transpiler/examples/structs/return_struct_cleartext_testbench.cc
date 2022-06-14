@@ -42,9 +42,9 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   Encoded<ReturnStruct> encoded_result;
-  EncodedChar encoded_a;
+  Encoded<char> encoded_a;
   encoded_a.Encode(8);
-  EncodedChar encoded_c;
+  Encoded<char> encoded_c;
   encoded_c.Encode(16);
   XLS_CHECK_OK(ConstructReturnStruct(encoded_result, encoded_a,
                                      encoded_embedded, encoded_c));

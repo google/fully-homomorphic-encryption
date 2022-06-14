@@ -32,36 +32,4 @@
 #include "transpiler/data/openfhe_value.h"
 #include "transpiler/data/primitives_openfhe.types.h"
 
-// Corresponds to std::string
-using OpenFheString = OpenFheArray<char>;
-using OpenFheStringRef = OpenFheArrayRef<char>;
-// Corresponds to char
-using OpenFheChar = OpenFhe<char>;
-using OpenFheCharRef = OpenFheRef<char>;
-// Corresponds to signed/unsigned char
-using OpenFheSignedChar = OpenFhe<signed char>;
-using OpenFheSignedCharRef = OpenFheRef<signed char>;
-using OpenFheUnsignedChar = OpenFhe<unsigned char>;
-using OpenFheUnsignedCharRef = OpenFheRef<unsigned char>;
-// Corresponds to long
-using OpenFheLong = OpenFhe<signed long>;
-using OpenFheLongRef = OpenFheRef<signed long>;
-using OpenFheUnsignedLong = OpenFhe<unsigned long>;
-using OpenFheUnsignedLongRef = OpenFheRef<unsigned long>;
-// Corresponds to int
-using OpenFheInt = OpenFhe<signed int>;
-using OpenFheIntRef = OpenFheRef<signed int>;
-using OpenFheUnsignedInt = OpenFhe<unsigned int>;
-using OpenFheUnsignedIntRef = OpenFheRef<unsigned int>;
-// Corresponds to short
-using OpenFheShort = OpenFhe<signed short>;
-using OpenFheShortRef = OpenFheRef<signed short>;
-using OpenFheUnsignedShort = OpenFhe<unsigned short>;
-using OpenFheUnsignedShortRef = OpenFheRef<unsigned short>;
-// Corresponds to bool
-using OpenFheBit = OpenFhe<bool>;
-using OpenFheBitRef = OpenFheRef<bool>;
-using OpenFheBool = OpenFhe<bool>;
-using OpenFheBoolRef = OpenFheRef<bool>;
-
 #endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_OPENFHE_DATA_H_

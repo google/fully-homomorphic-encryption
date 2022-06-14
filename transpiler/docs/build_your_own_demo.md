@@ -117,7 +117,7 @@ the code in the
 file. Below is a simplified version of the code:
 
 ```cpp
-void TfheStringCap(TfheString& cipherresult, TfheString& ciphertext, int data_size,
+void TfheStringCap(TfheArray<char>& cipherresult, TfheArray<char>& ciphertext, int data_size,
                   TfheState& cipherstate, const TFheGateBootstrappingCloudKeySet* bk) {
 
   for (int i = 0; i < data_size; i++) {
@@ -144,7 +144,7 @@ int main(int argc, char** argv) {
   std::cout << "plaintext(" << data_size << "):" << plaintext << std::endl;
 
   // Encrypt data
-  auto ciphertext = TfheString::Encrypt(plaintext, key);
+  auto ciphertext = TfheArray<char>::Encrypt(plaintext, key);
   std::cout << "Encryption done" << std::endl;
 
   std::cout << "Initial state check by decryption: " << std::endl;
@@ -157,7 +157,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform string capitalization
-  TfheString cipher_result = {data_size, params};
+  TfheArray<char> cipher_result = {data_size, params};
   TfheStringCap(cipher_result, ciphertext, data_size, cipherstate, key.cloud());
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 
@@ -187,13 +187,13 @@ can see the following:
 6.  Get the length of the input string with `size_t data_size =
     plaintext.size();`, to know when there are no more characters to read from
     `plaintext`.
-7.  `auto ciphertext = TfheString::Encrypt(plaintext, key);` encrypts the
+7.  `auto ciphertext = TfheArray<char>::Encrypt(plaintext, key);` encrypts the
     plaintext data with the symmetric secret `key`, and stores the ciphertext in
-    an TfheString variable named `ciphertext`.
+    an TfheArray<char> variable named `ciphertext`.
 8.  To ensure the encryption and decryption work correctly, we call and output
     the result of `ciphertext.Decrypt(key)`, which should match the content of
     `plaintext`.
-9.  `TfheString cipher_result = {data_size, params};` declares the variable
+9.  `TfheArray<char> cipher_result = {data_size, params};` declares the variable
     `cipher_result` that will store the result of the transformation of the
     encrypted data.
 10. `TfheStringCap(cipher_result, ciphertext, data_size, state, key.cloud());` calls the

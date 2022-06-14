@@ -36,8 +36,8 @@ using ::fully_homomorphic_encryption::CloudService;
 using ::fully_homomorphic_encryption::Index;
 using ::fully_homomorphic_encryption::RecordT;
 
-using TfheIndex = TfheUnsignedChar;
-using TfheRecordT = TfheUnsignedChar;
+using TfheIndex = Tfhe<unsigned char>;
+using TfheRecordT = Tfhe<unsigned char>;
 
 int main() {
   TFHEParameters params(kMainMinimumLambda);

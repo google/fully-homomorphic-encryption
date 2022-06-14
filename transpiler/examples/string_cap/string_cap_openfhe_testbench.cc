@@ -37,7 +37,8 @@
 
 constexpr int kMainMinimumLambda = 120;
 
-void OpenFheStringCap(OpenFheString& ciphertext, lbcrypto::BinFHEContext cc) {
+void OpenFheStringCap(OpenFheArray<char>& ciphertext,
+                      lbcrypto::BinFHEContext cc) {
   absl::Time start_time = absl::Now();
   double cpu_start_time = clock();
   std::cout << "Starting!" << std::endl;
@@ -85,7 +86,7 @@ int main(int argc, char** argv) {
   const absl::Time encryption_start = absl::Now();
 
   // Encrypt data
-  auto ciphertext = OpenFheString::Encrypt(plaintext, cc, sk);
+  auto ciphertext = OpenFheArray<char>::Encrypt(plaintext, cc, sk);
 
   std::cout << "Encryption done (" << ciphertext.bit_width() << " bits, "
             << absl::ToDoubleSeconds(absl::Now() - encryption_start) << " secs)"

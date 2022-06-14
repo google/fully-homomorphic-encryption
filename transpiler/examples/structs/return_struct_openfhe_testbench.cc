@@ -54,8 +54,8 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   OpenFhe<ReturnStruct> fhe_result(cc);
-  auto fhe_a = OpenFheChar::Encrypt(8, cc, sk);
-  auto fhe_c = OpenFheChar::Encrypt(16, cc, sk);
+  auto fhe_a = OpenFhe<char>::Encrypt(8, cc, sk);
+  auto fhe_c = OpenFhe<char>::Encrypt(16, cc, sk);
   XLS_CHECK_OK(
       ConstructReturnStruct(fhe_result, fhe_a, fhe_embedded, fhe_c, cc));
 

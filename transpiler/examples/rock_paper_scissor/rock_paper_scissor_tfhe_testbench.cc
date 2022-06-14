@@ -65,8 +65,8 @@ int main(int argc, char** argv) {
   std::cout << "Player A selected " << player_a << " and Player B selected "
             << player_b << std::endl;
   // Encrypt data
-  auto ciphertext_x = TfheChar::Encrypt(player_a, key);
-  auto ciphertext_y = TfheChar::Encrypt(player_b, key);
+  auto ciphertext_x = Tfhe<char>::Encrypt(player_a, key);
+  auto ciphertext_y = Tfhe<char>::Encrypt(player_b, key);
 
   std::cout << "Encryption done" << std::endl;
 
@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform addition
-  TfheChar cipher_result(params);
+  Tfhe<char> cipher_result(params);
   XLS_CHECK_OK(
       rock_paper_scissor(cipher_result, ciphertext_x, ciphertext_y, cloud_key));
 

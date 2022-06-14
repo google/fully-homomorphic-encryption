@@ -36,12 +36,12 @@
 
 constexpr int kMainMinimumLambda = 120;
 
-TfheShort TfheSqrt(TfheShort& ciphertext,
-                   const TFheGateBootstrappingCloudKeySet* bk) {
+Tfhe<short> TfheSqrt(Tfhe<short>& ciphertext,
+                     const TFheGateBootstrappingCloudKeySet* bk) {
   absl::Time start_time = absl::Now();
   double cpu_start_time = clock();
   std::cout << "Starting!" << std::endl;
-  TfheShort result(bk->params);
+  Tfhe<short> result(bk->params);
   XLS_CHECK_OK(isqrt(result, ciphertext, bk));
   double cpu_end_time = clock();
   absl::Time end_time = absl::Now();
@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
   TFHESecretKeySet key(params, seed);
 
   // Encode data
-  auto ciphertext = TfheShort::Encrypt(input, key);
+  auto ciphertext = Tfhe<short>::Encrypt(input, key);
   std::cout << "Encoding done" << std::endl;
 
   std::cout << "Initial state check by decrypting: " << std::endl;
@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Compute the square root.
-  TfheShort result = TfheSqrt(ciphertext, key.cloud());
+  Tfhe<short> result = TfheSqrt(ciphertext, key.cloud());
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 
   // Decode results.

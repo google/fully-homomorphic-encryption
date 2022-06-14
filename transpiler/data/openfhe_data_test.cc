@@ -34,13 +34,13 @@ TEST(OpenFheDataTest, OpenFhePrimitives) {
   auto sk = cc.KeyGen();
   cc.BTKeyGen(sk);
 
-  auto bool_value = OpenFheBool::Encrypt(true, cc, sk);
+  auto bool_value = OpenFhe<bool>::Encrypt(true, cc, sk);
   EXPECT_EQ(bool_value.Decrypt(sk), true);
-  auto char_value = OpenFheChar::Encrypt('t', cc, sk);
+  auto char_value = OpenFhe<char>::Encrypt('t', cc, sk);
   EXPECT_EQ(char_value.Decrypt(sk), 't');
-  auto short_value = OpenFheShort::Encrypt(0x1234, cc, sk);
+  auto short_value = OpenFhe<short>::Encrypt(0x1234, cc, sk);
   EXPECT_EQ(short_value.Decrypt(sk), 0x1234);
-  auto int_value = OpenFheInt::Encrypt(0x12345678, cc, sk);
+  auto int_value = OpenFhe<int>::Encrypt(0x12345678, cc, sk);
   EXPECT_EQ(int_value.Decrypt(sk), 0x12345678);
   auto unsigned_byte_value = OpenFheValue<uint8_t>::Encrypt(0x7b, cc, sk);
   EXPECT_EQ(unsigned_byte_value.Decrypt(sk), 0x7b);
@@ -98,7 +98,7 @@ TEST(OpenFheDataTest, OpenFheString) {
   auto sk = cc.KeyGen();
   cc.BTKeyGen(sk);
 
-  auto str = OpenFheString::Encrypt("test string", cc, sk);
+  auto str = OpenFheArray<char>::Encrypt("test string", cc, sk);
   auto decoded = str.Decrypt(sk);
   EXPECT_EQ(std::strncmp(decoded.c_str(), "test string", decoded.size()), 0);
 }
@@ -116,10 +116,10 @@ TEST(OpenFheDataTest, OpenFheRefs) {
 
   // Test creating a reference to a value, passing that reference around, and
   // assigning it to another value.
-  OpenFheInt int_val_a = OpenFheInt::Encrypt(0x12345678, cc, sk);
-  OpenFheIntRef int_val_a_ref = int_val_a;
-  OpenFheIntRef int_val_b_ref = int_val_a_ref;
-  OpenFheInt int_val_b(cc);
+  OpenFhe<int> int_val_a = OpenFhe<int>::Encrypt(0x12345678, cc, sk);
+  OpenFheRef<int> int_val_a_ref = int_val_a;
+  OpenFheRef<int> int_val_b_ref = int_val_a_ref;
+  OpenFhe<int> int_val_b(cc);
   int_val_b = int_val_b_ref;
   EXPECT_EQ(int_val_b.Decrypt(sk), 0x12345678);
 
@@ -130,9 +130,9 @@ TEST(OpenFheDataTest, OpenFheRefs) {
   const std::vector<int> expected_int_array = {1, 2};
   auto decoded = int_array.Decrypt(sk);
   for (int i = 0; i < expected_int_array.size(); i++) {
-    OpenFheIntRef el_ref = int_array[i];
-    OpenFheIntRef el_ref_b = el_ref;
-    OpenFheInt el(cc);
+    OpenFheRef<int> el_ref = int_array[i];
+    OpenFheRef<int> el_ref_b = el_ref;
+    OpenFhe<int> el(cc);
     el = el_ref_b;
     EXPECT_EQ(decoded[i], expected_int_array[i]);
     EXPECT_EQ(el.Decrypt(sk), expected_int_array[i]);

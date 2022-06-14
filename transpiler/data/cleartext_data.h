@@ -28,36 +28,4 @@
 #include "transpiler/data/cleartext_value.h"
 #include "transpiler/data/primitives_cleartext.types.h"
 
-// Corresponds to std::string
-using EncodedString = EncodedArray<char>;
-using EncodedStringRef = EncodedArrayRef<char>;
-// Corresponds to char
-using EncodedChar = Encoded<char>;
-using EncodedCharRef = EncodedRef<char>;
-// Corresponds to signed/unsigned char
-using EncodedSignedChar = Encoded<signed char>;
-using EncodedSignedCharRef = EncodedRef<signed char>;
-using EncodedUnsignedChar = Encoded<unsigned char>;
-using EncodedUnsignedCharRef = EncodedRef<unsigned char>;
-// Corresponds to long
-using EncodedLong = Encoded<signed long>;
-using EncodedLongRef = EncodedRef<signed long>;
-using EncodedUnsignedLong = Encoded<unsigned long>;
-using EncodedUnsignedLongRef = EncodedRef<unsigned long>;
-// Corresponds to int
-using EncodedInt = Encoded<signed int>;
-using EncodedIntRef = EncodedRef<signed int>;
-using EncodedUnsignedInt = Encoded<unsigned int>;
-using EncodedUnsignedIntRef = EncodedRef<unsigned int>;
-// Corresponds to short
-using EncodedShort = Encoded<signed short>;
-using EncodedShortRef = EncodedRef<signed short>;
-using EncodedUnsignedShort = Encoded<unsigned short>;
-using EncodedUnsignedShortRef = EncodedRef<unsigned short>;
-// Corresponds to bool
-using EncodedBit = Encoded<bool>;
-using EncodedBitRef = EncodedRef<bool>;
-using EncodedBool = Encoded<bool>;
-using EncodedBoolRef = EncodedRef<bool>;
-
 #endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_CLEARTEXT_DATA_H_

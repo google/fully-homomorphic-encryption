@@ -36,9 +36,9 @@ void BM_AddChar(benchmark::State& state) {
   TFHEParameters params(kMainMinimumLambda);
   TFHESecretKeySet key(params, kSeed);
 
-  auto a = TfheChar::Encrypt('a', key);
-  auto b = TfheChar::Encrypt('b', key);
-  TfheChar result(key.params());
+  auto a = Tfhe<char>::Encrypt('a', key);
+  auto b = Tfhe<char>::Encrypt('b', key);
+  Tfhe<char> result(key.params());
 
   for (auto s : state) {
     benchmark::DoNotOptimize(AddChar(result, a, b, key.cloud()));
@@ -50,9 +50,9 @@ void BM_AddInt(benchmark::State& state) {
   TFHEParameters params(kMainMinimumLambda);
   TFHESecretKeySet key(params, kSeed);
 
-  auto a = TfheInt::Encrypt('a', key);
-  auto b = TfheInt::Encrypt('b', key);
-  TfheInt result(key.params());
+  auto a = Tfhe<int>::Encrypt('a', key);
+  auto b = Tfhe<int>::Encrypt('b', key);
+  Tfhe<int> result(key.params());
 
   for (auto s : state) {
     ASSERT_OK(AddInt(result, a, b, key.cloud()));

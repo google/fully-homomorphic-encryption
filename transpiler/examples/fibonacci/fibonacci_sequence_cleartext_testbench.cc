@@ -25,7 +25,7 @@
 #include "xls/common/logging/logging.h"
 
 int main(int argc, char** argv) {
-  EncodedInt input(7);
+  Encoded<int> input(7);
   EncodedArray<int, FIBONACCI_SEQUENCE_SIZE> encoded_result({0, 0, 0, 0, 0});
 
   XLS_CHECK_OK(fibonacci_sequence(input, encoded_result));

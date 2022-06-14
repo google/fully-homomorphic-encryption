@@ -72,8 +72,8 @@ TEST(StringCapCharTest, CorrectlyCapitalizesLongPhraseEncrypted) {
   std::string plaintext("do or do not; there is no try!.!");
   int32_t data_size = plaintext.size();
 
-  auto ciphertext = TfheString::Encrypt(plaintext, key);
-  TfheString cipher_result(data_size, params);
+  auto ciphertext = TfheArray<char>::Encrypt(plaintext, key);
+  TfheArray<char> cipher_result(data_size, params);
 
   Tfhe<State> state(params);
   state.SetUnencrypted(State(), key.cloud());

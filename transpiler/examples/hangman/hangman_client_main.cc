@@ -70,7 +70,7 @@ int main() {
       continue;
     }
     // Encrypt the input.
-    auto ciphertext = TfheChar::Encrypt(input[0], key);
+    auto ciphertext = Tfhe<char>::Encrypt(input[0], key);
     std::cout << "Encryption done" << std::endl;
 
     std::cout << "Initial state check by decryption: " << std::endl;
@@ -78,7 +78,7 @@ int main() {
     std::cout << "\n";
 
     // Make a move.
-    TfheInt cipher_result(params);
+    Tfhe<int> cipher_result(params);
 
     XLS_CHECK_OK(hangmanMakeMove(cipher_result, ciphertext, key.cloud()));
 

@@ -55,9 +55,9 @@ int main(int argc, char** argv) {
   std::cout << "e: " << e << std::endl;
 
   // Encrypt data
-  auto ciphertext_i = OpenFheBool::Encrypt(i, cc, sk);
-  auto ciphertext_t = OpenFheChar::Encrypt(t, cc, sk);
-  auto ciphertext_e = OpenFheChar::Encrypt(e, cc, sk);
+  auto ciphertext_i = OpenFhe<bool>::Encrypt(i, cc, sk);
+  auto ciphertext_t = OpenFhe<char>::Encrypt(t, cc, sk);
+  auto ciphertext_e = OpenFhe<char>::Encrypt(e, cc, sk);
 
   std::cout << "Encryption done" << std::endl;
 
@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform addition
-  OpenFheChar cipher_result(cc);
+  OpenFhe<char> cipher_result(cc);
   XLS_CHECK_OK(
       ifte(cipher_result, ciphertext_i, ciphertext_t, ciphertext_e, cc));
 

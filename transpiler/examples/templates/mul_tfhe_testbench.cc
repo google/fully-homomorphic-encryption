@@ -42,27 +42,27 @@ absl::Status RealMain() {
   int a = rand();
   int b = rand();
   int c = rand();
-  auto x_a = TfheInt::Encrypt(a, key);
-  auto x_b = TfheInt::Encrypt(b, key);
-  auto x_c = TfheInt::Encrypt(c, key);
-  auto x_result = TfheInt(params);
+  auto x_a = Tfhe<int>::Encrypt(a, key);
+  auto x_b = Tfhe<int>::Encrypt(b, key);
+  auto x_c = Tfhe<int>::Encrypt(c, key);
+  auto x_result = Tfhe<int>(params);
 
-  TfheShort short_result(params);
+  Tfhe<short> short_result(params);
   absl::Time start_time = absl::Now();
-  absl::Status status = Mul16(short_result, TfheShort::Encrypt(a, key),
-                              TfheShort::Encrypt(b, key),
-                              TfheShort::Encrypt(c, key), key.cloud());
+  absl::Status status = Mul16(short_result, Tfhe<short>::Encrypt(a, key),
+                              Tfhe<short>::Encrypt(b, key),
+                              Tfhe<short>::Encrypt(c, key), key.cloud());
   if (!status.ok()) {
     return status;
   }
   std::cout << "Time to multiply/add, 16-bit version : "
             << absl::Now() - start_time << std::endl;
 
-  TfheUnsignedChar char_result(params);
+  Tfhe<unsigned char> char_result(params);
   start_time = absl::Now();
-  status = Mul8(char_result, TfheUnsignedChar::Encrypt(a, key),
-                TfheUnsignedChar::Encrypt(b, key),
-                TfheUnsignedChar::Encrypt(c, key), key.cloud());
+  status = Mul8(char_result, Tfhe<unsigned char>::Encrypt(a, key),
+                Tfhe<unsigned char>::Encrypt(b, key),
+                Tfhe<unsigned char>::Encrypt(c, key), key.cloud());
   if (!status.ok()) {
     return status;
   }

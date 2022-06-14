@@ -32,13 +32,13 @@ TEST(TfheDataTest, TfhePrimitives) {
   std::array<uint32_t, 3> seed = {314, 1592, 657};
   TFHESecretKeySet key(params, seed);
 
-  auto bool_value = TfheBool::Encrypt(true, key);
+  auto bool_value = Tfhe<bool>::Encrypt(true, key);
   EXPECT_EQ(bool_value.Decrypt(key), true);
-  auto char_value = TfheChar::Encrypt('t', key);
+  auto char_value = Tfhe<char>::Encrypt('t', key);
   EXPECT_EQ(char_value.Decrypt(key), 't');
-  auto short_value = TfheShort::Encrypt(0x1234, key);
+  auto short_value = Tfhe<short>::Encrypt(0x1234, key);
   EXPECT_EQ(short_value.Decrypt(key), 0x1234);
-  auto int_value = TfheInt::Encrypt(0x12345678, key);
+  auto int_value = Tfhe<int>::Encrypt(0x12345678, key);
   EXPECT_EQ(int_value.Decrypt(key), 0x12345678);
   auto unsigned_byte_value = TfheValue<uint8_t>::Encrypt(0x7b, key);
   EXPECT_EQ(unsigned_byte_value.Decrypt(key), 0x7b);
@@ -90,7 +90,7 @@ TEST(TfheDataTest, TfheString) {
   std::array<uint32_t, 3> seed = {314, 1592, 657};
   TFHESecretKeySet key(params, seed);
 
-  auto str = TfheString::Encrypt("test string", key);
+  auto str = TfheArray<char>::Encrypt("test string", key);
   auto decoded = str.Decrypt(key);
   EXPECT_EQ(std::strncmp(decoded.c_str(), "test string", decoded.size()), 0);
 }
@@ -106,10 +106,10 @@ TEST(TfheDataTest, TfheRefs) {
 
   // Test creating a reference to a value, passing that reference around, and
   // assigning it to another value.
-  TfheInt int_val_a = TfheInt::Encrypt(0x12345678, key);
-  TfheIntRef int_val_a_ref = int_val_a;
-  TfheIntRef int_val_b_ref = int_val_a_ref;
-  TfheInt int_val_b(params);
+  Tfhe<int> int_val_a = Tfhe<int>::Encrypt(0x12345678, key);
+  TfheRef<int> int_val_a_ref = int_val_a;
+  TfheRef<int> int_val_b_ref = int_val_a_ref;
+  Tfhe<int> int_val_b(params);
   int_val_b = int_val_b_ref;
   EXPECT_EQ(int_val_b.Decrypt(key), 0x12345678);
 
@@ -120,9 +120,9 @@ TEST(TfheDataTest, TfheRefs) {
   const std::vector<int> expected_int_array = {1, 2};
   auto decoded = int_array.Decrypt(key);
   for (int i = 0; i < expected_int_array.size(); i++) {
-    TfheIntRef el_ref = int_array[i];
-    TfheIntRef el_ref_b = el_ref;
-    TfheInt el(params);
+    TfheRef<int> el_ref = int_array[i];
+    TfheRef<int> el_ref_b = el_ref;
+    Tfhe<int> el(params);
     el = el_ref_b;
     EXPECT_EQ(decoded[i], expected_int_array[i]);
     EXPECT_EQ(el.Decrypt(key), expected_int_array[i]);

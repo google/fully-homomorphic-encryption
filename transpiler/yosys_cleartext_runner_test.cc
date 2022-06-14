@@ -662,10 +662,10 @@ library(supergate) {
 )liberty";
 
 TEST(YosysRunnerTest, IfThenElseTrue) {
-  auto _if = EncodedBool(true);
-  auto _then = EncodedChar('t');
-  auto _else = EncodedChar('e');
-  EncodedChar result;
+  auto _if = Encoded<bool>(true);
+  auto _then = Encoded<char>('t');
+  auto _else = Encoded<char>('e');
+  Encoded<char> result;
   YosysRunner runner{std::string(kLiberty), std::string(kNetlist),
                      std::string(kMetadata)};
   XLS_ASSERT_OK(
@@ -675,10 +675,10 @@ TEST(YosysRunnerTest, IfThenElseTrue) {
 }
 
 TEST(YosysRunnerTest, IfThenElseFalse) {
-  auto _if = EncodedBool(false);
-  auto _then = EncodedChar('t');
-  auto _else = EncodedChar('e');
-  EncodedChar result;
+  auto _if = Encoded<bool>(false);
+  auto _then = Encoded<char>('t');
+  auto _else = Encoded<char>('e');
+  Encoded<char> result;
   YosysRunner runner{std::string(kLiberty), std::string(kNetlist),
                      std::string(kMetadata)};
   XLS_ASSERT_OK(

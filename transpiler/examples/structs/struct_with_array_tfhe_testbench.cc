@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
   Tfhe<StructWithArray> fhe_struct_with_array(params);
   fhe_struct_with_array.SetEncrypted(input, key);
 
-  TfheInt fhe_other(params);
+  Tfhe<int> fhe_other(params);
   fhe_other.SetEncrypted(other, key);
 
   Tfhe<Inner> fhe_inner(params);

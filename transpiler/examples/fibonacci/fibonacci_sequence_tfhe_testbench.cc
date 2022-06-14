@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
 
   // Create inputs.
   int input = 7;
-  auto encrypted_input = TfheInt::Encrypt(input, key);
+  auto encrypted_input = Tfhe<int>::Encrypt(input, key);
   std::cout << absl::StreamFormat("Decrypted input: %d",
                                   encrypted_input.Decrypt(key))
             << std::endl;

@@ -36,7 +36,7 @@
 
 constexpr int kMainMinimumLambda = 120;
 
-void TfheStringCap(TfheString& ciphertext,
+void TfheStringCap(TfheArray<char>& ciphertext,
                    const TFheGateBootstrappingCloudKeySet* bk) {
   absl::Time start_time = absl::Now();
   double cpu_start_time = clock();
@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
   const absl::Time encryption_start = absl::Now();
 
   // Encrypt data
-  auto ciphertext = TfheString::Encrypt(plaintext, key);
+  auto ciphertext = TfheArray<char>::Encrypt(plaintext, key);
   std::cout << "Encryption done (" << ciphertext.bit_width() << " bits, "
             << absl::ToDoubleSeconds(absl::Now() - encryption_start) << " secs)"
             << std::endl;

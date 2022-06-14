@@ -60,8 +60,8 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   Tfhe<ReturnStruct> fhe_result(params);
-  auto fhe_a = TfheChar::Encrypt(8, key);
-  auto fhe_c = TfheChar::Encrypt(16, key);
+  auto fhe_a = Tfhe<char>::Encrypt(8, key);
+  auto fhe_c = Tfhe<char>::Encrypt(16, key);
   XLS_CHECK_OK(
       ConstructReturnStruct(fhe_result, fhe_a, fhe_embedded, fhe_c, cloud_key));
 

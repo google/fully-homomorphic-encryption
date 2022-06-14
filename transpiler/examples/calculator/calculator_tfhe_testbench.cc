@@ -41,9 +41,9 @@ void calculate(short x, short y, char op, TFHEParameters& params,
                TFHESecretKeySet& key) {
   cout << "inputs are " << x << " " << op << " " << y << endl;
   // Encrypt data
-  auto encryptedX = TfheShort::Encrypt(x, key);
-  auto encryptedY = TfheShort::Encrypt(y, key);
-  auto encryptedOp = TfheChar::Encrypt(op, key);
+  auto encryptedX = Tfhe<short>::Encrypt(x, key);
+  auto encryptedY = Tfhe<short>::Encrypt(y, key);
+  auto encryptedOp = Tfhe<char>::Encrypt(op, key);
 
   cout << "Encryption done" << endl;
   cout << "Initial state check by decryption: " << endl;
@@ -58,7 +58,7 @@ void calculate(short x, short y, char op, TFHEParameters& params,
   cout << "\n";
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform computation
-  TfheShort encryptedResult(params);
+  Tfhe<short> encryptedResult(params);
   Tfhe<Calculator> calc(params);
   calc.SetUnencrypted(Calculator(), key.cloud());
 

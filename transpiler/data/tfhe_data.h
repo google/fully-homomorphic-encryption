@@ -33,36 +33,4 @@
 #include "transpiler/data/primitives_tfhe.types.h"
 #include "transpiler/data/tfhe_value.h"
 
-// Corresponds to std::string
-using TfheString = TfheArray<char>;
-using TfheStringRef = TfheArrayRef<char>;
-// Corresponds to char
-using TfheChar = Tfhe<char>;
-using TfheCharRef = TfheRef<char>;
-// Corresponds to signed/unsigned char
-using TfheSignedChar = Tfhe<signed char>;
-using TfheSignedCharRef = TfheRef<signed char>;
-using TfheUnsignedChar = Tfhe<unsigned char>;
-using TfheUnsignedCharRef = TfheRef<unsigned char>;
-// Corresponds to long
-using TfheLong = Tfhe<signed long>;
-using TfheLongRef = TfheRef<signed long>;
-using TfheUnsignedLong = Tfhe<unsigned long>;
-using TfheUnsignedLongRef = TfheRef<unsigned long>;
-// Corresponds to int
-using TfheInt = Tfhe<signed int>;
-using TfheIntRef = TfheRef<signed int>;
-using TfheUnsignedInt = Tfhe<unsigned int>;
-using TfheUnsignedIntRef = TfheRef<unsigned int>;
-// Corresponds to short
-using TfheShort = Tfhe<signed short>;
-using TfheShortRef = TfheRef<signed short>;
-using TfheUnsignedShort = Tfhe<unsigned short>;
-using TfheUnsignedShortRef = TfheRef<unsigned short>;
-// Corresponds to bool
-using TfheBit = Tfhe<bool>;
-using TfheBitRef = TfheRef<bool>;
-using TfheBool = Tfhe<bool>;
-using TfheBoolRef = TfheRef<bool>;
-
 #endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_TFHE_DATA_H_

@@ -32,9 +32,9 @@
 
 constexpr int kMainMinimumLambda = 120;
 
-void OpenFheStringCap(OpenFheString& cipherresult, OpenFheString& ciphertext,
-                      int data_size, OpenFhe<State>& cipherstate,
-                      lbcrypto::BinFHEContext cc) {
+void OpenFheStringCap(OpenFheArray<char>& cipherresult,
+                      OpenFheArray<char>& ciphertext, int data_size,
+                      OpenFhe<State>& cipherstate, lbcrypto::BinFHEContext cc) {
   absl::Duration total_time = absl::ZeroDuration();
   double total_cpu_time = 0.0;
   for (int i = 0; i < data_size; i++) {
@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
   std::cout << "plaintext(" << data_size << "):" << plaintext << std::endl;
 
   // Encrypt data
-  auto ciphertext = OpenFheString::Encrypt(plaintext, cc, sk);
+  auto ciphertext = OpenFheArray<char>::Encrypt(plaintext, cc, sk);
   std::cout << "Encryption done" << std::endl;
 
   std::cout << "Initial state check by decryption: " << std::endl;
@@ -100,7 +100,7 @@ int main(int argc, char** argv) {
   cipherstate.SetEncrypted(st, sk);
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform string capitalization
-  OpenFheString cipher_result = {data_size, cc};
+  OpenFheArray<char> cipher_result = {data_size, cc};
   OpenFheStringCap(cipher_result, ciphertext, data_size, cipherstate, cc);
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 

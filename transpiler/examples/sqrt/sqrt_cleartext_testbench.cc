@@ -32,10 +32,10 @@
 #include "transpiler/examples/sqrt/sqrt_cleartext.h"
 #endif
 
-EncodedShort TimedYosysSqrt(EncodedShort& ciphertext) {
+Encoded<short> TimedYosysSqrt(Encoded<short>& ciphertext) {
   double start_time = clock();
   std::cout << "Starting!" << std::endl;
-  EncodedShort result;
+  Encoded<short> result;
   XLS_CHECK_OK(isqrt(result, ciphertext));
   std::cout << "\t\t\t\t\tTotal time "
             << ": " << (clock() - start_time) / 1000000 << " secs" << std::endl;
@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
   std::cout << "plaintext: " << plaintext << std::endl;
 
   // Encode data
-  EncodedShort ciphertext(plaintext);
+  Encoded<short> ciphertext(plaintext);
   std::cout << "Encoding done" << std::endl;
 
   std::cout << "Initial state check by decoding: " << std::endl;
@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Compute the square root.
-  EncodedShort result = TimedYosysSqrt(ciphertext);
+  Encoded<short> result = TimedYosysSqrt(ciphertext);
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 
   // Decode results.

@@ -24,7 +24,7 @@
 #include "transpiler/examples/string_reverse/string_reverse_cleartext.h"
 #include "xls/common/logging/logging.h"
 
-void BoolStringReverse(EncodedString& ciphertext) {
+void BoolStringReverse(EncodedArray<char>& ciphertext) {
   double start_time = clock();
   std::cout << "Starting!" << std::endl;
   XLS_CHECK_OK(ReverseString(ciphertext));
@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
   std::cout << "plaintext: '" << plaintext << "'" << std::endl;
 
   // Encode data
-  EncodedString ciphertext(plaintext);
+  EncodedArray<char> ciphertext(plaintext);
   std::cout << "Encoding done" << std::endl;
 
   std::cout << "Initial state check by decoding: " << std::endl;

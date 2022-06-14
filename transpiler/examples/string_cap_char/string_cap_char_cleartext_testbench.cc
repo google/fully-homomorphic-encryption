@@ -27,8 +27,9 @@
 #include "transpiler/examples/string_cap_char/string_cap_char_cleartext.h"
 #include "xls/common/logging/logging.h"
 
-void BoolStringCap(EncodedString& cipherresult, EncodedString& ciphertext,
-                   int data_size, Encoded<State>& state) {
+void BoolStringCap(EncodedArray<char>& cipherresult,
+                   EncodedArray<char>& ciphertext, int data_size,
+                   Encoded<State>& state) {
   time_t start_time;
   time_t end_time;
   double char_time = 0.0;
@@ -59,7 +60,7 @@ int main(int argc, char** argv) {
   std::cout << "plaintext(" << data_size << "):" << plaintext << std::endl;
 
   // Encode data
-  EncodedString ciphertext(plaintext);
+  EncodedArray<char> ciphertext(plaintext);
   std::cout << "Encoding done" << std::endl;
 
   std::cout << "Initial state check by decoding: " << std::endl;
@@ -71,7 +72,7 @@ int main(int argc, char** argv) {
   cipherstate.Encode(st);
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform string capitalization
-  EncodedString cipher_result(data_size);
+  EncodedArray<char> cipher_result(data_size);
   BoolStringCap(cipher_result, ciphertext, data_size, cipherstate);
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 

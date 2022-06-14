@@ -68,32 +68,32 @@ TEST(ArrayOfStructsTest, DynamicOneDimArray) {
     EXPECT_EQ(i_another_decoded[i], i_decoded[i]);
   }
 
-  EncodedUnsignedCharRef c_ref = c_dyn_one_dim[1];
+  EncodedRef<unsigned char> c_ref = c_dyn_one_dim[1];
   EXPECT_EQ(c_ref.length(), 1);
   EXPECT_EQ(c_ref.bit_width(), sizeof(unsigned char) * 8);
   EXPECT_EQ(c_ref.get().size(), c_ref.bit_width());
 
-  EncodedShortRef s_ref = s_dyn_one_dim[1];
+  EncodedRef<short> s_ref = s_dyn_one_dim[1];
   EXPECT_EQ(s_ref.length(), 1);
   EXPECT_EQ(s_ref.bit_width(), sizeof(short) * 8);
   EXPECT_EQ(s_ref.get().size(), s_ref.bit_width());
 
-  EncodedUnsignedIntRef i_ref = i_dyn_one_dim[1];
+  EncodedRef<unsigned int> i_ref = i_dyn_one_dim[1];
   EXPECT_EQ(i_ref.length(), 1);
   EXPECT_EQ(i_ref.bit_width(), sizeof(unsigned) * 8);
   EXPECT_EQ(i_ref.get().size(), i_ref.bit_width());
 
-  EncodedUnsignedCharRef c_ref_ref = c_ref;
+  EncodedRef<unsigned char> c_ref_ref = c_ref;
   EXPECT_EQ(c_ref_ref.length(), 1);
   EXPECT_EQ(c_ref_ref.bit_width(), sizeof(unsigned char) * 8);
   EXPECT_EQ(c_ref_ref.get().size(), c_ref_ref.bit_width());
 
-  EncodedShortRef s_ref_ref = s_ref;
+  EncodedRef<short> s_ref_ref = s_ref;
   EXPECT_EQ(s_ref_ref.length(), 1);
   EXPECT_EQ(s_ref_ref.bit_width(), sizeof(short) * 8);
   EXPECT_EQ(s_ref_ref.get().size(), s_ref_ref.bit_width());
 
-  EncodedUnsignedIntRef i_ref_ref = i_ref;
+  EncodedRef<unsigned int> i_ref_ref = i_ref;
   EXPECT_EQ(i_ref_ref.length(), 1);
   EXPECT_EQ(i_ref_ref.bit_width(), sizeof(unsigned) * 8);
   EXPECT_EQ(i_ref_ref.get().size(), i_ref_ref.bit_width());
@@ -147,15 +147,15 @@ TEST(ArrayOfStructsTest, DynamicOneDimArray) {
       EXPECT_EQ(i_decoded_via_ref[i], i_another_decoded_via_ref[i]);
     }
 
-    EncodedUnsignedCharRef c_ref_via_ref = c_dyn_one_dim_ref[1];
+    EncodedRef<unsigned char> c_ref_via_ref = c_dyn_one_dim_ref[1];
     EXPECT_EQ(c_ref_via_ref.length(), 1);
     EXPECT_EQ(c_ref_via_ref.bit_width(), sizeof(unsigned char) * 8);
     EXPECT_EQ(c_ref_via_ref.get().size(), c_ref_via_ref.bit_width());
-    EncodedShortRef s_ref_via_ref = s_dyn_one_dim_ref[1];
+    EncodedRef<short> s_ref_via_ref = s_dyn_one_dim_ref[1];
     EXPECT_EQ(s_ref_via_ref.length(), 1);
     EXPECT_EQ(s_ref_via_ref.bit_width(), sizeof(short) * 8);
     EXPECT_EQ(s_ref_via_ref.get().size(), s_ref_via_ref.bit_width());
-    EncodedUnsignedIntRef i_ref_via_ref = i_dyn_one_dim_ref[1];
+    EncodedRef<unsigned int> i_ref_via_ref = i_dyn_one_dim_ref[1];
     EXPECT_EQ(i_ref_via_ref.length(), 1);
     EXPECT_EQ(i_ref_via_ref.bit_width(), sizeof(unsigned) * 8);
     EXPECT_EQ(i_ref_via_ref.get().size(), i_ref_via_ref.bit_width());
@@ -191,7 +191,7 @@ TEST(ArrayOfStructsTest, FixedWidthOneDimArrayOfShort) {
     EXPECT_EQ(another_decoded[i], decoded[i]);
   }
 
-  EncodedShortRef ref = fixed_one_dim[1];
+  EncodedRef<short> ref = fixed_one_dim[1];
   short decoded_ref = ref.Decode();
   EXPECT_EQ(decoded_ref, decoded[1]);
 

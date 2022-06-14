@@ -35,29 +35,29 @@ using ::fully_homomorphic_encryption::transpiler::TranspilerTestBase;
 class TranspilerTypesTest : public TranspilerTestBase {};
 
 TEST_F(TranspilerTypesTest, TestArray) {
-  auto ciphertext = OpenFheString::Encrypt("abcd", cc(), sk());
-  OpenFheString result(4, cc());
+  auto ciphertext = OpenFheArray<char>::Encrypt("abcd", cc(), sk());
+  OpenFheArray<char> result(4, cc());
   XLS_ASSERT_OK(test_array(ciphertext, result, cc()));
   EXPECT_EQ(result.Decrypt(sk()), "acce");
 }
 
 TEST_F(TranspilerTypesTest, TestChar) {
-  auto ciphertext = OpenFheChar::Encrypt('a', cc(), sk());
-  OpenFheChar result(cc());
+  auto ciphertext = OpenFhe<char>::Encrypt('a', cc(), sk());
+  OpenFhe<char> result(cc());
   XLS_ASSERT_OK(test_char(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), 'b');
 }
 
 TEST_F(TranspilerTypesTest, TestInt) {
-  auto ciphertext = OpenFheInt::Encrypt(100, cc(), sk());
-  OpenFheInt result(cc());
+  auto ciphertext = OpenFhe<int>::Encrypt(100, cc(), sk());
+  OpenFhe<int> result(cc());
   XLS_ASSERT_OK(test_int(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), 101);
 }
 
 TEST_F(TranspilerTypesTest, TestLong) {
-  auto ciphertext = OpenFheLong::Encrypt(100, cc(), sk());
-  OpenFheLong result(cc());
+  auto ciphertext = OpenFhe<long>::Encrypt(100, cc(), sk());
+  OpenFhe<long> result(cc());
   XLS_ASSERT_OK(test_long(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), 101);
 }

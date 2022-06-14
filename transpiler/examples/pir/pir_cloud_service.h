@@ -32,8 +32,8 @@ class CloudService {
   explicit CloudService(TfheArray<RecordT, kDbSize> database)
       : database_(std::move(database)) {}
 
-  absl::Status QueryRecord(TfheUnsignedCharRef result,
-                           TfheUnsignedCharRef index,
+  absl::Status QueryRecord(TfheRef<unsigned char> result,
+                           TfheRef<unsigned char> index,
                            const TFheGateBootstrappingCloudKeySet* bk);
 
  private:

@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
             << std::endl;
 
   std::cout << "Starting computation." << std::endl;
-  OpenFheInt fhe_result = {cc};
+  OpenFhe<int> fhe_result = {cc};
   XLS_CHECK_OK(SumSimpleStruct(fhe_result, fhe_simple_struct, cc));
 
   int result = fhe_result.Decrypt(sk);

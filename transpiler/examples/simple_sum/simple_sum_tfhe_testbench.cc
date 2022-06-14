@@ -50,8 +50,8 @@ int main(int argc, char** argv) {
 
   cout << "inputs are " << x << " and " << y << ", sum: " << x + y << endl;
   // Encrypt data
-  auto ciphertext_x = TfheInt::Encrypt(x, key);
-  auto ciphertext_y = TfheInt::Encrypt(y, key);
+  auto ciphertext_x = Tfhe<int>::Encrypt(x, key);
+  auto ciphertext_y = Tfhe<int>::Encrypt(y, key);
 
   cout << "Encryption done" << endl;
 
@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
 
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform addition
-  TfheInt cipher_result(params);
+  Tfhe<int> cipher_result(params);
   XLS_CHECK_OK(
       simple_sum(cipher_result, ciphertext_x, ciphertext_y, cloud_key));
 

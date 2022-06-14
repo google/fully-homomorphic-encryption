@@ -58,9 +58,9 @@ int main(int argc, char** argv) {
   std::cout << "e: " << e << std::endl;
 
   // Encrypt data
-  auto ciphertext_i = TfheBool::Encrypt(i, key);
-  auto ciphertext_t = TfheChar::Encrypt(t, key);
-  auto ciphertext_e = TfheChar::Encrypt(e, key);
+  auto ciphertext_i = Tfhe<bool>::Encrypt(i, key);
+  auto ciphertext_t = Tfhe<char>::Encrypt(t, key);
+  auto ciphertext_e = Tfhe<char>::Encrypt(e, key);
 
   std::cout << "Encryption done" << std::endl;
 
@@ -76,7 +76,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform addition
-  TfheChar cipher_result(params);
+  Tfhe<char> cipher_result(params);
   XLS_CHECK_OK(
       ifte(cipher_result, ciphertext_i, ciphertext_t, ciphertext_e, cloud_key));
 

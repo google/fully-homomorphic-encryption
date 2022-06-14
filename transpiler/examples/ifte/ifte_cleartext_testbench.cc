@@ -40,11 +40,11 @@ int main(int argc, char** argv) {
   std::cout << "e: " << e << std::endl;
 
   // Encrypt data
-  EncodedBool encoded_i;
+  Encoded<bool> encoded_i;
   encoded_i.Encode(!!i);
-  EncodedChar encoded_t;
+  Encoded<char> encoded_t;
   encoded_t.Encode(t);
-  EncodedChar encoded_e;
+  Encoded<char> encoded_e;
   encoded_e.Encode(e);
 
   std::cout << "Encryption done" << std::endl;
@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform addition
-  EncodedChar cipher_result;
+  Encoded<char> cipher_result;
   XLS_CHECK_OK(ifte(cipher_result, encoded_i, encoded_t, encoded_e));
 
   std::cout << "\t\t\t\t\tComputation done" << std::endl;

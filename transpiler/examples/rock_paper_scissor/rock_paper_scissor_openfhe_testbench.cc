@@ -62,8 +62,8 @@ int main(int argc, char** argv) {
   std::cout << "Player A selected " << player_a << " and Player B selected "
             << player_b << std::endl;
   // Encrypt data
-  auto ciphertext_x = OpenFheChar::Encrypt(player_a, cc, sk);
-  auto ciphertext_y = OpenFheChar::Encrypt(player_b, cc, sk);
+  auto ciphertext_x = OpenFhe<char>::Encrypt(player_a, cc, sk);
+  auto ciphertext_y = OpenFhe<char>::Encrypt(player_b, cc, sk);
 
   std::cout << "Encryption done" << std::endl;
 
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform addition
-  OpenFheChar cipher_result(cc);
+  OpenFhe<char> cipher_result(cc);
   XLS_CHECK_OK(
       rock_paper_scissor(cipher_result, ciphertext_x, ciphertext_y, cc));
 

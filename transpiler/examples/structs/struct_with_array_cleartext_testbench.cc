@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
   Encoded<StructWithArray> encoded_struct_with_array;
   encoded_struct_with_array.Encode(input);
 
-  EncodedInt encoded_other;
+  Encoded<int> encoded_other;
   encoded_other.Encode(other);
 
   Encoded<Inner> encoded_inner;

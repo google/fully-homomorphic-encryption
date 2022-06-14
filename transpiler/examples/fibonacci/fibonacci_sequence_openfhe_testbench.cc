@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
 
   // Create inputs.
   int input = 7;
-  auto encrypted_input = OpenFheInt::Encrypt(input, cc, sk);
+  auto encrypted_input = OpenFhe<int>::Encrypt(input, cc, sk);
   std::cout << absl::StreamFormat("Decrypted input: %d",
                                   encrypted_input.Decrypt(sk))
             << std::endl;

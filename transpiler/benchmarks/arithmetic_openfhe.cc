@@ -37,9 +37,9 @@ void BM_AddChar(benchmark::State& state) {
   auto sk = cc.KeyGen();
   cc.BTKeyGen(sk);
 
-  auto a = OpenFheChar::Encrypt('a', cc, sk);
-  auto b = OpenFheChar::Encrypt('b', cc, sk);
-  OpenFheChar result(cc);
+  auto a = OpenFhe<char>::Encrypt('a', cc, sk);
+  auto b = OpenFhe<char>::Encrypt('b', cc, sk);
+  OpenFhe<char> result(cc);
 
   for (auto s : state) {
     benchmark::DoNotOptimize(AddChar(result, a, b, cc));
@@ -53,9 +53,9 @@ void BM_AddInt(benchmark::State& state) {
   auto sk = cc.KeyGen();
   cc.BTKeyGen(sk);
 
-  auto a = OpenFheInt::Encrypt('a', cc, sk);
-  auto b = OpenFheInt::Encrypt('b', cc, sk);
-  OpenFheInt result(cc);
+  auto a = OpenFhe<int>::Encrypt('a', cc, sk);
+  auto b = OpenFhe<int>::Encrypt('b', cc, sk);
+  OpenFhe<int> result(cc);
 
   for (auto s : state) {
     ASSERT_OK(AddInt(result, a, b, cc));

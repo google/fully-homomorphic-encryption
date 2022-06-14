@@ -38,9 +38,9 @@ void calculate(short x, short y, char op, lbcrypto::BinFHEContext cc,
                lbcrypto::LWEPrivateKey sk) {
   cout << "inputs are " << x << " " << op << " " << y << endl;
   // Encrypt data
-  auto encryptedX = OpenFheShort::Encrypt(x, cc, sk);
-  auto encryptedY = OpenFheShort::Encrypt(y, cc, sk);
-  auto encryptedOp = OpenFheChar::Encrypt(op, cc, sk);
+  auto encryptedX = OpenFhe<short>::Encrypt(x, cc, sk);
+  auto encryptedY = OpenFhe<short>::Encrypt(y, cc, sk);
+  auto encryptedOp = OpenFhe<char>::Encrypt(op, cc, sk);
 
   cout << "Encryption done" << endl;
   cout << "Initial state check by decryption: " << endl;
@@ -55,7 +55,7 @@ void calculate(short x, short y, char op, lbcrypto::BinFHEContext cc,
   cout << "\n";
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform computation
-  OpenFheShort encryptedResult(cc);
+  OpenFhe<short> encryptedResult(cc);
   OpenFhe<Calculator> calc(cc);
   calc.SetUnencrypted(Calculator(), &cc);
 

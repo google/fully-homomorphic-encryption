@@ -35,7 +35,7 @@
 
 constexpr auto kSecurityLevel = lbcrypto::MEDIUM;
 
-void OpenFheStringReverse(OpenFheString& ciphertext,
+void OpenFheStringReverse(OpenFheArray<char>& ciphertext,
                           lbcrypto::BinFHEContext cc) {
   std::cout << "Starting!" << std::endl;
   absl::Time start_time = absl::Now();
@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
   std::cout << "plaintext: '" << plaintext << "'" << std::endl;
 
   // Encrypt data
-  auto ciphertext = OpenFheString::Encrypt(plaintext, cc, sk);
+  auto ciphertext = OpenFheArray<char>::Encrypt(plaintext, cc, sk);
   std::cout << "Encryption done" << std::endl;
 
   std::cout << "Initial state check by decryption: " << std::endl;

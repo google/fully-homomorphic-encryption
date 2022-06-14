@@ -34,11 +34,11 @@
 
 constexpr auto kSecurityLevel = lbcrypto::MEDIUM;
 
-OpenFheShort FHESqrt(OpenFheShort& ciphertext, lbcrypto::BinFHEContext cc) {
+OpenFhe<short> FHESqrt(OpenFhe<short>& ciphertext, lbcrypto::BinFHEContext cc) {
   absl::Time start_time = absl::Now();
   double cpu_start_time = clock();
   std::cout << "Starting!" << std::endl;
-  OpenFheShort result(cc);
+  OpenFhe<short> result(cc);
   XLS_CHECK_OK(isqrt(result, ciphertext, cc));
   double cpu_end_time = clock();
   absl::Time end_time = absl::Now();
@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
   cc.BTKeyGen(sk);
 
   // Encode data
-  auto ciphertext = OpenFheShort::Encrypt(input, cc, sk);
+  auto ciphertext = OpenFhe<short>::Encrypt(input, cc, sk);
   std::cout << "Encoding done" << std::endl;
 
   std::cout << "Initial state check by decrypting: " << std::endl;
@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Compute the square root.
-  OpenFheShort result = FHESqrt(ciphertext, cc);
+  OpenFhe<short> result = FHESqrt(ciphertext, cc);
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 
   // Decode results.

@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
             << std::endl;
 
   std::cout << "Starting computation." << std::endl;
-  TfheInt fhe_result(params);
+  Tfhe<int> fhe_result(params);
   XLS_CHECK_OK(SumStructOfStructs(fhe_result, fhe_sos, cloud_key));
 
   int result = fhe_result.Decrypt(key);

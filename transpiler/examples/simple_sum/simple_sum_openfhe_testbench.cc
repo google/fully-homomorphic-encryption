@@ -52,8 +52,8 @@ int main(int argc, char** argv) {
 
   cout << "inputs are " << x << " and " << y << ", sum: " << x + y << endl;
   // Encrypt data
-  auto ciphertext_x = OpenFheInt::Encrypt(x, cc, sk);
-  auto ciphertext_y = OpenFheInt::Encrypt(y, cc, sk);
+  auto ciphertext_x = OpenFhe<int>::Encrypt(x, cc, sk);
+  auto ciphertext_y = OpenFhe<int>::Encrypt(y, cc, sk);
 
   cout << "Encryption done" << endl;
 
@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
 
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform addition
-  OpenFheInt cipher_result(cc);
+  OpenFhe<int> cipher_result(cc);
   XLS_CHECK_OK(simple_sum(cipher_result, ciphertext_x, ciphertext_y, cc));
 
   cout << "\t\t\t\t\tComputation done" << endl;

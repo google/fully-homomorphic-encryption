@@ -35,7 +35,7 @@
 
 constexpr int kMainMinimumLambda = 120;
 
-void TfheStringReverse(TfheString& ciphertext,
+void TfheStringReverse(TfheArray<char>& ciphertext,
                        const TFheGateBootstrappingCloudKeySet* bk) {
   std::cout << "Starting!" << std::endl;
   absl::Time start_time = absl::Now();
@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
   std::cout << "plaintext: '" << plaintext << "'" << std::endl;
 
   // Encrypt data
-  auto ciphertext = TfheString::Encrypt(plaintext, key);
+  auto ciphertext = TfheArray<char>::Encrypt(plaintext, key);
   std::cout << "Encryption done" << std::endl;
 
   std::cout << "Initial state check by decryption: " << std::endl;
