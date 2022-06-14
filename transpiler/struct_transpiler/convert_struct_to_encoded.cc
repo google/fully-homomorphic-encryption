@@ -21,8 +21,6 @@
 #include <utility>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
-#include "absl/container/flat_hash_set.h"
 #include "absl/status/status.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
@@ -47,136 +45,6 @@ using xlscc_metadata::MetadataOutput;
 using xlscc_metadata::StructField;
 using xlscc_metadata::StructType;
 using xlscc_metadata::Type;
-
-// Simple holder for a type and its total bit width.
-struct TypeData {
-  xlscc_metadata::StructType type;
-  size_t bit_width;
-};
-
-using IdToType = absl::flat_hash_map<int64_t, TypeData>;
-
-// Returns the width of the given metadata type. Requires that the IdToType has
-// been fully populated.
-size_t GetStructWidth(const IdToType& id_to_type, const StructType& type);
-size_t GetBitWidth(const IdToType& id_to_type,
-                   const xlscc_metadata::Type& type) {
-  if (type.has_as_void()) {
-    return 0;
-  } else if (type.has_as_bits()) {
-    return type.as_bits().width();
-  } else if (type.has_as_int()) {
-    return type.as_int().width();
-  } else if (type.has_as_bool()) {
-    return 1;
-  } else if (type.has_as_inst()) {
-    int64_t type_id = type.as_inst().name().id();
-    return id_to_type.at(type_id).bit_width;
-  } else if (type.has_as_array()) {
-    size_t element_width =
-        GetBitWidth(id_to_type, type.as_array().element_type());
-    return type.as_array().size() * element_width;
-  }
-  // Otherwise, it's a struct.
-  return GetStructWidth(id_to_type, type.as_struct());
-}
-
-size_t GetStructWidth(const IdToType& id_to_type,
-                      const StructType& struct_type) {
-  size_t length = 0;
-  for (const xlscc_metadata::StructField& field : struct_type.fields()) {
-    length += GetBitWidth(id_to_type, field.type());
-  }
-  return length;
-}
-
-// Gets the order in which we should process any struct definitions held in the
-// given MetadataOutput.
-// Since we can't assume any given ordering of output structs, we need to
-// toposort.
-std::vector<int64_t> GetTypeReferenceOrder(
-    const xlscc_metadata::MetadataOutput& metadata) {
-  using Dependees = absl::flat_hash_set<int64_t>;
-
-  absl::flat_hash_map<int64_t, Dependees> waiters;
-  std::deque<int64_t> ready;
-  std::vector<int64_t> ordered_ids;
-  // Initialize the ready, etc. lists.
-  for (const auto& type : metadata.structs()) {
-    const StructType& struct_type = type.as_struct();
-    Dependees dependees;
-    for (const auto& field : struct_type.fields()) {
-      // We'll never see StructTypes at anything but top level, so we only need
-      // to concern ourselves with InstanceTypes.
-      // Since this is initialization, we won't have seen any at this point, so
-      // we can just toss them in the waiting list.
-      if (field.type().has_as_inst()) {
-        dependees.insert(field.type().as_inst().name().id());
-      } else if (field.type().has_as_array()) {
-        // Find the root of any nested arrays - what's the element type?
-        const Type* type_ref = &field.type();
-        while (type_ref->has_as_array()) {
-          type_ref = &type_ref->as_array().element_type();
-        }
-
-        if (type_ref->has_as_inst()) {
-          dependees.insert(type_ref->as_inst().name().id());
-        }
-      }
-    }
-
-    // We're guaranteed that a StructType name is an InstanceType.
-    int64_t struct_id = struct_type.name().as_inst().name().id();
-    if (dependees.empty()) {
-      ready.push_back(struct_id);
-      ordered_ids.push_back(struct_id);
-    } else {
-      waiters[struct_id] = dependees;
-    }
-  }
-
-  // Finally, walk the lists & extract the ordering.
-  while (!waiters.empty()) {
-    // Pop the front dude off of ready.
-    int64_t current_id = ready.front();
-    ready.pop_front();
-
-    std::vector<int64_t> to_remove;
-    for (auto& [id, dependees] : waiters) {
-      dependees.erase(current_id);
-      if (dependees.empty()) {
-        ready.push_back(id);
-        to_remove.push_back(id);
-        ordered_ids.push_back(id);
-      }
-    }
-
-    for (int64_t id : to_remove) {
-      waiters.erase(id);
-    }
-  }
-
-  return ordered_ids;
-}
-
-// Loads an IdToType with the necessary data (type bit width, really).
-IdToType PopulateTypeData(const xlscc_metadata::MetadataOutput& metadata,
-                          const std::vector<int64_t>& processing_order) {
-  IdToType id_to_type;
-  for (int64_t id : processing_order) {
-    for (const auto& type : metadata.structs()) {
-      StructType struct_type = type.as_struct();
-      if (struct_type.name().as_inst().name().id() == id) {
-        TypeData type_data;
-        type_data.type = type.as_struct();
-        type_data.bit_width = GetBitWidth(id_to_type, type);
-        id_to_type[type.as_struct().name().as_inst().name().id()] = type_data;
-      }
-    }
-  }
-
-  return id_to_type;
-}
 
 // Trivial reverse-lookup fn.
 absl::StatusOr<std::string> XlsccToNativeIntegerType(const IntType& int_type) {
@@ -638,6 +506,7 @@ class GenericEncoded<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
 
   GenericEncoded(Sample* data, size_t length, SampleArrayDeleter deleter)
       : length_(length), data_(data, deleter) {}
+
   GenericEncoded(GenericEncoded<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                      BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn,
                      DecryptFn>&&) = default;
@@ -1305,7 +1174,7 @@ absl::StatusOr<std::string> ConvertStructsToEncodedTemplate(
 //  0: Header guard
 //  1: Generic header
 //  2: Class definitions
-constexpr const char kBoolFileTemplate[] = R"(#ifndef $0
+constexpr const char kCleartextFileTemplate[] = R"(#ifndef $0
 #define $0
 
 #include <memory>
@@ -1338,7 +1207,6 @@ using __EncodedBaseArray =
                           ::CleartextCopy, ::CleartextEncode, ::CleartextEncode,
                           ::CleartextDecode, Dimensions...>;
 
-
 $2
 #endif//$0)";
 
@@ -1349,13 +1217,14 @@ $2
 //     arrays
 //  3: special insert for constructor and Decode method to string for dynamic
 //     arrays
-constexpr const char kBoolStructTemplate[] = R"(
-class Encoded$0Ref : public __EncodedBaseRef<$0> {
+constexpr const char kCleartextStructTemplate[] = R"(
+template <>
+class EncodedRef<$1> : public __EncodedBaseRef<$0> {
  public:
   using __EncodedBaseRef<$0>::__EncodedBaseRef;
 
-  Encoded$0Ref(const __EncodedBaseRef<$0>& rhs)
-      : Encoded$0Ref(const_cast<bool*>(rhs.get().data()), rhs.length()) {}
+  EncodedRef(const __EncodedBaseRef<$0>& rhs)
+      : EncodedRef<$1>(const_cast<bool*>(rhs.get().data()), rhs.length()) {}
 
   void Encode(const $1& value) { SetEncrypted(value, nullptr); }
 
@@ -1372,23 +1241,24 @@ class Encoded$0Ref : public __EncodedBaseRef<$0> {
   using __EncodedBaseRef<$0>::SetUnencrypted;
 };
 
-class Encoded$0 : public __EncodedBase<$0> {
+template <>
+class Encoded<$1> : public __EncodedBase<$0> {
  public:
-  Encoded$0()
-      : __EncodedBase<$0>(new bool[Encoded$0::element_bit_width()], 1,
+  Encoded()
+      : __EncodedBase<$0>(new bool[Encoded<$1>::element_bit_width()], 1,
                       std::default_delete<bool[]>()) {}
-  Encoded$0(const $1& value) : Encoded$0() { Encode(value); }
+  Encoded(const $1& value) : Encoded<$1>() { Encode(value); }
 
-  Encoded$0& operator=(const Encoded$0Ref rhs) {
+  Encoded<$1>& operator=(const EncodedRef<$1> rhs) {
     ::CleartextCopy(rhs.get(), nullptr, this->get());
     return *this;
   }
 
-  operator const Encoded$0Ref() const& {
-    return Encoded$0Ref(const_cast<bool*>(get().data()), this->length());
+  operator const EncodedRef<$1>() const& {
+    return EncodedRef<$1>(const_cast<bool*>(get().data()), this->length());
   }
-  operator Encoded$0Ref() & {
-    return Encoded$0Ref(const_cast<bool*>(get().data()), this->length());
+  operator EncodedRef<$1>() & {
+    return EncodedRef<$1>(const_cast<bool*>(get().data()), this->length());
   }
 
   void Encode(const $1& value) { SetEncrypted(value, nullptr); }
@@ -1406,18 +1276,15 @@ class Encoded$0 : public __EncodedBase<$0> {
   using __EncodedBase<$0>::SetUnencrypted;
 };
 
-template <unsigned... Dimensions>
-class Encoded$0Array;
-
 template <>
-class Encoded$0Array<> : public __EncodedBaseArray<$0> {
+class EncodedArray<$1> : public __EncodedBaseArray<$0> {
  public:
-  Encoded$0Array(size_t length)
-      : __EncodedBaseArray<$0>(new bool[length * Encoded$0::element_bit_width()],
+  EncodedArray(size_t length)
+      : __EncodedBaseArray<$0>(new bool[length * Encoded<$1>::element_bit_width()],
                              length, std::default_delete<bool[]>()) {}
 
-  Encoded$0Array(std::initializer_list<$1> values)
-      : Encoded$0Array(values.size()) {
+  EncodedArray(std::initializer_list<$1> values)
+      : EncodedArray<$1>(values.size()) {
     Encode(std::data(values), values.size());
   }
 
@@ -1436,6 +1303,8 @@ class Encoded$0Array<> : public __EncodedBaseArray<$0> {
     Decrypt(value, length, nullptr);
   }
 
+$2
+
   absl::FixedArray<$1> Decode() const { return Decrypt(nullptr); }
 
   using __EncodedBaseArray<$0>::get;
@@ -1450,21 +1319,21 @@ class Encoded$0Array<> : public __EncodedBaseArray<$0> {
 };
 
 template <unsigned D1>
-class Encoded$0Array<D1> : public __EncodedBaseArray<$0, D1> {
+class EncodedArray<$1, D1> : public __EncodedBaseArray<$0, D1> {
  public:
-  Encoded$0Array()
+  EncodedArray()
       : __EncodedBaseArray<$0, D1>(
             new bool[__EncodedBaseArray<$0, D1>::element_bit_width() * D1], D1,
             std::default_delete<bool[]>()) {}
 
-  Encoded$0Array(std::initializer_list<$1> values)
-      : Encoded$0Array<D1>() {
+  EncodedArray(std::initializer_list<$1> values)
+      : EncodedArray<$1, D1>() {
     XLS_CHECK_EQ(values.size(), D1);
     Encode(std::data(values));
   }
 
-  Encoded$0Array(const $1 values[D1])
-      : Encoded$0Array<D1>() {
+  EncodedArray(const $1 values[D1])
+      : EncodedArray<$1, D1>() {
     Encode(values);
   }
 
@@ -1475,6 +1344,8 @@ class Encoded$0Array<D1> : public __EncodedBaseArray<$0, D1> {
   void Decode(typename __EncodedBaseArray<$0, D1>::ArrayT value) const {
     Decrypt(value, nullptr);
   }
+
+$3
 
   absl::FixedArray<$1> Decode() const { return Decrypt(nullptr); }
 
@@ -1492,9 +1363,9 @@ class Encoded$0Array<D1> : public __EncodedBaseArray<$0, D1> {
 };
 
 template <unsigned... Dimensions>
-class Encoded$0Array : public __EncodedBaseArray<$0, Dimensions...> {
+class EncodedArray<$1, Dimensions...>: public __EncodedBaseArray<$0, Dimensions...> {
  public:
-  Encoded$0Array()
+  EncodedArray()
       : __EncodedBaseArray<$0, Dimensions...>(
             new bool[__EncodedBaseArray<$0, Dimensions...>::element_bit_width() *
                      __EncodedBaseArray<$0, Dimensions...>::VOLUME],
@@ -1524,17 +1395,14 @@ class Encoded$0Array : public __EncodedBaseArray<$0, Dimensions...> {
   using __EncodedBaseArray<$0, Dimensions...>::BorrowedDecrypt;
 };
 
-template <unsigned... Dimensions>
-class Encoded$0ArrayRef;
-
 template <>
-class Encoded$0ArrayRef<> : public __EncodedBaseArrayRef<$0> {
+class EncodedArrayRef<$1> : public __EncodedBaseArrayRef<$0> {
  public:
   using __EncodedBaseArrayRef<$0>::__EncodedBaseArrayRef;
-  Encoded$0ArrayRef(const __EncodedBaseArrayRef<$0>& rhs)
-      : Encoded$0ArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length()) {}
-  Encoded$0ArrayRef(const __EncodedBaseArray<$0>& rhs)
-      : Encoded$0ArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length()) {}
+  EncodedArrayRef(const __EncodedBaseArrayRef<$0>& rhs)
+      : EncodedArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length()) {}
+  EncodedArrayRef(const __EncodedBaseArray<$0>& rhs)
+      : EncodedArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length()) {}
 
   void Encode(const $1* value, size_t length) {
     XLS_CHECK(this->length() >= length);
@@ -1558,16 +1426,16 @@ class Encoded$0ArrayRef<> : public __EncodedBaseArrayRef<$0> {
 };
 
 template <unsigned D1>
-class Encoded$0ArrayRef<D1> : public __EncodedBaseArrayRef<$0, D1> {
+class EncodedArrayRef<$1, D1> : public __EncodedBaseArrayRef<$0, D1> {
  public:
   using __EncodedBaseArrayRef<$0, D1>::__EncodedBaseArrayRef;
 
-  Encoded$0ArrayRef(const __EncodedBaseArrayRef<$0, D1>& rhs)
-      : Encoded$0ArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length()) {}
-  Encoded$0ArrayRef(const __EncodedBaseArray<$0, D1>& rhs)
-      : Encoded$0ArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length()) {}
-  Encoded$0ArrayRef(const __EncodedBaseArray<$0>& rhs)
-      : Encoded$0ArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length()) {
+  EncodedArrayRef(const __EncodedBaseArrayRef<$0, D1>& rhs)
+      : EncodedArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length()) {}
+  EncodedArrayRef(const __EncodedBaseArray<$0, D1>& rhs)
+      : EncodedArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length()) {}
+  EncodedArrayRef(const __EncodedBaseArray<$0>& rhs)
+      : EncodedArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length()) {
     XLS_CHECK_EQ(rhs.length(), D1);
   }
 
@@ -1591,18 +1459,18 @@ class Encoded$0ArrayRef<D1> : public __EncodedBaseArrayRef<$0, D1> {
 };
 
 template <unsigned... Dimensions>
-class Encoded$0ArrayRef : public __EncodedBaseArrayRef<$0, Dimensions...> {
+class EncodedArrayRef<$1, Dimensions...> : public __EncodedBaseArrayRef<$0, Dimensions...> {
  public:
   using __EncodedBaseArrayRef<$0, Dimensions...>::__EncodedBaseArrayRef;
   // Use the VOLUME constant instead of length().  The former gives the total
   // volume of the underlying array (accounting for all dimensions), while the
   // former gives the length of the first level of the array (e.g.,
   // Type[4][3][2] will have VOLUME = 24 and length() == 4.
-  Encoded$0ArrayRef(const __EncodedBaseArrayRef<$0, Dimensions...>& rhs)
-      : Encoded$0ArrayRef(const_cast<bool*>(rhs.get().data()),
+  EncodedArrayRef(const __EncodedBaseArrayRef<$0, Dimensions...>& rhs)
+      : EncodedArrayRef(const_cast<bool*>(rhs.get().data()),
                           __EncodedBaseArrayRef<$0, Dimensions...>::VOLUME) {}
-  Encoded$0ArrayRef(const __EncodedBaseArray<$0, Dimensions...>& rhs)
-      : Encoded$0ArrayRef(const_cast<bool*>(rhs.get().data()),
+  EncodedArrayRef(const __EncodedBaseArray<$0, Dimensions...>& rhs)
+      : EncodedArrayRef(const_cast<bool*>(rhs.get().data()),
                           __EncodedBaseArray<$0, Dimensions...>::VOLUME) {}
 
   void Encode(
@@ -1625,84 +1493,42 @@ class Encoded$0ArrayRef : public __EncodedBaseArrayRef<$0, Dimensions...> {
   using __EncodedBaseArrayRef<$0, Dimensions...>::BorrowedSetEncrypted;
   using __EncodedBaseArrayRef<$0, Dimensions...>::BorrowedDecrypt;
 };
-
-template <>
-class EncodedArray<$1> : public Encoded$0Array<> {
- public:
-  using Encoded$0Array<>::Encoded$0Array;
-  EncodedArray<$1>(std::initializer_list<$1> list) :
-    Encoded$0Array(list) {}
-
-$2
-};
-
-template <unsigned D1>
-class EncodedArray<$1, D1> : public Encoded$0Array<D1> {
- public:
-  using Encoded$0Array<D1>::Encoded$0Array;
-  EncodedArray<$1, D1>(std::initializer_list<$1> list) :
-    Encoded$0Array<D1>(list) {}
-
-$3
-};
-
-template <unsigned... Dimensions>
-class EncodedArray<$1, Dimensions...> : public Encoded$0Array<Dimensions...> {};
-
-template <>
-class EncodedArrayRef<$1> : public Encoded$0ArrayRef<> {
- public:
-  using Encoded$0ArrayRef<>::Encoded$0ArrayRef;
-  EncodedArrayRef(const EncodedArray<$1>& rhs)
-      : EncodedArrayRef<$1>(const_cast<bool*>(rhs.get().data()), rhs.length()) {
-  }
-};
-
-template <unsigned D1, unsigned... Dimensions>
-class EncodedArrayRef<$1, D1, Dimensions...>
-    : public Encoded$0ArrayRef<D1, Dimensions...> {
- public:
-  using Encoded$0ArrayRef<D1, Dimensions...>::Encoded$0ArrayRef;
-  EncodedArrayRef(const EncodedArray<$1, D1, Dimensions...>& rhs)
-      : EncodedArrayRef<$1, D1, Dimensions...>(const_cast<bool*>(rhs.get().data()),
-                        Encoded$0ArrayRef<D1, Dimensions...>::VOLUME) {
-
-    XLS_CHECK_EQ(rhs.length(), D1);
-  }
-};
 )";
 
 // $0 -- struct type ("PrimitiveChar")
 // $1 -- this class' template parameters ("char" or "char, D1")
 // $2 -- CharT ("char")
-// $3 -- base class' template parameters ("" or "D1")
+// $3 -- base class' template dimension parameters ("" or ", D1")
 constexpr absl::string_view kCleartextDecodeFromStringTemplate = R"(
-  EncodedArray<$1>(std::basic_string<$2>& val) :
-    Encoded$0Array<$3>(val.length() + 1) {
+  EncodedArray(const std::basic_string<$2>& val) :
+    EncodedArray<$1$3>(val.length() + 1) {
     this->Encode(val.data(), val.length() + 1);
   }
 
-  EncodedArray<$1>(const $2* val) :
-    Encoded$0Array<$3>(strlen(val) + 1) {
-    this->Encode(val, strlen(val) + 1);
-  }
-
   std::basic_string<$2> Decode() {
-    const absl::FixedArray<$2> v = Encoded$0Array<$3>::Decode();
-    return std::basic_string<$2>(v.begin(), v.end());
+      const absl::FixedArray<$2> v = __EncodedBaseArray<$0$3>::Decrypt(nullptr);
+      return std::basic_string<$2>(v.begin(), v.end());
   }
 )";
 
-// $0 -- prefix ("Tfhe", "OpenFhe")
-// $1 -- struct type ("PrimitiveChar")
-// $2 -- char type ("char")
-// $3 -- template ("<>, <D1>")
-// $4 -- scheme-specific private-key parameter declarations
-// $5 -- scheme-specific private-key parameter names
-constexpr absl::string_view kDecodeFromStringTemplate = R"(
-  std::basic_string<$2> Decrypt($4) {
-    const absl::FixedArray<$2> v = $0$1Array$3::Decrypt($5);
-    return std::basic_string<$2>(v.begin(), v.end());
+// $0 -- struct type ("PrimitiveChar")
+// $1 -- char type ("char")
+// $2 -- template dimension parameters ("" or ", D1")
+constexpr absl::string_view kTfheDecodeFromStringTemplate = R"(
+  std::basic_string<$1> Decrypt(const TFheGateBootstrappingSecretKeySet* key) {
+    const absl::FixedArray<$1> v = __TfheBaseArray<$0$2>::Decrypt(key);
+    return std::basic_string<$1>(v.begin(), v.end());
+  }
+)";
+
+// $0 -- struct type ("PrimitiveChar")
+// $1 -- char type ("char")
+// $2 -- template dimension parameters ("" or ", D1")
+constexpr absl::string_view kOpenFheDecodeFromStringTemplate = R"(
+  std::basic_string<$1> Decrypt(lbcrypto::LWEPrivateKey sk) {
+    OpenFhePrivateKeySet key{cc_, sk};
+    const absl::FixedArray<$1> v = __OpenFheBaseArray<$0$2>::Decrypt(&key);
+    return std::basic_string<$1>(v.begin(), v.end());
   }
 )";
 
@@ -1740,17 +1566,17 @@ absl::StatusOr<std::string> ConvertStructsToEncodedBool(
             fully_qualified_name, "");
         special_decode_fixed = absl::Substitute(
             kCleartextDecodeFromStringTemplate, struct_name.name(), "char, D1",
-            fully_qualified_name, "D1");
+            fully_qualified_name, ", D1");
       }
     }
 
     std::string struct_text = absl::Substitute(
-        kBoolStructTemplate, struct_name.name(), fully_qualified_name,
+        kCleartextStructTemplate, struct_name.name(), fully_qualified_name,
         special_decode_dyn, special_decode_fixed);
     generated.push_back(struct_text);
   }
 
-  return absl::Substitute(kBoolFileTemplate, header_guard, generic_header,
+  return absl::Substitute(kCleartextFileTemplate, header_guard, generic_header,
                           absl::StrJoin(generated, "\n\n"));
 }
 
@@ -1799,45 +1625,47 @@ $2
 //  0: Type name
 //  1: Fully-qualified type name
 constexpr const char kTfheStructTemplate[] = R"(
-class Tfhe$0Ref : public __TfheBaseRef<$0> {
+template <>
+class TfheRef<$1> : public __TfheBaseRef<$0> {
  public:
   using __TfheBaseRef<$0>::__TfheBaseRef;
 
-  Tfhe$0Ref(const __TfheBaseRef<$0>& rhs)
-      : Tfhe$0Ref(const_cast<LweSample*>(rhs.get().data()), rhs.length()) {}
+  TfheRef(const __TfheBaseRef<$0>& rhs)
+      : TfheRef<$1>(const_cast<LweSample*>(rhs.get().data()), rhs.length()) {}
 };
 
-class Tfhe$0 : public __TfheBase<$0> {
+template <>
+class Tfhe<$1> : public __TfheBase<$0> {
  public:
-  Tfhe$0(const TFheGateBootstrappingParameterSet* params)
+  Tfhe(const TFheGateBootstrappingParameterSet* params)
       : __TfheBase<$0>(new_gate_bootstrapping_ciphertext_array(
-                       Tfhe$0::element_bit_width(), params),
-                   1, LweSampleArrayDeleter(Tfhe$0::element_bit_width())),
+                       Tfhe<$1>::element_bit_width(), params),
+                   1, LweSampleArrayDeleter(Tfhe<$1>::element_bit_width())),
         params_(params) {}
 
-  Tfhe$0& operator=(const Tfhe$0Ref rhs) {
+  Tfhe<$1>& operator=(const TfheRef<$1> rhs) {
     ::TfheCopy(rhs.get(), params_, this->get());
     return *this;
   }
 
 
-  operator const Tfhe$0Ref() const& {
-    return Tfhe$0Ref(const_cast<LweSample*>(get().data()), this->length());
+  operator const TfheRef<$1>() const& {
+    return TfheRef<$1>(const_cast<LweSample*>(get().data()), this->length());
   }
-  operator Tfhe$0Ref() & {
-    return Tfhe$0Ref(const_cast<LweSample*>(get().data()), this->length());
+  operator TfheRef<$1>() & {
+    return TfheRef<$1>(const_cast<LweSample*>(get().data()), this->length());
   }
 
-  static Tfhe$0 Unencrypted(
+  static Tfhe<$1> Unencrypted(
       $1 value, const TFheGateBootstrappingCloudKeySet* key) {
-    Tfhe$0 plaintext(key->params);
+    Tfhe<$1> plaintext(key->params);
     plaintext.SetUnencrypted(value, key);
     return plaintext;
   }
 
-  static Tfhe$0 Encrypt(
+  static Tfhe<$1> Encrypt(
       $1 value, const TFheGateBootstrappingSecretKeySet* key) {
-    Tfhe$0 ciphertext(key->params);
+    Tfhe<$1> ciphertext(key->params);
     ciphertext.SetEncrypted(value, key);
     return ciphertext;
   }
@@ -1845,124 +1673,15 @@ class Tfhe$0 : public __TfheBase<$0> {
   const TFheGateBootstrappingParameterSet* params_;
 };
 
-template <unsigned... Dimensions>
-class Tfhe$0ArrayRef;
-
-template <unsigned... Dimensions>
-class Tfhe$0Array;
-
 template <>
-class Tfhe$0Array<> : public __TfheBaseArray<$0> {
+class TfheArray<$1> : public __TfheBaseArray<$0> {
  public:
-  Tfhe$0Array(size_t length, const TFheGateBootstrappingParameterSet* params)
+  TfheArray(size_t length, const TFheGateBootstrappingParameterSet* params)
       : __TfheBaseArray<$0>(
             new_gate_bootstrapping_ciphertext_array(
-                Tfhe$0::element_bit_width() * length, params),
+                Tfhe<$1>::element_bit_width() * length, params),
             length,
-            LweSampleArrayDeleter(Tfhe$0::element_bit_width() * length)) {}
-};
-
-template <unsigned D1>
-class Tfhe$0Array<D1> : public __TfheBaseArray<$0, D1> {
- public:
-  Tfhe$0Array(const TFheGateBootstrappingParameterSet* params)
-      : __TfheBaseArray<$0, D1>(
-            new_gate_bootstrapping_ciphertext_array(
-                Tfhe$0::element_bit_width() * D1, params),
-            D1, LweSampleArrayDeleter(Tfhe$0::element_bit_width() * D1)) {}
-};
-
-template <unsigned... Dimensions>
-class Tfhe$0Array : public __TfheBaseArray<$0, Dimensions...> {
- public:
-  Tfhe$0Array(const TFheGateBootstrappingParameterSet* params)
-      : __TfheBaseArray<$0, Dimensions...>(
-            new_gate_bootstrapping_ciphertext_array(
-                Tfhe$0::element_bit_width() *
-                    __TfheBaseArray<$0, Dimensions...>::VOLUME,
-                params),
-            __TfheBaseArray<$0, Dimensions...>::VOLUME,
-            LweSampleArrayDeleter(Tfhe$0::element_bit_width() *
-                                  __TfheBaseArray<$0, Dimensions...>::VOLUME)) {}
-};
-
-template <unsigned... Dimensions>
-class Tfhe$0ArrayRef;
-
-template <unsigned... Dimensions>
-class Tfhe$0Array;
-
-template <>
-class Tfhe$0ArrayRef<> : public __TfheBaseArrayRef<$0> {
- public:
-  using __TfheBaseArrayRef<$0>::__TfheBaseArrayRef;
-  Tfhe$0ArrayRef(const __TfheBaseArrayRef<$0>& rhs)
-      : Tfhe$0ArrayRef(const_cast<LweSample*>(rhs.get().data()), rhs.length()) {
-  }
-  Tfhe$0ArrayRef(const __TfheBaseArray<$0>& rhs)
-      : Tfhe$0ArrayRef(const_cast<LweSample*>(rhs.get().data()), rhs.length()) {
-  }
-
-  using __TfheBaseArrayRef<$0>::get;
-};
-
-template <unsigned D1>
-class Tfhe$0ArrayRef<D1> : public __TfheBaseArrayRef<$0, D1> {
- public:
-  using __TfheBaseArrayRef<$0, D1>::__TfheBaseArrayRef;
-  Tfhe$0ArrayRef(const __TfheBaseArrayRef<$0, D1>& rhs)
-      : Tfhe$0ArrayRef(const_cast<LweSample*>(rhs.get().data()), rhs.length()) {
-  }
-  Tfhe$0ArrayRef(const __TfheBaseArray<$0, D1>& rhs)
-      : Tfhe$0ArrayRef(const_cast<LweSample*>(rhs.get().data()), rhs.length()) {
-  }
-  Tfhe$0ArrayRef(const __TfheBaseArray<$0>& rhs)
-      : Tfhe$0ArrayRef(const_cast<LweSample*>(rhs.get().data()), rhs.length()) {
-    XLS_CHECK_GE(rhs.length(), D1);
-  }
-  using __TfheBaseArrayRef<$0, D1>::get;
-};
-
-template <unsigned... Dimensions>
-class Tfhe$0ArrayRef : public __TfheBaseArrayRef<$0, Dimensions...> {
- public:
-  using __TfheBaseArrayRef<$0, Dimensions...>::__TfheBaseArrayRef;
-  // Use the VOLUME constant instead of length().  The former gives the total
-  // volume of the underlying array (accounting for all dimensions), while the
-  // former gives the length of the first level of the array (e.g.,
-  // Type[4][3][2] will have VOLUME = 24 and length() == 4.
-  Tfhe$0ArrayRef(const __TfheBaseArrayRef<$0, Dimensions...>& rhs)
-      : Tfhe$0ArrayRef(const_cast<LweSample*>(rhs.get().data()),
-                       __TfheBaseArrayRef<$0, Dimensions...>::VOLUME) {}
-  Tfhe$0ArrayRef(const __TfheBaseArray<$0, Dimensions...>& rhs)
-      : Tfhe$0ArrayRef(const_cast<LweSample*>(rhs.get().data()),
-                       __TfheBaseArray<$0, Dimensions...>::VOLUME) {}
-  using __TfheBaseArrayRef<$0, Dimensions...>::get;
-};
-
-template <>
-class TfheArrayRef<$1> : public Tfhe$0ArrayRef<> {
- public:
-  using Tfhe$0ArrayRef<>::Tfhe$0ArrayRef;
-  using Tfhe$0ArrayRef<>::get;
-};
-
-template <unsigned... Dimensions>
-class TfheArrayRef<$1, Dimensions...> : public Tfhe$0ArrayRef<Dimensions...> {
- public:
-  using Tfhe$0ArrayRef<Dimensions...>::Tfhe$0ArrayRef;
-  TfheArrayRef(const TfheArray<$1, Dimensions...>& rhs)
-      : TfheArrayRef<$1, Dimensions...>(
-            const_cast<LweSample*>(rhs.get().data()),
-            Tfhe$0ArrayRef<Dimensions...>::VOLUME) {}
-  using Tfhe$0ArrayRef<Dimensions...>::get;
-};
-
-template <>
-class TfheArray<$1> : public Tfhe$0Array<> {
- public:
-  using Tfhe$0Array<>::Tfhe$0Array;
-  using Tfhe$0Array<>::get;
+            LweSampleArrayDeleter(Tfhe<$1>::element_bit_width() * length)) {}
 
   static TfheArray<$1> Unencrypted(
      absl::Span<const $1> plaintext,
@@ -1979,14 +1698,18 @@ class TfheArray<$1> : public Tfhe$0Array<> {
     private_value.SetEncrypted(plaintext.data(), plaintext.length(), key);
     return private_value;
   }
+
 $2
 };
 
 template <unsigned D1>
-class TfheArray<$1, D1> : public Tfhe$0Array<D1> {
+class TfheArray<$1, D1> : public __TfheBaseArray<$0, D1> {
  public:
-  using Tfhe$0Array<D1>::Tfhe$0Array;
-  using Tfhe$0Array<D1>::get;
+  TfheArray(const TFheGateBootstrappingParameterSet* params)
+      : __TfheBaseArray<$0, D1>(
+            new_gate_bootstrapping_ciphertext_array(
+                Tfhe<$1>::element_bit_width() * D1, params),
+            D1, LweSampleArrayDeleter(Tfhe<$1>::element_bit_width() * D1)) {}
 
   static TfheArray<$1, D1> Unencrypted(
      absl::Span<const $1> plaintext,
@@ -2005,34 +1728,71 @@ class TfheArray<$1, D1> : public Tfhe$0Array<D1> {
     private_value.SetEncrypted(plaintext.data(), key);
     return private_value;
   }
+
 $3
 };
 
-template <unsigned D1, unsigned... Dimensions>
-class TfheArray<$1, D1, Dimensions...> : public Tfhe$0Array<D1, Dimensions...> {
+template <unsigned... Dimensions>
+class TfheArray<$1, Dimensions...> : public __TfheBaseArray<$0, Dimensions...> {
  public:
-  using Tfhe$0Array<D1, Dimensions...>::Tfhe$0Array;
-  using Tfhe$0Array<D1, Dimensions...>::get;
-
-  static TfheArray<$1, D1, Dimensions...> Unencrypted(
-     absl::Span<const $1> plaintext,
-     const TFheGateBootstrappingCloudKeySet* key) {
-    XLS_CHECK_EQ(plaintext.length(), D1);
-    TfheArray<$1, D1> shared_value(key->params);
-    shared_value.SetUnencrypted(plaintext.data(), key);
-    return shared_value;
-  }
-
-  static TfheArray<$1, D1, Dimensions...> Encrypt(
-      absl::Span<const $1> plaintext,
-      const TFheGateBootstrappingSecretKeySet* key) {
-    XLS_CHECK_EQ(plaintext.length(), D1);
-    TfheArray<$1, D1> private_value(key->params);
-    private_value.SetEncrypted(plaintext.data(), key);
-    return private_value;
-  }
+  TfheArray(const TFheGateBootstrappingParameterSet* params)
+      : __TfheBaseArray<$0, Dimensions...>(
+            new_gate_bootstrapping_ciphertext_array(
+                Tfhe<$1>::element_bit_width() *
+                    __TfheBaseArray<$0, Dimensions...>::VOLUME,
+                params),
+            __TfheBaseArray<$0, Dimensions...>::VOLUME,
+            LweSampleArrayDeleter(Tfhe<$1>::element_bit_width() *
+                                  __TfheBaseArray<$0, Dimensions...>::VOLUME)) {}
 };
 
+template <>
+class TfheArrayRef<$1> : public __TfheBaseArrayRef<$0> {
+ public:
+  using __TfheBaseArrayRef<$0>::__TfheBaseArrayRef;
+  TfheArrayRef(const __TfheBaseArrayRef<$0>& rhs)
+      : TfheArrayRef<$1>(const_cast<LweSample*>(rhs.get().data()), rhs.length()) {
+  }
+  TfheArrayRef(const __TfheBaseArray<$0>& rhs)
+      : TfheArrayRef<$1>(const_cast<LweSample*>(rhs.get().data()), rhs.length()) {
+  }
+
+  using __TfheBaseArrayRef<$0>::get;
+};
+
+template <unsigned D1>
+class TfheArrayRef<$1, D1> : public __TfheBaseArrayRef<$0, D1> {
+ public:
+  using __TfheBaseArrayRef<$0, D1>::__TfheBaseArrayRef;
+  TfheArrayRef(const __TfheBaseArrayRef<$0, D1>& rhs)
+      : TfheArrayRef<$1, D1>(const_cast<LweSample*>(rhs.get().data()), rhs.length()) {
+  }
+  TfheArrayRef(const __TfheBaseArray<$0, D1>& rhs)
+      : TfheArrayRef<$1, D1>(const_cast<LweSample*>(rhs.get().data()), rhs.length()) {
+  }
+  TfheArrayRef(const __TfheBaseArray<$0>& rhs)
+      : TfheArrayRef<$1, D1>(const_cast<LweSample*>(rhs.get().data()), rhs.length()) {
+    XLS_CHECK_GE(rhs.length(), D1);
+  }
+  using __TfheBaseArrayRef<$0, D1>::get;
+};
+
+template <unsigned... Dimensions>
+class TfheArrayRef<$1, Dimensions...> : public __TfheBaseArrayRef<$0, Dimensions...> {
+ public:
+  using __TfheBaseArrayRef<$0, Dimensions...>::__TfheBaseArrayRef;
+  // Use the VOLUME constant instead of length().  The former gives the total
+  // volume of the underlying array (accounting for all dimensions), while the
+  // former gives the length of the first level of the array (e.g.,
+  // Type[4][3][2] will have VOLUME = 24 and length() == 4.
+  TfheArrayRef(const __TfheBaseArrayRef<$0, Dimensions...>& rhs)
+      : TfheArrayRef<$1, Dimensions...>(const_cast<LweSample*>(rhs.get().data()),
+                       __TfheBaseArrayRef<$0, Dimensions...>::VOLUME) {}
+  TfheArrayRef(const __TfheBaseArray<$0, Dimensions...>& rhs)
+      : TfheArrayRef<$1, Dimensions...>(const_cast<LweSample*>(rhs.get().data()),
+                       __TfheBaseArray<$0, Dimensions...>::VOLUME) {}
+  using __TfheBaseArrayRef<$0, Dimensions...>::get;
+};
 )";
 
 absl::StatusOr<std::string> ConvertStructsToEncodedTfhe(
@@ -2063,14 +1823,12 @@ absl::StatusOr<std::string> ConvertStructsToEncodedTfhe(
       const StructField& field = struct_type.fields().Get(0);
       fully_qualified_name = GetTypeName(field.type()).value();
       if (fully_qualified_name == "char") {
-        special_decode_dyn = absl::Substitute(
-            kDecodeFromStringTemplate, "Tfhe", struct_name.name(),
-            fully_qualified_name, "<>",
-            "const TFheGateBootstrappingSecretKeySet* key", "key");
-        special_decode_fixed = absl::Substitute(
-            kDecodeFromStringTemplate, "Tfhe", struct_name.name(),
-            fully_qualified_name, "<D1>",
-            "const TFheGateBootstrappingSecretKeySet* key", "key");
+        special_decode_dyn =
+            absl::Substitute(kTfheDecodeFromStringTemplate, struct_name.name(),
+                             fully_qualified_name, "");
+        special_decode_fixed =
+            absl::Substitute(kTfheDecodeFromStringTemplate, struct_name.name(),
+                             fully_qualified_name, ", D1");
       }
     }
 
@@ -2129,16 +1887,17 @@ $2
 //  0: Type name
 //  1: Fully-qualified type name
 constexpr const char kOpenFheStructTemplate[] = R"(
-class OpenFhe$0Ref : public __OpenFheBaseRef<$0> {
+template <>
+class OpenFheRef<$1> : public __OpenFheBaseRef<$0> {
  public:
-  OpenFhe$0Ref(lbcrypto::LWECiphertext* data, size_t length,
+  OpenFheRef(lbcrypto::LWECiphertext* data, size_t length,
                 lbcrypto::BinFHEContext cc)
       : __OpenFheBaseRef<$0>(data, length), cc_(cc) {}
-  OpenFhe$0Ref(const __OpenFheBaseRef<$0>& rhs, lbcrypto::BinFHEContext cc)
-      : OpenFhe$0Ref(const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
+  OpenFheRef(const __OpenFheBaseRef<$0>& rhs, lbcrypto::BinFHEContext cc)
+      : OpenFheRef<$1>(const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
                       rhs.length(), cc) {}
-  OpenFhe$0Ref(const OpenFhe$0Ref& rhs)
-      : OpenFhe$0Ref(const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
+  OpenFheRef(const OpenFheRef<$1>& rhs)
+      : OpenFheRef<$1>(const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
                       rhs.length(), rhs.cc_) {}
 
   void SetEncrypted(const $1& value, lbcrypto::LWEPrivateKey sk,
@@ -2157,28 +1916,29 @@ class OpenFhe$0Ref : public __OpenFheBaseRef<$0> {
   lbcrypto::BinFHEContext cc_;
 };
 
-class OpenFhe$0 : public __OpenFheBase<$0> {
+template <>
+class OpenFhe<$1> : public __OpenFheBase<$0> {
  public:
-  OpenFhe$0(lbcrypto::BinFHEContext cc)
+  OpenFhe(lbcrypto::BinFHEContext cc)
       : __OpenFheBase<$0>(
-            new lbcrypto::LWECiphertext[OpenFhe$0::element_bit_width()], 1,
+            new lbcrypto::LWECiphertext[OpenFhe<$1>::element_bit_width()], 1,
             std::default_delete<lbcrypto::LWECiphertext[]>()),
         cc_(cc) {
     // Initialize the LWECiphertexts.
     SetUnencrypted({}, &cc_);
   }
 
-  OpenFhe$0& operator=(const OpenFhe$0Ref rhs) {
+  OpenFhe<$1>& operator=(const OpenFheRef<$1> rhs) {
     ::OpenFheCopy(rhs.get(), &cc_, this->get());
     return *this;
   }
 
-  operator const OpenFhe$0Ref() const& {
-    return OpenFhe$0Ref(const_cast<lbcrypto::LWECiphertext*>(get().data()),
+  operator const OpenFheRef<$1>() const& {
+    return OpenFheRef<$1>(const_cast<lbcrypto::LWECiphertext*>(get().data()),
                          this->length(), cc_);
   }
-  operator OpenFhe$0Ref() & {
-    return OpenFhe$0Ref(const_cast<lbcrypto::LWECiphertext*>(get().data()),
+  operator OpenFheRef<$1>() & {
+    return OpenFheRef<$1>(const_cast<lbcrypto::LWECiphertext*>(get().data()),
                          this->length(), cc_);
   }
 
@@ -2193,9 +1953,9 @@ class OpenFhe$0 : public __OpenFheBase<$0> {
     return __OpenFheBase<$0>::Decrypt(&key, elem);
   }
 
-  static OpenFhe$0 Encrypt(const $1& value, lbcrypto::BinFHEContext cc,
+  static OpenFhe<$1> Encrypt(const $1& value, lbcrypto::BinFHEContext cc,
                     lbcrypto::LWEPrivateKey sk) {
-    OpenFhe$0 val(cc);
+    OpenFhe<$1> val(cc);
     val.SetEncrypted(value, sk);
     return val;
   }
@@ -2204,18 +1964,12 @@ class OpenFhe$0 : public __OpenFheBase<$0> {
   lbcrypto::BinFHEContext cc_;
 };
 
-template <unsigned... Dimensions>
-class OpenFhe$0Array;
-
-template <unsigned... Dimensions>
-class OpenFhe$0ArrayRef;
-
 template <>
-class OpenFhe$0Array<> : public __OpenFheBaseArray<$0> {
+class OpenFheArray<$1> : public __OpenFheBaseArray<$0> {
  public:
-  OpenFhe$0Array(size_t length, lbcrypto::BinFHEContext cc)
+  OpenFheArray(size_t length, lbcrypto::BinFHEContext cc)
       : __OpenFheBaseArray<$0>(
-            new lbcrypto::LWECiphertext[OpenFhe$0::element_bit_width() *
+            new lbcrypto::LWECiphertext[OpenFhe<$1>::element_bit_width() *
                                         length],
             length, std::default_delete<lbcrypto::LWECiphertext[]>()),
         cc_(cc) {
@@ -2245,23 +1999,36 @@ class OpenFhe$0Array<> : public __OpenFheBaseArray<$0> {
     return __OpenFheBaseArray<$0>::Decrypt(&key);
   }
 
-  OpenFhe$0Ref operator[](size_t pos) {
+  OpenFheRef<$1> operator[](size_t pos) {
     auto ref = this->__OpenFheBaseArray<$0>::operator[](pos);
-    return OpenFhe$0Ref(ref, cc_);
+    return OpenFheRef<$1>(ref, cc_);
   }
 
+  static OpenFheArray<$1> Encrypt(
+      absl::Span<const $1> plaintext, lbcrypto::BinFHEContext cc,
+      lbcrypto::LWEPrivateKey sk) {
+    OpenFheArray<$1> private_value(plaintext.length(), cc);
+    private_value.SetEncrypted(plaintext.data(), plaintext.length(), sk);
+    return private_value;
+  }
+
+$2
+
  private:
-  friend OpenFhe$0ArrayRef<>;
-  template <unsigned...> friend class OpenFhe$0ArrayRef;
+  // Ideally we'd just want the two friend declarations below, but the second
+  // one is not permitted:
+  // friend class OpenFheArrayRef<$1>;
+  // template <unsigned D1> friend class OpenFheArrayRef<$1, D1>;
+  template <typename T, unsigned... Dimensions> friend class OpenFheArrayRef;
   lbcrypto::BinFHEContext cc_;
 };
 
 template <unsigned D1>
-class OpenFhe$0Array<D1> : public __OpenFheBaseArray<$0, D1> {
+class OpenFheArray<$1, D1> : public __OpenFheBaseArray<$0, D1> {
  public:
-  OpenFhe$0Array(lbcrypto::BinFHEContext cc)
+  OpenFheArray(lbcrypto::BinFHEContext cc)
       : __OpenFheBaseArray<$0, D1>(
-            new lbcrypto::LWECiphertext[OpenFhe$0::element_bit_width() * D1],
+            new lbcrypto::LWECiphertext[OpenFhe<$1>::element_bit_width() * D1],
             D1, std::default_delete<lbcrypto::LWECiphertext[]>()),
         cc_(cc) {
     // Initialize the LWECiphertexts.
@@ -2292,24 +2059,34 @@ class OpenFhe$0Array<D1> : public __OpenFheBaseArray<$0, D1> {
     return __OpenFheBaseArray<$0, D1>::Decrypt(&key);
   }
 
-  OpenFhe$0Ref operator[](size_t pos) {
+  OpenFheRef<$1> operator[](size_t pos) {
     auto ref = this->__OpenFheBaseArray<$0, D1>::operator[](pos);
-    return OpenFhe$0Ref(ref, cc_);
+    return OpenFheRef<$1>(ref, cc_);
   }
 
+  static OpenFheArray<$1> Encrypt(
+      absl::Span<const $1> plaintext, lbcrypto::BinFHEContext cc,
+      lbcrypto::LWEPrivateKey sk) {
+    OpenFheArray<$1, D1> private_value(plaintext.length(), cc);
+    private_value.SetEncrypted(plaintext.data(), plaintext.length(), sk);
+    return private_value;
+  }
+
+$3
+
  private:
-  friend OpenFhe$0ArrayRef<D1>;
+  friend OpenFheArrayRef<$1, D1>;
   lbcrypto::BinFHEContext cc_;
 };
 
 template <unsigned D1, unsigned... Dimensions>
-class OpenFhe$0Array<D1, Dimensions...>
+class OpenFheArray<$1, D1, Dimensions...>
     : public __OpenFheBaseArray<$0, D1, Dimensions...> {
  public:
-  OpenFhe$0Array(lbcrypto::BinFHEContext cc)
+  OpenFheArray(lbcrypto::BinFHEContext cc)
       : __OpenFheBaseArray<$0, D1, Dimensions...>(
             new lbcrypto::LWECiphertext
-                [OpenFhe$0::element_bit_width() *
+                [OpenFhe<$1>::element_bit_width() *
                  __OpenFheBaseArray<$0, D1, Dimensions...>::VOLUME],
             __OpenFheBaseArray<$0, D1, Dimensions...>::VOLUME,
             std::default_delete<lbcrypto::LWECiphertext[]>()),
@@ -2333,26 +2110,26 @@ class OpenFhe$0Array<D1, Dimensions...>
     __OpenFheBaseArray<$0, D1, Dimensions...>::Decrypt(value, &key, elem);
   }
 
-  OpenFhe$0ArrayRef<Dimensions...> operator[](size_t pos) {
+  OpenFheArrayRef<$1, Dimensions...> operator[](size_t pos) {
     auto ref = this->__OpenFheBaseArray<$0, D1, Dimensions...>::operator[](pos);
-    return OpenFhe$0ArrayRef<Dimensions...>(ref, cc_);
+    return OpenFheArrayRef<$1, Dimensions...>(ref, cc_);
   }
 
  private:
-  friend OpenFhe$0ArrayRef<D1, Dimensions...>;
+  friend OpenFheArrayRef<$1, D1, Dimensions...>;
   lbcrypto::BinFHEContext cc_;
 };
 
 template <>
-class OpenFhe$0ArrayRef<> : public __OpenFheBaseArrayRef<$0> {
+class OpenFheArrayRef<$1> : public __OpenFheBaseArrayRef<$0> {
  public:
-  OpenFhe$0ArrayRef(const OpenFhe$0ArrayRef<>& rhs)
+  OpenFheArrayRef(const OpenFheArrayRef<$1>& rhs)
       : __OpenFheBaseArrayRef<$0>(
             const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
             rhs.length()) {
     cc_ = rhs.cc_;
   }
-  OpenFhe$0ArrayRef(const OpenFhe$0Array<>& rhs)
+  OpenFheArrayRef(const OpenFheArray<$1>& rhs)
       : __OpenFheBaseArrayRef<$0>(
             const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
             rhs.length()) {
@@ -2370,9 +2147,9 @@ class OpenFhe$0ArrayRef<> : public __OpenFheBaseArrayRef<$0> {
     return __OpenFheBaseArrayRef<$0>::Decrypt(&key);
   }
 
-  OpenFhe$0Ref operator[](size_t pos) {
+  OpenFheRef<$1> operator[](size_t pos) {
     auto ref = this->__OpenFheBaseArrayRef<$0>::operator[](pos);
-    return OpenFhe$0Ref(ref, cc_);
+    return OpenFheRef<$1>(ref, cc_);
   }
 
  private:
@@ -2380,47 +2157,47 @@ class OpenFhe$0ArrayRef<> : public __OpenFheBaseArrayRef<$0> {
 };
 
 template <unsigned D1>
-class OpenFhe$0ArrayRef<D1> : public __OpenFheBaseArrayRef<$0, D1> {
+class OpenFheArrayRef<$1, D1> : public __OpenFheBaseArrayRef<$0, D1> {
  public:
   using __OpenFheBaseArrayRef<$0, D1>::__OpenFheBaseArrayRef;
-  OpenFhe$0ArrayRef(const OpenFhe$0ArrayRef<D1>& rhs)
-      : OpenFhe$0ArrayRef(
+  OpenFheArrayRef(const OpenFheArrayRef<$1, D1>& rhs)
+      : OpenFheArrayRef<$1, D1>(
             const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
             rhs.length()) {
     cc_ = rhs.cc_;
   }
-  OpenFhe$0ArrayRef(const OpenFhe$0Array<D1>& rhs)
-      : OpenFhe$0ArrayRef(
+  OpenFheArrayRef(const OpenFheArray<$1, D1>& rhs)
+      : OpenFheArrayRef<$1, D1>(
             const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
             rhs.length()) {
     cc_ = rhs.cc_;
   }
-  OpenFhe$0ArrayRef(const OpenFhe$0Array<>& rhs)
-      : OpenFhe$0ArrayRef(
+  OpenFheArrayRef(const OpenFheArray<$1>& rhs)
+      : OpenFheArrayRef<$1, D1>(
             const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
             rhs.length()) {
     XLS_CHECK_GE(rhs.length(), D1);
     cc_ = rhs.cc_;
   }
-  OpenFhe$0ArrayRef(const __OpenFheBaseArrayRef<$0, D1>& rhs,
+  OpenFheArrayRef(const __OpenFheBaseArrayRef<$0, D1>& rhs,
                      lbcrypto::BinFHEContext cc)
-      : OpenFhe$0ArrayRef(
+      : OpenFheArrayRef<$1, D1>(
             const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
             __OpenFheBaseArrayRef<$0, D1>::VOLUME) {
     cc_ = cc;
   }
-  OpenFhe$0ArrayRef(absl::Span<const lbcrypto::LWECiphertext> data,
+  OpenFheArrayRef(absl::Span<const lbcrypto::LWECiphertext> data,
                      lbcrypto::BinFHEContext cc)
-      : OpenFhe$0ArrayRef(
+      : OpenFheArrayRef<$1, D1>(
             const_cast<lbcrypto::LWECiphertext*>(data.data()),
             __OpenFheBaseArrayRef<$0, D1>::VOLUME) {
     XLS_CHECK_EQ(data.length(), this->bit_width());
     cc_ = cc;
   }
 
-  OpenFhe$0Ref operator[](size_t pos) {
+  OpenFheRef<$1> operator[](size_t pos) {
     auto ref = this->__OpenFheBaseArrayRef<$0, D1>::operator[](pos);
-    return OpenFhe$0Ref(ref, cc_);
+    return OpenFheRef<$1>(ref, cc_);
   }
 
   void SetEncrypted(const typename __OpenFheBaseArrayRef<$0, D1>::ArrayT value,
@@ -2446,7 +2223,7 @@ class OpenFhe$0ArrayRef<D1> : public __OpenFheBaseArrayRef<$0, D1> {
 };
 
 template <unsigned D1, unsigned... Dimensions>
-class OpenFhe$0ArrayRef<D1, Dimensions...>
+class OpenFheArrayRef<$1, D1, Dimensions...>
     : public __OpenFheBaseArrayRef<$0, D1, Dimensions...> {
  public:
   using __OpenFheBaseArrayRef<$0, D1, Dimensions...>::__OpenFheBaseArrayRef;
@@ -2454,37 +2231,37 @@ class OpenFhe$0ArrayRef<D1, Dimensions...>
   // volume of the underlying array (accounting for all dimensions), while the
   // former gives the length of the first level of the array (e.g.,
   // Type[4][3][2] will have VOLUME = 24 and length() == 4.
-  OpenFhe$0ArrayRef(const OpenFhe$0ArrayRef<D1, Dimensions...>& rhs)
-      : OpenFhe$0ArrayRef(
+  OpenFheArrayRef(const OpenFheArrayRef<$1, D1, Dimensions...>& rhs)
+      : OpenFheArrayRef<$1, D1, Dimensions...>(
             const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
             __OpenFheBaseArrayRef<$0, D1, Dimensions...>::VOLUME) {
     cc_ = rhs.cc_;
   }
-  OpenFhe$0ArrayRef(const OpenFhe$0Array<D1, Dimensions...>& rhs)
-      : OpenFhe$0ArrayRef(
+  OpenFheArrayRef(const OpenFheArray<$1, D1, Dimensions...>& rhs)
+      : OpenFheArrayRef<$1, D1, Dimensions...>(
             const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
             __OpenFheBaseArrayRef<$0, D1, Dimensions...>::VOLUME) {
     cc_ = rhs.cc_;
   }
-  OpenFhe$0ArrayRef(const __OpenFheBaseArrayRef<$0, D1, Dimensions...>& rhs,
+  OpenFheArrayRef(const __OpenFheBaseArrayRef<$0, D1, Dimensions...>& rhs,
                      lbcrypto::BinFHEContext cc)
-      : OpenFhe$0ArrayRef(
+      : OpenFheArrayRef<$1, D1, Dimensions...>(
             const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
             __OpenFheBaseArrayRef<$0, D1, Dimensions...>::VOLUME) {
     cc_ = cc;
   }
-  OpenFhe$0ArrayRef(absl::Span<const lbcrypto::LWECiphertext> data,
+  OpenFheArrayRef(absl::Span<const lbcrypto::LWECiphertext> data,
                      lbcrypto::BinFHEContext cc)
-      : OpenFhe$0ArrayRef(
+      : OpenFheArrayRef<$1, D1, Dimensions...>(
             const_cast<lbcrypto::LWECiphertext*>(data.data()),
             __OpenFheBaseArrayRef<$0, D1, Dimensions...>::VOLUME) {
     XLS_CHECK_EQ(data.length(), this->bit_width());
     cc_ = cc;
   }
 
-  OpenFhe$0ArrayRef<Dimensions...> operator[](size_t pos) {
+  OpenFheArrayRef<$1, Dimensions...> operator[](size_t pos) {
     auto ref = this->__OpenFheBaseArrayRef<$0, D1, Dimensions...>::operator[](pos);
-    return OpenFhe$0ArrayRef<Dimensions...>(ref, cc_);
+    return OpenFheArrayRef<$1, Dimensions...>(ref, cc_);
   }
 
   void SetEncrypted(
@@ -2504,72 +2281,6 @@ class OpenFhe$0ArrayRef<D1, Dimensions...>
   lbcrypto::BinFHEContext cc() { return cc_; }
  private:
   lbcrypto::BinFHEContext cc_;
-};
-
-template <>
-class OpenFheArray<$1> : public OpenFhe$0Array<> {
- public:
-  using OpenFhe$0Array<>::OpenFhe$0Array;
-
-  static OpenFheArray<$1> Encrypt(
-      absl::Span<const $1> plaintext, lbcrypto::BinFHEContext cc,
-      lbcrypto::LWEPrivateKey sk) {
-    OpenFheArray<$1> private_value(plaintext.length(), cc);
-    private_value.SetEncrypted(plaintext.data(), plaintext.length(), sk);
-    return private_value;
-  }
-$2
-};
-
-template <unsigned D1>
-class OpenFheArray<$1, D1> : public OpenFhe$0Array<D1> {
- public:
-  using OpenFhe$0Array<D1>::OpenFhe$0Array;
-
-  static OpenFheArray<$1> Encrypt(
-      absl::Span<const $1> plaintext, lbcrypto::BinFHEContext cc,
-      lbcrypto::LWEPrivateKey sk) {
-    OpenFheArray<$1, D1> private_value(plaintext.length(), cc);
-    private_value.SetEncrypted(plaintext.data(), plaintext.length(), sk);
-    return private_value;
-  }
-$2
-};
-
-template <unsigned D1, unsigned... Dimensions>
-class OpenFheArray<$1, D1, Dimensions...> : public OpenFhe$0Array<D1, Dimensions...> {
- public:
-  using OpenFhe$0Array<D1, Dimensions...>::OpenFhe$0Array;
-
-  OpenFheArrayRef<$1, Dimensions...> operator[](size_t pos) {
-    auto ref = this->OpenFhe$0Array<D1, Dimensions...>::operator[](pos);
-    return OpenFheArrayRef<$1, Dimensions...>(ref.get(), ref.cc());
-  }
-};
-
-template <>
-class OpenFheArrayRef<$1> : public OpenFhe$0ArrayRef<> {
- public:
-  using OpenFhe$0ArrayRef<>::OpenFhe$0ArrayRef;
-};
-
-template <unsigned D1>
-class OpenFheArrayRef<$1, D1>
-    : public OpenFhe$0ArrayRef<D1> {
- public:
-  using OpenFhe$0ArrayRef<D1>::OpenFhe$0ArrayRef;
-};
-
-template <unsigned D1, unsigned... Dimensions>
-class OpenFheArrayRef<$1, D1, Dimensions...>
-    : public OpenFhe$0ArrayRef<D1, Dimensions...> {
- public:
-  using OpenFhe$0ArrayRef<D1, Dimensions...>::OpenFhe$0ArrayRef;
-
-  OpenFheArrayRef<$1, Dimensions...> operator[](size_t pos) {
-    auto ref = this->OpenFhe$0ArrayRef<D1, Dimensions...>::operator[](pos);
-    return OpenFheArrayRef<$1, Dimensions...>(ref.get(), ref.cc());
-  }
 };
 )";
 
@@ -2601,12 +2312,12 @@ absl::StatusOr<std::string> ConvertStructsToEncodedOpenFhe(
       const StructField& field = struct_type.fields().Get(0);
       fully_qualified_name = GetTypeName(field.type()).value();
       if (fully_qualified_name == "char") {
-        special_decode_dyn = absl::Substitute(
-            kDecodeFromStringTemplate, "OpenFhe", struct_name.name(),
-            fully_qualified_name, "<>", "lbcrypto::LWEPrivateKey sk", "sk");
-        special_decode_fixed = absl::Substitute(
-            kDecodeFromStringTemplate, "OpenFhe", struct_name.name(),
-            fully_qualified_name, "<D1>", "lbcrypto::LWEPrivateKey sk", "sk");
+        special_decode_dyn =
+            absl::Substitute(kOpenFheDecodeFromStringTemplate,
+                             struct_name.name(), fully_qualified_name, "");
+        special_decode_fixed =
+            absl::Substitute(kOpenFheDecodeFromStringTemplate,
+                             struct_name.name(), fully_qualified_name, ", D1");
       }
     }
 

@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
   simple_struct.b = -4;
   simple_struct.c = 8;
 
-  TfheSimpleStruct fhe_simple_struct(params);
+  Tfhe<SimpleStruct> fhe_simple_struct(params);
   fhe_simple_struct.SetEncrypted(simple_struct, key);
 
   std::cout << "Initial round-trip check: " << std::endl;

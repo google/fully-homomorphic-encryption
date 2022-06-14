@@ -9,6 +9,7 @@ licenses(["notice"])
 bzl_library(
     name = "fhe_bzl",
     srcs = ["fhe.bzl"],
+    deps = ["//transpiler/data:primitives_bzl"],
 )
 
 cc_library(
@@ -41,6 +42,8 @@ cc_library(
     srcs = ["common_transpiler.cc"],
     hdrs = ["common_transpiler.h"],
     deps = [
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/container:flat_hash_set",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/types:optional",

@@ -42,7 +42,7 @@ void calculate(short x, short y, char op) {
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform calculation
   EncodedShort cipher_result(int_size);
-  EncodedCalculator calc;
+  Encoded<Calculator> calc;
   calc.Encode(Calculator());
 
   XLS_CHECK_OK(my_package(cipher_result, calc, ciphertext_x, ciphertext_y,

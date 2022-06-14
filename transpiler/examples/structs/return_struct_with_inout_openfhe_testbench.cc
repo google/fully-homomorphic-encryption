@@ -48,11 +48,11 @@ int main(int argc, char** argv) {
   helper_c.b = 128;
   helper_c.c = -256;
 
-  OpenFheHelper fhe_helper_a(cc);
+  OpenFhe<Helper> fhe_helper_a(cc);
   fhe_helper_a.SetEncrypted(helper_a, sk);
-  OpenFheHelper fhe_helper_b(cc);
+  OpenFhe<Helper> fhe_helper_b(cc);
   fhe_helper_b.SetEncrypted(helper_b, sk);
-  OpenFheHelper fhe_helper_c(cc);
+  OpenFhe<Helper> fhe_helper_c(cc);
   fhe_helper_c.SetEncrypted(helper_c, sk);
 
   std::cout << "Round trip check : helper_a: " << std::endl;
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
   std::cout << "  c: " << static_cast<int>(round_trip_c.c) << std::endl;
 
   std::cout << "Starting computation." << std::endl;
-  OpenFheReturnStruct fhe_result(cc);
+  OpenFhe<ReturnStruct> fhe_result(cc);
   XLS_CHECK_OK(ConstructReturnStructWithInout(fhe_result, fhe_helper_a,
                                               fhe_helper_b, fhe_helper_c, cc));
 

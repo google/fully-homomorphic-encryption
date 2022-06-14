@@ -14,6 +14,11 @@
 
 """Rules for generating FHE-C++."""
 
+load(
+    "//transpiler/data:primitives.bzl",
+    "FHE_PRIMITIVES",
+)
+
 _FHE_TRANSPILER = "//transpiler"
 _STRUCT_HEADER_GENERATOR = "//transpiler/struct_transpiler:struct_transpiler"
 _XLSCC = "@com_google_xls//xls/contrib/xlscc:xlscc"
@@ -477,7 +482,7 @@ def verilog_to_netlist(name, src, encryption):
     else:
         fail("Invalid encryption value:", encryption)
 
-def _fhe_transpile_ir(ctx, library_name, stem, src, metadata, optimizer, encryption, encryption_specific_transpiled_structs_header, interpreter, skip_scheme_data_deps):
+def _fhe_transpile_ir(ctx, library_name, stem, src, metadata, optimizer, encryption, encryption_specific_transpiled_structs_header, interpreter, skip_scheme_data_deps, unwrap):
     """Transpile XLS IR into C++ source."""
 
     if library_name == stem:
@@ -507,6 +512,11 @@ def _fhe_transpile_ir(ctx, library_name, stem, src, metadata, optimizer, encrypt
         args.append("-interpreter")
     if skip_scheme_data_deps:
         args.append("-skip_scheme_data_deps")
+    if len(unwrap):
+        args += [
+            "-unwrap",
+            ",".join(unwrap),
+        ]
 
     ctx.actions.run(
         inputs = [src, metadata, encryption_specific_transpiled_structs_header],
@@ -516,7 +526,7 @@ def _fhe_transpile_ir(ctx, library_name, stem, src, metadata, optimizer, encrypt
     )
     return [out_cc, out_h]
 
-def _fhe_transpile_netlist(ctx, library_name, stem, src, metadata, optimizer, encryption, encryption_specific_transpiled_structs_header, interpreter):
+def _fhe_transpile_netlist(ctx, library_name, stem, src, metadata, optimizer, encryption, encryption_specific_transpiled_structs_header, interpreter, unwrap):
     """Transpile XLS IR into C++ source."""
 
     if library_name == stem:
@@ -546,6 +556,12 @@ def _fhe_transpile_netlist(ctx, library_name, stem, src, metadata, optimizer, en
         args.append("-interpreter")
 
     args += ["-liberty_path", ctx.file.cell_library.path]
+
+    if len(unwrap):
+        args += [
+            "-unwrap",
+            ",".join(unwrap),
+        ]
 
     ctx.actions.run(
         inputs = [src, metadata, encryption_specific_transpiled_structs_header, ctx.file.cell_library],
@@ -773,6 +789,7 @@ def _cc_fhe_ir_library_impl(ctx):
             encryption,
             encryption_specific_transpiled_structs_header,
             interpreter,
+            FHE_PRIMITIVES,
         )
     else:
         out_cc, out_h = _fhe_transpile_ir(
@@ -786,6 +803,7 @@ def _cc_fhe_ir_library_impl(ctx):
             encryption_specific_transpiled_structs_header,
             interpreter,
             skip_scheme_data_deps,
+            FHE_PRIMITIVES,
         )
 
     input_headers = []

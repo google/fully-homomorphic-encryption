@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
   embedded.b = 2;
   embedded.c = -4;
 
-  OpenFheEmbedded fhe_embedded(cc);
+  OpenFhe<Embedded> fhe_embedded(cc);
   fhe_embedded.SetEncrypted(embedded, sk);
 
   std::cout << "Initial round-trip check: " << std::endl;
@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
   std::cout << "  C: " << static_cast<int>(round_trip.c) << std::endl;
 
   std::cout << "Starting computation." << std::endl;
-  OpenFheReturnStruct fhe_result(cc);
+  OpenFhe<ReturnStruct> fhe_result(cc);
   auto fhe_a = OpenFheChar::Encrypt(8, cc, sk);
   auto fhe_c = OpenFheChar::Encrypt(16, cc, sk);
   XLS_CHECK_OK(

@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  OpenFheBase openfhe_input(cc);
+  OpenFhe<Base> openfhe_input(cc);
   openfhe_input.SetEncrypted(input, sk);
 
   std::cout << "Round trip check: " << std::endl;
@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
   }
 
   std::cout << "Starting computation." << std::endl;
-  OpenFheBase openfhe_result(cc);
+  OpenFhe<Base> openfhe_result(cc);
   XLS_CHECK_OK(DoubleBase(openfhe_result, openfhe_input, cc));
 
   Base result = openfhe_result.Decrypt(sk);

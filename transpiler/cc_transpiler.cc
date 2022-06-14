@@ -133,7 +133,7 @@ absl::StatusOr<std::string> CcTranspiler::TranslateHeader(
     const xlscc_metadata::MetadataOutput& metadata,
     absl::string_view header_path,
     const absl::string_view encryption_specific_transpiled_structs_header_path,
-    bool skip_scheme_data_deps) {
+    bool skip_scheme_data_deps, const std::vector<std::string>& unwrap) {
   XLS_ASSIGN_OR_RETURN(const std::string header_guard,
                        PathToHeaderGuard(header_path));
   static constexpr absl::string_view kHeaderTemplate =
@@ -150,8 +150,8 @@ $3#endif  // $1
 )";
   XLS_ASSIGN_OR_RETURN(std::string signature,
                        FunctionSignature(function, metadata));
-  absl::optional<std::string> typed_overload =
-      TypedOverload(metadata, "Encoded", "absl::Span<bool>", absl::nullopt);
+  absl::optional<std::string> typed_overload = TypedOverload(
+      metadata, "Encoded", "absl::Span<bool>", absl::nullopt, "", unwrap);
   return absl::Substitute(
       kHeaderTemplate, signature, header_guard,
       encryption_specific_transpiled_structs_header_path,

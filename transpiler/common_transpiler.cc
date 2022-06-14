@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "absl/container/flat_hash_set.h"
+#include "absl/strings/match.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
@@ -47,43 +49,56 @@ absl::optional<std::string> GetTypeName(const xlscc_metadata::Type& type) {
 static std::string TypeReference(const xlscc_metadata::Type& type,
                                  bool is_reference,
                                  const absl::string_view prefix,
-                                 const std::string default_type) {
+                                 const std::string default_type,
+                                 const IdToType& id_to_type,
+                                 const std::vector<std::string>& unwrap) {
   if (type.has_as_bool()) {
-    return absl::Substitute("$0PrimitiveBool$1", prefix,
-                            is_reference ? "Ref" : "");
+    return absl::Substitute("$0$1<bool>", prefix, is_reference ? "Ref" : "");
   } else if (type.has_as_int()) {
     const xlscc_metadata::IntType& int_type = type.as_int();
     switch (int_type.width()) {
       case 8:
         XLS_CHECK(int_type.has_is_declared_as_char());
         if (int_type.is_declared_as_char()) {
-          return absl::Substitute("$0PrimitiveChar$1", prefix,
+          return absl::Substitute("$0$1<char>", prefix,
                                   is_reference ? "Ref" : "");
         }
-        return absl::Substitute("$0Primitive$1Char$2", prefix,
-                                (int_type.is_signed() ? "Signed" : "Unsigned"),
+        return absl::Substitute("$0$2<$1 char>", prefix,
+                                (int_type.is_signed() ? "signed" : "unsigned"),
                                 is_reference ? "Ref" : "");
       case 16:
-        return absl::Substitute("$0Primitive$1Short$2", prefix,
-                                (int_type.is_signed() ? "Signed" : "Unsigned"),
+        return absl::Substitute("$0$2<$1 short>", prefix,
+                                (int_type.is_signed() ? "signed" : "unsigned"),
                                 is_reference ? "Ref" : "");
       case 32:
-        return absl::Substitute("$0Primitive$1Int$2", prefix,
-                                (int_type.is_signed() ? "Signed" : "Unsigned"),
+        return absl::Substitute("$0$2<$1 int>", prefix,
+                                (int_type.is_signed() ? "signed" : "unsigned"),
                                 is_reference ? "Ref" : "");
       case 64:
-        return absl::Substitute("$0Primitive$1Long$2", prefix,
-                                (int_type.is_signed() ? "Signed" : "Unsigned"),
+        return absl::Substitute("$0$2<$1 long>", prefix,
+                                (int_type.is_signed() ? "signed" : "unsigned"),
                                 is_reference ? "Ref" : "");
     }
   } else if (type.has_as_struct()) {
     const xlscc_metadata::StructType& struct_type = type.as_struct();
-    return absl::StrCat(prefix, struct_type.name().as_inst().name().name(),
-                        is_reference ? "Ref" : "");
+    return absl::StrCat(prefix, is_reference ? "Ref<" : "<",
+                        struct_type.name().as_inst().name().name(), ">");
   } else if (type.has_as_inst()) {
     const xlscc_metadata::InstanceType& inst_type = type.as_inst();
-    return absl::StrCat(prefix, inst_type.name().name(),
-                        is_reference ? "Ref" : "");
+    std::string name = inst_type.name().name();
+
+    if (std::find(unwrap.begin(), unwrap.end(), name) != unwrap.end()) {
+      XLS_CHECK(inst_type.name().has_id());
+      auto id = inst_type.name().id();
+      XLS_CHECK(id_to_type.contains(id));
+      const xlscc_metadata::StructType& definition =
+          id_to_type.at(inst_type.name().id()).type;
+      XLS_CHECK(definition.fields_size() == 1);
+      auto ref = TypeReference(definition.fields().Get(0).type(), is_reference,
+                               prefix, default_type, {}, {});
+      return ref;
+    }
+    return absl::StrCat(prefix, is_reference ? "Ref<" : "<", name, ">");
   } else if (type.has_as_array()) {
     std::vector<std::string> dimensions;
     xlscc_metadata::Type iter_type = type;
@@ -108,7 +123,7 @@ static std::string TypeReference(const xlscc_metadata::Type& type,
           // Emit a string only if the array is one-dimensional
           if (element_int_type.is_declared_as_char() &&
               dimensions.size() == 1) {
-            return absl::Substitute("$0String$1", prefix,
+            return absl::Substitute("$0Array$1<char>", prefix,
                                     is_reference ? "Ref" : "");
           }
           [[fallthrough]];
@@ -142,21 +157,23 @@ absl::optional<std::string> TypedOverload(
     const xlscc_metadata::MetadataOutput& metadata,
     const absl::string_view prefix, const std::string default_type,
     absl::optional<absl::string_view> key_param_type,
-    absl::string_view key_param_name) {
+    absl::string_view key_param_name, const std::vector<std::string>& unwrap) {
+  std::vector<int64_t> struct_order = GetTypeReferenceOrder(metadata);
+  const IdToType& id_to_type = PopulateTypeData(metadata, struct_order);
   std::vector<std::string> param_signatures;
   if (!metadata.top_func_proto().return_type().has_as_void()) {
     param_signatures.push_back(absl::Substitute(
-        "$0 result",
-        TypeReference(metadata.top_func_proto().return_type(),
-                      /*is_reference=*/true, prefix, default_type)));
+        "$0 result", TypeReference(metadata.top_func_proto().return_type(),
+                                   /*is_reference=*/true, prefix, default_type,
+                                   id_to_type, unwrap)));
   }
   for (const xlscc_metadata::FunctionParameter& param :
        metadata.top_func_proto().params()) {
-    param_signatures.push_back(
-        absl::Substitute("$0$1 $2", IsConst(param) ? "const " : "",
-                         TypeReference(param.type(), /*is_reference=*/true,
-                                       prefix, default_type),
-                         param.name()));
+    param_signatures.push_back(absl::Substitute(
+        "$0$1 $2", IsConst(param) ? "const " : "",
+        TypeReference(param.type(), /*is_reference=*/true, prefix, default_type,
+                      id_to_type, unwrap),
+        param.name()));
   }
 
   std::string function_name = metadata.top_func_proto().name().name();
@@ -183,8 +200,8 @@ absl::optional<std::string> TypedOverload(
   }
   for (const xlscc_metadata::FunctionParameter& param :
        metadata.top_func_proto().params()) {
-    if (TypeReference(param.type(), param.is_reference(), prefix,
-                      default_type) == default_type) {
+    if (TypeReference(param.type(), param.is_reference(), prefix, default_type,
+                      id_to_type, unwrap) == default_type) {
       param_refs.push_back(param.name());
     } else {
       param_refs.push_back(absl::StrCat(param.name(), ".get()"));
@@ -240,6 +257,129 @@ std::string PathToHeaderGuard(std::string_view default_value,
                    }
                  });
   return header_guard;
+}
+
+// Returns the width of the given metadata type. Requires that the IdToType has
+// been fully populated.
+size_t GetStructWidth(const IdToType& id_to_type,
+                      const xlscc_metadata::StructType& type);
+size_t GetBitWidth(const IdToType& id_to_type,
+                   const xlscc_metadata::Type& type) {
+  if (type.has_as_void()) {
+    return 0;
+  } else if (type.has_as_bits()) {
+    return type.as_bits().width();
+  } else if (type.has_as_int()) {
+    return type.as_int().width();
+  } else if (type.has_as_bool()) {
+    return 1;
+  } else if (type.has_as_inst()) {
+    int64_t type_id = type.as_inst().name().id();
+    return id_to_type.at(type_id).bit_width;
+  } else if (type.has_as_array()) {
+    size_t element_width =
+        GetBitWidth(id_to_type, type.as_array().element_type());
+    return type.as_array().size() * element_width;
+  }
+  // Otherwise, it's a struct.
+  return GetStructWidth(id_to_type, type.as_struct());
+}
+
+size_t GetStructWidth(const IdToType& id_to_type,
+                      const xlscc_metadata::StructType& struct_type) {
+  size_t length = 0;
+  for (const xlscc_metadata::StructField& field : struct_type.fields()) {
+    length += GetBitWidth(id_to_type, field.type());
+  }
+  return length;
+}
+
+// Gets the order in which we should process any struct definitions held in the
+// given MetadataOutput.
+// Since we can't assume any given ordering of output structs, we need to
+// toposort.
+std::vector<int64_t> GetTypeReferenceOrder(
+    const xlscc_metadata::MetadataOutput& metadata) {
+  using Dependees = absl::flat_hash_set<int64_t>;
+
+  absl::flat_hash_map<int64_t, Dependees> waiters;
+  std::deque<int64_t> ready;
+  std::vector<int64_t> ordered_ids;
+  // Initialize the ready, etc. lists.
+  for (const auto& type : metadata.structs()) {
+    const xlscc_metadata::StructType& struct_type = type.as_struct();
+    Dependees dependees;
+    for (const auto& field : struct_type.fields()) {
+      // We'll never see StructTypes at anything but top level, so we only need
+      // to concern ourselves with InstanceTypes.
+      // Since this is initialization, we won't have seen any at this point, so
+      // we can just toss them in the waiting list.
+      if (field.type().has_as_inst()) {
+        dependees.insert(field.type().as_inst().name().id());
+      } else if (field.type().has_as_array()) {
+        // Find the root of any nested arrays - what's the element type?
+        const xlscc_metadata::Type* type_ref = &field.type();
+        while (type_ref->has_as_array()) {
+          type_ref = &type_ref->as_array().element_type();
+        }
+
+        if (type_ref->has_as_inst()) {
+          dependees.insert(type_ref->as_inst().name().id());
+        }
+      }
+    }
+
+    // We're guaranteed that a StructType name is an InstanceType.
+    int64_t struct_id = struct_type.name().as_inst().name().id();
+    if (dependees.empty()) {
+      ready.push_back(struct_id);
+      ordered_ids.push_back(struct_id);
+    } else {
+      waiters[struct_id] = dependees;
+    }
+  }
+
+  // Finally, walk the lists & extract the ordering.
+  while (!waiters.empty()) {
+    // Pop the front dude off of ready.
+    int64_t current_id = ready.front();
+    ready.pop_front();
+
+    std::vector<int64_t> to_remove;
+    for (auto& [id, dependees] : waiters) {
+      dependees.erase(current_id);
+      if (dependees.empty()) {
+        ready.push_back(id);
+        to_remove.push_back(id);
+        ordered_ids.push_back(id);
+      }
+    }
+
+    for (int64_t id : to_remove) {
+      waiters.erase(id);
+    }
+  }
+
+  return ordered_ids;
+}
+
+// Loads an IdToType with the necessary data (type bit width, really).
+IdToType PopulateTypeData(const xlscc_metadata::MetadataOutput& metadata,
+                          const std::vector<int64_t>& processing_order) {
+  IdToType id_to_type;
+  for (int64_t id : processing_order) {
+    for (const auto& type : metadata.structs()) {
+      xlscc_metadata::StructType struct_type = type.as_struct();
+      if (struct_type.name().as_inst().name().id() == id) {
+        TypeData type_data;
+        type_data.type = type.as_struct();
+        type_data.bit_width = GetBitWidth(id_to_type, type);
+        id_to_type[type.as_struct().name().as_inst().name().id()] = type_data;
+      }
+    }
+  }
+
+  return id_to_type;
 }
 
 }  // namespace transpiler

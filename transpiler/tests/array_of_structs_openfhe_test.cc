@@ -100,12 +100,12 @@ TEST_F(OpenFheArrayOfStructsTest, DynamicOneDimArray) {
     EXPECT_EQ(another_decoded[i].i, decoded[i].i);
   }
 
-  OpenFheStructRef ref = dyn_one_dim[1];
+  OpenFheRef<Struct> ref = dyn_one_dim[1];
   EXPECT_EQ(ref.length(), 1);
   EXPECT_EQ(ref.bit_width(), (1 + 2 + 4) * 8);
   EXPECT_EQ(ref.get().size(), ref.bit_width());
 
-  OpenFheStructRef ref_ref = ref;
+  OpenFheRef<Struct> ref_ref = ref;
   EXPECT_EQ(ref_ref.length(), 1);
   EXPECT_EQ(ref_ref.bit_width(), (1 + 2 + 4) * 8);
   EXPECT_EQ(ref_ref.get().size(), ref_ref.bit_width());
@@ -138,7 +138,7 @@ TEST_F(OpenFheArrayOfStructsTest, DynamicOneDimArray) {
       EXPECT_EQ(decoded_via_ref[i].i, another_decoded_via_ref[i].i);
     }
 
-    OpenFheStructRef ref_via_ref = dyn_one_dim_ref[1];
+    OpenFheRef<Struct> ref_via_ref = dyn_one_dim_ref[1];
     EXPECT_EQ(ref_via_ref.length(), 1);
     EXPECT_EQ(ref_via_ref.bit_width(), (1 + 2 + 4) * 8);
     EXPECT_EQ(ref_via_ref.get().size(), ref_via_ref.bit_width());
@@ -174,7 +174,7 @@ TEST_F(OpenFheArrayOfStructsTest, DynamicOneDimArray) {
       EXPECT_EQ(decoded_via_ref[i].i, another_decoded_via_ref[i].i);
     }
 
-    OpenFheStructRef ref_via_ref = dyn_one_dim_ref[1];
+    OpenFheRef<Struct> ref_via_ref = dyn_one_dim_ref[1];
     EXPECT_EQ(ref_via_ref.length(), 1);
     EXPECT_EQ(ref_via_ref.bit_width(), (1 + 2 + 4) * 8);
     EXPECT_EQ(ref_via_ref.get().size(), ref_via_ref.bit_width());
@@ -210,7 +210,7 @@ TEST_F(OpenFheArrayOfStructsTest, DynamicOneDimArray) {
       EXPECT_EQ(decoded_via_ref[i].i, another_decoded_via_ref[i].i);
     }
 
-    OpenFheStructRef ref_via_ref = dyn_one_dim_ref[1];
+    OpenFheRef<Struct> ref_via_ref = dyn_one_dim_ref[1];
     EXPECT_EQ(ref_via_ref.length(), 1);
     EXPECT_EQ(ref_via_ref.bit_width(), (1 + 2 + 4) * 8);
     EXPECT_EQ(ref_via_ref.get().size(), ref_via_ref.bit_width());
@@ -247,7 +247,7 @@ TEST_F(OpenFheArrayOfStructsTest, FixedWidthOneDimArray) {
     EXPECT_EQ(another_decoded[i].i, decoded[i].i);
   }
 
-  OpenFheStructRef ref = fixed_one_dim[1];
+  OpenFheRef<Struct> ref = fixed_one_dim[1];
   Struct decoded_ref = ref.Decrypt(sk());
   EXPECT_EQ(decoded_ref.c, decoded[1].c);
   EXPECT_EQ(decoded_ref.s, decoded[1].s);

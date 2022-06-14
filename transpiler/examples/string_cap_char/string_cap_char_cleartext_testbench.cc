@@ -28,7 +28,7 @@
 #include "xls/common/logging/logging.h"
 
 void BoolStringCap(EncodedString& cipherresult, EncodedString& ciphertext,
-                   int data_size, EncodedState& state) {
+                   int data_size, Encoded<State>& state) {
   time_t start_time;
   time_t end_time;
   double char_time = 0.0;
@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
   std::cout << ciphertext.Decode() << "\n";
 
   State st;
-  EncodedState cipherstate;
+  Encoded<State> cipherstate;
   cipherstate.Encode(st);
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform string capitalization

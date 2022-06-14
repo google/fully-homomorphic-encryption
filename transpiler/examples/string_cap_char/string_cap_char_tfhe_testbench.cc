@@ -38,7 +38,7 @@
 constexpr int kMainMinimumLambda = 120;
 
 void TfheStringCap(TfheString& cipherresult, TfheString& ciphertext,
-                   int data_size, TfheState& cipherstate,
+                   int data_size, Tfhe<State>& cipherstate,
                    const TFheGateBootstrappingCloudKeySet* bk) {
   absl::Duration total_time = absl::ZeroDuration();
   double total_cpu_time = 0.0;
@@ -91,7 +91,7 @@ int main(int argc, char** argv) {
   std::cout << "\n";
 
   State st;
-  TfheState cipherstate(params.get());
+  Tfhe<State> cipherstate(params.get());
   cipherstate.SetEncrypted(st, key.get());
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform string capitalization

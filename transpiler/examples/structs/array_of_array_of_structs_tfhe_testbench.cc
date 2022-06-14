@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  TfheBase fhe_input(params);
+  Tfhe<Base> fhe_input(params);
   fhe_input.SetEncrypted(input, key);
 
   std::cout << "Round trip check: " << std::endl;
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
   }
 
   std::cout << "Starting computation." << std::endl;
-  TfheBase fhe_result(params);
+  Tfhe<Base> fhe_result(params);
   XLS_CHECK_OK(DoubleBase(fhe_result, fhe_input, cloud_key));
 
   Base result = fhe_result.Decrypt(key);

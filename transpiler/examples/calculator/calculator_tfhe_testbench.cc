@@ -59,7 +59,7 @@ void calculate(short x, short y, char op, TFHEParameters& params,
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform computation
   TfheShort encryptedResult(params);
-  TfheCalculator calc(params);
+  Tfhe<Calculator> calc(params);
   calc.SetUnencrypted(Calculator(), key.cloud());
 
   absl::Time start_time = absl::Now();

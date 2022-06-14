@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  TfheSimpleArray<DIM_X, DIM_Y, DIM_Z> tfhe_simple_array(params);
+  TfheArray<Simple, DIM_X, DIM_Y, DIM_Z> tfhe_simple_array(params);
   tfhe_simple_array.SetEncrypted(simple_array, key);
 
   std::cout << "Initial round-trip check: " << std::endl;
@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
   }
 
   std::cout << "Starting computation." << std::endl;
-  TfheSimple tfhe_result(params);
+  Tfhe<Simple> tfhe_result(params);
   XLS_CHECK_OK(DoubleSimpleArray3D(tfhe_result, tfhe_simple_array, cloud_key));
 
   Simple result = tfhe_result.Decrypt(key);

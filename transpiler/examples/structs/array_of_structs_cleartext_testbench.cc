@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
     simple_array[i].v = i;
   }
 
-  EncodedSimpleArray<DIM_X> bool_simple_array;
+  EncodedArray<Simple, DIM_X> bool_simple_array;
   bool_simple_array.Encode(simple_array);
 
   std::cout << "Initial round-trip check: " << std::endl;
@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
   }
 
   std::cout << "Starting computation." << std::endl;
-  EncodedSimple bool_result;
+  Encoded<Simple> bool_result;
   XLS_CHECK_OK(DoubleSimpleArray(bool_result, bool_simple_array));
 
   Simple result = bool_result.Decode();

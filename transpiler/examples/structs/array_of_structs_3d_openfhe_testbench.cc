@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  OpenFheSimpleArray<DIM_X, DIM_Y, DIM_Z> openfhe_simple_array(cc);
+  OpenFheArray<Simple, DIM_X, DIM_Y, DIM_Z> openfhe_simple_array(cc);
   openfhe_simple_array.SetEncrypted(simple_array, sk);
 
   std::cout << "Initial round-trip check: " << std::endl;
@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
   }
 
   std::cout << "Starting computation." << std::endl;
-  OpenFheSimple tfhe_result(cc);
+  OpenFhe<Simple> tfhe_result(cc);
   XLS_CHECK_OK(DoubleSimpleArray3D(tfhe_result, openfhe_simple_array, cc));
 
   Simple result = tfhe_result.Decrypt(sk);

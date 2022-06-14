@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
   embedded.b = 2;
   embedded.c = -4;
 
-  EncodedEmbedded encoded_embedded;
+  Encoded<Embedded> encoded_embedded;
   encoded_embedded.Encode(embedded);
 
   std::cout << "Initial round-trip check: " << std::endl;
@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
   std::cout << "  C: " << static_cast<int>(round_trip.c) << std::endl;
 
   std::cout << "Starting computation." << std::endl;
-  EncodedReturnStruct encoded_result;
+  Encoded<ReturnStruct> encoded_result;
   EncodedChar encoded_a;
   encoded_a.Encode(8);
   EncodedChar encoded_c;

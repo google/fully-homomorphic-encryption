@@ -51,13 +51,13 @@ int main(int argc, char** argv) {
     inner.c[i] = i * 1111;
   }
 
-  EncodedStructWithArray encoded_struct_with_array;
+  Encoded<StructWithArray> encoded_struct_with_array;
   encoded_struct_with_array.Encode(input);
 
   EncodedInt encoded_other;
   encoded_other.Encode(other);
 
-  EncodedInner encoded_inner;
+  Encoded<Inner> encoded_inner;
   encoded_inner.Encode(inner);
 
   std::cout << "Initial round-trip check: " << std::endl << std::endl;

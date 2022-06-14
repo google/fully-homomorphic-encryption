@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
   sos.d.x = 11;
   sos.i.h.g.f.e.d.x = 12;
 
-  TfheStructOfStructs fhe_sos(params);
+  Tfhe<StructOfStructs> fhe_sos(params);
   fhe_sos.SetEncrypted(sos, key);
 
   std::cout << "Initial round-trip check: " << std::endl;

@@ -91,6 +91,8 @@ ABSL_FLAG(
     "for tfhe_data.h, palisade_data.h, and cleartext_data.h.  This is used "
     "to avoid circular dependencies when generating C++ libraries for "
     "the numeric primitives.");
+ABSL_FLAG(std::vector<std::string>, unwrap, std::vector<std::string>({}),
+          "Comma-separated list of struct names to unwrap.");
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {
@@ -101,7 +103,8 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
                       const std::filesystem::path& metadata_path,
                       const std::filesystem::path&
                           encryption_specific_transpiled_structs_header_path,
-                      bool skip_scheme_data_deps) {
+                      bool skip_scheme_data_deps,
+                      const std::vector<std::string>& unwrap) {
   XLS_ASSIGN_OR_RETURN(std::string proto_text,
                        xls::GetFileContents(metadata_path));
   xlscc_metadata::MetadataOutput metadata;
@@ -133,7 +136,8 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
         fn_header,
         YosysTranspiler::TranslateHeader(
             metadata, header_path.string(), encryption,
-            encryption_specific_transpiled_structs_header_path.string()));
+            encryption_specific_transpiled_structs_header_path.string(),
+            unwrap));
     XLS_ASSIGN_OR_RETURN(std::string cell_library_text,
                          xls::GetFileContents(liberty_path));
     XLS_ASSIGN_OR_RETURN(fn_body,
@@ -154,7 +158,7 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
               InterpretedTfheTranspiler::TranslateHeader(
                   function, metadata, header_path.string(),
                   encryption_specific_transpiled_structs_header_path.string(),
-                  skip_scheme_data_deps));
+                  skip_scheme_data_deps, unwrap));
         } else {
           XLS_ASSIGN_OR_RETURN(fn_body,
                                TfheTranspiler::Translate(function, metadata));
@@ -163,7 +167,7 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
               TfheTranspiler::TranslateHeader(
                   function, metadata, header_path.string(),
                   encryption_specific_transpiled_structs_header_path.string(),
-                  skip_scheme_data_deps));
+                  skip_scheme_data_deps, unwrap));
         }
         break;
       }
@@ -176,7 +180,7 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
               InterpretedOpenFheTranspiler::TranslateHeader(
                   function, metadata, header_path.string(),
                   encryption_specific_transpiled_structs_header_path.string(),
-                  skip_scheme_data_deps));
+                  skip_scheme_data_deps, unwrap));
         } else {
           XLS_ASSIGN_OR_RETURN(
               fn_body, OpenFheTranspiler::Translate(function, metadata));
@@ -185,7 +189,7 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
               OpenFheTranspiler::TranslateHeader(
                   function, metadata, header_path.string(),
                   encryption_specific_transpiled_structs_header_path.string(),
-                  skip_scheme_data_deps));
+                  skip_scheme_data_deps, unwrap));
         }
         break;
       }
@@ -201,7 +205,7 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
               CcTranspiler::TranslateHeader(
                   function, metadata, header_path.string(),
                   encryption_specific_transpiled_structs_header_path.string(),
-                  skip_scheme_data_deps));
+                  skip_scheme_data_deps, unwrap));
         }
         break;
       }
@@ -239,7 +243,7 @@ int main(int argc, char* argv[]) {
       absl::GetFlag(FLAGS_ir_path), absl::GetFlag(FLAGS_header_path),
       absl::GetFlag(FLAGS_cc_path), metadata_path,
       absl::GetFlag(FLAGS_encryption_specific_transpiled_structs_header_path),
-      absl::GetFlag(FLAGS_skip_scheme_data_deps));
+      absl::GetFlag(FLAGS_skip_scheme_data_deps), absl::GetFlag(FLAGS_unwrap));
   if (!status.ok()) {
     std::cerr << status.ToString() << std::endl;
     return 1;

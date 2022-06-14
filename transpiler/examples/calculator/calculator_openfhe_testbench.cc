@@ -56,7 +56,7 @@ void calculate(short x, short y, char op, lbcrypto::BinFHEContext cc,
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform computation
   OpenFheShort encryptedResult(cc);
-  OpenFheCalculator calc(cc);
+  OpenFhe<Calculator> calc(cc);
   calc.SetUnencrypted(Calculator(), &cc);
 
   absl::Time start_time = absl::Now();

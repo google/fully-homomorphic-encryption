@@ -150,8 +150,8 @@ $3 {
 absl::StatusOr<std::string> YosysTranspiler::TranslateHeader(
     const xlscc_metadata::MetadataOutput& metadata,
     absl::string_view header_path, Encryption encryption,
-    const absl::string_view
-        encryption_specific_transpiled_structs_header_path) {
+    const absl::string_view encryption_specific_transpiled_structs_header_path,
+    const std::vector<std::string>& unwrap) {
   XLS_ASSIGN_OR_RETURN(const std::string header_guard,
                        PathToHeaderGuard(header_path, encryption));
   static constexpr absl::string_view kHeaderTemplate =
@@ -177,7 +177,8 @@ $3#endif  // $1
   switch (encryption) {
     case Encryption::kTFHE:
       typed_overload = TypedOverload(metadata, "Tfhe", data_type,
-                                     "const TFheGateBootstrappingCloudKeySet*");
+                                     "const TFheGateBootstrappingCloudKeySet*",
+                                     "bk", unwrap);
       scheme_data_header = R"hdr(
 #include "transpiler/data/tfhe_data.h"
 #include "tfhe/tfhe.h"
@@ -186,15 +187,15 @@ $3#endif  // $1
       break;
     case Encryption::kOpenFHE:
       typed_overload = TypedOverload(metadata, "OpenFhe", data_type,
-                                     "lbcrypto::BinFHEContext");
+                                     "lbcrypto::BinFHEContext", "bk", unwrap);
       scheme_data_header = R"hdr(
 #include "transpiler/data/openfhe_data.h"
 #include "palisade/binfhe/binfhecontext.h"
 )hdr";
       break;
     case Encryption::kCleartext:
-      typed_overload =
-          TypedOverload(metadata, "Encoded", data_type, absl::nullopt);
+      typed_overload = TypedOverload(metadata, "Encoded", data_type,
+                                     absl::nullopt, "", unwrap);
       scheme_data_header = R"hdr(
 #include "transpiler/data/cleartext_data.h"
 )hdr";

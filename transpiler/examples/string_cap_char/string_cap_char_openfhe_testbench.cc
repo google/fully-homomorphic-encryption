@@ -33,7 +33,7 @@
 constexpr int kMainMinimumLambda = 120;
 
 void OpenFheStringCap(OpenFheString& cipherresult, OpenFheString& ciphertext,
-                      int data_size, OpenFheState& cipherstate,
+                      int data_size, OpenFhe<State>& cipherstate,
                       lbcrypto::BinFHEContext cc) {
   absl::Duration total_time = absl::ZeroDuration();
   double total_cpu_time = 0.0;
@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
   std::cout << "\n";
 
   State st;
-  OpenFheState cipherstate(cc);
+  OpenFhe<State> cipherstate(cc);
   cipherstate.SetEncrypted(st, sk);
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform string capitalization

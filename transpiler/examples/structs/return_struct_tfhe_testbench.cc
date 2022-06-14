@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
   embedded.b = 2;
   embedded.c = -4;
 
-  TfheEmbedded fhe_embedded(params);
+  Tfhe<Embedded> fhe_embedded(params);
   fhe_embedded.SetEncrypted(embedded, key);
 
   std::cout << "Initial round-trip check: " << std::endl;
@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
   std::cout << "  C: " << static_cast<int>(round_trip.c) << std::endl;
 
   std::cout << "Starting computation." << std::endl;
-  TfheReturnStruct fhe_result(params);
+  Tfhe<ReturnStruct> fhe_result(params);
   auto fhe_a = TfheChar::Encrypt(8, key);
   auto fhe_c = TfheChar::Encrypt(16, key);
   XLS_CHECK_OK(

@@ -66,7 +66,8 @@ absl::Status test_fn() {
 )";
   XLS_ASSERT_OK_AND_ASSIGN(std::string actual,
                            CcTranspiler::TranslateHeader(
-                               function, metadata, "test.h", "test.types.h"));
+                               function, metadata, "test.h", "test.types.h",
+                               /*skip_scheme_data_deps=*/false, {}));
   EXPECT_EQ(actual, expected_header);
 }
 
@@ -97,14 +98,15 @@ TEST(CcTranspilerLibTest, TranslateHeader_Param) {
 #include "transpiler/data/cleartext_data.h"
 
 absl::Status test_fn_UNSAFE(absl::Span<const bool> param);
-absl::Status test_fn(const EncodedPrimitiveUnsignedIntRef param) {
+absl::Status test_fn(const EncodedRef<unsigned int> param) {
   return test_fn_UNSAFE(param.get());
 }
 #endif  // TEST_H
 )";
   XLS_ASSERT_OK_AND_ASSIGN(std::string actual,
                            CcTranspiler::TranslateHeader(
-                               function, metadata, "test.h", "test.types.h"));
+                               function, metadata, "test.h", "test.types.h",
+                               /*skip_scheme_data_deps=*/false, {}));
   EXPECT_EQ(actual, expected_header);
 }
 
@@ -152,8 +154,8 @@ absl::Status test_fn($1) {
     param_names.push_back(absl::StrCat("param_", param_index, ".get()"));
     expected_params.push_back(
         absl::StrCat("absl::Span<const bool> param_", param_index));
-    expected_overloaded_params.push_back(absl::StrCat(
-        "const EncodedPrimitiveUnsignedIntRef param_", param_index));
+    expected_overloaded_params.push_back(
+        absl::StrCat("const EncodedRef<unsigned int> param_", param_index));
   }
   std::string expected_header = absl::Substitute(
       expected_header_template, absl::StrJoin(expected_params, ", "),
@@ -162,7 +164,8 @@ absl::Status test_fn($1) {
 
   XLS_ASSERT_OK_AND_ASSIGN(std::string actual,
                            CcTranspiler::TranslateHeader(
-                               function, metadata, "test.h", "test.types.h"));
+                               function, metadata, "test.h", "test.types.h",
+                               /*skip_scheme_data_deps=*/false, {}));
   EXPECT_EQ(actual, expected_header);
 }
 

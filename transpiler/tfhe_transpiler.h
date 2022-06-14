@@ -38,7 +38,7 @@ class TfheTranspiler : public AbstractXLSTranspiler<TfheTranspiler> {
       absl::string_view header_path,
       const absl::string_view
           encryption_specific_transpiled_structs_header_path,
-      bool skip_scheme_data_deps = false);
+      bool skip_scheme_data_deps, const std::vector<std::string>& unwrap);
 
   static absl::StatusOr<std::string> FunctionSignature(
       const xls::Function* function,

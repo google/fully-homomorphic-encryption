@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
   sos.d.x = 11;
   sos.i.h.g.f.e.d.x = 12;
 
-  EncodedStructOfStructs encoded_sos;
+  Encoded<StructOfStructs> encoded_sos;
   encoded_sos.Encode(sos);
 
   std::cout << "Initial round-trip check: " << std::endl;

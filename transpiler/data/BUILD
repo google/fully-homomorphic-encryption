@@ -1,4 +1,24 @@
-load("//transpiler:fhe.bzl", "cc_fhe_bool_ir_library", "cc_to_xls_ir", "xls_cc_transpiled_structs", "xls_ir_to_bool_ir")
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load(
+    "//transpiler:fhe.bzl",
+    "cc_fhe_bool_ir_library",
+    "cc_to_xls_ir",
+    "xls_cc_transpiled_structs",
+    "xls_ir_to_bool_ir",
+)
+load(
+    "//transpiler/data:primitives.bzl",
+    "FHE_PRIMITIVES",
+)
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "primitives_bzl",
+    srcs = ["//transpiler/data:primitives.bzl"],
+)
 
 licenses(["notice"])
 
@@ -8,29 +28,13 @@ _FHE_SCHEMES = [
     "cleartext",
 ]
 
-# These are the structs defined in primitives.h.  The list here must match the
-# set of definitions in primitives.h, to make sure we unwrap them when
-# transpiling them.
-_PRIMITIVES = [
-    "PrimitiveBool",
-    "PrimitiveChar",
-    "PrimitiveSignedChar",
-    "PrimitiveUnsignedChar",
-    "PrimitiveSignedShort",
-    "PrimitiveUnsignedShort",
-    "PrimitiveSignedInt",
-    "PrimitiveUnsignedInt",
-    "PrimitiveSignedLong",
-    "PrimitiveUnsignedLong",
-]
-
 # Convert C++ to XLS IR
 
 cc_to_xls_ir(
     name = "primitives_xls_ir",
     src = "primitives.cc",
     hdrs = ["primitives.h"],
-    unwrap = _PRIMITIVES,
+    unwrap = FHE_PRIMITIVES,
 )
 
 # Generate struct encodings for each encryption scheme from the XLS IR and its metadata.
@@ -41,7 +45,7 @@ cc_to_xls_ir(
             name = "primitives_transpiled_structs_" + scheme,
             src = ":primitives_xls_ir",
             encryption = scheme,
-            unwrap = _PRIMITIVES,
+            unwrap = FHE_PRIMITIVES,
         ),
     ]
     for scheme in _FHE_SCHEMES

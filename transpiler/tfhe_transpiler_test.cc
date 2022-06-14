@@ -560,7 +560,8 @@ absl::Status test_fn(const TFheGateBootstrappingCloudKeySet* bk) {
   XLS_ASSERT_OK_AND_ASSIGN(
       std::string actual,
       TfheTranspiler::TranslateHeader(function, metadata, "a/b/c/test.h",
-                                      "test.types.h"));
+                                      "test.types.h",
+                                      /*skip_scheme_data_deps=*/false, {}));
   EXPECT_EQ(actual, expected_header);
 }
 
@@ -597,7 +598,7 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_Param) {
 
 absl::Status test_fn_UNSAFE(absl::Span<const LweSample> param, const TFheGateBootstrappingCloudKeySet* bk);
 
-absl::Status test_fn(const TfhePrimitiveSignedShortRef param,
+absl::Status test_fn(const TfheRef<signed short> param,
  const TFheGateBootstrappingCloudKeySet* bk) {
   return test_fn_UNSAFE(param.get(), bk);
 }
@@ -605,7 +606,8 @@ absl::Status test_fn(const TfhePrimitiveSignedShortRef param,
 )";
   XLS_ASSERT_OK_AND_ASSIGN(std::string actual,
                            TfheTranspiler::TranslateHeader(
-                               function, metadata, "test.h", "test.types.h"));
+                               function, metadata, "test.h", "test.types.h",
+                               /*skip_scheme_data_deps=*/false, {}));
   EXPECT_EQ(actual, expected_header);
 }
 
@@ -644,7 +646,7 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_MultipleParams) {
 
 absl::Status test_fn_UNSAFE($0, const TFheGateBootstrappingCloudKeySet* bk);
 
-absl::Status test_fn(const TfhePrimitiveBoolRef param_0, const TfhePrimitiveBoolRef param_1, const TfhePrimitiveBoolRef param_2, const TfhePrimitiveBoolRef param_3, const TfhePrimitiveBoolRef param_4,
+absl::Status test_fn(const TfheRef<bool> param_0, const TfheRef<bool> param_1, const TfheRef<bool> param_2, const TfheRef<bool> param_3, const TfheRef<bool> param_4,
  const TFheGateBootstrappingCloudKeySet* bk) {
   return test_fn_UNSAFE(param_0.get(), param_1.get(), param_2.get(), param_3.get(), param_4.get(), bk);
 }
@@ -660,7 +662,8 @@ absl::Status test_fn(const TfhePrimitiveBoolRef param_0, const TfhePrimitiveBool
 
   XLS_ASSERT_OK_AND_ASSIGN(std::string actual,
                            TfheTranspiler::TranslateHeader(
-                               function, metadata, "test.h", "test.types.h"));
+                               function, metadata, "test.h", "test.types.h",
+                               /*skip_scheme_data_deps=*/false, {}));
   EXPECT_EQ(actual, expected_header);
 }
 

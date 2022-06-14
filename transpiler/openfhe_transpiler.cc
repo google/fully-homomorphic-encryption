@@ -148,7 +148,7 @@ absl::StatusOr<std::string> OpenFheTranspiler::TranslateHeader(
     const xlscc_metadata::MetadataOutput& metadata,
     absl::string_view header_path,
     const absl::string_view encryption_specific_transpiled_structs_header_path,
-    bool skip_scheme_data_deps) {
+    bool skip_scheme_data_deps, const std::vector<std::string>& unwrap) {
   const std::string header_guard =
       transpiler::PathToHeaderGuard("OPENFHE_GENERATE_H_", header_path);
   static constexpr absl::string_view kHeaderTemplate =
@@ -167,7 +167,7 @@ $3#endif  // $1
 )";
   absl::optional<std::string> typed_overload =
       TypedOverload(metadata, "OpenFhe", "absl::Span<lbcrypto::LWECiphertext>",
-                    "lbcrypto::BinFHEContext");
+                    "lbcrypto::BinFHEContext", "bk", unwrap);
   XLS_ASSIGN_OR_RETURN(std::string signature,
                        FunctionSignature(function, metadata));
   return absl::Substitute(kHeaderTemplate, signature, header_guard,

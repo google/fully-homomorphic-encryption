@@ -40,7 +40,8 @@ class YosysTranspiler {
       const xlscc_metadata::MetadataOutput& metadata,
       absl::string_view header_path, Encryption encryption,
       const absl::string_view
-          encryption_specific_transpiled_structs_header_path);
+          encryption_specific_transpiled_structs_header_path,
+      const std::vector<std::string>& unwrap);
 
   static absl::StatusOr<std::string> FunctionSignature(
       const xlscc_metadata::MetadataOutput& metadata, Encryption encryption);

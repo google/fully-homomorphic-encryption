@@ -75,7 +75,7 @@ TEST(StringCapCharTest, CorrectlyCapitalizesLongPhraseEncrypted) {
   auto ciphertext = TfheString::Encrypt(plaintext, key);
   TfheString cipher_result(data_size, params);
 
-  TfheState state(params);
+  Tfhe<State> state(params);
   state.SetUnencrypted(State(), key.cloud());
   for (int i = 0; i < data_size; i++) {
     XLS_ASSERT_OK(
