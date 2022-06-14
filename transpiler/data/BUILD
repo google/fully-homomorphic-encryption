@@ -72,6 +72,15 @@ xls_ir_to_bool_ir(
 ]
 
 cc_library(
+    name = "generic_value",
+    hdrs = ["generic_value.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_library(
     name = "cleartext_value",
     hdrs = ["cleartext_value.h"],
     visibility = ["//visibility:public"],

@@ -80,10 +80,16 @@ class EncodedValue {
   absl::FixedArray<bool> array_;
 };
 
-template <typename ValueType, unsigned... Dimensions>
-class EncodedArrayRef;
+template <typename ValueType>
+class Encoded;
+
+template <typename ValueType>
+class EncodedRef;
 
 template <typename ValueType, unsigned... Dimensions>
 class EncodedArray;
+
+template <typename ValueType, unsigned... Dimensions>
+class EncodedArrayRef;
 
 #endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_CLEARTEXT_VALUE_H_

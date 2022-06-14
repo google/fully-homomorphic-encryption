@@ -161,10 +161,16 @@ class TfheValue {
   const TFheGateBootstrappingParameterSet* params_;
 };
 
-template <typename ValueType, unsigned... Dimensions>
-class TfheArrayRef;
+template <typename ValueType>
+class Tfhe;
+
+template <typename ValueType>
+class TfheRef;
 
 template <typename ValueType, unsigned... Dimensions>
 class TfheArray;
+
+template <typename ValueType, unsigned... Dimensions>
+class TfheArrayRef;
 
 #endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_TFHE_VALUE_H_

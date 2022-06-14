@@ -965,6 +965,7 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
         "@com_google_absl//absl/types:span",
         "//transpiler:common_runner",
         "//transpiler/data:cleartext_value",
+        "//transpiler/data:generic_value",
     ]
 
     if encryption == "cleartext":

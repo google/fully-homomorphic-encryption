@@ -115,10 +115,16 @@ class OpenFheValue {
   lbcrypto::BinFHEContext cc_;
 };
 
-template <typename ValueType, unsigned... Dimensions>
-class OpenFheArrayRef;
+template <typename ValueType>
+class OpenFhe;
+
+template <typename ValueType>
+class OpenFheRef;
 
 template <typename ValueType, unsigned... Dimensions>
 class OpenFheArray;
+
+template <typename ValueType, unsigned... Dimensions>
+class OpenFheArrayRef;
 
 #endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_DATA_OPENFHE_VALUE_H_
