@@ -36,6 +36,8 @@ struct TypeData {
 
 using IdToType = absl::flat_hash_map<int64_t, TypeData>;
 
+absl::optional<std::string> GetTypeName(
+    const xlscc_metadata::InstanceType& type);
 absl::optional<std::string> GetTypeName(const xlscc_metadata::Type& type);
 
 absl::optional<std::string> TypedOverload(

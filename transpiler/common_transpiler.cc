@@ -17,6 +17,9 @@
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 
+absl::optional<std::string> GetTypeName(
+    const xlscc_metadata::InstanceType& type);
+
 absl::optional<std::string> GetTypeName(const xlscc_metadata::Type& type) {
   if (type.has_as_bool()) {
     return "bool";
@@ -37,13 +40,46 @@ absl::optional<std::string> GetTypeName(const xlscc_metadata::Type& type) {
     }
   } else if (type.has_as_struct()) {
     const xlscc_metadata::StructType& struct_type = type.as_struct();
-    return struct_type.name().as_inst().name().name();
+    std::string name =
+        struct_type.name().as_inst().name().fully_qualified_name();
+    if (type.has_as_inst()) {
+      const xlscc_metadata::InstanceType& inst_type = type.as_inst();
+      if (inst_type.args_size()) {
+        // This is a template instantiation.
+        std::vector<std::string> template_args;
+        for (const ::xlscc_metadata::TemplateArgument& templ :
+             inst_type.args()) {
+          XLS_CHECK(templ.has_as_type());
+          template_args.push_back(GetTypeName(templ.as_type()).value());
+        }
+        name += absl::StrCat("<", absl::StrJoin(template_args, ", "), ">");
+      }
+    }
+    return name;
   } else if (type.has_as_inst()) {
-    const xlscc_metadata::InstanceType& inst_type = type.as_inst();
-    return inst_type.name().name();
+    return GetTypeName(type.as_inst());
   }
 
   return absl::nullopt;
+}
+
+absl::optional<std::string> GetTypeName(
+    const xlscc_metadata::InstanceType& inst_type) {
+  std::string name = inst_type.name().fully_qualified_name();
+  if (inst_type.args_size()) {
+    // This is a template instantiation.
+    std::vector<std::string> template_args;
+    for (const ::xlscc_metadata::TemplateArgument& templ : inst_type.args()) {
+      if (templ.has_as_type()) {
+        template_args.push_back(GetTypeName(templ.as_type()).value());
+      } else {
+        XLS_CHECK(templ.has_as_integral());
+        template_args.push_back(absl::StrCat(templ.as_integral()));
+      }
+    }
+    name += absl::StrCat("<", absl::StrJoin(template_args, ", "), ">");
+  }
+  return name;
 }
 
 static std::string TypeReference(const xlscc_metadata::Type& type,
@@ -85,7 +121,7 @@ static std::string TypeReference(const xlscc_metadata::Type& type,
                         struct_type.name().as_inst().name().name(), ">");
   } else if (type.has_as_inst()) {
     const xlscc_metadata::InstanceType& inst_type = type.as_inst();
-    std::string name = inst_type.name().name();
+    std::string name = GetTypeName(type).value();
 
     if (std::find(unwrap.begin(), unwrap.end(), name) != unwrap.end()) {
       XLS_CHECK(inst_type.name().has_id());

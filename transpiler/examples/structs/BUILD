@@ -740,3 +740,103 @@ cc_binary(
         "@tfhe//:libtfhe",
     ],
 )
+
+cc_library(
+    name = "templated_struct",
+    srcs = ["templated_struct.cc"],
+    hdrs = ["templated_struct.h"],
+)
+
+fhe_cc_library(
+    name = "templated_struct_cleartext",
+    src = "templated_struct.cc",
+    hdrs = ["templated_struct.h"],
+    encryption = "cleartext",
+)
+
+cc_binary(
+    name = "templated_struct_cleartext_testbench",
+    srcs = ["templated_struct_cleartext_testbench.cc"],
+    deps = [
+        ":templated_struct",
+        ":templated_struct_cleartext",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+    ],
+)
+
+cc_library(
+    name = "templated_struct2",
+    srcs = ["templated_struct2.cc"],
+    hdrs = ["templated_struct2.h"],
+)
+
+fhe_cc_library(
+    name = "templated_struct2_cleartext",
+    src = "templated_struct2.cc",
+    hdrs = ["templated_struct2.h"],
+    encryption = "cleartext",
+    optimizer = "xls",
+)
+
+fhe_cc_library(
+    name = "templated_struct2_interpreted_tfhe",
+    src = "templated_struct2.cc",
+    hdrs = ["templated_struct2.h"],
+    encryption = "tfhe",
+    interpreter = True,
+    optimizer = "xls",
+)
+
+fhe_cc_library(
+    name = "templated_struct2_interpreted_openfhe",
+    src = "templated_struct2.cc",
+    hdrs = ["templated_struct2.h"],
+    encryption = "openfhe",
+    interpreter = True,
+    optimizer = "xls",
+)
+
+cc_test(
+    name = "templated_struct2_cleartext_test",
+    srcs = ["templated_struct2_cleartext_test.cc"],
+    deps = [
+        ":templated_struct2",
+        ":templated_struct2_cleartext",
+        "//transpiler/data:cleartext_data",
+        "@com_google_absl//absl/base",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_xls//xls/common/status:matchers",
+        "@com_google_xls//xls/common/status:status_macros",
+    ],
+)
+
+cc_test(
+    name = "templated_struct2_interpreted_tfhe_test",
+    srcs = ["templated_struct2_tfhe_test.cc"],
+    deps = [
+        ":templated_struct2",
+        ":templated_struct2_interpreted_tfhe",
+        "//transpiler/data:tfhe_data",
+        "@com_google_absl//absl/base",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_xls//xls/common/status:matchers",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@tfhe//:libtfhe",
+    ],
+)
+
+cc_test(
+    name = "templated_struct2_interpreted_openfhe_test",
+    srcs = ["templated_struct2_openfhe_test.cc"],
+    deps = [
+        ":templated_struct2",
+        ":templated_struct2_interpreted_openfhe",
+        "//transpiler/data:openfhe_data",
+        "@com_google_absl//absl/base",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_xls//xls/common/status:matchers",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@openfhe//:binfhe",
+    ],
+)

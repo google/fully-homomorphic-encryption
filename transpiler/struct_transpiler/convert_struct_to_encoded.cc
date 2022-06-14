@@ -200,7 +200,7 @@ absl::StatusOr<std::string> GenerateSetOrEncryptStructElement(
       "        GenericEncoded<$2, Sample, SampleArrayDeleter, SecretKey, "
       "PublicKey, BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn, "
       "DecryptFn>::Borrowed$0($1, data, key);",
-      op, source_var, instance_type.name().name()));
+      op, source_var, GetTypeName(instance_type).value()));
   lines.push_back(absl::Substitute("        data += $0;", type_data.bit_width));
 
   return absl::StrJoin(lines, "\n");
@@ -344,7 +344,7 @@ absl::StatusOr<std::string> GenerateDecryptStruct(
       "        GenericEncoded<$0, Sample, SampleArrayDeleter, SecretKey, "
       "PublicKey, BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn, "
       "DecryptFn>::BorrowedDecrypt(data, &$1, key);",
-      instance_type.name().name(), output_loc));
+      GetTypeName(instance_type).value(), output_loc));
   lines.push_back(absl::Substitute("        data += $0;", type_data.bit_width));
   return absl::StrJoin(lines, "\n");
 }
@@ -415,7 +415,7 @@ $1
 //  3: The body of the internal "Encrypt" routine.
 //  4: The body of the internal "Decrypt" routine.
 //  5: The [packed] bit width of the structure.
-constexpr const char kClassTemplate[] = R"(
+constexpr const absl::string_view kClassTemplate = R"(
 template <class Sample, class SampleArrayDeleter, class SecretKey,
           class PublicKey, class BootstrappingKey,
           CopyFnT<$0, Sample, BootstrappingKey> CopyFn,
@@ -1106,15 +1106,14 @@ absl::StatusOr<std::string> ConvertStructToEncoded(
     const IdToType& id_to_type, int64_t id,
     const std::vector<std::string>& unwrap) {
   const StructType& struct_type = id_to_type.at(id).type;
-  xlscc_metadata::CPPName struct_name = struct_type.name().as_inst().name();
+  std::string struct_name = GetTypeName(struct_type.name()).value();
   bool use_field = true;
-  std::string fully_qualified_name = struct_name.fully_qualified_name();
-  if (std::find(unwrap.begin(), unwrap.end(), struct_name.name()) !=
-      unwrap.end()) {
+  std::string fully_qualified_name = struct_name;
+  if (std::find(unwrap.begin(), unwrap.end(), struct_name) != unwrap.end()) {
     if (struct_type.fields_size() != 1) {
       return absl::InvalidArgumentError(
           absl::StrFormat("Cannot unwrap struct %s, it has %d elements.",
-                          struct_name.name(), struct_type.fields_size()));
+                          struct_name, struct_type.fields_size()));
     }
     const StructField& field = struct_type.fields().Get(0);
     fully_qualified_name = GetTypeName(field.type()).value();
@@ -1133,7 +1132,7 @@ absl::StatusOr<std::string> ConvertStructToEncoded(
       GenerateDecryptFunction(id_to_type, struct_type, use_field));
   int64_t bit_width = GetStructWidth(id_to_type, struct_type);
   std::string result =
-      absl::Substitute(kClassTemplate, struct_name.name(), fully_qualified_name,
+      absl::Substitute(kClassTemplate, struct_name, fully_qualified_name,
                        set_fn, encrypt_fn, decrypt_fn, bit_width);
   return result;
 }
@@ -1545,33 +1544,32 @@ absl::StatusOr<std::string> ConvertStructsToEncodedBool(
   std::vector<std::string> generated;
   for (int64_t id : struct_order) {
     const StructType& struct_type = id_to_type.at(id).type;
-    xlscc_metadata::CPPName struct_name = struct_type.name().as_inst().name();
+    std::string struct_name = GetTypeName(struct_type.name()).value();
 
-    std::string fully_qualified_name = struct_name.fully_qualified_name();
+    std::string fully_qualified_name = struct_name;
     std::string special_decode_dyn;
     std::string special_decode_fixed;
-    if (std::find(unwrap.begin(), unwrap.end(), struct_name.name()) !=
-        unwrap.end()) {
+    if (std::find(unwrap.begin(), unwrap.end(), struct_name) != unwrap.end()) {
       if (struct_type.fields_size() != 1) {
         return absl::InvalidArgumentError(
             absl::StrFormat("Cannot unwrap struct %s, it has %d elements.",
-                            struct_name.name(), struct_type.fields_size()));
+                            struct_name, struct_type.fields_size()));
       }
 
       const StructField& field = struct_type.fields().Get(0);
       fully_qualified_name = GetTypeName(field.type()).value();
       if (fully_qualified_name == "char") {
-        special_decode_dyn = absl::Substitute(
-            kCleartextDecodeFromStringTemplate, struct_name.name(), "char",
-            fully_qualified_name, "");
-        special_decode_fixed = absl::Substitute(
-            kCleartextDecodeFromStringTemplate, struct_name.name(), "char, D1",
-            fully_qualified_name, ", D1");
+        special_decode_dyn =
+            absl::Substitute(kCleartextDecodeFromStringTemplate, struct_name,
+                             "char", fully_qualified_name, "");
+        special_decode_fixed =
+            absl::Substitute(kCleartextDecodeFromStringTemplate, struct_name,
+                             "char, D1", fully_qualified_name, ", D1");
       }
     }
 
     std::string struct_text = absl::Substitute(
-        kCleartextStructTemplate, struct_name.name(), fully_qualified_name,
+        kCleartextStructTemplate, struct_name, fully_qualified_name,
         special_decode_dyn, special_decode_fixed);
     generated.push_back(struct_text);
   }
@@ -1808,33 +1806,32 @@ absl::StatusOr<std::string> ConvertStructsToEncodedTfhe(
   std::vector<std::string> generated;
   for (int64_t id : struct_order) {
     const StructType& struct_type = id_to_type.at(id).type;
-    xlscc_metadata::CPPName struct_name = struct_type.name().as_inst().name();
+    std::string struct_name = GetTypeName(struct_type.name()).value();
 
-    std::string fully_qualified_name = struct_name.fully_qualified_name();
+    std::string fully_qualified_name = struct_name;
     std::string special_decode_dyn;
     std::string special_decode_fixed;
-    if (std::find(unwrap.begin(), unwrap.end(), struct_name.name()) !=
-        unwrap.end()) {
+    if (std::find(unwrap.begin(), unwrap.end(), struct_name) != unwrap.end()) {
       if (struct_type.fields_size() != 1) {
         return absl::InvalidArgumentError(
             absl::StrFormat("Cannot unwrap struct %s, it has %d elements.",
-                            struct_name.name(), struct_type.fields_size()));
+                            struct_name, struct_type.fields_size()));
       }
       const StructField& field = struct_type.fields().Get(0);
       fully_qualified_name = GetTypeName(field.type()).value();
       if (fully_qualified_name == "char") {
         special_decode_dyn =
-            absl::Substitute(kTfheDecodeFromStringTemplate, struct_name.name(),
+            absl::Substitute(kTfheDecodeFromStringTemplate, struct_name,
                              fully_qualified_name, "");
         special_decode_fixed =
-            absl::Substitute(kTfheDecodeFromStringTemplate, struct_name.name(),
+            absl::Substitute(kTfheDecodeFromStringTemplate, struct_name,
                              fully_qualified_name, ", D1");
       }
     }
 
-    std::string struct_text = absl::Substitute(
-        kTfheStructTemplate, struct_name.name(), fully_qualified_name,
-        special_decode_dyn, special_decode_fixed);
+    std::string struct_text =
+        absl::Substitute(kTfheStructTemplate, struct_name, fully_qualified_name,
+                         special_decode_dyn, special_decode_fixed);
     generated.push_back(struct_text);
   }
 
@@ -2297,32 +2294,31 @@ absl::StatusOr<std::string> ConvertStructsToEncodedOpenFhe(
   std::vector<std::string> generated;
   for (int64_t id : struct_order) {
     const StructType& struct_type = id_to_type.at(id).type;
-    xlscc_metadata::CPPName struct_name = struct_type.name().as_inst().name();
+    std::string struct_name = GetTypeName(struct_type.name()).value();
 
-    std::string fully_qualified_name = struct_name.fully_qualified_name();
+    std::string fully_qualified_name = struct_name;
     std::string special_decode_fixed;
     std::string special_decode_dyn;
-    if (std::find(unwrap.begin(), unwrap.end(), struct_name.name()) !=
-        unwrap.end()) {
+    if (std::find(unwrap.begin(), unwrap.end(), struct_name) != unwrap.end()) {
       if (struct_type.fields_size() != 1) {
         return absl::InvalidArgumentError(
             absl::StrFormat("Cannot unwrap struct %s, it has %d elements.",
-                            struct_name.name(), struct_type.fields_size()));
+                            struct_name, struct_type.fields_size()));
       }
       const StructField& field = struct_type.fields().Get(0);
       fully_qualified_name = GetTypeName(field.type()).value();
       if (fully_qualified_name == "char") {
         special_decode_dyn =
-            absl::Substitute(kOpenFheDecodeFromStringTemplate,
-                             struct_name.name(), fully_qualified_name, "");
+            absl::Substitute(kOpenFheDecodeFromStringTemplate, struct_name,
+                             fully_qualified_name, "");
         special_decode_fixed =
-            absl::Substitute(kOpenFheDecodeFromStringTemplate,
-                             struct_name.name(), fully_qualified_name, ", D1");
+            absl::Substitute(kOpenFheDecodeFromStringTemplate, struct_name,
+                             fully_qualified_name, ", D1");
       }
     }
 
     std::string struct_text = absl::Substitute(
-        kOpenFheStructTemplate, struct_name.name(), fully_qualified_name,
+        kOpenFheStructTemplate, struct_name, fully_qualified_name,
         special_decode_dyn, special_decode_fixed);
     generated.push_back(struct_text);
   }
