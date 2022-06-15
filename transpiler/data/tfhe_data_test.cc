@@ -20,8 +20,38 @@
 #include "absl/status/statusor.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "include/ac_int.h"
 
 constexpr int kMainMinimumLambda = 120;
+
+TEST(TfheDataTest, TfheIntegers) {
+  // generate a keyset
+  TFHEParameters params(kMainMinimumLambda);
+  // generate a random key
+  // Note: In real applications, a cryptographically secure seed needs to be
+  // used.
+  std::array<uint32_t, 3> seed = {314, 1592, 657};
+  TFHESecretKeySet key(params, seed);
+
+  auto bool_value = TfheInteger<1, false>::Encrypt(true, key);
+  EXPECT_EQ(bool_value.Decrypt(key), true);
+  auto char_value = TfheInteger<8, true>::Encrypt('t', key);
+  EXPECT_EQ(char_value.Decrypt(key), 't');
+  auto short_value = TfheInteger<16, true>::Encrypt(0x1234, key);
+  EXPECT_EQ(short_value.Decrypt(key), 0x1234);
+  auto int_value = TfheInteger<32, true>::Encrypt(0x12345678, key);
+  EXPECT_EQ(int_value.Decrypt(key), 0x12345678);
+  auto unsigned_byte_value = TfheInteger<8, false>::Encrypt(0x7b, key);
+  EXPECT_EQ(unsigned_byte_value.Decrypt(key), 0x7b);
+  auto signed_byte_value = TfheInteger<8, true>::Encrypt(0xab, key);
+  EXPECT_EQ(signed_byte_value.Decrypt(key), (int8_t)0xab);
+
+  ac_int<80, false> x;
+  x.bit_fill_hex("a9876543210fedcba987");
+  auto large_value = TfheInteger<80, false>::Encrypt(x, key);
+  ac_int<80, false> decoded_large_value = large_value.Decrypt(key);
+  EXPECT_EQ(decoded_large_value, x);
+}
 
 TEST(TfheDataTest, TfhePrimitives) {
   // generate a keyset

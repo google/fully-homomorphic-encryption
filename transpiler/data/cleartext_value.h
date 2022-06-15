@@ -11,6 +11,9 @@
 #include "absl/base/casts.h"
 #include "absl/container/fixed_array.h"
 #include "absl/types/span.h"
+#include "include/ac_int.h"
+#include "xls/common/logging/logging.h"
+#include "xls/common/status/status_macros.h"
 
 inline void CleartextCopy(absl::Span<const bool> src, const void*,
                           absl::Span<bool> dst) {
@@ -56,6 +59,50 @@ inline T CleartextDecode(absl::Span<bool> value) {
     return absl::bit_cast<T>(unsigned_value);
   }
 }
+
+template <int Width, bool Sign>
+inline void CleartextEncodeInteger(const ac_int<Width, Sign>& value,
+                                   absl::Span<bool> out) {
+  XLS_CHECK_EQ(Width, out.size());
+  for (int j = 0; j < Width; ++j) {
+    out[j] = value.template slc<1>(j);
+  }
+}
+
+template <int Width, bool Sign>
+inline ac_int<Width, Sign> CleartextDecodeInteger(absl::Span<bool> value) {
+  XLS_CHECK_EQ(Width, value.size());
+  ac_int<Width, Sign> val = 0;
+  for (int j = 0; j < Width; j++) {
+    val.set_slc(j, ac_int<1, false>(value[j]));
+  }
+  return val;
+}
+
+template <int Width, bool Signed = false>
+class EncodedInteger {
+ public:
+  EncodedInteger() : array_(Width) {}
+  EncodedInteger(ac_int<Width, Signed> value) : EncodedInteger() {
+    this->Encode(value);
+  }
+
+  void Encode(const ac_int<Width, Signed>& value) {
+    ::CleartextEncodeInteger<Width, Signed>(value, get());
+  }
+
+  ac_int<Width, Signed> Decode() {
+    return ::CleartextDecodeInteger<Width, Signed>(get());
+  }
+
+  absl::Span<bool> get() { return absl::MakeSpan(array_); }
+  absl::Span<const bool> get() const { return absl::MakeConstSpan(array_); }
+
+  int32_t size() { return array_.size(); }
+
+ private:
+  absl::FixedArray<bool> array_;
+};
 
 template <typename ValueType,
           std::enable_if_t<std::is_integral_v<ValueType>>* = nullptr>

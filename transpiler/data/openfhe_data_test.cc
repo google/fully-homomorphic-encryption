@@ -20,8 +20,40 @@
 #include "absl/status/statusor.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "include/ac_int.h"
 
 constexpr auto kSecurityLevel = lbcrypto::MEDIUM;
+
+TEST(OpenFheDataTest, OpenFheIntegers) {
+  // generate a keyset
+  auto cc = lbcrypto::BinFHEContext();
+
+  // generate a random key
+  // Note: In real applications, a cryptographically secure seed needs to be
+  // used.
+  cc.GenerateBinFHEContext(kSecurityLevel);
+  auto sk = cc.KeyGen();
+  cc.BTKeyGen(sk);
+
+  auto bool_value = OpenFheInteger<1, false>::Encrypt(true, cc, sk);
+  EXPECT_EQ(bool_value.Decrypt(sk), true);
+  auto char_value = OpenFheInteger<8, true>::Encrypt('t', cc, sk);
+  EXPECT_EQ(char_value.Decrypt(sk), 't');
+  auto short_value = OpenFheInteger<16, true>::Encrypt(0x1234, cc, sk);
+  EXPECT_EQ(short_value.Decrypt(sk), 0x1234);
+  auto int_value = OpenFheInteger<32, true>::Encrypt(0x12345678, cc, sk);
+  EXPECT_EQ(int_value.Decrypt(sk), 0x12345678);
+  auto unsigned_byte_value = OpenFheInteger<8, false>::Encrypt(0x7b, cc, sk);
+  EXPECT_EQ(unsigned_byte_value.Decrypt(sk), 0x7b);
+  auto signed_byte_value = OpenFheInteger<8, true>::Encrypt(0xab, cc, sk);
+  EXPECT_EQ(signed_byte_value.Decrypt(sk), (int8_t)0xab);
+
+  ac_int<80, false> x;
+  x.bit_fill_hex("a9876543210fedcba987");
+  auto large_value = OpenFheInteger<80, false>::Encrypt(x, cc, sk);
+  ac_int<80, false> decoded_large_value = large_value.Decrypt(sk);
+  EXPECT_EQ(decoded_large_value, x);
+}
 
 TEST(OpenFheDataTest, OpenFhePrimitives) {
   // generate a keyset

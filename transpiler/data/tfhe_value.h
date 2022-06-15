@@ -11,9 +11,12 @@
 
 #include "absl/container/fixed_array.h"
 #include "absl/types/span.h"
+#include "include/ac_int.h"
 #include "tfhe/tfhe.h"
 #include "tfhe/tfhe_io.h"
 #include "transpiler/data/cleartext_value.h"
+#include "xls/common/logging/logging.h"
+#include "xls/common/status/status_macros.h"
 
 struct TFheGateBootstrappingParameterSetDeleter {
   void operator()(TFheGateBootstrappingParameterSet* params_) const {
@@ -115,6 +118,66 @@ inline void TfheDecrypt(absl::Span<const LweSample> ciphertext,
     plaintext[j] = bootsSymDecrypt(&ciphertext[j], key) > 0;
   }
 }
+
+template <int Width, bool Signed>
+inline void TfheEncryptInteger(const ac_int<Width, Signed>& value,
+                               const TFheGateBootstrappingSecretKeySet* key,
+                               absl::Span<LweSample> out) {
+  XLS_CHECK_EQ(Width, out.size());
+  for (int j = 0; j < Width; ++j) {
+    bootsSymEncrypt(&out[j], value.template slc<1>(j), key);
+  }
+}
+
+template <int Width, bool Signed>
+inline ac_int<Width, Signed> TfheDecryptInteger(
+    absl::Span<const LweSample> ciphertext,
+    const TFheGateBootstrappingSecretKeySet* key) {
+  XLS_CHECK_EQ(Width, ciphertext.size());
+  ac_int<Width, Signed> val = 0;
+  for (int j = 0; j < Width; j++) {
+    val.set_slc(j, ac_int<1, false>(bootsSymDecrypt(&ciphertext[j], key) > 0));
+  }
+  return val;
+}
+
+template <int Width, bool Signed = false>
+class TfheInteger {
+ public:
+  TfheInteger(const TFheGateBootstrappingParameterSet* params)
+      : array_(new_gate_bootstrapping_ciphertext_array(Width, params),
+               LweSampleArrayDeleter(Width)),
+        params_(params) {}
+
+  static TfheInteger<Width, Signed> Encrypt(
+      const ac_int<Width, Signed>& value,
+      const TFheGateBootstrappingSecretKeySet* key) {
+    TfheInteger<Width, Signed> ciphertext(key->params);
+    ciphertext.SetEncrypted(value, key);
+    return ciphertext;
+  }
+
+  void SetEncrypted(const ac_int<Width, Signed>& value,
+                    const TFheGateBootstrappingSecretKeySet* key) {
+    ::TfheEncryptInteger(value, key, this->get());
+  }
+
+  const ac_int<Width, Signed> Decrypt(
+      const TFheGateBootstrappingSecretKeySet* key) {
+    return ::TfheDecryptInteger<Width, Signed>(this->get(), key);
+  }
+
+  absl::Span<LweSample> get() { return absl::MakeSpan(array_.get(), size()); }
+  absl::Span<const LweSample> get() const {
+    return absl::MakeConstSpan(array_.get(), size());
+  }
+
+  int32_t size() { return Width; }
+
+ private:
+  std::unique_ptr<LweSample, LweSampleArrayDeleter> array_;
+  const TFheGateBootstrappingParameterSet* params_;
+};
 
 // TFHE representation of a single object encoded as a bit array.
 template <typename ValueType,

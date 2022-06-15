@@ -21,6 +21,29 @@
 #include "absl/status/statusor.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "include/ac_int.h"
+
+TEST(CleartextDataTest, EncodedIntegers) {
+  auto bool_value = EncodedInteger<1, false>(true);
+  ac_int<1, false> decoded_bool_value = bool_value.Decode();
+  EXPECT_EQ(decoded_bool_value, true);
+  auto char_value = EncodedInteger<8, true>('t');
+  EXPECT_EQ(char_value.Decode(), 't');
+  auto short_value = EncodedInteger<16, true>(0x1234);
+  EXPECT_EQ(short_value.Decode(), 0x1234);
+  auto int_value = EncodedInteger<32, true>(0x12345678);
+  EXPECT_EQ(int_value.Decode(), 0x12345678);
+  auto unsigned_byte_value = EncodedInteger<8, false>(0x7b);
+  EXPECT_EQ(unsigned_byte_value.Decode(), 0x7b);
+  auto signed_byte_value = EncodedInteger<8, true>(0xab);
+  EXPECT_EQ(signed_byte_value.Decode(), (int8_t)0xab);
+
+  ac_int<80, false> x;
+  x.bit_fill_hex("a9876543210fedcba987");
+  auto large_value = EncodedInteger<80, false>(x);
+  ac_int<80, false> decoded_large_value = large_value.Decode();
+  EXPECT_EQ(decoded_large_value, x);
+}
 
 TEST(CleartextDataTest, EncodedPrimitives) {
   auto bool_value = Encoded<bool>(true);

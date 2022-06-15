@@ -55,6 +55,15 @@ http_archive(
     url = "https://github.com/google/xls/archive/b658d374ab3b5d3224a09b6d3e90a65bc26b840d.tar.gz",
 )
 
+# Used by xlscc.
+http_archive(
+    name = "com_github_hlslibs_ac_types",
+    urls = ["https://github.com/hlslibs/ac_types/archive/57d89634cb5034a241754f8f5347803213dabfca.tar.gz"],
+    sha256 = "7ab5e2ee4c675ef6895fdd816c32349b3070dc8211b7d412242c66d0c6e8edca",
+    strip_prefix = "ac_types-57d89634cb5034a241754f8f5347803213dabfca",
+    build_file = "@com_google_xls//dependency_support/com_github_hlslibs_ac_types:bundled.BUILD.bazel",
+)
+
 # Install dependencies for XLS
 http_archive(
     name = "com_grail_bazel_toolchain",

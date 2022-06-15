@@ -89,9 +89,12 @@ cc_library(
     hdrs = ["cleartext_value.h"],
     visibility = ["//visibility:public"],
     deps = [
+        "@com_github_hlslibs_ac_types//:ac_int",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/types:span",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
     ],
 )
 
@@ -101,9 +104,11 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":cleartext_value",
-        "@com_google_absl//absl/base",
+        "@com_github_hlslibs_ac_types//:ac_int",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/types:span",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
 )
@@ -114,9 +119,9 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":cleartext_value",
-        "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/types:span",
+        "@com_google_xls//xls/common/logging",
         "@openfhe//:binfhe",
     ],
 )
@@ -169,6 +174,7 @@ cc_test(
     srcs = ["cleartext_data_test.cc"],
     deps = [
         "//transpiler/data:cleartext_data",
+        "@com_github_hlslibs_ac_types//:ac_int",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",
@@ -181,6 +187,7 @@ cc_test(
     srcs = ["tfhe_data_test.cc"],
     deps = [
         "//transpiler/data:tfhe_data",
+        "@com_github_hlslibs_ac_types//:ac_int",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",
@@ -193,6 +200,7 @@ cc_test(
     srcs = ["openfhe_data_test.cc"],
     deps = [
         "//transpiler/data:openfhe_data",
+        "@com_github_hlslibs_ac_types//:ac_int",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",
