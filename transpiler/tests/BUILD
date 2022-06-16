@@ -312,3 +312,23 @@ cc_test(
         "@com_google_xls//xls/common/status:matchers",
     ],
 )
+
+fhe_cc_library(
+    name = "struct2_openfhe",
+    src = "struct2.cc",
+    hdrs = ["struct.h"],
+    encryption = "openfhe",
+    optimizer = "xls",
+)
+
+cc_test(
+    name = "multiple_functions_one_struct_test",
+    srcs = ["multiple_functions_one_struct_test.cc"],
+    deps = [
+        ":openfhe_test_util",
+        ":struct2_openfhe",
+        ":struct_openfhe",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_xls//xls/common/status:matchers",
+    ],
+)

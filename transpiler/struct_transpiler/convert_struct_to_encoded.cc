@@ -415,7 +415,11 @@ $1
 //  3: The body of the internal "Encrypt" routine.
 //  4: The body of the internal "Decrypt" routine.
 //  5: The [packed] bit width of the structure.
+//  6: A "header-guard" style macro name; should be deterministic and unique to
+//     the fully-qualified name of the struct we're transpiling.
 constexpr const absl::string_view kClassTemplate = R"(
+#ifndef _$6_GENERIC_ENCODED
+#define _$6_GENERIC_ENCODED
 template <class Sample, class SampleArrayDeleter, class SecretKey,
           class PublicKey, class BootstrappingKey,
           CopyFnT<$0, Sample, BootstrappingKey> CopyFn,
@@ -1100,7 +1104,19 @@ class GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKe
   // to return the length of this level of the multi-dimensional array.
   size_t length() const { return D1; }
 };
+#endif  // _$6_GENERIC_ENCODED
 )";
+
+std::string GetGuardMacro(std::string fully_qualified_name) {
+  return absl::AsciiStrToUpper(
+      absl::StrReplaceAll(fully_qualified_name, {{"::", "_"},
+                                                 {".", "_"},
+                                                 {"<", "_"},
+                                                 {">", "_"},
+                                                 {", ", "_"},
+                                                 {",", "_"},
+                                                 {" ", "_"}}));
+}
 
 absl::StatusOr<std::string> ConvertStructToEncoded(
     const IdToType& id_to_type, int64_t id,
@@ -1131,9 +1147,9 @@ absl::StatusOr<std::string> ConvertStructToEncoded(
       std::string decrypt_fn,
       GenerateDecryptFunction(id_to_type, struct_type, use_field));
   int64_t bit_width = GetStructWidth(id_to_type, struct_type);
-  std::string result =
-      absl::Substitute(kClassTemplate, struct_name, fully_qualified_name,
-                       set_fn, encrypt_fn, decrypt_fn, bit_width);
+  std::string result = absl::Substitute(
+      kClassTemplate, struct_name, fully_qualified_name, set_fn, encrypt_fn,
+      decrypt_fn, bit_width, GetGuardMacro(fully_qualified_name));
   return result;
 }
 
@@ -1216,7 +1232,11 @@ $2
 //     arrays
 //  3: special insert for constructor and Decode method to string for dynamic
 //     arrays
+//  4: A "header-guard" style macro name; should be deterministic and unique to
+//     the fully-qualified name of the struct we're transpiling.
 constexpr const char kCleartextStructTemplate[] = R"(
+#ifndef _$4_CLEARTEXT_ENCODED
+#define _$4_CLEARTEXT_ENCODED
 template <>
 class EncodedRef<$1> : public __EncodedBaseRef<$0> {
  public:
@@ -1492,6 +1512,7 @@ class EncodedArrayRef<$1, Dimensions...> : public __EncodedBaseArrayRef<$0, Dime
   using __EncodedBaseArrayRef<$0, Dimensions...>::BorrowedSetEncrypted;
   using __EncodedBaseArrayRef<$0, Dimensions...>::BorrowedDecrypt;
 };
+#endif  // _$4_CLEARTEXT_ENCODED
 )";
 
 // $0 -- struct type ("PrimitiveChar")
@@ -1570,7 +1591,8 @@ absl::StatusOr<std::string> ConvertStructsToEncodedBool(
 
     std::string struct_text = absl::Substitute(
         kCleartextStructTemplate, struct_name, fully_qualified_name,
-        special_decode_dyn, special_decode_fixed);
+        special_decode_dyn, special_decode_fixed,
+        GetGuardMacro(fully_qualified_name));
     generated.push_back(struct_text);
   }
 
@@ -1622,7 +1644,15 @@ $2
 // Tfhe struct template
 //  0: Type name
 //  1: Fully-qualified type name
+//  2: special insert for constructor and Decode method to string for fixed
+//     arrays
+//  3: special insert for constructor and Decode method to string for dynamic
+//     arrays
+//  4: A "header-guard" style macro name; should be deterministic and unique to
+//     the fully-qualified name of the struct we're transpiling.
 constexpr const char kTfheStructTemplate[] = R"(
+#ifndef _$4_TFHE_ENCRYPTED
+#define _$4_TFHE_ENCRYPTED
 template <>
 class TfheRef<$1> : public __TfheBaseRef<$0> {
  public:
@@ -1791,6 +1821,7 @@ class TfheArrayRef<$1, Dimensions...> : public __TfheBaseArrayRef<$0, Dimensions
                        __TfheBaseArray<$0, Dimensions...>::VOLUME) {}
   using __TfheBaseArrayRef<$0, Dimensions...>::get;
 };
+#endif  // _$4_TFHE_ENCRYPTED
 )";
 
 absl::StatusOr<std::string> ConvertStructsToEncodedTfhe(
@@ -1831,7 +1862,8 @@ absl::StatusOr<std::string> ConvertStructsToEncodedTfhe(
 
     std::string struct_text =
         absl::Substitute(kTfheStructTemplate, struct_name, fully_qualified_name,
-                         special_decode_dyn, special_decode_fixed);
+                         special_decode_dyn, special_decode_fixed,
+                         GetGuardMacro(fully_qualified_name));
     generated.push_back(struct_text);
   }
 
@@ -1883,7 +1915,15 @@ $2
 // OpenFhe struct template
 //  0: Type name
 //  1: Fully-qualified type name
+//  2: special insert for constructor and Decode method to string for fixed
+//     arrays
+//  3: special insert for constructor and Decode method to string for dynamic
+//     arrays
+//  4: A "header-guard" style macro name; should be deterministic and unique to
+//     the fully-qualified name of the struct we're transpiling.
 constexpr const char kOpenFheStructTemplate[] = R"(
+#ifndef _$4_OPENFHE_ENCRYPTED
+#define _$4_OPENFHE_ENCRYPTED
 template <>
 class OpenFheRef<$1> : public __OpenFheBaseRef<$0> {
  public:
@@ -2279,6 +2319,7 @@ class OpenFheArrayRef<$1, D1, Dimensions...>
  private:
   lbcrypto::BinFHEContext cc_;
 };
+#endif  // _$4_OPENFHE_ENCRYPTED
 )";
 
 absl::StatusOr<std::string> ConvertStructsToEncodedOpenFhe(
@@ -2319,7 +2360,8 @@ absl::StatusOr<std::string> ConvertStructsToEncodedOpenFhe(
 
     std::string struct_text = absl::Substitute(
         kOpenFheStructTemplate, struct_name, fully_qualified_name,
-        special_decode_dyn, special_decode_fixed);
+        special_decode_dyn, special_decode_fixed,
+        GetGuardMacro(fully_qualified_name));
     generated.push_back(struct_text);
   }
 
