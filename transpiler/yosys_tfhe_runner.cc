@@ -241,15 +241,6 @@ absl::Status YosysTfheRunner::YosysTfheRunnerState::Run(
   // As we iterate over output_bit_vector, we'll use this iterator.
   auto out = output_bit_vector.cbegin();
 
-  // The return value of the function will always come first, so we copy that.
-  // If there is no return value, then result.size() == 0 and we do not copy
-  // anything.
-  for (int i = 0; i < result.size(); i++) {
-    LweSample* lwe = result.data();
-    bootsCOPY(&lwe[i], out->get(), bk_);
-    out++;
-  }
-
   // The remaining output wires in the netlist follow the declaration order of
   // the input wires in the verilog file.  Suppose you have the following
   // netlist:
@@ -274,7 +265,7 @@ absl::Status YosysTfheRunner::YosysTfheRunnerState::Run(
   // (which in turn mirrors the order in which they are in the source language.)
   // Therefore, we have to identify which parts of the output wires correspond
   // to each of the input arguments.
-  size_t copied = result.size();
+  size_t copied = 0;
   for (int i = 0; i < module_inputs.size(); i++) {
     // Start by pulling off the first input net wire.  Following the example
     // above, it will have the name "c[0]".  (When we get to the single-wire "a"
@@ -322,18 +313,29 @@ absl::Status YosysTfheRunner::YosysTfheRunnerState::Run(
       // The i'th parameter subscript must be within range (e.g., 0 must be less
       // than 8, since c is a byte in out example.)
       XLS_CHECK(params_bit_idx < arg_size);
-      // Now, the out[i] is the return value for c[0] from the example above.
+      // Now, the out is the return value for c[0] from the example above.
       // More generally, out[i] is the write-back value of the param_i'th
       // argument at index param_i_idx.  Copy that bit directly into the output.
       // In our example, this represents argument "c" at index 0, which is
       // exactly args[2].
-      const LweSample* src = (out + i)->get();
+      const LweSample* src = out->get();
       LweSample* dest = inout_args[params_inout_i].data();
       bootsCOPY(&dest[params_bit_idx], src, bk_);
+      out++;
       copied++;
     }
   }
+
+  // The return value of the function now comes last, so we copy that.
+  // If there is no return value, then result.size() == 0 and we do not copy
+  // anything.
+  for (int i = 0; i < result.size(); i++, out++, copied++) {
+    LweSample* lwe = result.data();
+    bootsCOPY(&lwe[i], out->get(), bk_);
+  }
+
   XLS_CHECK(copied == output_bit_vector.size());
+  XLS_CHECK(out == output_bit_vector.cend());
 
   return absl::OkStatus();
 }

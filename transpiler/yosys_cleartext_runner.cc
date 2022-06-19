@@ -79,24 +79,15 @@ absl::Status YosysRunner::InitializeOnce(
         *xls::netlist::cell_lib::CharStream::FromText(liberty_text_),
         xls::netlist::rtl::Scanner(netlist_text_));
 
-    std::cout << "Parsing netlist..." << std::endl;
-    auto start_time = absl::Now();
     state_->netlist_ =
         std::move(*xls::netlist::rtl::AbstractParser<BoolValue>::ParseNetlist(
             &state_->cell_library_, &state_->scanner_, state_->zero_,
             state_->one_));
-    std::cout << "Parsing netlist took "
-              << absl::ToDoubleSeconds(absl::Now() - start_time) << " secs"
-              << std::endl;
 
-    std::cout << "Adding cell-evaluation functions." << std::endl;
     XLS_RETURN_IF_ERROR(state_->netlist_->AddCellEvaluationFns(eval_fns));
-    std::cout << "Done adding cell-evaluation functions." << std::endl;
 
-    std::cout << "Parsing metadata." << std::endl;
     XLS_CHECK(google::protobuf::TextFormat::ParseFromString(
         metadata_text_, &state_->metadata_));
-    std::cout << "Done parsing metadata." << std::endl;
   }
   return absl::OkStatus();
 }
@@ -135,7 +126,6 @@ absl::Status YosysRunner::YosysRunnerState::Run(
     absl::Span<OpaqueValue> result,
     std::vector<absl::Span<const OpaqueValue>> in_args,
     std::vector<absl::Span<OpaqueValue>> inout_args) {
-  std::cout << "Setting up inputs." << std::endl;
   std::string function_name = metadata_.top_func_proto().name().name();
   XLS_ASSIGN_OR_RETURN(auto module, netlist_->GetModule(function_name));
 
@@ -164,7 +154,6 @@ absl::Status YosysRunner::YosysRunnerState::Run(
     input_nets[in] = input_bits.Get(module->GetInputPortOffset(in->name()));
   }
 
-  std::cout << "Interpreting module." << std::endl;
   BoolValue zero{OpaqueValue{false}};
   BoolValue one{OpaqueValue{true}};
   xls::netlist::AbstractInterpreter<OpaqueValue> interpreter(netlist_.get(),
@@ -172,7 +161,6 @@ absl::Status YosysRunner::YosysRunnerState::Run(
   XLS_ASSIGN_OR_RETURN(auto output_nets,
                        interpreter.InterpretModule(module, input_nets, {}));
 
-  std::cout << "Collecting outputs." << std::endl;
   // Time to map the outputs returned by the netlist interpreter to the outputs
   // and in/out parameters of the source function.  We start by converting the
   // output nets to output_bit_vector--a vector of individual bit values.
@@ -185,13 +173,7 @@ absl::Status YosysRunner::YosysRunnerState::Run(
 
   // As we iterate over output_bit_vector, we'll use this iterator.
   auto out = output_bit_vector.cbegin();
-
-  // The return value of the function will always come first, so we copy that.
-  // If there is no return value, then result.size() == 0 and we do not copy
-  // anything.
-  std::copy_n(out, result.size(), result.begin());
-
-  out += result.size();
+  size_t copied = 0;
 
   // The remaining output wires in the netlist follow the declaration order of
   // the input wires in the verilog file.  Suppose you have the following
@@ -217,7 +199,6 @@ absl::Status YosysRunner::YosysRunnerState::Run(
   // (which in turn mirrors the order in which they are in the source language.)
   // Therefore, we have to identify which parts of the output wires correspond
   // to each of the input arguments.
-  size_t copied = result.size();
   for (int i = 0; i < module_inputs.size(); i++) {
     // Start by pulling off the first input net wire.  Following the example
     // above, it will have the name "c[0]".  (When we get to the single-wire "a"
@@ -265,20 +246,27 @@ absl::Status YosysRunner::YosysRunnerState::Run(
       // The i'th parameter subscript must be within range (e.g., 0 must be less
       // than 8, since c is a byte in out example.)
       XLS_CHECK(param_bit_idx < arg_size);
-      // Now, the out[i] is the return value for c[0] from the example above.
+      // Now, the out is the return value for c[0] from the example above.
       // More generally, out[i] is the write-back value of the param_i'th
       // argument at index param_i_idx.  Copy that bit directly into the output.
       // In our example, this represents argument "c" at index 0, which is
       // exactly args[2].
-      const auto* src = (out + i);
       auto* dest = inout_args[params_inout_i].data() + param_bit_idx;
-      *dest = *src;
+      *dest = *out;
+      out++;
       copied++;
     }
   }
-  XLS_CHECK(copied == output_bit_vector.size());
 
-  std::cout << "Done." << std::endl;
+  // The return value of the function now comes last, so we copy that.
+  // If there is no return value, then result.size() == 0 and we do not copy
+  // anything.
+  std::copy_n(out, result.size(), result.begin());
+  out += result.size();
+  copied += result.size();
+
+  XLS_CHECK(copied == output_bit_vector.size());
+  XLS_CHECK(out == output_bit_vector.cend());
 
   return absl::OkStatus();
 }

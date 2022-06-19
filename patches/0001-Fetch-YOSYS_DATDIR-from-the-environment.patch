@@ -1,16 +1,16 @@
-From 57f76a92b85661c067cf50a72a296f823885ab83 Mon Sep 17 00:00:00 2001
+From 96bbca715bd3caa634e56803d70950931dcad333 Mon Sep 17 00:00:00 2001
 From: Iliyan Malchev <malchev@gmail.com>
-Date: Fri, 17 Dec 2021 19:43:02 +0000
+Date: Sat, 18 Jun 2022 16:23:50 +0000
 Subject: [PATCH] Fetch YOSYS_DATDIR from the environment
 
-Signed-off-by: Iliyan Malchev <malchev@gmail.com>
+Signed-off-by: Iliyan Malchev <malchev@google.com>
 ---
  Makefile        | 3 ++-
  kernel/yosys.cc | 2 +-
  2 files changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index cdaff5189..d4a033c48 100644
+index 9f7e1da35..2da7bd918 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -85,6 +85,7 @@ UNITESTPATH := tests/unit
@@ -21,8 +21,8 @@ index cdaff5189..d4a033c48 100644
  VPATH := $(YOSYS_SRC)
  
  CXXSTD ?= c++11
-@@ -621,7 +622,7 @@ endif
- OBJS += kernel/cellaigs.o kernel/celledges.o kernel/satgen.o kernel/qcsat.o kernel/mem.o kernel/ffmerge.o kernel/ff.o
+@@ -642,7 +643,7 @@ OBJS += kernel/fstdata.o
+ endif
  
  kernel/log.o: CXXFLAGS += -DYOSYS_SRC='"$(YOSYS_SRC)"'
 -kernel/yosys.o: CXXFLAGS += -DYOSYS_DATDIR='"$(DATDIR)"' -DYOSYS_PROGRAM_PREFIX='"$(PROGRAM_PREFIX)"'
@@ -31,10 +31,10 @@ index cdaff5189..d4a033c48 100644
  OBJS += libs/bigint/BigIntegerAlgorithms.o libs/bigint/BigInteger.o libs/bigint/BigIntegerUtils.o
  OBJS += libs/bigint/BigUnsigned.o libs/bigint/BigUnsignedInABase.o
 diff --git a/kernel/yosys.cc b/kernel/yosys.cc
-index 39d6a1ec1..72985a59d 100644
+index 64d2b4def..284e39c58 100644
 --- a/kernel/yosys.cc
 +++ b/kernel/yosys.cc
-@@ -868,7 +868,7 @@ void init_share_dirname()
+@@ -903,7 +903,7 @@ void init_share_dirname()
  		return;
  	}
  #    ifdef YOSYS_DATDIR
@@ -44,5 +44,5 @@ index 39d6a1ec1..72985a59d 100644
  		yosys_share_dirname = proc_share_path;
  		return;
 -- 
-2.34.1.173.g76aa8bc2d0-goog
+2.37.0.rc0.104.g0611611a94-goog
 

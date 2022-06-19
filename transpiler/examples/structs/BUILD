@@ -83,6 +83,15 @@ fhe_cc_library(
     optimizer = "xls",
 )
 
+fhe_cc_library(
+    name = "array_of_structs_3d_yosys_interpreted_openfhe",
+    src = "array_of_structs_3d.cc",
+    hdrs = ["array_of_structs.h"],
+    encryption = "openfhe",
+    interpreter = True,
+    optimizer = "yosys",
+)
+
 cc_binary(
     name = "array_of_structs_3d_cleartext_testbench",
     srcs = ["array_of_structs_3d_cleartext_testbench.cc"],
@@ -117,11 +126,11 @@ cc_binary(
 )
 
 cc_binary(
-    name = "array_of_structs_3d_yosys_interpreted_tfhe_testbench",
-    srcs = ["array_of_structs_3d_tfhe_testbench.cc"],
-    copts = ["-DUSE_INTERPRETED_YOSYS"],
+    name = "array_of_structs_3d_yosys_interpreted_openfhe_testbench",
+    srcs = ["array_of_structs_3d_openfhe_testbench.cc"],
+    copts = ["-DUSE_YOSYS_INTERPRETED_OPENFHE"],
     deps = [
-        ":array_of_structs_3d_yosys_interpreted_tfhe",
+        ":array_of_structs_3d_yosys_interpreted_openfhe",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
@@ -797,6 +806,33 @@ fhe_cc_library(
     optimizer = "xls",
 )
 
+fhe_cc_library(
+    name = "templated_struct2_yosys_interpreted_cleartext",
+    src = "templated_struct2.cc",
+    hdrs = ["templated_struct2.h"],
+    encryption = "cleartext",
+    interpreter = True,
+    optimizer = "yosys",
+)
+
+fhe_cc_library(
+    name = "templated_struct2_yosys_interpreted_tfhe",
+    src = "templated_struct2.cc",
+    hdrs = ["templated_struct2.h"],
+    encryption = "tfhe",
+    interpreter = True,
+    optimizer = "yosys",
+)
+
+fhe_cc_library(
+    name = "templated_struct2_yosys_interpreted_openfhe",
+    src = "templated_struct2.cc",
+    hdrs = ["templated_struct2.h"],
+    encryption = "openfhe",
+    interpreter = True,
+    optimizer = "yosys",
+)
+
 cc_test(
     name = "templated_struct2_cleartext_test",
     srcs = ["templated_struct2_cleartext_test.cc"],
@@ -832,6 +868,53 @@ cc_test(
     deps = [
         ":templated_struct2",
         ":templated_struct2_interpreted_openfhe",
+        "//transpiler/data:openfhe_data",
+        "@com_google_absl//absl/base",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_xls//xls/common/status:matchers",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@openfhe//:binfhe",
+    ],
+)
+
+cc_test(
+    name = "templated_struct2_yosys_interpreted_cleartext_test",
+    srcs = ["templated_struct2_cleartext_test.cc"],
+    copts = ["-DUSE_YOSYS_INTERPRETED_CLEARTEXT"],
+    deps = [
+        ":templated_struct2",
+        ":templated_struct2_yosys_interpreted_cleartext",
+        "//transpiler/data:cleartext_data",
+        "@com_google_absl//absl/base",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_xls//xls/common/status:matchers",
+        "@com_google_xls//xls/common/status:status_macros",
+    ],
+)
+
+cc_test(
+    name = "templated_struct2_yosys_interpreted_tfhe_test",
+    srcs = ["templated_struct2_tfhe_test.cc"],
+    copts = ["-DUSE_YOSYS_INTERPRETED_TFHE"],
+    deps = [
+        ":templated_struct2",
+        ":templated_struct2_yosys_interpreted_tfhe",
+        "//transpiler/data:tfhe_data",
+        "@com_google_absl//absl/base",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_xls//xls/common/status:matchers",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@tfhe//:libtfhe",
+    ],
+)
+
+cc_test(
+    name = "templated_struct2_yosys_interpreted_openfhe_test",
+    srcs = ["templated_struct2_openfhe_test.cc"],
+    copts = ["-DUSE_YOSYS_INTERPRETED_OPENFHE"],
+    deps = [
+        ":templated_struct2",
+        ":templated_struct2_yosys_interpreted_openfhe",
         "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_googletest//:gtest_main",

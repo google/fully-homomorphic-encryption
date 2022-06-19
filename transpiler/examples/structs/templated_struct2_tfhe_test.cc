@@ -3,8 +3,14 @@
 #include "templated_struct2.h"
 #include "transpiler/data/tfhe_data.h"
 #include "transpiler/examples/structs/templated_struct2.h"
+#ifdef USE_YOSYS_INTERPRETED_TFHE
+#include "transpiler/examples/structs/templated_struct2_yosys_interpreted_tfhe.h"
+#include "transpiler/examples/structs/templated_struct2_yosys_interpreted_tfhe.types.h"
+#else
 #include "transpiler/examples/structs/templated_struct2_interpreted_tfhe.h"
 #include "transpiler/examples/structs/templated_struct2_interpreted_tfhe.types.h"
+#endif
+
 #include "xls/common/status/matchers.h"
 
 TEST(TemplatedStruct2Test, TemplatedStruct2TfheTest) {

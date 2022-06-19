@@ -114,12 +114,12 @@ http_archive(
 http_archive(
     name = "yosys",
     build_file = "//patches:yosys.BUILD",
-    strip_prefix = "yosys-cdb57118758f855518ad416d12728d72bff58c10",
-    sha256 = "ee4a78a4e321615c0f2228ad169c7fd39eb4d3b987ff8ba9b10d937f09366121",
+    strip_prefix = "yosys-6b7efe12b79d4ed68af6a31f124213e101edbbb1",
+    sha256 = "40455c4fce124998da25d471d1de89587e1ed1a4c8d0cd5d5dab3880a2eb0664",
     patch_args = [ "-p1" ],
     patches = [ "//patches:0001-Fetch-YOSYS_DATDIR-from-the-environment.patch" ],
     urls = [
-        "https://github.com/YosysHQ/yosys/archive/cdb57118758f855518ad416d12728d72bff58c10.zip",
+        "https://github.com/YosysHQ/yosys/archive/6b7efe12b79d4ed68af6a31f124213e101edbbb1.zip",
     ],
 )
 

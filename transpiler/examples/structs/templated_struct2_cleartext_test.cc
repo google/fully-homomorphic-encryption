@@ -1,11 +1,16 @@
-#include "transpiler/examples/structs/templated_struct2_cleartext.h"
-
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "templated_struct2.h"
 #include "transpiler/data/cleartext_data.h"
 #include "transpiler/examples/structs/templated_struct2.h"
+#ifdef USE_YOSYS_INTERPRETED_CLEARTEXT
+#include "transpiler/examples/structs/templated_struct2_yosys_interpreted_cleartext.h"
+#include "transpiler/examples/structs/templated_struct2_yosys_interpreted_cleartext.types.h"
+#else
+#include "transpiler/examples/structs/templated_struct2_cleartext.h"
 #include "transpiler/examples/structs/templated_struct2_cleartext.types.h"
+#endif
+
 #include "xls/common/status/matchers.h"
 
 TEST(TemplatedStruct2Test, TemplatedStruct2CleartextTest) {

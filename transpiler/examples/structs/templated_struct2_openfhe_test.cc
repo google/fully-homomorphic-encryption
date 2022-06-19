@@ -3,8 +3,14 @@
 #include "templated_struct2.h"
 #include "transpiler/data/openfhe_data.h"
 #include "transpiler/examples/structs/templated_struct2.h"
+#ifdef USE_YOSYS_INTERPRETED_OPENFHE
+#include "transpiler/examples/structs/templated_struct2_yosys_interpreted_openfhe.h"
+#include "transpiler/examples/structs/templated_struct2_yosys_interpreted_openfhe.types.h"
+#else
 #include "transpiler/examples/structs/templated_struct2_interpreted_openfhe.h"
 #include "transpiler/examples/structs/templated_struct2_interpreted_openfhe.types.h"
+#endif
+
 #include "xls/common/status/matchers.h"
 
 TEST(TemplatedStruct2Test, TemplatedStruct2OpenFheTest) {

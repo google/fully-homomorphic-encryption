@@ -58,7 +58,7 @@ int main() {
   std::cout << ascii_result << std::endl;
 
   // Start the game.
-  while (incorrect_attempts_made < MAX_INCORRECT_ATTEMPTS &
+  while (incorrect_attempts_made < MAX_INCORRECT_ATTEMPTS &&
          result != CORRECT_RESULT) {
     std::cout << "Type a letter to make a move: ";
     if (!getline(std::cin, input)) {

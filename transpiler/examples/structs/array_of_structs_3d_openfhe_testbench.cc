@@ -20,6 +20,9 @@
 #ifdef USE_INTERPRETED_OPENFHE
 #include "transpiler/examples/structs/array_of_structs_3d_interpreted_openfhe.h"
 #include "transpiler/examples/structs/array_of_structs_3d_interpreted_openfhe.types.h"
+#elif defined(USE_YOSYS_INTERPRETED_OPENFHE)
+#include "transpiler/examples/structs/array_of_structs_3d_yosys_interpreted_openfhe.h"
+#include "transpiler/examples/structs/array_of_structs_3d_yosys_interpreted_openfhe.types.h"
 #else
 #include "transpiler/examples/structs/array_of_structs_3d_openfhe.h"
 #include "transpiler/examples/structs/array_of_structs_3d_openfhe.types.h"
