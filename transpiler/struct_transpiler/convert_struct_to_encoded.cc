@@ -430,8 +430,17 @@ class GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                         BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn,
                         DecryptFn> {
  public:
-  GenericEncodedRef(Sample* data, size_t length)
-      : length_(length), data_(data) {}
+  GenericEncodedRef(Sample* data, size_t length, const BootstrappingKey* bk = nullptr)
+      : length_(length), data_(data), bk_(bk) {}
+
+  GenericEncodedRef& operator=(const GenericEncodedRef& rhs) {
+    XLS_CHECK_EQ(length_, rhs.length_);
+    XLS_CHECK_EQ(bit_width(), rhs.bit_width());
+    CopyFn(absl::MakeConstSpan(rhs.data_, bit_width()),
+           bk_,
+           absl::MakeSpan(data_, bit_width()));
+    return *this;
+  }
 
   // We set values here directly, instead of using EncodedValue, since
   // EncodedValue types own their arrays, whereas we'd need to own them here as
@@ -474,6 +483,8 @@ class GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
   size_t length() const { return length_; }
   size_t bit_width() const { return length_ * element_bit_width(); }
   static constexpr size_t element_bit_width() { return element_bit_width_; }
+  
+  const BootstrappingKey* bk() const { return bk_; }
 
  private:
   static constexpr const size_t element_bit_width_ = $5;
@@ -492,6 +503,8 @@ $3
 
   size_t length_;
   Sample* data_;
+ protected:
+  const BootstrappingKey* bk_;
 };
 
 template <class Sample, class SampleArrayDeleter, class SecretKey,
@@ -504,30 +517,37 @@ class GenericEncoded<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                      BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn,
                      DecryptFn> {
  public:
-  GenericEncoded(const $1& value, const PublicKey* key) {
+  GenericEncoded(const $1& value, const PublicKey* key,
+                 const BootstrappingKey* bk = nullptr)
+      : bk_(bk) {
     SetUnencrypted(value, key);
   }
 
-  GenericEncoded(Sample* data, size_t length, SampleArrayDeleter deleter)
-      : length_(length), data_(data, deleter) {}
+  GenericEncoded(Sample* data, size_t length, SampleArrayDeleter deleter,
+                 const BootstrappingKey* bk)
+      : length_(length), data_(data, deleter),
+        bk_(bk) {}
 
-  GenericEncoded(GenericEncoded<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
-                     BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn,
-                     DecryptFn>&&) = default;
+  GenericEncoded(GenericEncoded<$0, Sample, SampleArrayDeleter, SecretKey,
+                                PublicKey, BootstrappingKey, CopyFn,
+                                UnencryptedFn, EncryptFn, DecryptFn>&&) =
+      default;
 
   operator const GenericEncodedRef<
       $0, Sample, SampleArrayDeleter, SecretKey, PublicKey, BootstrappingKey,
       CopyFn, UnencryptedFn, EncryptFn, DecryptFn>() const& {
     return GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey,
                              PublicKey, BootstrappingKey, CopyFn, UnencryptedFn,
-                             EncryptFn, DecryptFn>(data_.get(), this->length());
+                             EncryptFn, DecryptFn>(data_.get(), this->length(),
+                                                   bk_);
   }
   operator GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey,
                              PublicKey, BootstrappingKey, CopyFn, UnencryptedFn,
                              EncryptFn, DecryptFn>() & {
     return GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey,
                              PublicKey, BootstrappingKey, CopyFn, UnencryptedFn,
-                             EncryptFn, DecryptFn>(data_.get(), this->length());
+                             EncryptFn, DecryptFn>(data_.get(), this->length(),
+                                                   bk_);
   }
 
   // We set values here directly, instead of using EncodedValue, since
@@ -575,17 +595,19 @@ class GenericEncoded<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
   size_t bit_width() const { return length_ * element_bit_width(); }
   static constexpr size_t element_bit_width() { return element_bit_width_; }
 
+  const BootstrappingKey* bk() const { return bk_; }
+
  private:
   static constexpr const size_t element_bit_width_ = $5;
 
   static void SetUnencryptedInternal(const $1& value, const PublicKey* key,
                                      Sample* data) {
-$2
+    $2
   }
 
   static void SetEncryptedInternal(const $1& value, const SecretKey* key,
                                    Sample* data) {
-$3
+    $3
   }
 
   static void DecryptInternal(const SecretKey* key, Sample* data,
@@ -593,6 +615,8 @@ $3
 
   size_t length_;
   std::unique_ptr<Sample[], SampleArrayDeleter> data_;
+protected:
+  const BootstrappingKey* bk_;
 };
 
 template <class Sample, class SampleArrayDeleter, class SecretKey,
@@ -618,7 +642,7 @@ class GenericEncodedArray<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
     return GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey,
                                     PublicKey, BootstrappingKey, CopyFn,
                                     UnencryptedFn, EncryptFn, DecryptFn>(
-        this->get(), this->length());
+        this->get(), this->length(), this->bk_);
   }
   operator GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey,
                                     PublicKey, BootstrappingKey, CopyFn,
@@ -626,7 +650,7 @@ class GenericEncodedArray<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
     return GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey,
                                     PublicKey, BootstrappingKey, CopyFn,
                                     UnencryptedFn, EncryptFn, DecryptFn>(
-        this->get(), this->length());
+        this->get(), this->length(), this->bk_);
   }
 
   template <unsigned D1>
@@ -636,7 +660,7 @@ class GenericEncodedArray<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
     return GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey,
                                     PublicKey, BootstrappingKey, CopyFn,
                                     UnencryptedFn, EncryptFn, DecryptFn, D1>(
-        this->get(), this->length());
+        this->get(), this->length(), this->bk_);
   }
   template <unsigned D1>
   operator GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey,
@@ -645,7 +669,7 @@ class GenericEncodedArray<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
     return GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey,
                                     PublicKey, BootstrappingKey, CopyFn,
                                     UnencryptedFn, EncryptFn, DecryptFn, D1>(
-        this->get(), this->length());
+        this->get(), this->length(), this->bk_);
   }
 
   // We set values here directly, instead of using EncodedValue, since
@@ -707,7 +731,8 @@ class GenericEncodedArray<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
     auto span = this->get();
     return GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                                BootstrappingKey, CopyFn, UnencryptedFn,
-                               EncryptFn, DecryptFn>(span.data() + pos * $5, 1);
+                               EncryptFn, DecryptFn>(span.data() + pos * $5, 1,
+                                                     this->bk_);
   }
 };
 
@@ -736,7 +761,7 @@ class GenericEncodedArray<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
     return GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey,
                                     PublicKey, BootstrappingKey, CopyFn,
                                     UnencryptedFn, EncryptFn, DecryptFn, D1>(
-        this->get(), this->length());
+        this->get(), this->length(), this->bk_);
   }
   operator GenericEncodedArrayRef<$0,
       Sample, SampleArrayDeleter, SecretKey, PublicKey, BootstrappingKey,
@@ -744,7 +769,7 @@ class GenericEncodedArray<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
     return GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey,
                                     PublicKey, BootstrappingKey, CopyFn,
                                     UnencryptedFn, EncryptFn, DecryptFn, D1>(
-        this->get(), this->length());
+        this->get(), this->length(), this->bk_);
   }
 
   void SetUnencrypted(const ArrayT value, const PublicKey* key, size_t elem = 0) {
@@ -789,7 +814,8 @@ class GenericEncodedArray<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
     auto span = this->get();
     return GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                                BootstrappingKey, CopyFn, UnencryptedFn,
-                               EncryptFn, DecryptFn>(span.data() + pos * $5, 1);
+                               EncryptFn, DecryptFn>(span.data() + pos * $5, 1,
+                                                     this->bk_);
   }
   // The base will return the full length of the underlying array, when we want
   // to return the length of this level of the multi-dimensional array.
@@ -828,7 +854,7 @@ class GenericEncodedArray<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
     return GenericEncodedArrayRef<$0,
         Sample, SampleArrayDeleter, SecretKey, PublicKey, BootstrappingKey,
         CopyFn, UnencryptedFn, EncryptFn, DecryptFn, D1, Dimensions...>(
-        this->get(), this->length());
+        this->get(), this->length(), this->bk_);
   }
   operator GenericEncodedArrayRef<$0,
       Sample, SampleArrayDeleter, SecretKey, PublicKey, BootstrappingKey,
@@ -836,7 +862,7 @@ class GenericEncodedArray<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
     return GenericEncodedArrayRef<$0,
         Sample, SampleArrayDeleter, SecretKey, PublicKey, BootstrappingKey,
         CopyFn, UnencryptedFn, EncryptFn, DecryptFn, D1, Dimensions...>(
-        this->get(), this->length());
+        this->get(), this->length(), this->bk_);
   }
 
   void SetUnencrypted(const ArrayT value, const PublicKey* key, size_t elem = 0) {
@@ -880,7 +906,7 @@ class GenericEncodedArray<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
     return GenericEncodedArrayRef<$0,
         Sample, SampleArrayDeleter, SecretKey, PublicKey, BootstrappingKey,
         CopyFn, UnencryptedFn, EncryptFn, DecryptFn, Dimensions...>(
-        span.data() + pos * LowerT::VOLUME * $5, D1);
+        span.data() + pos * LowerT::VOLUME * $5, D1, this->bk_);
   }
   // The base will return the full length of the underlying array, when we want
   // to return the length of this level of the multi-dimensional array.
@@ -900,10 +926,10 @@ class GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKe
                                  PublicKey, BootstrappingKey, CopyFn,
                                  UnencryptedFn, EncryptFn, DecryptFn> {
  public:
-  GenericEncodedArrayRef(Sample* data, size_t length)
+  GenericEncodedArrayRef(Sample* data, size_t length, const BootstrappingKey* bk)
       : GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                             BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn,
-                            DecryptFn>(data, length) {}
+                            DecryptFn>(data, length, bk) {}
 
   void SetUnencrypted(const $1* value, size_t len, const SecretKey* key) {
     XLS_CHECK(this->length() >= len);
@@ -950,7 +976,8 @@ class GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKe
     auto span = this->get();
     return GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                                BootstrappingKey, CopyFn, UnencryptedFn,
-                               EncryptFn, DecryptFn>(span.data() + pos * $5, 1);
+                               EncryptFn, DecryptFn>(span.data() + pos * $5, 1,
+                                                     this->bk_);
   }
 };
 
@@ -970,10 +997,10 @@ class GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKe
   enum { VOLUME = D1 };
   using ArrayT = $1[D1];
 
-  GenericEncodedArrayRef(Sample* data, size_t length)
+  GenericEncodedArrayRef(Sample* data, size_t length, const BootstrappingKey* bk)
       : GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                             BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn,
-                            DecryptFn>(data, length) {}
+                            DecryptFn>(data, length, bk) {}
 
   void SetUnencrypted(const ArrayT value, const SecretKey* key, size_t elem) {
     for (size_t i = 0; i < D1; i++) {
@@ -1020,7 +1047,8 @@ class GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKe
     auto span = this->get();
     return GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                                BootstrappingKey, CopyFn, UnencryptedFn,
-                               EncryptFn, DecryptFn>(span.data() + pos * $5, 1);
+                               EncryptFn, DecryptFn>(span.data() + pos * $5, 1,
+                                                     this->bk_);
   }
 
   // The base will return the full length of the underlying array, when we want
@@ -1050,11 +1078,11 @@ class GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKe
   enum { VOLUME = D1 * LowerT::VOLUME };
   using ArrayT = LowerArrayT[D1];
 
-  GenericEncodedArrayRef(Sample* data, size_t length)
+  GenericEncodedArrayRef(Sample* data, size_t length, const BootstrappingKey* bk)
       : GenericEncodedArrayRef<$0,
             Sample, SampleArrayDeleter, SecretKey, PublicKey, BootstrappingKey,
             CopyFn, UnencryptedFn, EncryptFn, DecryptFn, Dimensions...>(
-            data, length) {}
+            data, length, bk) {}
 
   void SetUnencrypted(const ArrayT value, const SecretKey* key, size_t elem = 0) {
     for (size_t i = 0; i < D1; i++) {
@@ -1098,7 +1126,7 @@ class GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKe
     return GenericEncodedArrayRef<$0,
         Sample, SampleArrayDeleter, SecretKey, PublicKey, BootstrappingKey,
         CopyFn, UnencryptedFn, EncryptFn, DecryptFn, Dimensions...>(
-        span.data() + pos * LowerT::VOLUME * $5, D1);
+        span.data() + pos * LowerT::VOLUME * $5, D1, this->bk_);
   }
   // The base will return the full length of the underlying array, when we want
   // to return the length of this level of the multi-dimensional array.
@@ -1243,7 +1271,7 @@ class EncodedRef<$1> : public __EncodedBaseRef<$0> {
   using __EncodedBaseRef<$0>::__EncodedBaseRef;
 
   EncodedRef(const __EncodedBaseRef<$0>& rhs)
-      : EncodedRef<$1>(const_cast<bool*>(rhs.get().data()), rhs.length()) {}
+      : EncodedRef<$1>(const_cast<bool*>(rhs.get().data()), rhs.length(), nullptr) {}
 
   void Encode(const $1& value) { SetEncrypted(value, nullptr); }
 
@@ -1265,7 +1293,7 @@ class Encoded<$1> : public __EncodedBase<$0> {
  public:
   Encoded()
       : __EncodedBase<$0>(new bool[Encoded<$1>::element_bit_width()], 1,
-                      std::default_delete<bool[]>()) {}
+                          std::default_delete<bool[]>(), nullptr) {}
   Encoded(const $1& value) : Encoded<$1>() { Encode(value); }
 
   Encoded<$1>& operator=(const EncodedRef<$1> rhs) {
@@ -1274,10 +1302,10 @@ class Encoded<$1> : public __EncodedBase<$0> {
   }
 
   operator const EncodedRef<$1>() const& {
-    return EncodedRef<$1>(const_cast<bool*>(get().data()), this->length());
+    return EncodedRef<$1>(const_cast<bool*>(get().data()), this->length(), nullptr);
   }
   operator EncodedRef<$1>() & {
-    return EncodedRef<$1>(const_cast<bool*>(get().data()), this->length());
+    return EncodedRef<$1>(const_cast<bool*>(get().data()), this->length(), nullptr);
   }
 
   void Encode(const $1& value) { SetEncrypted(value, nullptr); }
@@ -1300,7 +1328,7 @@ class EncodedArray<$1> : public __EncodedBaseArray<$0> {
  public:
   EncodedArray(size_t length)
       : __EncodedBaseArray<$0>(new bool[length * Encoded<$1>::element_bit_width()],
-                             length, std::default_delete<bool[]>()) {}
+                             length, std::default_delete<bool[]>(), nullptr) {}
 
   EncodedArray(std::initializer_list<$1> values)
       : EncodedArray<$1>(values.size()) {
@@ -1320,6 +1348,11 @@ class EncodedArray<$1> : public __EncodedBaseArray<$0> {
   void Decode($1* value, size_t length) const {
     XLS_CHECK(length >= this->length());
     Decrypt(value, length, nullptr);
+  }
+
+  EncodedRef<$1> operator[](size_t pos) {
+    auto ref = this->__EncodedBaseArray<$0>::operator[](pos);
+    return EncodedRef<$1>(ref);
   }
 
 $2
@@ -1343,7 +1376,7 @@ class EncodedArray<$1, D1> : public __EncodedBaseArray<$0, D1> {
   EncodedArray()
       : __EncodedBaseArray<$0, D1>(
             new bool[__EncodedBaseArray<$0, D1>::element_bit_width() * D1], D1,
-            std::default_delete<bool[]>()) {}
+            std::default_delete<bool[]>(), nullptr) {}
 
   EncodedArray(std::initializer_list<$1> values)
       : EncodedArray<$1, D1>() {
@@ -1368,7 +1401,10 @@ $3
 
   absl::FixedArray<$1> Decode() const { return Decrypt(nullptr); }
 
-  using __EncodedBaseArray<$0, D1>::operator[];
+  EncodedRef<$1> operator[](size_t pos) {
+    auto ref = this->__EncodedBaseArray<$0, D1>::operator[](pos);
+    return EncodedRef<$1>(ref);
+  }
 
   using __EncodedBaseArray<$0, D1>::get;
 
@@ -1381,37 +1417,40 @@ $3
   using __EncodedBaseArray<$0, D1>::BorrowedDecrypt;
 };
 
-template <unsigned... Dimensions>
-class EncodedArray<$1, Dimensions...>: public __EncodedBaseArray<$0, Dimensions...> {
+template <unsigned D1, unsigned... Dimensions>
+class EncodedArray<$1, D1, Dimensions...>: public __EncodedBaseArray<$0, D1, Dimensions...> {
  public:
   EncodedArray()
-      : __EncodedBaseArray<$0, Dimensions...>(
-            new bool[__EncodedBaseArray<$0, Dimensions...>::element_bit_width() *
-                     __EncodedBaseArray<$0, Dimensions...>::VOLUME],
-            __EncodedBaseArray<$0, Dimensions...>::VOLUME,
-            std::default_delete<bool[]>()) {}
+      : __EncodedBaseArray<$0, D1, Dimensions...>(
+            new bool[__EncodedBaseArray<$0, D1, Dimensions...>::element_bit_width() *
+                     __EncodedBaseArray<$0, D1, Dimensions...>::VOLUME],
+            __EncodedBaseArray<$0, D1, Dimensions...>::VOLUME,
+            std::default_delete<bool[]>(), nullptr) {}
 
   // No initializer_list constructor for multi-dimensional arrays.
 
-  void Encode(std::add_const_t<typename __EncodedBaseArray<$0, Dimensions...>::ArrayT> value) {
+  void Encode(std::add_const_t<typename __EncodedBaseArray<$0, D1, Dimensions...>::ArrayT> value) {
     SetEncrypted(value, nullptr, 0);
   }
 
-  void Decode(typename __EncodedBaseArray<$0, Dimensions...>::ArrayT value) const {
+  void Decode(typename __EncodedBaseArray<$0, D1, Dimensions...>::ArrayT value) const {
     Decrypt(value, nullptr);
   }
 
-  using __EncodedBaseArray<$0, Dimensions...>::operator[];
+  EncodedArrayRef<$1, Dimensions...> operator[](size_t pos) {
+    auto ref = this->__EncodedBaseArray<$0, D1, Dimensions...>::operator[](pos);
+    return EncodedArrayRef<$1, Dimensions...>(ref);
+  }
 
-  using __EncodedBaseArray<$0, Dimensions...>::get;
+  using __EncodedBaseArray<$0, D1, Dimensions...>::get;
 
  private:
-  using __EncodedBaseArray<$0, Dimensions...>::Decrypt;
-  using __EncodedBaseArray<$0, Dimensions...>::SetUnencrypted;
-  using __EncodedBaseArray<$0, Dimensions...>::SetEncrypted;
-  using __EncodedBaseArray<$0, Dimensions...>::BorrowedSetUnencrypted;
-  using __EncodedBaseArray<$0, Dimensions...>::BorrowedSetEncrypted;
-  using __EncodedBaseArray<$0, Dimensions...>::BorrowedDecrypt;
+  using __EncodedBaseArray<$0, D1, Dimensions...>::Decrypt;
+  using __EncodedBaseArray<$0, D1, Dimensions...>::SetUnencrypted;
+  using __EncodedBaseArray<$0, D1, Dimensions...>::SetEncrypted;
+  using __EncodedBaseArray<$0, D1, Dimensions...>::BorrowedSetUnencrypted;
+  using __EncodedBaseArray<$0, D1, Dimensions...>::BorrowedSetEncrypted;
+  using __EncodedBaseArray<$0, D1, Dimensions...>::BorrowedDecrypt;
 };
 
 template <>
@@ -1419,9 +1458,9 @@ class EncodedArrayRef<$1> : public __EncodedBaseArrayRef<$0> {
  public:
   using __EncodedBaseArrayRef<$0>::__EncodedBaseArrayRef;
   EncodedArrayRef(const __EncodedBaseArrayRef<$0>& rhs)
-      : EncodedArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length()) {}
+      : EncodedArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length(), rhs.bk()) {}
   EncodedArrayRef(const __EncodedBaseArray<$0>& rhs)
-      : EncodedArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length()) {}
+      : EncodedArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length(), rhs.bk()) {}
 
   void Encode(const $1* value, size_t length) {
     XLS_CHECK(this->length() >= length);
@@ -1434,6 +1473,11 @@ class EncodedArrayRef<$1> : public __EncodedBaseArrayRef<$0> {
   }
 
   absl::FixedArray<$1> Decode() const { return Decrypt(nullptr); }
+
+  EncodedRef<$1> operator[](size_t pos) {
+    auto ref = this->__EncodedBaseArrayRef<$0>::operator[](pos);
+    return EncodedRef<$1>(ref);
+  }
 
  private:
   using __EncodedBaseArrayRef<$0>::Decrypt;
@@ -1450,11 +1494,11 @@ class EncodedArrayRef<$1, D1> : public __EncodedBaseArrayRef<$0, D1> {
   using __EncodedBaseArrayRef<$0, D1>::__EncodedBaseArrayRef;
 
   EncodedArrayRef(const __EncodedBaseArrayRef<$0, D1>& rhs)
-      : EncodedArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length()) {}
+      : EncodedArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length(), rhs.bk()) {}
   EncodedArrayRef(const __EncodedBaseArray<$0, D1>& rhs)
-      : EncodedArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length()) {}
+      : EncodedArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length(), rhs.bk()) {}
   EncodedArrayRef(const __EncodedBaseArray<$0>& rhs)
-      : EncodedArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length()) {
+      : EncodedArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length(), rhs.bk()) {
     XLS_CHECK_EQ(rhs.length(), D1);
   }
 
@@ -1468,6 +1512,11 @@ class EncodedArrayRef<$1, D1> : public __EncodedBaseArrayRef<$0, D1> {
 
   absl::FixedArray<$1> Decode() const { return Decrypt(nullptr); }
 
+  EncodedRef<$1> operator[](size_t pos) {
+    auto ref = this->__EncodedBaseArrayRef<$0, D1>::operator[](pos);
+    return EncodedRef<$1>(ref);
+  }
+
  private:
   using __EncodedBaseArrayRef<$0, D1>::Decrypt;
   using __EncodedBaseArrayRef<$0, D1>::SetUnencrypted;
@@ -1477,40 +1526,47 @@ class EncodedArrayRef<$1, D1> : public __EncodedBaseArrayRef<$0, D1> {
   using __EncodedBaseArrayRef<$0, D1>::BorrowedDecrypt;
 };
 
-template <unsigned... Dimensions>
-class EncodedArrayRef<$1, Dimensions...> : public __EncodedBaseArrayRef<$0, Dimensions...> {
+template <unsigned D1, unsigned... Dimensions>
+class EncodedArrayRef<$1, D1, Dimensions...> : public __EncodedBaseArrayRef<$0, D1, Dimensions...> {
  public:
-  using __EncodedBaseArrayRef<$0, Dimensions...>::__EncodedBaseArrayRef;
+  using __EncodedBaseArrayRef<$0, D1, Dimensions...>::__EncodedBaseArrayRef;
   // Use the VOLUME constant instead of length().  The former gives the total
   // volume of the underlying array (accounting for all dimensions), while the
   // former gives the length of the first level of the array (e.g.,
   // Type[4][3][2] will have VOLUME = 24 and length() == 4.
-  EncodedArrayRef(const __EncodedBaseArrayRef<$0, Dimensions...>& rhs)
+  EncodedArrayRef(const __EncodedBaseArrayRef<$0, D1, Dimensions...>& rhs)
       : EncodedArrayRef(const_cast<bool*>(rhs.get().data()),
-                          __EncodedBaseArrayRef<$0, Dimensions...>::VOLUME) {}
-  EncodedArrayRef(const __EncodedBaseArray<$0, Dimensions...>& rhs)
+                        __EncodedBaseArrayRef<$0, D1, Dimensions...>::VOLUME,
+                        rhs.bk()) {}
+  EncodedArrayRef(const __EncodedBaseArray<$0, D1, Dimensions...>& rhs)
       : EncodedArrayRef(const_cast<bool*>(rhs.get().data()),
-                          __EncodedBaseArray<$0, Dimensions...>::VOLUME) {}
+                        __EncodedBaseArray<$0, D1, Dimensions...>::VOLUME,
+                        rhs.bk()) {}
 
   void Encode(
-      const typename __EncodedBaseArrayRef<$0, Dimensions...>::ArrayT value) {
+      const typename __EncodedBaseArrayRef<$0, D1, Dimensions...>::ArrayT value) {
     SetEncrypted(value, nullptr);
   }
 
   void Decode(
-      typename __EncodedBaseArrayRef<$0, Dimensions...>::ArrayT value) const {
+      typename __EncodedBaseArrayRef<$0, D1, Dimensions...>::ArrayT value) const {
     Decrypt(value, nullptr);
   }
 
-  using __EncodedBaseArrayRef<$0, Dimensions...>::get;
+  using __EncodedBaseArrayRef<$0, D1, Dimensions...>::get;
+
+  EncodedArrayRef<$1, Dimensions...> operator[](size_t pos) {
+    auto ref = this->__EncodedBaseArrayRef<$0, D1, Dimensions...>::operator[](pos);
+    return EncodedArrayRef<$1, Dimensions...>(ref);
+  }
 
  private:
-  using __EncodedBaseArrayRef<$0, Dimensions...>::Decrypt;
-  using __EncodedBaseArrayRef<$0, Dimensions...>::SetUnencrypted;
-  using __EncodedBaseArrayRef<$0, Dimensions...>::SetEncrypted;
-  using __EncodedBaseArrayRef<$0, Dimensions...>::BorrowedSetUnencrypted;
-  using __EncodedBaseArrayRef<$0, Dimensions...>::BorrowedSetEncrypted;
-  using __EncodedBaseArrayRef<$0, Dimensions...>::BorrowedDecrypt;
+  using __EncodedBaseArrayRef<$0, D1, Dimensions...>::Decrypt;
+  using __EncodedBaseArrayRef<$0, D1, Dimensions...>::SetUnencrypted;
+  using __EncodedBaseArrayRef<$0, D1, Dimensions...>::SetEncrypted;
+  using __EncodedBaseArrayRef<$0, D1, Dimensions...>::BorrowedSetUnencrypted;
+  using __EncodedBaseArrayRef<$0, D1, Dimensions...>::BorrowedSetEncrypted;
+  using __EncodedBaseArrayRef<$0, D1, Dimensions...>::BorrowedDecrypt;
 };
 #endif  // _$4_CLEARTEXT_ENCODED
 )";
@@ -1659,7 +1715,7 @@ class TfheRef<$1> : public __TfheBaseRef<$0> {
   using __TfheBaseRef<$0>::__TfheBaseRef;
 
   TfheRef(const __TfheBaseRef<$0>& rhs)
-      : TfheRef<$1>(const_cast<LweSample*>(rhs.get().data()), rhs.length()) {}
+      : TfheRef<$1>(const_cast<LweSample*>(rhs.get().data()), rhs.length(), rhs.bk()) {}
 };
 
 template <>
@@ -1667,8 +1723,9 @@ class Tfhe<$1> : public __TfheBase<$0> {
  public:
   Tfhe(const TFheGateBootstrappingParameterSet* params)
       : __TfheBase<$0>(new_gate_bootstrapping_ciphertext_array(
-                       Tfhe<$1>::element_bit_width(), params),
-                   1, LweSampleArrayDeleter(Tfhe<$1>::element_bit_width())),
+                           Tfhe<$1>::element_bit_width(), params),
+                       1, LweSampleArrayDeleter(Tfhe<$1>::element_bit_width()),
+                       params),
         params_(params) {}
 
   Tfhe<$1>& operator=(const TfheRef<$1> rhs) {
@@ -1676,27 +1733,27 @@ class Tfhe<$1> : public __TfheBase<$0> {
     return *this;
   }
 
-
   operator const TfheRef<$1>() const& {
-    return TfheRef<$1>(const_cast<LweSample*>(get().data()), this->length());
+    return TfheRef<$1>(const_cast<LweSample*>(get().data()), this->length(), this->bk());
   }
   operator TfheRef<$1>() & {
-    return TfheRef<$1>(const_cast<LweSample*>(get().data()), this->length());
+    return TfheRef<$1>(const_cast<LweSample*>(get().data()), this->length(), this->bk());
   }
 
-  static Tfhe<$1> Unencrypted(
-      $1 value, const TFheGateBootstrappingCloudKeySet* key) {
+  static Tfhe<$1> Unencrypted($1 value,
+                              const TFheGateBootstrappingCloudKeySet* key) {
     Tfhe<$1> plaintext(key->params);
     plaintext.SetUnencrypted(value, key);
     return plaintext;
   }
 
-  static Tfhe<$1> Encrypt(
-      $1 value, const TFheGateBootstrappingSecretKeySet* key) {
+  static Tfhe<$1> Encrypt($1 value,
+                          const TFheGateBootstrappingSecretKeySet* key) {
     Tfhe<$1> ciphertext(key->params);
     ciphertext.SetEncrypted(value, key);
     return ciphertext;
   }
+
  private:
   const TFheGateBootstrappingParameterSet* params_;
 };
@@ -1709,7 +1766,8 @@ class TfheArray<$1> : public __TfheBaseArray<$0> {
             new_gate_bootstrapping_ciphertext_array(
                 Tfhe<$1>::element_bit_width() * length, params),
             length,
-            LweSampleArrayDeleter(Tfhe<$1>::element_bit_width() * length)) {}
+            LweSampleArrayDeleter(Tfhe<$1>::element_bit_width() * length),
+            params) {}
 
   static TfheArray<$1> Unencrypted(
      absl::Span<const $1> plaintext,
@@ -1737,7 +1795,8 @@ class TfheArray<$1, D1> : public __TfheBaseArray<$0, D1> {
       : __TfheBaseArray<$0, D1>(
             new_gate_bootstrapping_ciphertext_array(
                 Tfhe<$1>::element_bit_width() * D1, params),
-            D1, LweSampleArrayDeleter(Tfhe<$1>::element_bit_width() * D1)) {}
+            D1, LweSampleArrayDeleter(Tfhe<$1>::element_bit_width() * D1),
+            params) {}
 
   static TfheArray<$1, D1> Unencrypted(
      absl::Span<const $1> plaintext,
@@ -1760,18 +1819,24 @@ class TfheArray<$1, D1> : public __TfheBaseArray<$0, D1> {
 $3
 };
 
-template <unsigned... Dimensions>
-class TfheArray<$1, Dimensions...> : public __TfheBaseArray<$0, Dimensions...> {
+template <unsigned D1, unsigned... Dimensions>
+class TfheArray<$1, D1, Dimensions...> : public __TfheBaseArray<$0, D1, Dimensions...> {
  public:
   TfheArray(const TFheGateBootstrappingParameterSet* params)
-      : __TfheBaseArray<$0, Dimensions...>(
+      : __TfheBaseArray<$0, D1, Dimensions...>(
             new_gate_bootstrapping_ciphertext_array(
                 Tfhe<$1>::element_bit_width() *
-                    __TfheBaseArray<$0, Dimensions...>::VOLUME,
-                params),
-            __TfheBaseArray<$0, Dimensions...>::VOLUME,
+                    __TfheBaseArray<$0, D1, Dimensions...>::VOLUME,
+                    params),
+            __TfheBaseArray<$0, D1, Dimensions...>::VOLUME,
             LweSampleArrayDeleter(Tfhe<$1>::element_bit_width() *
-                                  __TfheBaseArray<$0, Dimensions...>::VOLUME)) {}
+                                  __TfheBaseArray<$0, D1, Dimensions...>::VOLUME),
+            params) {}
+
+  TfheArrayRef<$1, Dimensions...> operator[](size_t pos) {
+    auto ref = this->__TfheBaseArray<$0, D1, Dimensions...>::operator[](pos);
+    return TfheArrayRef<$1, Dimensions...>(ref);
+  }
 };
 
 template <>
@@ -1779,10 +1844,10 @@ class TfheArrayRef<$1> : public __TfheBaseArrayRef<$0> {
  public:
   using __TfheBaseArrayRef<$0>::__TfheBaseArrayRef;
   TfheArrayRef(const __TfheBaseArrayRef<$0>& rhs)
-      : TfheArrayRef<$1>(const_cast<LweSample*>(rhs.get().data()), rhs.length()) {
+      : TfheArrayRef<$1>(const_cast<LweSample*>(rhs.get().data()), rhs.length(), rhs.bk()) {
   }
   TfheArrayRef(const __TfheBaseArray<$0>& rhs)
-      : TfheArrayRef<$1>(const_cast<LweSample*>(rhs.get().data()), rhs.length()) {
+      : TfheArrayRef<$1>(const_cast<LweSample*>(rhs.get().data()), rhs.length(), rhs.bk()) {
   }
 
   using __TfheBaseArrayRef<$0>::get;
@@ -1793,33 +1858,44 @@ class TfheArrayRef<$1, D1> : public __TfheBaseArrayRef<$0, D1> {
  public:
   using __TfheBaseArrayRef<$0, D1>::__TfheBaseArrayRef;
   TfheArrayRef(const __TfheBaseArrayRef<$0, D1>& rhs)
-      : TfheArrayRef<$1, D1>(const_cast<LweSample*>(rhs.get().data()), rhs.length()) {
+      : TfheArrayRef<$1, D1>(const_cast<LweSample*>(rhs.get().data()), rhs.length(),
+                             rhs.bk()) {
   }
   TfheArrayRef(const __TfheBaseArray<$0, D1>& rhs)
-      : TfheArrayRef<$1, D1>(const_cast<LweSample*>(rhs.get().data()), rhs.length()) {
+      : TfheArrayRef<$1, D1>(const_cast<LweSample*>(rhs.get().data()), rhs.length(),
+                             rhs.bk()) {
   }
   TfheArrayRef(const __TfheBaseArray<$0>& rhs)
-      : TfheArrayRef<$1, D1>(const_cast<LweSample*>(rhs.get().data()), rhs.length()) {
+      : TfheArrayRef<$1, D1>(const_cast<LweSample*>(rhs.get().data()), rhs.length(),
+                             rhs.bk()) {
     XLS_CHECK_GE(rhs.length(), D1);
   }
   using __TfheBaseArrayRef<$0, D1>::get;
 };
 
-template <unsigned... Dimensions>
-class TfheArrayRef<$1, Dimensions...> : public __TfheBaseArrayRef<$0, Dimensions...> {
+template <unsigned D1, unsigned... Dimensions>
+class TfheArrayRef<$1, D1, Dimensions...> : public __TfheBaseArrayRef<$0, D1, Dimensions...> {
  public:
-  using __TfheBaseArrayRef<$0, Dimensions...>::__TfheBaseArrayRef;
+  using __TfheBaseArrayRef<$0, D1, Dimensions...>::__TfheBaseArrayRef;
   // Use the VOLUME constant instead of length().  The former gives the total
   // volume of the underlying array (accounting for all dimensions), while the
   // former gives the length of the first level of the array (e.g.,
   // Type[4][3][2] will have VOLUME = 24 and length() == 4.
-  TfheArrayRef(const __TfheBaseArrayRef<$0, Dimensions...>& rhs)
-      : TfheArrayRef<$1, Dimensions...>(const_cast<LweSample*>(rhs.get().data()),
-                       __TfheBaseArrayRef<$0, Dimensions...>::VOLUME) {}
-  TfheArrayRef(const __TfheBaseArray<$0, Dimensions...>& rhs)
-      : TfheArrayRef<$1, Dimensions...>(const_cast<LweSample*>(rhs.get().data()),
-                       __TfheBaseArray<$0, Dimensions...>::VOLUME) {}
-  using __TfheBaseArrayRef<$0, Dimensions...>::get;
+  TfheArrayRef(const __TfheBaseArrayRef<$0, D1, Dimensions...>& rhs)
+      : TfheArrayRef<$1, D1, Dimensions...>(const_cast<LweSample*>(rhs.get().data()),
+                       __TfheBaseArrayRef<$0, D1, Dimensions...>::VOLUME,
+                       rhs.bk()) {}
+  TfheArrayRef(const __TfheBaseArray<$0, D1, Dimensions...>& rhs)
+      : TfheArrayRef<$1, D1, Dimensions...>(const_cast<LweSample*>(rhs.get().data()),
+                       __TfheBaseArray<$0, D1, Dimensions...>::VOLUME,
+                       rhs.bk()) {}
+
+  TfheArrayRef<$1, Dimensions...> operator[](size_t pos) {
+    auto ref = this->__TfheBaseArrayRef<$0, D1, Dimensions...>::operator[](pos);
+    return TfheArrayRef<$1, Dimensions...>(ref);
+  }
+
+  using __TfheBaseArrayRef<$0, D1, Dimensions...>::get;
 };
 #endif  // _$4_TFHE_ENCRYPTED
 )";
@@ -1959,7 +2035,8 @@ class OpenFhe<$1> : public __OpenFheBase<$0> {
   OpenFhe(lbcrypto::BinFHEContext cc)
       : __OpenFheBase<$0>(
             new lbcrypto::LWECiphertext[OpenFhe<$1>::element_bit_width()], 1,
-            std::default_delete<lbcrypto::LWECiphertext[]>()),
+            std::default_delete<lbcrypto::LWECiphertext[]>(),
+            nullptr),
         cc_(cc) {
     // Initialize the LWECiphertexts.
     SetUnencrypted({}, &cc_);
@@ -2008,7 +2085,8 @@ class OpenFheArray<$1> : public __OpenFheBaseArray<$0> {
       : __OpenFheBaseArray<$0>(
             new lbcrypto::LWECiphertext[OpenFhe<$1>::element_bit_width() *
                                         length],
-            length, std::default_delete<lbcrypto::LWECiphertext[]>()),
+            length, std::default_delete<lbcrypto::LWECiphertext[]>(),
+            nullptr),
         cc_(cc) {
     // Initialize the LWECiphertexts.
     for (int i = 0; i < length; i++) {
@@ -2066,7 +2144,8 @@ class OpenFheArray<$1, D1> : public __OpenFheBaseArray<$0, D1> {
   OpenFheArray(lbcrypto::BinFHEContext cc)
       : __OpenFheBaseArray<$0, D1>(
             new lbcrypto::LWECiphertext[OpenFhe<$1>::element_bit_width() * D1],
-            D1, std::default_delete<lbcrypto::LWECiphertext[]>()),
+            D1, std::default_delete<lbcrypto::LWECiphertext[]>(),
+            nullptr),
         cc_(cc) {
     // Initialize the LWECiphertexts.
     for (int i = 0; i < D1; i++) {
@@ -2126,7 +2205,8 @@ class OpenFheArray<$1, D1, Dimensions...>
                 [OpenFhe<$1>::element_bit_width() *
                  __OpenFheBaseArray<$0, D1, Dimensions...>::VOLUME],
             __OpenFheBaseArray<$0, D1, Dimensions...>::VOLUME,
-            std::default_delete<lbcrypto::LWECiphertext[]>()),
+            std::default_delete<lbcrypto::LWECiphertext[]>(),
+            nullptr),
         cc_(cc) {
     // Initialize the LWECiphertexts.
     for (int i = 0; i < __OpenFheBaseArray<$0, D1, Dimensions...>::VOLUME; i++) {
@@ -2163,13 +2243,15 @@ class OpenFheArrayRef<$1> : public __OpenFheBaseArrayRef<$0> {
   OpenFheArrayRef(const OpenFheArrayRef<$1>& rhs)
       : __OpenFheBaseArrayRef<$0>(
             const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
-            rhs.length()) {
+            rhs.length(),
+            nullptr) {
     cc_ = rhs.cc_;
   }
   OpenFheArrayRef(const OpenFheArray<$1>& rhs)
       : __OpenFheBaseArrayRef<$0>(
             const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
-            rhs.length()) {
+            rhs.length(),
+            nullptr) {
     cc_ = rhs.cc_;
   }
 
@@ -2200,19 +2282,19 @@ class OpenFheArrayRef<$1, D1> : public __OpenFheBaseArrayRef<$0, D1> {
   OpenFheArrayRef(const OpenFheArrayRef<$1, D1>& rhs)
       : OpenFheArrayRef<$1, D1>(
             const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
-            rhs.length()) {
+            rhs.length(), nullptr) {
     cc_ = rhs.cc_;
   }
   OpenFheArrayRef(const OpenFheArray<$1, D1>& rhs)
       : OpenFheArrayRef<$1, D1>(
             const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
-            rhs.length()) {
+            rhs.length(), nullptr) {
     cc_ = rhs.cc_;
   }
   OpenFheArrayRef(const OpenFheArray<$1>& rhs)
       : OpenFheArrayRef<$1, D1>(
             const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
-            rhs.length()) {
+            rhs.length(), nullptr) {
     XLS_CHECK_GE(rhs.length(), D1);
     cc_ = rhs.cc_;
   }
@@ -2220,14 +2302,16 @@ class OpenFheArrayRef<$1, D1> : public __OpenFheBaseArrayRef<$0, D1> {
                      lbcrypto::BinFHEContext cc)
       : OpenFheArrayRef<$1, D1>(
             const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
-            __OpenFheBaseArrayRef<$0, D1>::VOLUME) {
+            __OpenFheBaseArrayRef<$0, D1>::VOLUME,
+            nullptr) {
     cc_ = cc;
   }
   OpenFheArrayRef(absl::Span<const lbcrypto::LWECiphertext> data,
                      lbcrypto::BinFHEContext cc)
       : OpenFheArrayRef<$1, D1>(
             const_cast<lbcrypto::LWECiphertext*>(data.data()),
-            __OpenFheBaseArrayRef<$0, D1>::VOLUME) {
+            __OpenFheBaseArrayRef<$0, D1>::VOLUME,
+            nullptr) {
     XLS_CHECK_EQ(data.length(), this->bit_width());
     cc_ = cc;
   }
@@ -2271,27 +2355,31 @@ class OpenFheArrayRef<$1, D1, Dimensions...>
   OpenFheArrayRef(const OpenFheArrayRef<$1, D1, Dimensions...>& rhs)
       : OpenFheArrayRef<$1, D1, Dimensions...>(
             const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
-            __OpenFheBaseArrayRef<$0, D1, Dimensions...>::VOLUME) {
+            __OpenFheBaseArrayRef<$0, D1, Dimensions...>::VOLUME,
+            nullptr) {
     cc_ = rhs.cc_;
   }
   OpenFheArrayRef(const OpenFheArray<$1, D1, Dimensions...>& rhs)
       : OpenFheArrayRef<$1, D1, Dimensions...>(
             const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
-            __OpenFheBaseArrayRef<$0, D1, Dimensions...>::VOLUME) {
+            __OpenFheBaseArrayRef<$0, D1, Dimensions...>::VOLUME,
+            nullptr) {
     cc_ = rhs.cc_;
   }
   OpenFheArrayRef(const __OpenFheBaseArrayRef<$0, D1, Dimensions...>& rhs,
                      lbcrypto::BinFHEContext cc)
       : OpenFheArrayRef<$1, D1, Dimensions...>(
             const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
-            __OpenFheBaseArrayRef<$0, D1, Dimensions...>::VOLUME) {
+            __OpenFheBaseArrayRef<$0, D1, Dimensions...>::VOLUME,
+            nullptr) {
     cc_ = cc;
   }
   OpenFheArrayRef(absl::Span<const lbcrypto::LWECiphertext> data,
                      lbcrypto::BinFHEContext cc)
       : OpenFheArrayRef<$1, D1, Dimensions...>(
             const_cast<lbcrypto::LWECiphertext*>(data.data()),
-            __OpenFheBaseArrayRef<$0, D1, Dimensions...>::VOLUME) {
+            __OpenFheBaseArrayRef<$0, D1, Dimensions...>::VOLUME,
+            nullptr) {
     XLS_CHECK_EQ(data.length(), this->bit_width());
     cc_ = cc;
   }

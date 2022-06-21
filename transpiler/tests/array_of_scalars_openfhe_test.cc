@@ -36,6 +36,102 @@ using TranspilerControlStructureSwitchTestCase =
 
 class OpenFheArrayOfStructsTest : public TranspilerTestBase {};
 
+TEST_F(OpenFheArrayOfStructsTest, DynamicOneDimArrayAssignViaRef) {
+  OpenFheArray<unsigned char> c_dyn_one_dim(2, cc());
+  OpenFheArrayRef<unsigned char> c_dyn_one_dim_ref = c_dyn_one_dim;
+
+  OpenFhe<unsigned char> a(cc());
+  a.SetEncrypted('a', sk());
+  XLS_CHECK_EQ(a.Decrypt(sk()), 'a');
+  OpenFheRef<unsigned char> a_ref = a;
+  XLS_CHECK_EQ(a_ref.Decrypt(sk()), 'a');
+
+  OpenFhe<unsigned char> b(cc());
+  b.SetEncrypted('b', sk());
+  XLS_CHECK_EQ(b.Decrypt(sk()), 'b');
+  OpenFheRef<unsigned char> b_ref = b;
+  XLS_CHECK_EQ(b_ref.Decrypt(sk()), 'b');
+
+  c_dyn_one_dim_ref[0] = a;
+  c_dyn_one_dim_ref[1] = b;
+  auto decoded_via_ref = c_dyn_one_dim_ref.Decrypt(sk());
+  XLS_CHECK_EQ(decoded_via_ref[0], 'a');
+  XLS_CHECK_EQ(decoded_via_ref[1], 'b');
+  auto decoded = c_dyn_one_dim.Decrypt(sk());
+  XLS_CHECK_EQ(decoded[0], 'a');
+  XLS_CHECK_EQ(decoded[1], 'b');
+
+  XLS_CHECK_EQ(c_dyn_one_dim[0].Decrypt(sk()), 'a');
+  XLS_CHECK_EQ(c_dyn_one_dim_ref[0].Decrypt(sk()), 'a');
+  XLS_CHECK_EQ(c_dyn_one_dim[1].Decrypt(sk()), 'b');
+  XLS_CHECK_EQ(c_dyn_one_dim_ref[1].Decrypt(sk()), 'b');
+}
+
+TEST_F(OpenFheArrayOfStructsTest, FixedLenOneDimArrayAssignViaRef) {
+  OpenFheArray<unsigned char, 2> c_fixed_len_one_dim(cc());
+  OpenFheArrayRef<unsigned char, 2> c_fixed_len_one_dim_ref =
+      c_fixed_len_one_dim;
+
+  OpenFhe<unsigned char> a(cc());
+  a.SetEncrypted('a', sk());
+  XLS_CHECK_EQ(a.Decrypt(sk()), 'a');
+  OpenFheRef<unsigned char> a_ref = a;
+  XLS_CHECK_EQ(a_ref.Decrypt(sk()), 'a');
+
+  OpenFhe<unsigned char> b(cc());
+  b.SetEncrypted('b', sk());
+  XLS_CHECK_EQ(b.Decrypt(sk()), 'b');
+  OpenFheRef<unsigned char> b_ref = b;
+  XLS_CHECK_EQ(b_ref.Decrypt(sk()), 'b');
+
+  c_fixed_len_one_dim_ref[0] = a;
+  c_fixed_len_one_dim_ref[1] = b;
+  auto decoded_via_ref = c_fixed_len_one_dim_ref.Decrypt(sk());
+  XLS_CHECK_EQ(decoded_via_ref[0], 'a');
+  XLS_CHECK_EQ(decoded_via_ref[1], 'b');
+  auto decoded = c_fixed_len_one_dim.Decrypt(sk());
+  XLS_CHECK_EQ(decoded[0], 'a');
+  XLS_CHECK_EQ(decoded[1], 'b');
+
+  XLS_CHECK_EQ(c_fixed_len_one_dim[0].Decrypt(sk()), 'a');
+  XLS_CHECK_EQ(c_fixed_len_one_dim_ref[0].Decrypt(sk()), 'a');
+  XLS_CHECK_EQ(c_fixed_len_one_dim[1].Decrypt(sk()), 'b');
+  XLS_CHECK_EQ(c_fixed_len_one_dim_ref[1].Decrypt(sk()), 'b');
+}
+
+TEST_F(OpenFheArrayOfStructsTest, FixedLenTwoDimArrayAssignViaRef) {
+  int i_2x2[2][2] = {{12, 34}, {56, 78}};
+  OpenFheArray<int, 2, 2> i_fixed_len_two_dim(cc());
+  OpenFheArrayRef<int, 2, 2> i_fixed_len_two_dim_ref = i_fixed_len_two_dim;
+  i_fixed_len_two_dim.SetEncrypted(i_2x2, sk());
+
+  XLS_CHECK_EQ(i_fixed_len_two_dim[0].Decrypt(sk())[0], 12);
+  XLS_CHECK_EQ(i_fixed_len_two_dim[0].Decrypt(sk())[1], 34);
+  XLS_CHECK_EQ(i_fixed_len_two_dim[1].Decrypt(sk())[0], 56);
+  XLS_CHECK_EQ(i_fixed_len_two_dim[1].Decrypt(sk())[1], 78);
+
+  int new_row_0[2] = {21, 43}, new_row_1[2] = {65, 87};
+  OpenFheArray<int, 2> encoded_new_row_0(cc()), encoded_new_row_1(cc());
+  encoded_new_row_0.SetEncrypted(new_row_0, sk());
+  encoded_new_row_1.SetEncrypted(new_row_1, sk());
+
+  i_fixed_len_two_dim_ref[0] = encoded_new_row_0;
+  i_fixed_len_two_dim_ref[1] = encoded_new_row_1;
+
+  XLS_CHECK_EQ(i_fixed_len_two_dim[0].Decrypt(sk())[0], 21);
+  XLS_CHECK_EQ(i_fixed_len_two_dim[0].Decrypt(sk())[1], 43);
+  XLS_CHECK_EQ(i_fixed_len_two_dim[1].Decrypt(sk())[0], 65);
+  XLS_CHECK_EQ(i_fixed_len_two_dim[1].Decrypt(sk())[1], 87);
+
+  i_fixed_len_two_dim[0] = encoded_new_row_1;
+  i_fixed_len_two_dim[1] = encoded_new_row_0;
+
+  XLS_CHECK_EQ(i_fixed_len_two_dim[1].Decrypt(sk())[0], 21);
+  XLS_CHECK_EQ(i_fixed_len_two_dim[0].Decrypt(sk())[0], 65);
+  XLS_CHECK_EQ(i_fixed_len_two_dim[0].Decrypt(sk())[1], 87);
+  XLS_CHECK_EQ(i_fixed_len_two_dim[1].Decrypt(sk())[1], 43);
+}
+
 // cc(), sk()
 TEST_F(OpenFheArrayOfStructsTest, DynamicOneDimArray) {
   unsigned char c_array[2] = {'a', 'b'};
