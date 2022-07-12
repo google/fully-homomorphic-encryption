@@ -50,9 +50,9 @@ http_archive(
         "//patches:xls-visibility-logging.patch",
         "//patches:xls-visibility-status.patch",
     ],
-    sha256 = "c57e7dfaccf44e0687d8c36be1ed98aef3b72625b83c266f47ad45aad2771332",
-    strip_prefix = "xls-b658d374ab3b5d3224a09b6d3e90a65bc26b840d",
-    url = "https://github.com/google/xls/archive/b658d374ab3b5d3224a09b6d3e90a65bc26b840d.tar.gz",
+    sha256 = "d34199f5783b444e230d6a097e1f6b1bdfbd9ffd596a1236835a3dc566b1e76d",
+    strip_prefix = "xls-74933e379f651a70c1b98e146d3c4290822c743c",
+    url = "https://github.com/google/xls/archive/74933e379f651a70c1b98e146d3c4290822c743c.tar.gz",
 )
 
 # Used by xlscc.
@@ -115,7 +115,7 @@ http_archive(
     name = "yosys",
     build_file = "//patches:yosys.BUILD",
     strip_prefix = "yosys-6b7efe12b79d4ed68af6a31f124213e101edbbb1",
-    sha256 = "40455c4fce124998da25d471d1de89587e1ed1a4c8d0cd5d5dab3880a2eb0664",
+    sha256 = "6ab9e3fa8444ed5b350a371b68619a644ec9c53e908020a5d72c3dadea8b056d",
     patch_args = [ "-p1" ],
     patches = [ "//patches:0001-Fetch-YOSYS_DATDIR-from-the-environment.patch" ],
     urls = [
