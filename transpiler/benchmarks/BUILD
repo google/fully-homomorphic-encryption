@@ -28,19 +28,28 @@ INT_TYPES = [
     ]
 ]
 
+BENCHMARK_ARGS = [
+    # Run all the benchmarks (defined with BENCHMARK()) in the test file.
+    "--benchmark_filter=all",
+    "--benchmark_min_iters=4",
+]
+
+BENCHMARK_TAGS = [
+    "manual",
+]
+
 # Run with (e.g.):
 #
 # $ bazel run -c opt --dynamic_mode=off \
-#   //transpiler/benchmarks:arithmetic_xls_interpreted_tfhe \
-#   -- \
-#       --benchmark_filter=all \
-#       --benchmark_min_iters=4
+#   //transpiler/benchmarks:arithmetic_xls_interpreted_tfhe
 
 cc_test(
     name = "arithmetic_yosys_interpreted_tfhe",
+    size = "medium",
     srcs = ["arithmetic_tfhe.cc"],
+    args = BENCHMARK_ARGS,
     copts = ["-DUSE_YOSYS_OPTIMIZER"],
-    tags = ["manual"],
+    tags = BENCHMARK_TAGS,
     deps = [
         "@com_google_googletest//:gtest_main",
         "@com_google_xls//xls/common/status:matchers",
@@ -51,8 +60,10 @@ cc_test(
 
 cc_test(
     name = "arithmetic_xls_interpreted_tfhe",
+    size = "medium",
     srcs = ["arithmetic_tfhe.cc"],
-    tags = ["manual"],
+    args = BENCHMARK_ARGS,
+    tags = BENCHMARK_TAGS,
     deps = [
         "@com_google_googletest//:gtest_main",
         "@com_google_xls//xls/common/status:matchers",
@@ -63,9 +74,11 @@ cc_test(
 
 cc_test(
     name = "arithmetic_yosys_interpreted_openfhe",
+    size = "large",
     srcs = ["arithmetic_openfhe.cc"],
+    args = BENCHMARK_ARGS,
     copts = ["-DUSE_YOSYS_OPTIMIZER"],
-    tags = ["manual"],
+    tags = BENCHMARK_TAGS,
     deps = [
         "@com_google_googletest//:gtest_main",
         "@com_google_xls//xls/common/status:matchers",
@@ -76,8 +89,10 @@ cc_test(
 
 cc_test(
     name = "arithmetic_xls_interpreted_openfhe",
+    size = "large",
     srcs = ["arithmetic_openfhe.cc"],
-    tags = ["manual"],
+    args = BENCHMARK_ARGS,
+    tags = BENCHMARK_TAGS,
     deps = [
         "@com_google_googletest//:gtest_main",
         "@com_google_xls//xls/common/status:matchers",
