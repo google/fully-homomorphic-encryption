@@ -41,6 +41,44 @@ cc_binary(
 )
 
 fhe_cc_library(
+    name = "array_of_structs_tfhe",
+    src = "array_of_structs.cc",
+    hdrs = ["array_of_structs.h"],
+    encryption = "tfhe",
+    optimizer = "xls",
+)
+
+fhe_cc_library(
+    name = "array_of_structs_yosys_interpreted_tfhe",
+    src = "array_of_structs.cc",
+    hdrs = ["array_of_structs.h"],
+    encryption = "tfhe",
+    interpreter = True,
+    optimizer = "yosys",
+)
+
+cc_binary(
+    name = "array_of_structs_tfhe_testbench",
+    srcs = ["array_of_structs_tfhe_testbench.cc"],
+    deps = [
+        ":array_of_structs_tfhe",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+    ],
+)
+
+cc_binary(
+    name = "array_of_structs_yosys_interpreted_tfhe_testbench",
+    srcs = ["array_of_structs_tfhe_testbench.cc"],
+    copts = ["-DUSE_INTERPRETED_YOSYS"],
+    deps = [
+        ":array_of_structs_yosys_interpreted_tfhe",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+    ],
+)
+
+fhe_cc_library(
     name = "array_of_structs_3d_cleartext",
     src = "array_of_structs_3d.cc",
     hdrs = ["array_of_structs.h"],
