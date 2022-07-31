@@ -43,15 +43,19 @@ unsigned char State::process(unsigned char c) {
 char my_package(State &st, char c) { return st.process(c); }
 ```
 
-Note the following about the code above: * The C++ program's entry point must be
-marked with `#pragma hls_top`. In the case of `string_cap_char`, this is the
-`my_package` function. * This example is written such that the function above is
-called for each character. However, the
-[`string_cap/string_cap.cc`](../examples/string_cap/string_cap.cc) example
-illustrates how the same result can be achieved by instead inputting the entire
-string and internally iterating on each character. * You may notice that
-`string_cap.cc` and other code examples may have a corresponding `.h` header
-file. These are optional; header files are not a requirement.
+Note the following about the code above: 
+
+* The C++ program's entry point must be
+  marked with `#pragma hls_top`. In the case of `string_cap_char`, this is the
+  `my_package` function. 
+* This example is written such that the function above is
+  called for each character. However, the
+  [`string_cap/string_cap.cc`](../examples/string_cap/string_cap.cc) example
+  illustrates how the same result can be achieved by instead inputting the entire
+  string and internally iterating on each character. 
+* You may notice that
+  `string_cap.cc` and other code examples may have a corresponding `.h` header
+  file. These are optional; header files are not a requirement.
 
 ## 2. Create a `BUILD` file
 
