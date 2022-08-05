@@ -35,6 +35,7 @@
 #include "transpiler/util/subprocess.h"
 #include "transpiler/util/temp_file.h"
 #include "xls/common/file/filesystem.h"
+#include "xls/common/logging/logging.h"
 #include "xls/common/status/matchers.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"

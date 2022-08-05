@@ -40,6 +40,7 @@
 #include "transpiler/util/temp_file.h"
 #include "transpiler/yosys_transpiler.h"
 #include "xls/common/file/filesystem.h"
+#include "xls/common/logging/logging.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
 #include "xls/ir/bits.h"

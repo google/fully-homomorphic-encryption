@@ -15,6 +15,7 @@
 #include "transpiler/yosys_cleartext_runner.h"
 
 #include "absl/strings/substitute.h"
+#include "xls/common/logging/logging.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
 #include "xls/ir/bits.h"

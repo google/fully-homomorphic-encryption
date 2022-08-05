@@ -28,22 +28,26 @@ namespace transpiler {
 absl::StatusOr<std::string> ConvertStructsToEncodedTemplate(
     const xlscc_metadata::MetadataOutput& metadata,
     const std::vector<std::string>& original_headers,
-    absl::string_view output_path, const std::vector<std::string>& unwrap);
+    absl::string_view output_path, const std::vector<std::string>& unwrap,
+    const std::vector<std::string>& skip, const std::string& encoded_integer);
 
 absl::StatusOr<std::string> ConvertStructsToEncodedBool(
     absl::string_view generic_header,
     const xlscc_metadata::MetadataOutput& metadata,
-    absl::string_view output_path, const std::vector<std::string>& unwrap);
+    absl::string_view output_path, const std::vector<std::string>& unwrap,
+    const std::vector<std::string>& skip);
 
 absl::StatusOr<std::string> ConvertStructsToEncodedTfhe(
     absl::string_view generic_header,
     const xlscc_metadata::MetadataOutput& metadata,
-    absl::string_view output_path, const std::vector<std::string>& unwrap);
+    absl::string_view output_path, const std::vector<std::string>& unwrap,
+    const std::vector<std::string>& skip);
 
 absl::StatusOr<std::string> ConvertStructsToEncodedOpenFhe(
     absl::string_view generic_header,
     const xlscc_metadata::MetadataOutput& metadata,
-    absl::string_view output_path, const std::vector<std::string>& unwrap);
+    absl::string_view output_path, const std::vector<std::string>& unwrap,
+    const std::vector<std::string>& skip);
 
 }  // namespace transpiler
 }  // namespace fully_homomorphic_encryption
