@@ -70,6 +70,8 @@ cc_test(
     shard_count = 4,
     deps = [":%s_tfhe" % i for i in _PRIMITIVE_TYPES] + [
         ":test_util",
+        ":struct_tfhe",
+        ":struct2_tfhe",
         "@com_google_googletest//:gtest_main",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",
@@ -86,6 +88,8 @@ cc_test(
     shard_count = 4,
     deps = [":%s_openfhe" % i for i in _PRIMITIVE_TYPES] + [
         ":openfhe_test_util",
+        ":struct_openfhe",
+        ":struct2_openfhe",
         "@com_google_googletest//:gtest_main",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",
@@ -240,6 +244,22 @@ fhe_cc_library(
     optimizer = "xls",
 )
 
+fhe_cc_library(
+    name = "struct2_tfhe",
+    src = "struct2.cc",
+    hdrs = ["struct.h"],
+    encryption = "tfhe",
+    optimizer = "xls",
+)
+
+fhe_cc_library(
+    name = "struct2_openfhe",
+    src = "struct2.cc",
+    hdrs = ["struct.h"],
+    encryption = "openfhe",
+    optimizer = "xls",
+)
+
 cc_test(
     name = "array_of_structs_cleartext_test",
     srcs = ["array_of_structs_cleartext_test.cc"],
@@ -308,26 +328,6 @@ cc_test(
         ":openfhe_test_util",
         "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
-        "@com_google_googletest//:gtest_main",
-        "@com_google_xls//xls/common/status:matchers",
-    ],
-)
-
-fhe_cc_library(
-    name = "struct2_openfhe",
-    src = "struct2.cc",
-    hdrs = ["struct.h"],
-    encryption = "openfhe",
-    optimizer = "xls",
-)
-
-cc_test(
-    name = "multiple_functions_one_struct_test",
-    srcs = ["multiple_functions_one_struct_test.cc"],
-    deps = [
-        ":openfhe_test_util",
-        ":struct2_openfhe",
-        ":struct_openfhe",
         "@com_google_googletest//:gtest_main",
         "@com_google_xls//xls/common/status:matchers",
     ],

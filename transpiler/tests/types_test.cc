@@ -23,6 +23,8 @@
 #include "transpiler/tests/char_tfhe.h"
 #include "transpiler/tests/int_tfhe.h"
 #include "transpiler/tests/long_tfhe.h"
+#include "transpiler/tests/struct2_tfhe.h"
+#include "transpiler/tests/struct_tfhe.h"
 #include "transpiler/tests/test_util.h"
 #include "xls/common/status/matchers.h"
 
@@ -60,6 +62,29 @@ TEST_F(TranspilerTypesTest, TestLong) {
   Tfhe<long> result(params());
   XLS_ASSERT_OK(test_long(result, ciphertext, cloud_key()));
   EXPECT_EQ(result.Decrypt(secret_key()), 101);
+}
+
+TEST_F(TranspilerTypesTest, TestStruct) {
+  Struct value = {'b', (short)0x5678, (int)0xc0deba7e};
+  auto ciphertext = Tfhe<Struct>::Encrypt(value, secret_key());
+  XLS_ASSERT_OK(my_package(ciphertext, cloud_key()));
+
+  Struct result = ciphertext.Decrypt(secret_key());
+  EXPECT_EQ(value.c, result.c);
+  EXPECT_EQ(value.i, result.i);
+  EXPECT_EQ(value.s, result.s);
+}
+
+TEST_F(TranspilerTypesTest, TestMultipleFunctionsOneStruct) {
+  Struct value = {'b', (short)0x5678, (int)0xc0deba7e};
+  auto ciphertext = Tfhe<Struct>::Encrypt(value, secret_key());
+  XLS_ASSERT_OK(my_package(ciphertext, cloud_key()));
+  XLS_ASSERT_OK(function2(ciphertext, cloud_key()));
+
+  Struct result = ciphertext.Decrypt(secret_key());
+  EXPECT_EQ(value.c, result.c);
+  EXPECT_EQ(value.i, result.i);
+  EXPECT_EQ(value.s, result.s);
 }
 
 }  // namespace

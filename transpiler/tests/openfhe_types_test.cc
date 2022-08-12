@@ -24,6 +24,8 @@
 #include "transpiler/tests/int_openfhe.h"
 #include "transpiler/tests/long_openfhe.h"
 #include "transpiler/tests/openfhe_test_util.h"
+#include "transpiler/tests/struct2_openfhe.h"
+#include "transpiler/tests/struct_openfhe.h"
 #include "xls/common/status/matchers.h"
 
 namespace fully_homomorphic_encryption {
@@ -60,6 +62,31 @@ TEST_F(TranspilerTypesTest, TestLong) {
   OpenFhe<long> result(cc());
   XLS_ASSERT_OK(test_long(result, ciphertext, cc()));
   EXPECT_EQ(result.Decrypt(sk()), 101);
+}
+
+TEST_F(TranspilerTypesTest, TestStruct) {
+  Struct value = {'b', (short)0x5678, (int)0xc0deba7e};
+
+  OpenFhe<Struct> encrypted_value = OpenFhe<Struct>::Encrypt(value, cc(), sk());
+  XLS_ASSERT_OK(my_package(encrypted_value, cc()));
+
+  Struct result = encrypted_value.Decrypt(sk());
+  EXPECT_EQ(value.c, result.c);
+  EXPECT_EQ(value.i, result.i);
+  EXPECT_EQ(value.s, result.s);
+}
+
+TEST_F(TranspilerTypesTest, TestMultipleFunctionsOneStruct) {
+  Struct value = {'b', (short)0x5678, (int)0xc0deba7e};
+
+  OpenFhe<Struct> encrypted_value = OpenFhe<Struct>::Encrypt(value, cc(), sk());
+  XLS_ASSERT_OK(my_package(encrypted_value, cc()));
+  XLS_ASSERT_OK(function2(encrypted_value, cc()));
+
+  Struct result = encrypted_value.Decrypt(sk());
+  EXPECT_EQ(value.c, result.c);
+  EXPECT_EQ(value.i, result.i);
+  EXPECT_EQ(value.s, result.s);
 }
 
 }  // namespace
