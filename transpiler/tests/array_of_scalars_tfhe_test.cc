@@ -25,15 +25,6 @@ namespace {
 
 using ::fully_homomorphic_encryption::transpiler::TranspilerTestBase;
 
-template <typename InputType, typename OutputType>
-struct TranspilerControlStructureTestCase {
-  const std::string test_name;
-  const InputType input;
-  const OutputType expected_output;
-};
-using TranspilerControlStructureSwitchTestCase =
-    TranspilerControlStructureTestCase<char, int>;
-
 class TfheArrayOfStructsTest : public TranspilerTestBase {};
 
 TEST_F(TfheArrayOfStructsTest, DynamicOneDimArrayAssignViaRef) {
