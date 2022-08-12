@@ -23,6 +23,7 @@
 #include "transpiler/tests/char_tfhe.h"
 #include "transpiler/tests/int_tfhe.h"
 #include "transpiler/tests/long_tfhe.h"
+#include "transpiler/tests/namespaced_struct_tfhe.h"
 #include "transpiler/tests/struct2_tfhe.h"
 #include "transpiler/tests/struct_tfhe.h"
 #include "transpiler/tests/test_util.h"
@@ -33,6 +34,8 @@ namespace transpiler {
 namespace {
 
 using ::fully_homomorphic_encryption::transpiler::TranspilerTestBase;
+using ::outer::inner::kSumSimpleArraySize;
+using ::outer::inner::Simple;
 
 class TranspilerTypesTest : public TranspilerTestBase {};
 
@@ -85,6 +88,20 @@ TEST_F(TranspilerTypesTest, TestMultipleFunctionsOneStruct) {
   EXPECT_EQ(value.c, result.c);
   EXPECT_EQ(value.i, result.i);
   EXPECT_EQ(value.s, result.s);
+}
+
+TEST_F(TranspilerTypesTest, TestArrayOfNamespacedStructs) {
+  Simple data[kSumSimpleArraySize] = {{1}, {2}, {3}};
+  auto ciphertext =
+      TfheArray<Simple, kSumSimpleArraySize>::Encrypt(data, secret_key());
+
+  // Call into circuit that takes an array of `tests::Simple` to sum
+  Tfhe<unsigned short> result_ciphertext(params());
+  XLS_ASSERT_OK(sum_simple_structs(result_ciphertext, ciphertext, cloud_key()));
+
+  // Decrypt and verify
+  unsigned short result = result_ciphertext.Decrypt(secret_key());
+  EXPECT_EQ(result, 6);
 }
 
 }  // namespace

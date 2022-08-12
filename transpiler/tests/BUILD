@@ -31,6 +31,22 @@ _PRIMITIVE_TYPES = [
     for i in _PRIMITIVE_TYPES
 ]
 
+fhe_cc_library(
+    name = "namespaced_struct_tfhe",
+    src = "namespaced_struct.cc",
+    hdrs = ["namespaced_struct.h"],
+    encryption = "tfhe",
+    optimizer = "xls",
+)
+
+fhe_cc_library(
+    name = "namespaced_struct_openfhe",
+    src = "namespaced_struct.cc",
+    hdrs = ["namespaced_struct.h"],
+    encryption = "openfhe",
+    optimizer = "xls",
+)
+
 cc_library(
     name = "test_util",
     testonly = True,
@@ -72,6 +88,7 @@ cc_test(
         ":test_util",
         ":struct_tfhe",
         ":struct2_tfhe",
+        ":namespaced_struct_tfhe",
         "@com_google_googletest//:gtest_main",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",
@@ -90,6 +107,7 @@ cc_test(
         ":openfhe_test_util",
         ":struct_openfhe",
         ":struct2_openfhe",
+        ":namespaced_struct_openfhe",
         "@com_google_googletest//:gtest_main",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",

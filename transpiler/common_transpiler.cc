@@ -117,8 +117,9 @@ static std::string TypeReference(const xlscc_metadata::Type& type,
     }
   } else if (type.has_as_struct()) {
     const xlscc_metadata::StructType& struct_type = type.as_struct();
-    return absl::StrCat(prefix, is_reference ? "Ref<" : "<",
-                        struct_type.name().as_inst().name().name(), ">");
+    return absl::StrCat(
+        prefix, is_reference ? "Ref<" : "<",
+        struct_type.name().as_inst().name().fully_qualified_name(), ">");
   } else if (type.has_as_inst()) {
     const xlscc_metadata::InstanceType& inst_type = type.as_inst();
     std::string name = GetTypeName(type).value();
@@ -176,9 +177,9 @@ static std::string TypeReference(const xlscc_metadata::Type& type,
     } else {
       XLS_CHECK(element_type.has_as_inst());
       const xlscc_metadata::InstanceType& inst_type = element_type.as_inst();
-      return absl::Substitute("$0Array$1<$2,$3>", prefix,
-                              is_reference ? "Ref" : "",
-                              inst_type.name().name(), str_dimensions);
+      return absl::Substitute(
+          "$0Array$1<$2,$3>", prefix, is_reference ? "Ref" : "",
+          inst_type.name().fully_qualified_name(), str_dimensions);
     }
   }
   XLS_CHECK(false);
