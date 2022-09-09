@@ -33,10 +33,10 @@ http_archive(
 new_git_repository(
     name = "openfhe",
     build_file = "//patches:openfhe.BUILD",
-    remote = "https://github.com/openfheorg/openfhe-development.git",
     # HEAD as of 2022-04-08
     commit = "7d8e1e63e30f642ff6d8fc9493dd286b01e9c8a2",
     init_submodules = True,
+    remote = "https://github.com/openfheorg/openfhe-development.git",
     shallow_since = "1649455211 -0400",
 )
 
@@ -58,10 +58,10 @@ http_archive(
 # Used by xlscc.
 http_archive(
     name = "com_github_hlslibs_ac_types",
-    urls = ["https://github.com/hlslibs/ac_types/archive/57d89634cb5034a241754f8f5347803213dabfca.tar.gz"],
+    build_file = "@com_google_xls//dependency_support/com_github_hlslibs_ac_types:bundled.BUILD.bazel",
     sha256 = "7ab5e2ee4c675ef6895fdd816c32349b3070dc8211b7d412242c66d0c6e8edca",
     strip_prefix = "ac_types-57d89634cb5034a241754f8f5347803213dabfca",
-    build_file = "@com_google_xls//dependency_support/com_github_hlslibs_ac_types:bundled.BUILD.bazel",
+    urls = ["https://github.com/hlslibs/ac_types/archive/57d89634cb5034a241754f8f5347803213dabfca.tar.gz"],
 )
 
 # Install dependencies for XLS
@@ -114,12 +114,12 @@ http_archive(
 http_archive(
     name = "yosys",
     build_file = "//patches:yosys.BUILD",
-    strip_prefix = "yosys-6b7efe12b79d4ed68af6a31f124213e101edbbb1",
-    sha256 = "6ab9e3fa8444ed5b350a371b68619a644ec9c53e908020a5d72c3dadea8b056d",
-    patch_args = [ "-p1" ],
-    patches = [ "//patches:0001-Fetch-YOSYS_DATDIR-from-the-environment.patch" ],
+    patch_args = ["-p1"],
+    patches = ["//patches:0001-Fetch-YOSYS_DATDIR-from-the-environment.patch"],
+    sha256 = "b81994853fb4a12b45afc6503568e84499025add8e51615c24b164cf2e8359a8",
+    strip_prefix = "yosys-yosys-0.20",
     urls = [
-        "https://github.com/YosysHQ/yosys/archive/6b7efe12b79d4ed68af6a31f124213e101edbbb1.zip",
+        "https://github.com/YosysHQ/yosys/archive/refs/tags/yosys-0.20.zip",
     ],
 )
 
