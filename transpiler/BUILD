@@ -264,9 +264,9 @@ cc_library(
 )
 
 cc_library(
-    name = "cc_transpiler",
-    srcs = ["cc_transpiler.cc"],
-    hdrs = ["cc_transpiler.h"],
+    name = "cleartext_transpiler",
+    srcs = ["cleartext_transpiler.cc"],
+    hdrs = ["cleartext_transpiler.h"],
     deps = [
         ":abstract_xls_transpiler",
         ":common_transpiler",
@@ -284,10 +284,10 @@ cc_library(
 )
 
 cc_test(
-    name = "cc_transpiler_test",
-    srcs = ["cc_transpiler_test.cc"],
+    name = "cleartext_transpiler_test",
+    srcs = ["cleartext_transpiler_test.cc"],
     deps = [
-        ":cc_transpiler",
+        ":cleartext_transpiler",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
@@ -349,7 +349,7 @@ cc_binary(
         "@com_google_xls//xls/tools:opt_main",
     ],
     deps = [
-        ":cc_transpiler",
+        ":cleartext_transpiler",
         ":interpreted_openfhe_transpiler",
         ":interpreted_tfhe_transpiler",
         ":openfhe_transpiler",

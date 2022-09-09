@@ -30,7 +30,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/string_view.h"
-#include "transpiler/cc_transpiler.h"
+#include "transpiler/cleartext_transpiler.h"
 #include "transpiler/interpreted_openfhe_transpiler.h"
 #include "transpiler/interpreted_tfhe_transpiler.h"
 #include "transpiler/openfhe_transpiler.h"
@@ -199,11 +199,11 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
           return absl::UnimplementedError(
               "No XLS interpreter for cleartext is currently implemented.");
         } else {
-          XLS_ASSIGN_OR_RETURN(fn_body,
-                               CcTranspiler::Translate(function, metadata));
+          XLS_ASSIGN_OR_RETURN(
+              fn_body, CleartextTranspiler::Translate(function, metadata));
           XLS_ASSIGN_OR_RETURN(
               fn_header,
-              CcTranspiler::TranslateHeader(
+              CleartextTranspiler::TranslateHeader(
                   function, metadata, header_path.string(),
                   encryption_specific_transpiled_structs_header_path.string(),
                   skip_scheme_data_deps, unwrap));

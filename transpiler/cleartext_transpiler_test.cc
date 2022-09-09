@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "transpiler/cc_transpiler.h"
+#include "transpiler/cleartext_transpiler.h"
 
 #include <string>
 #include <type_traits>
@@ -36,7 +36,7 @@ namespace fully_homomorphic_encryption::transpiler {
 namespace {
 
 // This test verifies that TranslateHeader works when there's no parameters.
-TEST(CcTranspilerLibTest, TranslateHeader_NoParam) {
+TEST(CleartextTranspilerLibTest, TranslateHeader_NoParam) {
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
 
@@ -66,14 +66,14 @@ absl::Status test_fn() {
 #endif  // TEST_H
 )";
   XLS_ASSERT_OK_AND_ASSIGN(std::string actual,
-                           CcTranspiler::TranslateHeader(
+                           CleartextTranspiler::TranslateHeader(
                                function, metadata, "test.h", "test.types.h",
                                /*skip_scheme_data_deps=*/false, {}));
   EXPECT_EQ(actual, expected_header);
 }
 
 // This test verifies that TranslateHeader works when there's one parameter.
-TEST(CcTranspilerLibTest, TranslateHeader_Param) {
+TEST(CleartextTranspilerLibTest, TranslateHeader_Param) {
   xls::Package package("test_package");
   xls::FunctionBuilder builder("test_fn", &package);
   xls::BitsType* value_type = package.GetBitsType(32);
@@ -105,7 +105,7 @@ absl::Status test_fn(const EncodedRef<unsigned int> param) {
 #endif  // TEST_H
 )";
   XLS_ASSERT_OK_AND_ASSIGN(std::string actual,
-                           CcTranspiler::TranslateHeader(
+                           CleartextTranspiler::TranslateHeader(
                                function, metadata, "test.h", "test.types.h",
                                /*skip_scheme_data_deps=*/false, {}));
   EXPECT_EQ(actual, expected_header);
@@ -113,7 +113,7 @@ absl::Status test_fn(const EncodedRef<unsigned int> param) {
 
 // This test verifies that TranslateHeader works when there are multiple
 // parameters.
-TEST(CcTranspilerLibTest, TranslateHeader_MultipleParams) {
+TEST(CleartextTranspilerLibTest, TranslateHeader_MultipleParams) {
   constexpr int kParamNum = 5;
   xls::Package package("test_package");
   xlscc_metadata::MetadataOutput metadata;
@@ -164,7 +164,7 @@ absl::Status test_fn($1) {
       absl::StrJoin(param_names, ", "));
 
   XLS_ASSERT_OK_AND_ASSIGN(std::string actual,
-                           CcTranspiler::TranslateHeader(
+                           CleartextTranspiler::TranslateHeader(
                                function, metadata, "test.h", "test.types.h",
                                /*skip_scheme_data_deps=*/false, {}));
   EXPECT_EQ(actual, expected_header);

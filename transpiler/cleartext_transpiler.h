@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_CC_TRANSPILER_H_
-#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_CC_TRANSPILER_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_CLEARTEXT_TRANSPILER_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_CLEARTEXT_TRANSPILER_H_
 
 #include <string>
 
@@ -29,7 +29,7 @@ namespace transpiler {
 
 // Converts booleanified XLS functions into executable C++, using native Boolean
 // operations.
-class CcTranspiler : public AbstractXLSTranspiler<CcTranspiler> {
+class CleartextTranspiler : public AbstractXLSTranspiler<CleartextTranspiler> {
  public:
   static absl::StatusOr<std::string> TranslateHeader(
       const xls::Function* function,
@@ -61,4 +61,4 @@ class CcTranspiler : public AbstractXLSTranspiler<CcTranspiler> {
 }  // namespace transpiler
 }  // namespace fully_homomorphic_encryption
 
-#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_CC_TRANSPILER_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_CLEARTEXT_TRANSPILER_H_

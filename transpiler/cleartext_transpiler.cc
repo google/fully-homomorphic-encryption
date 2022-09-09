@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "transpiler/cc_transpiler.h"
+#include "transpiler/cleartext_transpiler.h"
 
 #include <string>
 #include <type_traits>
@@ -72,23 +72,25 @@ std::string CopyTo(std::string destination, std::string source) {
 
 // Input: "result", 0, Node(id = 3)
 // Output: result[0] = temp_nodes[3];
-std::string CcTranspiler::CopyNodeToOutput(absl::string_view output_arg,
-                                           int offset, const xls::Node* node) {
+std::string CleartextTranspiler::CopyNodeToOutput(absl::string_view output_arg,
+                                                  int offset,
+                                                  const xls::Node* node) {
   return CopyTo(OutputBitReference(output_arg, offset), NodeReference(node));
 }
 
 // Input: Node(id = 4), Param("some_param"), 3
 // Output: temp_nodes[4] = some_param[3];
-std::string CcTranspiler::CopyParamToNode(const xls::Node* node,
-                                          const xls::Node* param, int offset) {
+std::string CleartextTranspiler::CopyParamToNode(const xls::Node* node,
+                                                 const xls::Node* param,
+                                                 int offset) {
   return CopyTo(NodeReference(node), ParamBitReference(param, offset));
 }
 
-std::string CcTranspiler::InitializeNode(const Node* node) { return ""; }
+std::string CleartextTranspiler::InitializeNode(const Node* node) { return ""; }
 
 // Input: Node(id = 5, op = kNot, operands = Node(id = 2))
 // Output: "  temp_nodes[5] = !temp_nodes[2];\n"
-absl::StatusOr<std::string> CcTranspiler::Execute(const Node* node) {
+absl::StatusOr<std::string> CleartextTranspiler::Execute(const Node* node) {
   std::string op_result;
   if (node->Is<Literal>()) {
     const Literal* literal = node->As<Literal>();
@@ -128,7 +130,7 @@ absl::StatusOr<std::string> CcTranspiler::Execute(const Node* node) {
   return absl::StrCat(CopyTo(NodeReference(node), op_result), "\n");
 }
 
-absl::StatusOr<std::string> CcTranspiler::TranslateHeader(
+absl::StatusOr<std::string> CleartextTranspiler::TranslateHeader(
     const xls::Function* function,
     const xlscc_metadata::MetadataOutput& metadata,
     absl::string_view header_path,
@@ -160,12 +162,12 @@ $3#endif  // $1
                             : R"(#include "transpiler/data/cleartext_data.h")");
 }
 
-absl::StatusOr<std::string> CcTranspiler::FunctionSignature(
+absl::StatusOr<std::string> CleartextTranspiler::FunctionSignature(
     const Function* function, const xlscc_metadata::MetadataOutput& metadata) {
   return transpiler::FunctionSignature(metadata, "bool", absl::nullopt);
 }
 
-absl::StatusOr<std::string> CcTranspiler::Prelude(
+absl::StatusOr<std::string> CleartextTranspiler::Prelude(
     const Function* function, const xlscc_metadata::MetadataOutput& metadata) {
   // $0: function name
   static constexpr absl::string_view kPrelude =
@@ -186,7 +188,7 @@ $0 {
   return absl::Substitute(kPrelude, signature);
 }
 
-absl::StatusOr<std::string> CcTranspiler::Conclusion() {
+absl::StatusOr<std::string> CleartextTranspiler::Conclusion() {
   return R"(
   return absl::OkStatus();
 }
