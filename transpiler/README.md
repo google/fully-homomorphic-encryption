@@ -54,6 +54,8 @@ In order to install the FHE C++ Transpiler on your Linux machine:
     * `python2`
     * `python3`
     * `python3-pip`
+    * `bison` (for `yosys`)
+    * `flex` (for `yosys`)
 
     You can install all of the above by running the following commands,
     depending on you distribution.
@@ -61,13 +63,14 @@ In order to install the FHE C++ Transpiler on your Linux machine:
     * On Debian-based distributions:
 
       ```shell
-      sudo apt install gcc git libtinfo5 python python3 python3-pip
+      sudo apt install gcc git libtinfo5 python python3 python3-pip bison flex
       ```
 
     * On Arch-based distributions with [AUR](https://aur.archlinux.org) enabled:
 
       ```shell
-      sudo pacman -Syu gcc git ncurses5-compat-libs python2 python python-pip
+      sudo pacman -Syu gcc git ncurses5-compat-libs python2 python python-pip \ 
+      bison flex
       ```
 
 3.  Download [the latest version of this
