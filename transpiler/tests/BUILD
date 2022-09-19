@@ -48,10 +48,10 @@ fhe_cc_library(
 )
 
 cc_library(
-    name = "test_util",
+    name = "tfhe_test_util",
     testonly = True,
-    srcs = ["test_util.cc"],
-    hdrs = ["test_util.h"],
+    srcs = ["tfhe_test_util.cc"],
+    hdrs = ["tfhe_test_util.h"],
     visibility = [
         "//:__subpackages__",
     ],
@@ -85,7 +85,7 @@ cc_test(
     srcs = ["types_test.cc"],
     shard_count = 4,
     deps = [":%s_tfhe" % i for i in _PRIMITIVE_TYPES] + [
-        ":test_util",
+        ":tfhe_test_util",
         ":struct_tfhe",
         ":struct2_tfhe",
         ":namespaced_struct_tfhe",
@@ -154,7 +154,7 @@ cc_test(
     srcs = ["control_structure_test.cc"],
     shard_count = 8,
     deps = [":%s_tfhe" % i for i in _CONTROL_STRUCTURE] + [
-        ":test_util",
+        ":tfhe_test_util",
         "@com_google_googletest//:gtest_main",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",
@@ -295,7 +295,7 @@ cc_test(
     srcs = ["array_of_structs_tfhe_test.cc"],
     deps = [
         ":struct_tfhe",
-        ":test_util",
+        ":tfhe_test_util",
         "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
         "@com_google_googletest//:gtest_main",
@@ -331,7 +331,7 @@ cc_test(
     name = "array_of_scalars_tfhe_test",
     srcs = ["array_of_scalars_tfhe_test.cc"],
     deps = [
-        ":test_util",
+        ":tfhe_test_util",
         "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
         "@com_google_googletest//:gtest_main",

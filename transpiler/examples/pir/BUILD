@@ -91,7 +91,7 @@ cc_test(
     deps = [
         ":pir_api_tfhe",
         "//transpiler/data:tfhe_data",
-        "//transpiler/tests:test_util",
+        "//transpiler/tests:tfhe_test_util",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/strings",
@@ -115,7 +115,7 @@ cc_test(
         "@com_google_absl//absl/strings",
         "@com_google_xls//xls/common/status:matchers",
         "//transpiler/data:tfhe_data",
-        "//transpiler/tests:test_util",
+        "//transpiler/tests:tfhe_test_util",
         "@tfhe//:libtfhe",
     ],
 )

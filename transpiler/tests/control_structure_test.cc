@@ -22,7 +22,7 @@
 #include "transpiler/tests/if_tfhe.h"
 #include "transpiler/tests/nested_for_tfhe.h"
 #include "transpiler/tests/switch_tfhe.h"
-#include "transpiler/tests/test_util.h"
+#include "transpiler/tests/tfhe_test_util.h"
 #include "xls/common/status/matchers.h"
 
 namespace fully_homomorphic_encryption {

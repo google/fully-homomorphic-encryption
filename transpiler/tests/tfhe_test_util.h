@@ -14,8 +14,8 @@
 
 // Helper functions and fixtures for TFHE tests.
 
-#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TESTS_TEST_UTIL_H_
-#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TESTS_TEST_UTIL_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TESTS_TFHE_TEST_UTIL_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TESTS_TFHE_TEST_UTIL_H_
 
 #include <array>
 
@@ -68,4 +68,4 @@ class TranspilerTestBase : public ::testing::Test {
 }  // namespace transpiler
 }  // namespace fully_homomorphic_encryption
 
-#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TESTS_TEST_UTIL_H_
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_TESTS_TFHE_TEST_UTIL_H_

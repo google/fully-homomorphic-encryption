@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "transpiler/tests/test_util.h"
+#include "transpiler/tests/tfhe_test_util.h"
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {

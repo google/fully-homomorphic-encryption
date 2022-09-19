@@ -26,7 +26,7 @@
 #include "transpiler/tests/namespaced_struct_tfhe.h"
 #include "transpiler/tests/struct2_tfhe.h"
 #include "transpiler/tests/struct_tfhe.h"
-#include "transpiler/tests/test_util.h"
+#include "transpiler/tests/tfhe_test_util.h"
 #include "xls/common/status/matchers.h"
 
 namespace fully_homomorphic_encryption {

@@ -24,7 +24,7 @@
 #include "gtest/gtest.h"
 #include "transpiler/data/tfhe_data.h"
 #include "transpiler/examples/pir/pir_api.h"
-#include "transpiler/tests/test_util.h"
+#include "transpiler/tests/tfhe_test_util.h"
 #include "xls/common/status/matchers.h"
 
 namespace fully_homomorphic_encryption {
