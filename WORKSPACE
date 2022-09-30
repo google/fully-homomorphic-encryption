@@ -110,17 +110,15 @@ http_archive(
     ],
 )
 
-# Install Yosys
-http_archive(
+# Install Yosys. Using git rule because Yosys archive checksum keeps changing
+# and they can't figure out why see
+# https://github.com/YosysHQ/yosys/issues/3479
+new_git_repository(
     name = "yosys",
     build_file = "//patches:yosys.BUILD",
-    patch_args = ["-p1"],
-    patches = ["//patches:0001-Fetch-YOSYS_DATDIR-from-the-environment.patch"],
-    sha256 = "b81994853fb4a12b45afc6503568e84499025add8e51615c24b164cf2e8359a8",
-    strip_prefix = "yosys-yosys-0.20",
-    urls = [
-        "https://github.com/YosysHQ/yosys/archive/refs/tags/yosys-0.20.zip",
-    ],
+    # Release v0.21
+    commit = "e6d2a900a979df59bee82a6293e467411a0bac7c",
+    remote = "https://github.com/YosysHQ/yosys.git",
 )
 
 load("@com_google_xls//dependency_support:initialize_external.bzl", "initialize_external_repositories")
