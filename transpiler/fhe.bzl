@@ -22,8 +22,6 @@ load(
 _FHE_TRANSPILER = "//transpiler"
 _STRUCT_HEADER_GENERATOR = "//transpiler/struct_transpiler:struct_transpiler"
 _XLSCC = "@com_google_xls//xls/contrib/xlscc:xlscc"
-_XLSCC_DEFAULT_SYNTHESIS_HEADERS = "@com_google_xls//xls/contrib/xlscc:synth_only_headers"
-_AC_DATATYPES = "@com_github_hlslibs_ac_types//:ac_types_as_data"
 _XLS_BOOLEANIFY = "@com_google_xls//xls/tools:booleanify_main"
 _XLS_OPT = "@com_google_xls//xls/tools:opt_main"
 _GET_TOP_FUNC_FROM_PROTO = "@com_google_xls//xls/contrib/xlscc:get_top_func_from_proto"
@@ -111,43 +109,14 @@ def _build_ir(ctx, library_name):
     """
     ir_file = ctx.actions.declare_file("%s.ir" % library_name)
     metadata_file = ctx.actions.declare_file("%s_meta.proto" % library_name)
-
-    synth_only_header_dirs = {}
-    for f in ctx.files._default_synthesis_header_files:
-        synth_only_header_dirs[f.dirname] = True
-
-    ac_datatypes_header_dirs = {}
-    for f in ctx.files._ac_datatypes:
-        ac_datatypes_header_dirs[f.dirname] = True
-
-    xlscc_default_include_dirs = [
-        "transpiler/data",
-    ] + synth_only_header_dirs.keys() + [
-        ctx.attr._ac_datatypes.label.workspace_root,
-    ]  # This must the last directory in the list.
-
-    # Append to user paths.
-    xlscc_args = {}
-    xlscc_args["include_dirs"] = ",".join(xlscc_default_include_dirs)
-
-    # Append to user defines.
-    xlscc_args["defines"] = (
-        "__SYNTHESIS__"
-    )
-
-    default_args = ""
-    for arg in xlscc_args:
-        default_args += " --{arg}={val}".format(arg = arg, val = xlscc_args[arg])
-
     ctx.actions.run_shell(
-        inputs = [ctx.file.src] + ctx.files.hdrs + ctx.files._default_synthesis_header_files + ctx.files._ac_datatypes,
+        inputs = [ctx.file.src] + ctx.files.hdrs,
         outputs = [ir_file, metadata_file],
         tools = [ctx.executable._xlscc],
-        command = "%s %s -meta_out %s %s > %s" % (
+        command = "%s %s -meta_out %s > %s" % (
             ctx.executable._xlscc.path,
             ctx.file.src.path,
             metadata_file.path,
-            default_args,
             ir_file.path,
         ),
     )
@@ -170,13 +139,6 @@ def _generate_generic_struct_header(ctx, library_name, metadata, unwrap = []):
             "-unwrap",
             ",".join(unwrap),
         ]
-
-    args += [
-        "-skip",
-        ",".join(["__xls_bits", "XlsIntBase"]),
-        "-encoded_integer",
-        "XlsIntBase",
-    ]
 
     ctx.actions.run(
         inputs = [metadata],
@@ -256,14 +218,6 @@ cc_to_xls_ir = rule(
             """,
         ),
         "_xlscc": _executable_attr(_XLSCC),
-        "_default_synthesis_header_files": attr.label(
-            doc = "Default synthesis header files for xlscc.",
-            default = Label(_XLSCC_DEFAULT_SYNTHESIS_HEADERS),
-        ),
-        "_ac_datatypes": attr.label(
-            doc = "AC datatypes used by default headers in xlscc.",
-            default = Label(_AC_DATATYPES),
-        ),
         "_get_top_func_from_proto": attr.label(
             default = Label(_GET_TOP_FUNC_FROM_PROTO),
             executable = True,
@@ -639,11 +593,6 @@ def _generate_encryption_specific_transpiled_structs_header_path(ctx, library_na
             "-unwrap",
             ",".join(unwrap),
         ]
-
-    args += [
-        "-skip",
-        ",".join(["__xls_bits", "XlsIntBase"]),
-    ]
 
     ctx.actions.run(
         inputs = [metadata, generic_struct_header],
@@ -1032,10 +981,8 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
         "@com_google_xls//xls/common/logging",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/types:span",
-        "@com_github_hlslibs_ac_types//:ac_int",
         "//transpiler:common_runner",
         "//transpiler/data:cleartext_value",
-        "//transpiler/data:fhe_xls_int",
         "//transpiler/data:generic_value",
     ]
 

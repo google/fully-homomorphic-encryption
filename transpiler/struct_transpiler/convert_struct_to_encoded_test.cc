@@ -24,7 +24,6 @@
 #include "gmock/gmock.h"
 #include "google/protobuf/text_format.h"
 #include "gtest/gtest.h"
-#include "xls/common/logging/logging.h"
 #include "xls/common/status/matchers.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
@@ -96,9 +95,7 @@ top_func_proto {
   XLS_ASSERT_OK_AND_ASSIGN(
       std::string actual,
       ConvertStructsToEncodedTemplate(metadata, /*original_headers=*/{},
-                                      /*output_path=*/"", /*unwrap=*/{},
-                                      /*skip=*/{},
-                                      /*encoded_integer=*/""));
+                                      /*output_path=*/"", /*unwrap=*/{}));
 
   // Rather than do line-by-line equality checks, let's just make sure that a
   // few key lines are present. Since we're generating compilable code,

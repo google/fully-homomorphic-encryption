@@ -25,7 +25,6 @@
 #include "absl/strings/substitute.h"
 #include "google/protobuf/text_format.h"
 #include "transpiler/common_transpiler.h"
-#include "xls/common/logging/logging.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/ir/function.h"
 #include "xls/ir/node.h"
@@ -47,7 +46,6 @@ absl::StatusOr<std::string> InterpretedOpenFheTranspiler::Translate(
 #include "transpiler/common_runner.h"
 #include "palisade/binfhe/binfhecontext.h"
 #include "xls/common/status/status_macros.h"
-#include "xls/common/logging/logging.h"
 
 namespace {
 

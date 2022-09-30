@@ -68,7 +68,6 @@ absl::StatusOr<std::string> YosysTranspiler::Translate(
 #include "absl/types/span.h"
 #include "transpiler/common_runner.h"
 #include "xls/common/status/status_macros.h"
-#include "xls/common/logging/logging.h"
 
 $6
 

@@ -25,7 +25,6 @@
 #include "absl/strings/string_view.h"
 #include "absl/strings/substitute.h"
 #include "transpiler/common_transpiler.h"
-#include "xls/common/logging/logging.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
 #include "xls/ir/function.h"

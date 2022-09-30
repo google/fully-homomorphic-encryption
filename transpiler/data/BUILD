@@ -99,18 +99,6 @@ cc_library(
 )
 
 cc_library(
-    name = "fhe_xls_int",
-    hdrs = [
-        "fhe_xls_int.h",
-    ],
-    visibility = ["//visibility:public"],
-    deps = [
-        ":cleartext_value",
-        "@com_github_hlslibs_ac_types//:ac_int",
-    ],
-)
-
-cc_library(
     name = "tfhe_value",
     hdrs = ["tfhe_value.h"],
     visibility = ["//visibility:public"],

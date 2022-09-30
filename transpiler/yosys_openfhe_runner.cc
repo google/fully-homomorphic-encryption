@@ -18,7 +18,6 @@
 #include "absl/strings/substitute.h"
 #include "google/protobuf/text_format.h"
 #include "palisade/binfhe/binfhecontext.h"
-#include "xls/common/logging/logging.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
 #include "xls/ir/bits.h"

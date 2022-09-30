@@ -21,7 +21,6 @@
 #include "absl/strings/string_view.h"
 #include "transpiler/struct_transpiler/convert_struct_to_encoded.h"
 #include "xls/common/file/filesystem.h"
-#include "xls/common/logging/logging.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
 
@@ -87,11 +86,6 @@ ABSL_FLAG(std::string, generic_header_path, "",
           "Must be provided when --backend_type is used.");
 ABSL_FLAG(std::vector<std::string>, unwrap, std::vector<std::string>({}),
           "Comma-separated list of struct names to unwrap.");
-ABSL_FLAG(std::vector<std::string>, skip, std::vector<std::string>({}),
-          "Comma-separated list of struct names to not transpile.");
-ABSL_FLAG(
-    std::string, encoded_integer, "",
-    "Name of class/struct to replace with EncodedInteger when transpiling");
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {
@@ -108,17 +102,14 @@ absl::Status RealMain(absl::string_view metadata_path,
   }
 
   std::vector<std::string> unwrap = absl::GetFlag(FLAGS_unwrap);
-  std::vector<std::string> skip = absl::GetFlag(FLAGS_skip);
-  std::string encoded_integer = absl::GetFlag(FLAGS_encoded_integer);
 
   switch (backend_type) {
     case BackendType::kGeneric: {
       std::vector<std::string> split_headers =
           absl::StrSplit(original_headers, ',');
-      XLS_ASSIGN_OR_RETURN(
-          std::string generic_result,
-          ConvertStructsToEncodedTemplate(metadata, split_headers, output_path,
-                                          unwrap, skip, encoded_integer));
+      XLS_ASSIGN_OR_RETURN(std::string generic_result,
+                           ConvertStructsToEncodedTemplate(
+                               metadata, split_headers, output_path, unwrap));
       if (!output_path.empty()) {
         return xls::SetFileContents(output_path, generic_result);
       }
@@ -129,7 +120,7 @@ absl::Status RealMain(absl::string_view metadata_path,
       XLS_ASSIGN_OR_RETURN(
           std::string specific_result,
           ConvertStructsToEncodedBool(generic_header_path, metadata,
-                                      output_path, unwrap, skip));
+                                      output_path, unwrap));
       if (!output_path.empty()) {
         return xls::SetFileContents(output_path, specific_result);
       }
@@ -140,7 +131,7 @@ absl::Status RealMain(absl::string_view metadata_path,
       XLS_ASSIGN_OR_RETURN(
           std::string specific_result,
           ConvertStructsToEncodedOpenFhe(generic_header_path, metadata,
-                                         output_path, unwrap, skip));
+                                         output_path, unwrap));
       if (!output_path.empty()) {
         return xls::SetFileContents(output_path, specific_result);
       }
@@ -151,7 +142,7 @@ absl::Status RealMain(absl::string_view metadata_path,
       XLS_ASSIGN_OR_RETURN(
           std::string specific_result,
           ConvertStructsToEncodedTfhe(generic_header_path, metadata,
-                                      output_path, unwrap, skip));
+                                      output_path, unwrap));
       if (!output_path.empty()) {
         return xls::SetFileContents(output_path, specific_result);
       }

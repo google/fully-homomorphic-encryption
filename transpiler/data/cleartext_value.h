@@ -87,12 +87,6 @@ class EncodedInteger {
     this->Encode(value);
   }
 
-  EncodedInteger<Width, Signed>& operator=(
-      const EncodedInteger<Width, Signed>& rhs) {
-    std::copy(rhs.array_.begin(), rhs.array_.end(), array_.begin());
-    return *this;
-  }
-
   void Encode(const ac_int<Width, Signed>& value) {
     ::CleartextEncodeInteger<Width, Signed>(value, get());
   }
