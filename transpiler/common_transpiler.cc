@@ -3,8 +3,6 @@
 #include <string>
 
 #include "absl/container/flat_hash_set.h"
-#include "absl/strings/match.h"
-#include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
@@ -58,6 +56,10 @@ absl::optional<std::string> GetTypeName(const xlscc_metadata::Type& type) {
     return name;
   } else if (type.has_as_inst()) {
     return GetTypeName(type.as_inst());
+  } else if (type.has_as_array()) {
+    auto arr = type.as_array();
+    return absl::StrCat(GetTypeName(arr.element_type()).value(), "[",
+                        arr.size(), "]");
   }
 
   return absl::nullopt;
@@ -130,7 +132,7 @@ static std::string TypeReference(const xlscc_metadata::Type& type,
       XLS_CHECK(id_to_type.contains(id));
       const xlscc_metadata::StructType& definition =
           id_to_type.at(inst_type.name().id()).type;
-      XLS_CHECK(definition.fields_size() == 1);
+      XLS_CHECK_EQ(definition.fields_size(), 1);
       auto ref = TypeReference(definition.fields().Get(0).type(), is_reference,
                                prefix, default_type, {}, {});
       return ref;
@@ -378,6 +380,15 @@ std::vector<int64_t> GetTypeReferenceOrder(
 
   // Finally, walk the lists & extract the ordering.
   while (!waiters.empty()) {
+    // There are types with dependencies, but at least one type in the
+    // dependency chain is not included in the ready deque. This could indicate
+    // a bug in the topological sort above, or else XLS did not include all the
+    // structs in the metadata proto.
+    if (ready.empty()) {
+      XLS_LOG(FATAL) << "Dependent types missing from toposorted structs! "
+                     << "Full metadata struct was:\n\n"
+                     << metadata.DebugString();
+    }
     // Pop the front dude off of ready.
     int64_t current_id = ready.front();
     ready.pop_front();
