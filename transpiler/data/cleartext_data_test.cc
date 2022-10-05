@@ -79,6 +79,13 @@ TEST(CleartextDataTest, EncodedArrays) {
   }
 }
 
+TEST(CleartextDataTest, EncodedStringSize) {
+  auto char_array = EncodedArray<char>("abc");
+  EXPECT_EQ(char_array.length(), 3);
+  EXPECT_EQ(char_array.bit_width(), 3 * 8);
+  EXPECT_EQ(char_array.get().size(), char_array.bit_width());
+}
+
 TEST(CleartextDataTest, EncodedString) {
   auto str = EncodedArray<char>("test string");
   auto decoded = str.Decode();

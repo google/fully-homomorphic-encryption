@@ -1577,8 +1577,8 @@ class EncodedArrayRef<$1, D1, Dimensions...> : public __EncodedBaseArrayRef<$0, 
 // $3 -- base class' template dimension parameters ("" or ", D1")
 constexpr absl::string_view kCleartextDecodeFromStringTemplate = R"(
   EncodedArray(const std::basic_string<$2>& val) :
-    EncodedArray<$1$3>(val.length() + 1) {
-    this->Encode(val.data(), val.length() + 1);
+    EncodedArray<$1$3>(val.length()) {
+    this->Encode(val.data(), val.length());
   }
 
   std::basic_string<$2> Decode() {
