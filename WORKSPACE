@@ -1,4 +1,4 @@
-""" Fully Homomorphic Encryption root worksapce """
+""" Fully Homomorphic Encryption root workspace """
 
 workspace(name = "com_google_fully_homomorphic_encryption")
 
