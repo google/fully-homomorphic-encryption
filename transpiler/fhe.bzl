@@ -692,12 +692,9 @@ def _generate_yosys_script(ctx, stem, verilog, netlist_path, entry):
 # read_verilog -sv {verilog} # if we want to use SV
 read_verilog {verilog}
 hierarchy -check -top $(cat {entry})
-proc; opt;
-flatten; opt;
-fsm; opt;
-memory; opt
+proc; opt
+flatten; opt
 techmap; opt
-dfflibmap -liberty {cell_library}
 abc -liberty {cell_library}
 opt_clean -purge
 clean
