@@ -7,9 +7,26 @@ package(
 licenses(["notice"])
 
 bzl_library(
+    name = "fhe_common_bzl",
+    srcs = ["fhe_common.bzl"],
+)
+
+bzl_library(
+    name = "fhe_xls_bzl",
+    srcs = ["fhe_xls.bzl"],
+    deps = [
+        ":fhe_common_bzl",
+    ],
+)
+
+bzl_library(
     name = "fhe_bzl",
     srcs = ["fhe.bzl"],
-    deps = ["//transpiler/data:primitives_bzl"],
+    deps = [
+        ":fhe_common_bzl",
+        ":fhe_xls_bzl",
+        "//transpiler/data:primitives_bzl",
+    ],
 )
 
 cc_library(

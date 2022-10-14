@@ -86,7 +86,7 @@ absl::Status YosysTfheRunner::Run(
     const TFheGateBootstrappingCloudKeySet* bk) {
 #define OP(name)                                           \
   {                                                        \
-#name, {                                               \
+    #name, {                                               \
       {                                                    \
         "Y",                                               \
             [this](const std::vector<TfheBoolValue>& args) \

@@ -2,8 +2,11 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
     "//transpiler:fhe.bzl",
     "cc_fhe_bool_ir_library",
-    "cc_to_xls_ir",
     "xls_cc_transpiled_structs",
+)
+load(
+    "//transpiler:fhe_xls.bzl",
+    "cc_to_xls_ir",
     "xls_ir_to_bool_ir",
 )
 load(

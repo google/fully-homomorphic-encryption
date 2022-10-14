@@ -98,7 +98,7 @@ absl::Status YosysRunner::Run(
     std::vector<absl::Span<OpaqueValue>> inout_args) {
 #define OP(name)                                       \
   {                                                    \
-#name, {                                           \
+    #name, {                                           \
       {                                                \
         "Y",                                           \
             [this](const std::vector<BoolValue>& args) \

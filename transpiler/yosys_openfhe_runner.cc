@@ -69,7 +69,7 @@ absl::Status YosysOpenFheRunner::Run(
     lbcrypto::BinFHEContext cc) {
 #define OP(name)                                              \
   {                                                           \
-#name, {                                                  \
+    #name, {                                                  \
       {                                                       \
         "Y",                                                  \
             [this](const std::vector<OpenFheBoolValue>& args) \

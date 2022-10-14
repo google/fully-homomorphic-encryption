@@ -1,4 +1,5 @@
-load("//transpiler:fhe.bzl", "cc_fhe_bool_ir_library", "cc_fhe_netlist_library", "cc_to_xls_ir", "verilog_to_netlist", "xls_cc_transpiled_structs", "xls_ir_to_bool_ir", "xls_ir_to_verilog")
+load("//transpiler:fhe_xls.bzl", "cc_to_xls_ir", "xls_ir_to_bool_ir", "xls_ir_to_verilog")
+load("//transpiler:fhe.bzl", "cc_fhe_bool_ir_library", "cc_fhe_netlist_library", "verilog_to_netlist", "xls_cc_transpiled_structs")
 
 licenses(["notice"])
 
