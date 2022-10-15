@@ -29,11 +29,13 @@ http_archive(
 )
 
 # Install OpenFHE
-
+# git_repository is required because the git project uses submodules,
+# (see .gitmodules in the source project), and hence we have to rely
+# on init_submodules to get proper behavior
 new_git_repository(
     name = "openfhe",
     build_file = "//patches:openfhe.BUILD",
-    # HEAD as of 2022-04-08
+    # HEAD as of 2022-09-22
     commit = "7d8e1e63e30f642ff6d8fc9493dd286b01e9c8a2",
     init_submodules = True,
     remote = "https://github.com/openfheorg/openfhe-development.git",
