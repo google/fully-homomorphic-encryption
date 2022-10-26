@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "transpiler/codelab/add.h"
+#include "transpiler/codelab/add/add.h"
 
 #pragma hls_top
 int add(int x, int y) { return x + y; }

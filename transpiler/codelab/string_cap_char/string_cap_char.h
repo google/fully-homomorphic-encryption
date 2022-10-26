@@ -12,9 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_CODELAB_ADD_H_
-#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_CODELAB_ADD_H_
+#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_CODELAB_STRING_CAP_CHAR_H_
+#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_CODELAB_STRING_CAP_CHAR_H_
 
-int add(int x, int y);
+// Capitalizes the first letter of each word.
 
-#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_CODELAB_ADD_H_
+class State {
+ public:
+  State();
+
+  unsigned char process(unsigned char c);
+
+  // TODO: Make this private once we have support for writing
+  // private fields from transpiled structs.
+  // private:
+  bool last_was_space_;
+};
+
+#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_CODELAB_STRING_CAP_CHAR_H_

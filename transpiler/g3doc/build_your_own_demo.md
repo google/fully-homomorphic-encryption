@@ -6,7 +6,7 @@ installed (as described in the [`README`](../README.md)).
 
 ## 1. Write your C++ code
 
-To begin, navigate to the [`transpiler/examples`](../examples) folder, create a
+To begin, navigate to the [`transpiler/codelab`](../codelab) folder, create a
 directory, and put your own C++ program containing the code you will want
 transpiled in said folder. You must ensure the following is included in your
 code:
@@ -23,7 +23,7 @@ code:
     workarounds.
 
 To illustrate using the `string_cap_char` example, examine the code in the
-[`string_cap.cc`](../examples/string_cap_char/string_cap_char.cc) file (shown
+[`string_cap_char.cc`](../codelab/string_cap_char/string_cap_char.cc) file (shown
 below), which capitalizes the first letter of every word in a given input
 string:
 
@@ -85,18 +85,16 @@ The `fhe_cc_library` macro previously discussed generates a `.transpiled_files`
 rule that can be directly built to generate intermediate representations of the
 code used in the transpiling process. To build and transpile your C++, run a
 command such as the following, which assumes the directory containing the code
-and `BUILD` file is named "transpiler/examples/fn", and the `name` chosen above
+and `BUILD` file is named "transpiler/codelab/fn", and the `name` chosen above
 is "fn_tfhe":
 
 ```shell
-bazel build -c opt //transpiler/examples/fn:fn_tfhe.transpiled_files
+bazel build -c opt //transpiler/codelab/fn:fn_tfhe.transpiled_files
 ```
 
 The transpiling process will generate several files, which should be listed in
 the above command's output. Feel free to examine these files to better
-understand more about the transpiling process. See
-[`sample_ir_directory`](../examples/string_cap_char/sample_ir_files) for a 
-sample of generated files.
+understand more about the transpiling process. 
 The intermediate representation(IR) files can be visualized with ['XLS IR visualization tools'](https://google.github.io/xls/ir_visualization/)
 
 In particular, open the header file bearing the `name` chosen above (e.g.,
@@ -113,7 +111,7 @@ You will also need to write an executable C++ testbench that will simulate a
 "client" that provides input to and receive output from the transpiled FHE-C++
 code on a "server". To illustrate using the `string_cap_char` example, examine
 the code in the
-[`string_cap_char_tfhe_testbench.cc`](../examples/string_cap_char/string_cap_char_tfhe_testbench.cc)
+[`string_cap_char_tfhe_testbench.cc`](../codelab/string_cap_char/string_cap_char_tfhe_testbench.cc)
 file. Below is a simplified version of the code:
 
 ```cpp

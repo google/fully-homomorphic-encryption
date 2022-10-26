@@ -157,7 +157,7 @@ bazel run //transpiler/examples/fn:fn_tfhe_testbench -- "arg1" "arg2"
 ```
 
 A more comprehensive guide on building your own demo can be found at
-[docs/build_your_own_demo.md](./docs/build_your_own_demo.md).
+[g3doc/build_your_own_demo.md](./g3doc/build_your_own_demo.md).
 
 ## Demos
 
