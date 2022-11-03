@@ -8,8 +8,11 @@ load(
     "//transpiler:fhe.bzl",
     "cc_fhe_bool_ir_library",
     "cc_fhe_netlist_library",
-    "verilog_to_netlist",
     "xls_cc_transpiled_structs",
+)
+load(
+    "//transpiler:fhe_yosys.bzl",
+    "verilog_to_netlist",
 )
 
 licenses(["notice"])

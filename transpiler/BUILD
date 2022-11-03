@@ -20,11 +20,20 @@ bzl_library(
 )
 
 bzl_library(
+    name = "fhe_yosys_bzl",
+    srcs = ["fhe_yosys.bzl"],
+    deps = [
+        ":fhe_common_bzl",
+    ],
+)
+
+bzl_library(
     name = "fhe_bzl",
     srcs = ["fhe.bzl"],
     deps = [
         ":fhe_common_bzl",
         ":fhe_xls_bzl",
+        ":fhe_yosys_bzl",
         "//transpiler/data:primitives_bzl",
     ],
 )
