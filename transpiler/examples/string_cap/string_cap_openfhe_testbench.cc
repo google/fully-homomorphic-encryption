@@ -28,11 +28,11 @@
 #include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_OPENFHE
-#include "transpiler/examples/string_cap/string_cap_interpreted_openfhe.h"
+#include "transpiler/examples/string_cap/string_cap_openfhe_xls_interpreted.h"
 #elif defined(USE_YOSYS_INTERPRETED_OPENFHE)
-#include "transpiler/examples/string_cap/string_cap_yosys_interpreted_openfhe.h"
+#include "transpiler/examples/string_cap/string_cap_openfhe_yosys_interpreted.h"
 #else
-#include "transpiler/examples/string_cap/string_cap_openfhe.h"
+#include "transpiler/examples/string_cap/string_cap_openfhe_xls_transpiled.h"
 #endif
 
 constexpr int kMainMinimumLambda = 120;

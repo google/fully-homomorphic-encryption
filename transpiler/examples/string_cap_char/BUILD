@@ -1,106 +1,60 @@
-load("//transpiler:fhe.bzl", "fhe_cc_library")
+load(
+    "//transpiler:fhe_demo.bzl",
+    "gen_demos",
+    "gen_fhe_cc_library_for_all_optimizers_translators_cryptosystems",
+)
 
 licenses(["notice"])
 
-fhe_cc_library(
+gen_fhe_cc_library_for_all_optimizers_translators_cryptosystems(
+    name = "string_cap_char",
+    src = "string_cap_char.cc",
+    hdrs = ["string_cap_char.h"],
+    num_opt_passes = 2,
+)
+
+gen_demos(
     name = "string_cap_char_tfhe",
-    src = "string_cap_char.cc",
-    hdrs = ["string_cap_char.h"],
+    srcs = [
+        "string_cap_char.h",
+        "string_cap_char_tfhe_testbench.cc",
+    ],
     encryption = "tfhe",
-    num_opt_passes = 2,
-    optimizer = "xls",
+    deps = [
+        ":string_cap_char_plaintext",
+        "@com_google_absl//absl/base",
+        "@com_google_absl//absl/time",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+    ],
 )
 
-fhe_cc_library(
-    name = "string_cap_char_interpreted_tfhe",
-    src = "string_cap_char.cc",
-    hdrs = ["string_cap_char.h"],
-    encryption = "tfhe",
-    interpreter = True,
-    num_opt_passes = 2,
-    optimizer = "xls",
-)
-
-fhe_cc_library(
+gen_demos(
     name = "string_cap_char_openfhe",
-    src = "string_cap_char.cc",
-    hdrs = ["string_cap_char.h"],
-    encryption = "openfhe",
-    num_opt_passes = 2,
-    optimizer = "xls",
-)
-
-fhe_cc_library(
-    name = "string_cap_char_cleartext",
-    src = "string_cap_char.cc",
-    hdrs = ["string_cap_char.h"],
-    encryption = "cleartext",
-    num_opt_passes = 2,
-    optimizer = "xls",
-)
-
-cc_binary(
-    name = "string_cap_char_tfhe_testbench",
     srcs = [
-        "string_cap_char_tfhe_testbench.cc",
-    ],
-    deps = [
-        ":string_cap_char",
-        ":string_cap_char_tfhe",
-        "//transpiler/data:tfhe_data",
-        "@com_google_absl//absl/base",
-        "@com_google_absl//absl/time",
-        "@com_google_xls//xls/common/logging",
-        "@com_google_xls//xls/common/status:status_macros",
-        "@tfhe//:libtfhe",
-    ],
-)
-
-cc_binary(
-    name = "string_cap_char_interpreted_tfhe_testbench",
-    srcs = [
-        "string_cap_char_tfhe_testbench.cc",
-    ],
-    copts = ["-DUSE_INTERPRETED_TFHE"],
-    deps = [
-        ":string_cap_char",
-        ":string_cap_char_interpreted_tfhe",
-        "//transpiler/data:tfhe_data",
-        "@com_google_absl//absl/base",
-        "@com_google_absl//absl/time",
-        "@com_google_xls//xls/common/logging",
-        "@com_google_xls//xls/common/status:status_macros",
-        "@tfhe//:libtfhe",
-    ],
-)
-
-cc_binary(
-    name = "string_cap_char_openfhe_testbench",
-    srcs = [
+        "string_cap_char.h",
         "string_cap_char_openfhe_testbench.cc",
     ],
+    encryption = "openfhe",
     deps = [
-        ":string_cap_char",
-        ":string_cap_char_openfhe",
-        "//transpiler/data:openfhe_data",
+        "string_cap_char_plaintext",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/time",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
-        "@openfhe//:binfhe",
     ],
 )
 
-cc_binary(
-    name = "string_cap_char_cleartext_testbench",
+gen_demos(
+    name = "string_cap_char_cleartext",
     srcs = [
         "string_cap_char.h",
         "string_cap_char_cleartext_testbench.cc",
     ],
+    encryption = "cleartext",
     deps = [
-        ":string_cap_char",
-        ":string_cap_char_cleartext",
-        "//transpiler/data:cleartext_data",
+        "string_cap_char_plaintext",
+        "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
@@ -108,18 +62,34 @@ cc_binary(
 )
 
 cc_library(
-    name = "string_cap_char",
+    name = "string_cap_char_plaintext",
     srcs = ["string_cap_char.cc"],
     hdrs = ["string_cap_char.h"],
 )
 
 cc_test(
-    name = "string_cap_char_test",
+    name = "string_cap_char_tfhe_xls_transpiled_test",
     size = "large",
     srcs = ["string_cap_char_test.cc"],
     deps = [
-        ":string_cap_char",
-        ":string_cap_char_tfhe",
+        ":string_cap_char_plaintext",
+        ":string_cap_char_tfhe_xls_transpiled",
+        "//transpiler/data:tfhe_data",
+        "@com_google_absl//absl/base",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_xls//xls/common/status:matchers",
+        "@tfhe//:libtfhe",
+    ],
+)
+
+cc_test(
+    name = "string_cap_char_tfhe_xls_interpreted_test",
+    size = "large",
+    srcs = ["string_cap_char_test.cc"],
+    copts = ["-DUSE_INTERPRETED_TFHE"],
+    deps = [
+        ":string_cap_char_plaintext",
+        ":string_cap_char_tfhe_xls_interpreted",
         "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
         "@com_google_googletest//:gtest_main",

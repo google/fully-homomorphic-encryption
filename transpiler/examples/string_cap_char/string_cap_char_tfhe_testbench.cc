@@ -27,12 +27,15 @@
 #include "transpiler/data/tfhe_data.h"
 #include "xls/common/logging/logging.h"
 
-#ifdef USE_INTERPRETED_TFHE
-#include "transpiler/examples/string_cap_char/string_cap_char_interpreted_tfhe.h"
-#include "transpiler/examples/string_cap_char/string_cap_char_interpreted_tfhe.types.h"
+#if defined(USE_INTERPRETED_TFHE)
+#include "transpiler/examples/string_cap_char/string_cap_char_tfhe_xls_interpreted.h"
+#include "transpiler/examples/string_cap_char/string_cap_char_tfhe_xls_interpreted.types.h"
+#elif defined(USE_YOSYS_INTERPRETED_TFHE)
+#include "transpiler/examples/string_cap_char/string_cap_char_tfhe_yosys_interpreted.h"
+#include "transpiler/examples/string_cap_char/string_cap_char_tfhe_yosys_interpreted.types.h"
 #else
-#include "transpiler/examples/string_cap_char/string_cap_char_tfhe.h"
-#include "transpiler/examples/string_cap_char/string_cap_char_tfhe.types.h"
+#include "transpiler/examples/string_cap_char/string_cap_char_tfhe_xls_transpiled.h"
+#include "transpiler/examples/string_cap_char/string_cap_char_tfhe_xls_transpiled.types.h"
 #endif
 
 constexpr int kMainMinimumLambda = 120;

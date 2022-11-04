@@ -25,8 +25,13 @@
 #include "absl/container/fixed_array.h"
 #include "transpiler/data/cleartext_data.h"
 #include "transpiler/examples/string_cap/string_cap.h"
-#include "transpiler/examples/string_cap/string_cap_cleartext.h"
 #include "xls/common/logging/logging.h"
+
+#ifdef USE_YOSYS_INTERPRETED_CLEARTEXT
+#include "transpiler/examples/string_cap/string_cap_cleartext_yosys_interpreted.h"
+#else
+#include "transpiler/examples/string_cap/string_cap_cleartext_xls_transpiled.h"
+#endif
 
 void BoolStringCap(EncodedArray<char>& ciphertext) {
   double start_time = clock();

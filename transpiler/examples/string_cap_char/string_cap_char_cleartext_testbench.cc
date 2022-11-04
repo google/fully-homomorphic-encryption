@@ -24,8 +24,13 @@
 
 #include "absl/container/fixed_array.h"
 #include "transpiler/data/cleartext_data.h"
-#include "transpiler/examples/string_cap_char/string_cap_char_cleartext.h"
 #include "xls/common/logging/logging.h"
+
+#ifdef USE_YOSYS_INTERPRETED_CLEARTEXT
+#include "transpiler/examples/string_cap_char/string_cap_char_cleartext_yosys_interpreted.h"
+#else
+#include "transpiler/examples/string_cap_char/string_cap_char_cleartext_xls_transpiled.h"
+#endif
 
 void BoolStringCap(EncodedArray<char>& cipherresult,
                    EncodedArray<char>& ciphertext, int data_size,

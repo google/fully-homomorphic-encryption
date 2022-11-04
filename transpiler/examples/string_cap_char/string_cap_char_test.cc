@@ -19,7 +19,12 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "transpiler/data/tfhe_data.h"
-#include "transpiler/examples/string_cap_char/string_cap_char_tfhe.h"
+
+#if defined(USE_INTERPRETED_TFHE)
+#include "transpiler/examples/string_cap_char/string_cap_char_tfhe_xls_interpreted.h"
+#else
+#include "transpiler/examples/string_cap_char/string_cap_char_tfhe_xls_transpiled.h"
+#endif
 #include "xls/common/status/matchers.h"
 
 TEST(StringCapCharTest, CorrectlyCapitalizesShortPhrase) {

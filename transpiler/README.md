@@ -303,43 +303,43 @@ There are two versions of this demo:
     *  Baseline FHE-C++ translation command:
         * Using TFHE:
           ```shell
-          bazel run //transpiler/examples/string_cap:string_cap_tfhe_testbench -- "do or do not; there is no try"
+          bazel run //transpiler/examples/string_cap:string_cap_tfhe_xls_transpiled_testbench -- "do or do not; there is no try"
           ```
         * Using OpenFHE:
           ```shell
-          bazel run //transpiler/examples/string_cap:string_cap_openfhe_testbench -- "do or do not; there is no try"
+          bazel run //transpiler/examples/string_cap:string_cap_openfhe_xls_transpiled_testbench -- "do or do not; there is no try"
           ```
     *  Multi-core interpreter command:
         * Using TFHE:
           ```shell
-          bazel run //transpiler/examples/string_cap:string_cap_interpreted_tfhe_testbench -- "do or do not; there is no try"
+          bazel run //transpiler/examples/string_cap:string_cap_tfhe_xls_interpreted_testbench -- "do or do not; there is no try"
           ```
         * Using OpenFHE:
           ```shell
-          bazel run //transpiler/examples/string_cap:string_cap_interpreted_openfhe_testbench -- "do or do not; there is no try"
+          bazel run //transpiler/examples/string_cap:string_cap_openfhe_xls_interpreted_testbench -- "do or do not; there is no try"
           ```
 
 2.  In the `string_cap_char` example, the FHE-C++ code operates on one
     character at a time. This example can provide more output regarding the
     string transformation process, for illustrative purposes.
 
-    *  Baseline FHE-C++ translation command:
+     *  Baseline FHE-C++ translation command:
         * Using TFHE:
           ```shell
-          bazel run //transpiler/examples/string_cap_char:string_cap_char_tfhe_testbench -- "do or do not; there is no try"
+          bazel run //transpiler/examples/string_cap_char:string_cap_char_tfhe_xls_transpiled_testbench -- "do or do not; there is no try"
           ```
         * Using OpenFHE:
           ```shell
-          bazel run //transpiler/examples/string_cap_char:string_cap_char_openfhe_testbench -- "do or do not; there is no try"
+          bazel run //transpiler/examples/string_cap_char:string_cap_char_openfhe_xls_transpiled_testbench -- "do or do not; there is no try"
           ```
     *  Multi-core interpreter command:
         * Using TFHE:
           ```shell
-          bazel run //transpiler/examples/string_cap_char:string_cap_char_interpreted_tfhe_testbench -- "do or do not; there is no try"
+          bazel run //transpiler/examples/string_cap_char:string_cap_char_tfhe_xls_interpreted_testbench -- "do or do not; there is no try"
           ```
        * Using OpenFHE:
          ```shell
-         bazel run //transpiler/examples/string_cap_char:string_cap_char_interpreted_openfhe_testbench -- "do or do not; there is no try"
+         bazel run //transpiler/examples/string_cap_char:string_cap_char_openfhe_xls_interpreted_testbench -- "do or do not; there is no try"
          ```
     ```
 

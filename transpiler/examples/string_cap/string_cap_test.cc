@@ -22,10 +22,10 @@
 #include "transpiler/examples/string_cap/string_cap.h"
 #include "xls/common/status/matchers.h"
 
-#ifdef USE_INTERPRETED_TFHE
-#include "transpiler/examples/string_cap/string_cap_interpreted_tfhe.h"
+#if defined(USE_INTERPRETED_TFHE)
+#include "transpiler/examples/string_cap/string_cap_tfhe_xls_interpreted.h"
 #else
-#include "transpiler/examples/string_cap/string_cap_tfhe.h"
+#include "transpiler/examples/string_cap/string_cap_tfhe_xls_transpiled.h"
 #endif
 
 TEST(StringCapTest, CorrectlyCapitalizesShortPhrase) {

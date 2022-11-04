@@ -26,9 +26,18 @@
 #include "absl/time/time.h"
 #include "palisade/binfhe/binfhecontext.h"
 #include "transpiler/data/openfhe_data.h"
-#include "transpiler/examples/string_cap_char/string_cap_char_openfhe.h"
-#include "transpiler/examples/string_cap_char/string_cap_char_openfhe.types.h"
 #include "xls/common/logging/logging.h"
+
+#ifdef USE_INTERPRETED_OPENFHE
+#include "transpiler/examples/string_cap_char/string_cap_char_openfhe_xls_interpreted.h"
+#include "transpiler/examples/string_cap_char/string_cap_char_openfhe_xls_interpreted.types.h"
+#elif defined(USE_YOSYS_INTERPRETED_OPENFHE)
+#include "transpiler/examples/string_cap_char/string_cap_char_openfhe_yosys_interpreted.h"
+#include "transpiler/examples/string_cap_char/string_cap_char_openfhe_yosys_interpreted.types.h"
+#else
+#include "transpiler/examples/string_cap_char/string_cap_char_openfhe_xls_transpiled.h"
+#include "transpiler/examples/string_cap_char/string_cap_char_openfhe_xls_transpiled.types.h"
+#endif
 
 constexpr int kMainMinimumLambda = 120;
 

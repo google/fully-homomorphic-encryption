@@ -38,6 +38,14 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "fhe_demo_bzl",
+    srcs = ["fhe_demo.bzl"],
+    deps = [
+        ":fhe_bzl",
+    ],
+)
+
 cc_library(
     name = "abstract_xls_transpiler",
     hdrs = ["abstract_xls_transpiler.h"],
