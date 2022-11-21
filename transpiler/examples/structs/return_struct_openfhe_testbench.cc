@@ -23,7 +23,7 @@
 #include "transpiler/examples/structs/return_struct_openfhe.h"
 #include "transpiler/examples/structs/return_struct_openfhe.types.h"
 #endif
-#include "palisade/binfhe/binfhecontext.h"
+#include "openfhe/binfhe/binfhecontext.h"
 
 constexpr auto kSecurityLevel = lbcrypto::MEDIUM;
 

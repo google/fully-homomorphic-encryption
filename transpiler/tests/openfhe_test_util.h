@@ -21,10 +21,10 @@
 
 #include "absl/memory/memory.h"
 #include "gtest/gtest.h"
-#include "palisade/binfhe/binfhecontext.h"
+#include "openfhe/binfhe/binfhecontext.h"
 #include "transpiler/data/openfhe_data.h"
 
-constexpr lbcrypto::BINFHEPARAMSET kSecurityLevel = lbcrypto::MEDIUM;
+constexpr lbcrypto::BINFHE_PARAMSET kSecurityLevel = lbcrypto::MEDIUM;
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {

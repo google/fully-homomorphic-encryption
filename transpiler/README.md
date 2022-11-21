@@ -1,20 +1,19 @@
 # Fully Homomorphic Encryption (FHE) C++ Transpiler
 
-The FHE C++ Transpiler is an open-sourced technology that will allow any
-C++ developer to perform transformations on encrypted data without decrypting
-it.
+The FHE C++ Transpiler is an open-sourced technology that will allow any C++
+developer to perform transformations on encrypted data without decrypting it.
 
 This transpiler connects Google’s [XLS library](https://google.github.io/xls/)
 to multiple FHE backends (currently the
 [TFHE library](https://tfhe.github.io/tfhe/) and
-[OpenFHE](https://palisade-crypto.org/)'s BinFHE library). It will allow
-developers (including those without expertise in cryptography) to write code
-that runs on encrypted data, without revealing the data contents or the
-computations’ result. This system should help lay the groundwork for further
-advancements on practical FHE systems.
+[OpenFHE](https://openfhe.org/)'s BinFHE library). It will allow developers
+(including those without expertise in cryptography) to write code that runs on
+encrypted data, without revealing the data contents or the computations’ result.
+This system should help lay the groundwork for further advancements on practical
+FHE systems.
 
-This system is currently only supported on Linux, and requires GCC version 9
-(or later) and
+This system is currently only supported on Linux, and requires GCC version 9 (or
+later) and
 [Bazel 4.0.0](https://docs.bazel.build/versions/master/bazel-overview.html).
 
 This is currently an exploratory proof-of-concept. While it could be deployed in
@@ -40,41 +39,42 @@ This repository offers two ways to install the FHE C++ Transpiler.
 In order to install the FHE C++ Transpiler on your Linux machine:
 
 1.  Install Bazel version 4.0.0, if you don't have it already. Bazel 4.0.0 can
-    be [installed directly](https://docs.bazel.build/versions/master/install.html)
+    be
+    [installed directly](https://docs.bazel.build/versions/master/install.html)
     or Bazel versions can be managed through
     [Bazelisk](https://docs.bazel.build/versions/master/install-bazelisk.html).
 
 2.  Install the following additional required packages using your Linux
     distribution's package manager:
 
-    * `gcc` in version 9 or higher.
-    * `git`, which is required for downloading some dependencies using
-    Bazel.
-    * `libtinfo5` or `ncurses5-compat-libs`
-    * `python2`
-    * `python3`
-    * `python3-pip`
-    * `bison` (for `yosys`)
-    * `flex` (for `yosys`)
+    *   `gcc` in version 9 or higher.
+    *   `git`, which is required for downloading some dependencies using Bazel.
+    *   `libtinfo5` or `ncurses5-compat-libs`
+    *   `python2`
+    *   `python3`
+    *   `python3-pip`
+    *   `bison` (for `yosys`)
+    *   `flex` (for `yosys`)
 
     You can install all of the above by running the following commands,
     depending on you distribution.
 
-    * On Debian-based distributions:
+    *   On Debian-based distributions:
 
-      ```shell
-      sudo apt install gcc git libtinfo5 python python3 python3-pip bison flex
-      ```
+        ```shell
+        sudo apt install gcc git libtinfo5 python python3 python3-pip bison flex
+        ```
 
-    * On Arch-based distributions with [AUR](https://aur.archlinux.org) enabled:
+    *   On Arch-based distributions with [AUR](https://aur.archlinux.org)
+        enabled:
 
-      ```shell
-      sudo pacman -Syu gcc git ncurses5-compat-libs python2 python python-pip \ 
-      bison flex
-      ```
+        ```shell
+        sudo pacman -Syu gcc git ncurses5-compat-libs python2 python python-pip \
+        bison flex
+        ```
 
-3.  Download [the latest version of this
-    repository](https://github.com/google/fully-homomorphic-encryption/archive/refs/heads/main.zip)
+3.  Download
+    [the latest version of this repository](https://github.com/google/fully-homomorphic-encryption/archive/refs/heads/main.zip)
     and extract it. Alternatively, you can use `git` to clone the repository on
     your local machine using the following command:
 
@@ -86,9 +86,9 @@ In order to install the FHE C++ Transpiler on your Linux machine:
 
 1.  [Install Docker for your platform](https://docs.docker.com/get-docker/)
 
-2.  Download [the latest version of this
-    repository](https://github.com/google/fully-homomorphic-encryption/archive/refs/heads/main.zip)
-    and extract it.  Navigate to the extracted folder.  Alternatively, you can
+2.  Download
+    [the latest version of this repository](https://github.com/google/fully-homomorphic-encryption/archive/refs/heads/main.zip)
+    and extract it. Navigate to the extracted folder. Alternatively, you can
     also use `git` to clone the repository using the following command:
 
     ```shell
@@ -100,24 +100,27 @@ In order to install the FHE C++ Transpiler on your Linux machine:
     memory limit to at least 6GB. The default settings for other system
     resources (swap, disk size, etc.) should be sufficient. In our tests on a
     2017 MacBook Pro, these defaults were set to:
-    * CPU: 4 cores
-    * Swap: 1GB
-    * Disk image: 60GB
+
+    *   CPU: 4 cores
+    *   Swap: 1GB
+    *   Disk image: 60GB
 
     Note that increases to these other system resources may help improve image
     build times and container performance. See more about setting resource
-    limits in Docker Desktop [here](https://docs.docker.com/docker-for-mac/#resources).
+    limits in Docker Desktop
+    [here](https://docs.docker.com/docker-for-mac/#resources).
 
-4.  Navigate to the root of this repository, which contains the `Dockerfile`
-    and run
+4.  Navigate to the root of this repository, which contains the `Dockerfile` and
+    run
 
     ```shell
     docker build -t google-fhe-transpiler .
     ```
+
     This may take around 1 hour, depending on your system configuration.
 
-5.  Execute `docker run --rm -i -t google-fhe-transpiler bash` to connect to
-    a fresh instance that has the transpiler installed.  You can then run the
+5.  Execute `docker run --rm -i -t google-fhe-transpiler bash` to connect to a
+    fresh instance that has the transpiler installed. You can then run the
     examples as described in the following section.
 
 ### Running the FHE C++ Transpiler
@@ -133,9 +136,9 @@ bazel run //transpiler/examples/hangman:hangman_client
 This will automatically build the core FHE C++ Transpiler toolchain, which may
 take a long time (i.e., over an hour) when building the first time. Once the
 demo is running, a game of
-[Hangman](https://en.wikipedia.org/wiki/Hangman_(game)) will be playable,
-illustrating that the player's letter guesses and game progress are unknown
-to the server.
+[Hangman](https://en.wikipedia.org/wiki/Hangman_\(game\)) will be playable,
+illustrating that the player's letter guesses and game progress are unknown to
+the server.
 
 ### Transpiling your code
 
@@ -145,11 +148,10 @@ To run the FHE C++ Transpiler on your own C++ code, follow these steps:
     (e.g., `fn`).
 2.  Add the C++ file that contains the code to be transpiled into the
     aforementioned subdirectory.
-3.  Create a testbench (e.g., `fn_tfhe_testbench`) and `BUILD` file
-    similar to those in the repository’s examples, but that uses your FHE-C++
-    instead.
-4.  Run the transpiler with the following command, replacing `fn` with the
-    name of your subdirectory and testbench file names, followed by two dashes, and
+3.  Create a testbench (e.g., `fn_tfhe_testbench`) and `BUILD` file similar to
+    those in the repository’s examples, but that uses your FHE-C++ instead.
+4.  Run the transpiler with the following command, replacing `fn` with the name
+    of your subdirectory and testbench file names, followed by two dashes, and
     any needed additional arguments (e.g., `"arg1"`, `"arg2"`):
 
 ```shell
@@ -183,48 +185,32 @@ and other best practices.
 The Calculator demo adds, subtracts, or multiples two encrypted short integers,
 without the server knowing the integers or the result.
 
-*  Baseline FHE-C++ translation command:
-    * Using TFHE:
-      ```shell
-      bazel run //transpiler/examples/calculator:calculator_tfhe_testbench
-      ```
-   * Using OpenFHE:
-     ```shell
-     bazel run //transpiler/examples/calculator:calculator_openfhe_testbench
-     ```
-*  Multi-core interpreter command:
-    * Using TFHE:
-      ```shell
-      bazel run //transpiler/examples/calculator:calculator_interpreted_tfhe_testbench
-      ```
-    * Using OpenFHE
-      ```shell
-      bazel run //transpiler/examples/calculator:calculator_interpreted_openfhe_testbench
-      ```
+*   Baseline FHE-C++ translation command:
+    *   Using TFHE: `shell bazel run
+        //transpiler/examples/calculator:calculator_tfhe_testbench`
+    *   Using OpenFHE: `shell bazel run
+        //transpiler/examples/calculator:calculator_openfhe_testbench`
+*   Multi-core interpreter command:
+    *   Using TFHE: `shell bazel run
+        //transpiler/examples/calculator:calculator_interpreted_tfhe_testbench`
+    *   Using OpenFHE `shell bazel run
+        //transpiler/examples/calculator:calculator_interpreted_openfhe_testbench`
 
 ### Fibonacci
 
 The Fibonacci demo calculates the sum of the Fibonacci sequence up to the
 n<sup>th</sup> integer in the sequence.
 
-*  Baseline FHE-C++ translation command:
-    * Using TFHE:
-      ```shell
-      bazel run //transpiler/examples/fibonacci:fibonacci_tfhe_testbench
-      ```
-   * Using OpenFHE:
-     ```shell
-     bazel run //transpiler/examples/fibonacci:fibonacci_openfhe_testbench
-     ```
-*  Multi-core interpreter command:
-    * Using TFHE:
-      ```shell
-      bazel run //transpiler/examples/fibonacci:fibonacci_interpreted_tfhe_testbench
-      ```
-   * Using OpenFHE:
-     ```shell
-     bazel run //transpiler/examples/fibonacci:fibonacci_interpreted_openfhe_testbench
-     ```
+*   Baseline FHE-C++ translation command:
+    *   Using TFHE: `shell bazel run
+        //transpiler/examples/fibonacci:fibonacci_tfhe_testbench`
+    *   Using OpenFHE: `shell bazel run
+        //transpiler/examples/fibonacci:fibonacci_openfhe_testbench`
+*   Multi-core interpreter command:
+    *   Using TFHE: `shell bazel run
+        //transpiler/examples/fibonacci:fibonacci_interpreted_tfhe_testbench`
+    *   Using OpenFHE: `shell bazel run
+        //transpiler/examples/fibonacci:fibonacci_interpreted_openfhe_testbench`
 
 ### Hangman
 
@@ -244,51 +230,36 @@ provided characters are retrieved by index without the server knowing the query
 or the data it's storing. This is an O(N) operation, where N is the number of
 records in the database.
 
-*  Baseline FHE-C++ translation command:
-   ```shell
-   bazel run //transpiler/examples/pir:pir_client
-   ```
-*  Multi-core interpreter command:
-   ```shell
-   bazel run //transpiler/examples/pir:pir_interpreted_client
-   ```
+*   Baseline FHE-C++ translation command: `shell bazel run
+    //transpiler/examples/pir:pir_client`
+*   Multi-core interpreter command: `shell bazel run
+    //transpiler/examples/pir:pir_interpreted_client`
 
 ### Reverse string
 
 This demo reverses an encrypted string without the server knowing the string.
 
-*  Baseline FHE-C++ translation command:
-   ```shell
-   bazel run //transpiler/examples/string_reverse:string_reverse_tfhe_testbench "hello"
-   ```
-*  Multi-core interpreter command:
-   ```shell
-   bazel run //transpiler/examples/string_reverse:string_reverse_interpreted_tfhe_testbench "hello"
-   ```
+*   Baseline FHE-C++ translation command: `shell bazel run
+    //transpiler/examples/string_reverse:string_reverse_tfhe_testbench "hello"`
+*   Multi-core interpreter command: `shell bazel run
+    //transpiler/examples/string_reverse:string_reverse_interpreted_tfhe_testbench
+    "hello"`
 
 ### Simple sum
 
 This demo adds two encrypted integers without the server knowing either integer
 or the resulting sum.
 
-*  Baseline FHE-C++ translation command:
-    * Using TFHE:
-      ```shell
-      bazel run //transpiler/examples/simple_sum:simple_sum_tfhe_testbench
-      ```
-   * Using OpenFHE:
-     ```shell
-     bazel run //transpiler/examples/simple_sum:simple_sum_openfhe_testbench
-     ```
-*  Multi-core interpreter command:
-    * Using TFHE:
-      ```shell
-      bazel run //transpiler/examples/simple_sum:simple_sum_interpreted_tfhe_testbench
-      ```
-   * Using OpenFHE:
-     ```shell
-     bazel run //transpiler/examples/simple_sum:simple_sum_interpreted_openfhe_testbench
-     ```
+*   Baseline FHE-C++ translation command:
+    *   Using TFHE: `shell bazel run
+        //transpiler/examples/simple_sum:simple_sum_tfhe_testbench`
+    *   Using OpenFHE: `shell bazel run
+        //transpiler/examples/simple_sum:simple_sum_openfhe_testbench`
+*   Multi-core interpreter command:
+    *   Using TFHE: `shell bazel run
+        //transpiler/examples/simple_sum:simple_sum_interpreted_tfhe_testbench`
+    *   Using OpenFHE: `shell bazel run
+        //transpiler/examples/simple_sum:simple_sum_interpreted_openfhe_testbench`
 
 ### String capitalization
 
@@ -297,51 +268,42 @@ server knowing the sentence.
 
 There are two versions of this demo:
 
-1.  In the `string_cap` example, the FHE-C++ code inputs the entire
-    encrypted string and internally iterates over each character.
+1.  In the `string_cap` example, the FHE-C++ code inputs the entire encrypted
+    string and internally iterates over each character.
 
-    *  Baseline FHE-C++ translation command:
-        * Using TFHE:
-          ```shell
-          bazel run //transpiler/examples/string_cap:string_cap_tfhe_xls_transpiled_testbench -- "do or do not; there is no try"
-          ```
-        * Using OpenFHE:
-          ```shell
-          bazel run //transpiler/examples/string_cap:string_cap_openfhe_xls_transpiled_testbench -- "do or do not; there is no try"
-          ```
-    *  Multi-core interpreter command:
-        * Using TFHE:
-          ```shell
-          bazel run //transpiler/examples/string_cap:string_cap_tfhe_xls_interpreted_testbench -- "do or do not; there is no try"
-          ```
-        * Using OpenFHE:
-          ```shell
-          bazel run //transpiler/examples/string_cap:string_cap_openfhe_xls_interpreted_testbench -- "do or do not; there is no try"
-          ```
+    *   Baseline FHE-C++ translation command:
+        *   Using TFHE: `shell bazel run
+            //transpiler/examples/string_cap:string_cap_tfhe_xls_transpiled_testbench --
+            "do or do not; there is no try"`
+        *   Using OpenFHE: `shell bazel run
+            //transpiler/examples/string_cap:string_cap_openfhe_xls_transpiled_testbench --
+            "do or do not; there is no try"`
+    *   Multi-core interpreter command:
+        *   Using TFHE: `shell bazel run
+            //transpiler/examples/string_cap:string_cap_tfhe_xls_interpreted_testbench --
+            "do or do not; there is no try"`
+        *   Using OpenFHE: `shell bazel run
+            //transpiler/examples/string_cap:string_cap_openfhe_xls_interpreted_testbench --
+            "do or do not; there is no try"`
 
-2.  In the `string_cap_char` example, the FHE-C++ code operates on one
-    character at a time. This example can provide more output regarding the
-    string transformation process, for illustrative purposes.
+2.  In the `string_cap_char` example, the FHE-C++ code operates on one character
+    at a time. This example can provide more output regarding the string
+    transformation process, for illustrative purposes.
 
-     *  Baseline FHE-C++ translation command:
-        * Using TFHE:
-          ```shell
-          bazel run //transpiler/examples/string_cap_char:string_cap_char_tfhe_xls_transpiled_testbench -- "do or do not; there is no try"
-          ```
-        * Using OpenFHE:
-          ```shell
-          bazel run //transpiler/examples/string_cap_char:string_cap_char_openfhe_xls_transpiled_testbench -- "do or do not; there is no try"
-          ```
-    *  Multi-core interpreter command:
-        * Using TFHE:
-          ```shell
-          bazel run //transpiler/examples/string_cap_char:string_cap_char_tfhe_xls_interpreted_testbench -- "do or do not; there is no try"
-          ```
-       * Using OpenFHE:
-         ```shell
-         bazel run //transpiler/examples/string_cap_char:string_cap_char_openfhe_xls_interpreted_testbench -- "do or do not; there is no try"
-         ```
-    ```
+    *   Baseline FHE-C++ translation command:
+        *   Using TFHE: `shell bazel run
+            //transpiler/examples/string_cap_char:string_cap_char_tfhe_xls_transpiled_testbench --
+            "do or do not; there is no try"`
+        *   Using OpenFHE: `shell bazel run
+            //transpiler/examples/string_cap_char:string_cap_char_openfhe_xls_transpiled_testbench --
+            "do or do not; there is no try"`
+    *   Multi-core interpreter command:
+        *   Using TFHE: `shell bazel run
+            //transpiler/examples/string_cap_char:string_cap_char_tfhe_xls_interpreted_testbench --
+            "do or do not; there is no try"`
+        *   Using OpenFHE: `shell bazel run
+            //transpiler/examples/string_cap_char:string_cap_char_openfhe_xls_interpreted_testbench --
+            "do or do not; there is no try"` ```
 
 ![String capitalization screenshot](./images/screenshot_string_cap.png)
 
@@ -350,24 +312,16 @@ There are two versions of this demo:
 This demo computes the square root of an encrypted short integer, without the
 server knowing the input or the result.
 
-*  Baseline FHE-C++ translation command:
-    * Using TFHE:
-      ```shell
-      bazel run //transpiler/examples/sqrt:sqrt_tfhe_testbench -- 15875
-      ```
-   * Using OpenFHE:
-     ```shell
-     bazel run //transpiler/examples/sqrt:sqrt_openfhe_testbench -- 15875
-     ```
-*  Multi-core interpreter command:
-    * Using TFHE:
-      ```shell
-      bazel run //transpiler/examples/sqrt:sqrt_interpreted_tfhe_testbench -- 15875
-      ```
-   * Using OpenFHE:
-     ```shell
-     bazel run //transpiler/examples/sqrt:sqrt_interpreted_openfhe_testbench -- 15875
-     ```
+*   Baseline FHE-C++ translation command:
+    *   Using TFHE: `shell bazel run
+        //transpiler/examples/sqrt:sqrt_tfhe_testbench -- 15875`
+    *   Using OpenFHE: `shell bazel run
+        //transpiler/examples/sqrt:sqrt_openfhe_testbench -- 15875`
+*   Multi-core interpreter command:
+    *   Using TFHE: `shell bazel run
+        //transpiler/examples/sqrt:sqrt_interpreted_tfhe_testbench -- 15875`
+    *   Using OpenFHE: `shell bazel run
+        //transpiler/examples/sqrt:sqrt_interpreted_openfhe_testbench -- 15875`
 
 ### Rock paper scissors
 
@@ -376,16 +330,13 @@ This demo allows to you to play
 the server. The input of the players is provided and the server will evaluate
 the outcome of the game, without discovering the input or the outcome.
 
+*   Baseline FHE-C++ translation command: `shell bazel run
+    //transpiler/examples/rock_paper_scissor:rock_paper_scissor_tfhe_testbench
+    PLAYER_A PLAYER_B`
 
-*  Baseline FHE-C++ translation command:
-   ```shell
-   bazel run //transpiler/examples/rock_paper_scissor:rock_paper_scissor_tfhe_testbench PLAYER_A PLAYER_B
-   ```
-
-*  Multi-core interpreter command:
-   ```shell
-   bazel run //transpiler/examples/rock_paper_scissor:rock_paper_scissor_interpreted_tfhe_testbench PLAYER_A PLAYER_B
-   ```
+*   Multi-core interpreter command: `shell bazel run
+    //transpiler/examples/rock_paper_scissor:rock_paper_scissor_interpreted_tfhe_testbench
+    PLAYER_A PLAYER_B`
 
 where `PLAYER_A` and `PLAYER_B` are the choice `R` (rock), `P` (paper), or `S`
 (scissors). The server will return the winning player (i.e., either `A` or `B`)
@@ -410,7 +361,9 @@ bazel run -c opt //transpiler/examples/templates:mul_interpreted_tfhe_testbench
 ```
 
 ## Design
-See detailed design at [g3doc/transpiler_design.md](./g3doc/transpiler_design.md).
+
+See detailed design at
+[g3doc/transpiler_design.md](./g3doc/transpiler_design.md).
 
 ## Security
 
@@ -424,9 +377,9 @@ The FHE C++ Transpiler is built with the honest-but-curious-server threat model
 in mind.
 
 TFHE guarantees that, without the decryption key, the only information that a
-collection of FHE ciphertexts (i.e., `LweSample*`) reveals about the
-encrypted plaintexts is the data type when used correctly. The computed function
-(i.e., transform) is assumed to be known by both server and client.
+collection of FHE ciphertexts (i.e., `LweSample*`) reveals about the encrypted
+plaintexts is the data type when used correctly. The computed function (i.e.,
+transform) is assumed to be known by both server and client.
 
 ### Bits of security
 
@@ -451,20 +404,20 @@ Due to the transpiler's dependency on
 [XLS[cc]](https://github.com/google/xls/tree/main/xls/contrib/xlscc), they share
 the following limitations:
 
-*  Variable-length arrays are not supported, since there is no way to inspect
-   the contents of the variable before trying to access it (which is the main
-   benefit of FHE). One workaround is to use arrays with the largest number of
-   values that may be needed. This also protects privacy since array sizes will
-   not be leaked.
-*  While-loops and for-loops with a variable end-condition are not supported.
-   This is because FHE evaluates all code branches, which requires knowing the
-   number of loop iterations beforehand. See
-   [this XLS feature request](https://github.com/google/xls/issues/387) for
-   updates. One workaround is to set the for-loop to terminate after the most
-   expected number of iterations and add an if-statement that will cause the
-   for-loop break once the index reaches the variable length instead. This is
-   illustrated in the following code:
-*  Floating-point data types are not supported.
+*   Variable-length arrays are not supported, since there is no way to inspect
+    the contents of the variable before trying to access it (which is the main
+    benefit of FHE). One workaround is to use arrays with the largest number of
+    values that may be needed. This also protects privacy since array sizes will
+    not be leaked.
+*   While-loops and for-loops with a variable end-condition are not supported.
+    This is because FHE evaluates all code branches, which requires knowing the
+    number of loop iterations beforehand. See
+    [this XLS feature request](https://github.com/google/xls/issues/387) for
+    updates. One workaround is to set the for-loop to terminate after the most
+    expected number of iterations and add an if-statement that will cause the
+    for-loop break once the index reaches the variable length instead. This is
+    illustrated in the following code:
+*   Floating-point data types are not supported.
 
 ```cpp
 #pragma hls_top
@@ -474,8 +427,8 @@ int some_func(int image[8], int length) {
   #pragma hls_unroll yes
   for (int i = 0; i < 8; i++) { // "length" would not be visible on this line
     sum += image[i];
-	  if(i == (length-1))
-	    break;
+      if(i == (length-1))
+        break;
   }
   return sum;
 }
@@ -512,10 +465,10 @@ If Bazel reports an error about an unknown LLVM release, try replacing the
 
 ## Related projects
 
-*  [XLS](https://github.com/google/xls), the Software Development Kit (SDK) for
-   the End of Moore's Law (EoML) era.
-*  [TFHE Library](https://github.com/tfhe/tfhe), Fast Fully Homomorphic
-   Encryption Library
+*   [XLS](https://github.com/google/xls), the Software Development Kit (SDK) for
+    the End of Moore's Law (EoML) era.
+*   [TFHE Library](https://github.com/tfhe/tfhe), Fast Fully Homomorphic
+    Encryption Library
 
 ## Endnotes
 

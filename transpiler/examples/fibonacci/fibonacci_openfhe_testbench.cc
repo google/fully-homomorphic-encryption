@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include "palisade/binfhe/binfhecontext.h"
+#include "openfhe/binfhe/binfhecontext.h"
 #include "transpiler/data/openfhe_data.h"
 #include "xls/common/logging/logging.h"
 

@@ -16,38 +16,13 @@ cmake(
         "CMAKE_BUILD_PARALLEL_LEVEL": "16",
     },
     includes = [
-        "palisade",
-        "palisade/core",
+        "openfhe",
+        "openfhe/core",
     ],
     lib_source = ":openfhe_srcs",
     out_include_dir = "include",
     out_shared_libs = [
         "libPALISADEcore.so.1",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-cmake(
-    name = "pke",
-    cache_entries = {
-        "BUILD_BENCHMARKS": "OFF",
-        "BUILD_UNITTESTS": "OFF",
-        "CMAKE_BUILD_TYPE": "Release",
-    },
-    defines = ["MATHBACKEND=2"],
-    env = {
-        "CMAKE_BUILD_PARALLEL_LEVEL": "16",
-    },
-    includes = [
-        "palisade",
-        "palisade/core",
-        "palisade/pke",
-    ],
-    lib_source = ":openfhe_srcs",
-    out_include_dir = "include",
-    out_shared_libs = [
-        "libPALISADEcore.so.1",
-        "libPALISADEpke.so.1",
     ],
     visibility = ["//visibility:public"],
 )
@@ -64,9 +39,9 @@ cmake(
         "CMAKE_BUILD_PARALLEL_LEVEL": "16",
     },
     includes = [
-        "palisade",
-        "palisade/binfhe",
-        "palisade/core",
+        "openfhe",
+        "openfhe/binfhe",
+        "openfhe/core",
     ],
     lib_source = ":openfhe_srcs",
     out_include_dir = "include",

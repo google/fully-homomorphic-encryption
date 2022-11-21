@@ -15,7 +15,7 @@
 #include <cstdint>
 #include <iostream>
 
-#include "palisade/binfhe/binfhecontext.h"
+#include "openfhe/binfhe/binfhecontext.h"
 #include "transpiler/examples/structs/return_struct_with_inout_openfhe.h"
 #include "transpiler/examples/structs/return_struct_with_inout_openfhe.types.h"
 #include "xls/common/logging/logging.h"

@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
-#include "palisade/binfhe/binfhecontext.h"
+#include "openfhe/binfhe/binfhecontext.h"
 #include "transpiler/data/openfhe_data.h"
 #include "transpiler/examples/fibonacci/fibonacci_sequence.h"
 #include "xls/common/logging/logging.h"

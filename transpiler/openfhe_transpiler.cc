@@ -159,7 +159,7 @@ absl::StatusOr<std::string> OpenFheTranspiler::TranslateHeader(
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 $4
-#include "palisade/binfhe/binfhecontext.h"
+#include "openfhe/binfhe/binfhecontext.h"
 
 $0;
 
@@ -194,8 +194,7 @@ absl::StatusOr<std::string> OpenFheTranspiler::Prelude(
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 #include "transpiler/common_runner.h"
-#include "palisade/binfhe/binfhecontext.h"
-#include "palisade/binfhe/ringcore.h"
+#include "openfhe/binfhe/binfhecontext.h"
 
 static StructReverseEncodeOrderSetter ORDER;
 

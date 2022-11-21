@@ -14,7 +14,7 @@
 
 #include <stdint.h>
 
-#include "palisade/binfhe/binfhecontext.h"
+#include "openfhe/binfhe/binfhecontext.h"
 #include "testing/base/public/benchmark.h"
 #include "testing/base/public/gmock.h"
 #include "testing/base/public/gunit.h"
@@ -29,7 +29,7 @@
 #endif
 
 // OpenFHE parameters
-constexpr lbcrypto::BINFHEPARAMSET kSecurityLevel = lbcrypto::MEDIUM;
+constexpr lbcrypto::BINFHE_PARAMSET kSecurityLevel = lbcrypto::MEDIUM;
 
 void BM_AddChar(benchmark::State& state) {
   auto cc = lbcrypto::BinFHEContext();

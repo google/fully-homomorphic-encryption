@@ -88,7 +88,7 @@ ABSL_FLAG(bool, interpreter, false,
 ABSL_FLAG(
     bool, skip_scheme_data_deps, false,
     "When set to True, it causes the transpiler to not emit depednencies "
-    "for tfhe_data.h, palisade_data.h, and cleartext_data.h.  This is used "
+    "for tfhe_data.h, openfhe_data.h, and cleartext_data.h.  This is used "
     "to avoid circular dependencies when generating C++ libraries for "
     "the numeric primitives.");
 ABSL_FLAG(std::vector<std::string>, unwrap, std::vector<std::string>({}),

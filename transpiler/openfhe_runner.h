@@ -35,7 +35,7 @@
 
 #include "absl/status/statusor.h"
 #include "absl/types/optional.h"
-#include "palisade/binfhe/binfhecontext.h"
+#include "openfhe/binfhe/binfhecontext.h"
 #include "transpiler/abstract_xls_runner.h"
 
 namespace fully_homomorphic_encryption {

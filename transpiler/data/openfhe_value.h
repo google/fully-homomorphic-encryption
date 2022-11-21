@@ -12,7 +12,7 @@
 
 #include "absl/container/fixed_array.h"
 #include "absl/types/span.h"
-#include "palisade/binfhe/binfhecontext.h"
+#include "openfhe/binfhe/binfhecontext.h"
 #include "transpiler/data/cleartext_value.h"
 #include "xls/common/logging/logging.h"
 

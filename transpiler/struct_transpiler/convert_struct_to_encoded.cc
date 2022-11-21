@@ -1959,7 +1959,7 @@ constexpr const char kOpenFheFileTemplate[] = R"(#ifndef $0
 #include "transpiler/data/openfhe_value.h"
 #include "$1"
 #include "absl/types/span.h"
-#include "palisade/binfhe/binfhecontext.h"
+#include "openfhe/binfhe/binfhecontext.h"
 
 template <typename T>
 using __OpenFheBaseRef = GenericEncodedRef<T,

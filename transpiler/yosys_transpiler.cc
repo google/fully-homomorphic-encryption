@@ -190,7 +190,7 @@ $3#endif  // $1
                                      "lbcrypto::BinFHEContext", "bk", unwrap);
       scheme_data_header = R"hdr(
 #include "transpiler/data/openfhe_data.h"
-#include "palisade/binfhe/binfhecontext.h"
+#include "openfhe/binfhe/binfhecontext.h"
 )hdr";
       break;
     case Encryption::kCleartext:

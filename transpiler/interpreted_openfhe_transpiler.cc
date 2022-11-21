@@ -44,7 +44,7 @@ absl::StatusOr<std::string> InterpretedOpenFheTranspiler::Translate(
 #include "absl/types/span.h"
 #include "transpiler/openfhe_runner.h"
 #include "transpiler/common_runner.h"
-#include "palisade/binfhe/binfhecontext.h"
+#include "openfhe/binfhe/binfhecontext.h"
 #include "xls/common/status/status_macros.h"
 
 namespace {
@@ -114,7 +114,7 @@ absl::StatusOr<std::string> InterpretedOpenFheTranspiler::TranslateHeader(
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 $4
-#include "palisade/binfhe/binfhecontext.h"
+#include "openfhe/binfhe/binfhecontext.h"
 
 $0;
 

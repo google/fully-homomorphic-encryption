@@ -26,7 +26,7 @@
 
 #include "absl/container/fixed_array.h"
 #include "absl/types/span.h"
-#include "palisade/binfhe/binfhecontext.h"
+#include "openfhe/binfhe/binfhecontext.h"
 #include "transpiler/data/cleartext_data.h"
 #include "transpiler/data/cleartext_value.h"
 #include "transpiler/data/openfhe_value.h"

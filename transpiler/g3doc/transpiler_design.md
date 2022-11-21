@@ -15,7 +15,7 @@ following five stages:
     FHE-C++.
 5.  The **FHE testbench stage** runs the FHE-C++ with the appropriate library:
     either [TFHE](https://tfhe.github.io/tfhe/) or
-    [OpenFHE](https://palisade-crypto.org/)'s BinFHE.
+    [OpenFHE](https://openfhe.org/)'s BinFHE.
 
 This system includes the code for the first four stages, but users of this
 transpiler will need to write their own C++ code to be transpiled, as well as
@@ -37,10 +37,9 @@ information, see the [XLS Optimizer documentation](https://google.github.io/xls/
 
 Two things of note occur during this stage. First, the optimized XLS IR is
 re-written in terms of its operations' fundamental Boolean operations (e.g.,
-AND, OR, NOT). Next, all operations are modified to be carried out on
-individual bits (since [TFHE](https://tfhe.github.io/tfhe/) and
-[OpenFHE](https://palisade-crypto.org/) BinFHE both encrypt data one bit at a
-time).
+AND, OR, NOT). Next, all operations are modified to be carried out on individual
+bits (since [TFHE](https://tfhe.github.io/tfhe/) and
+[OpenFHE](https://openfhe.org/) BinFHE both encrypt data one bit at a time).
 
 This produces a Booleanified graph representing the operations
 to perform. See the illustration below for an example.
