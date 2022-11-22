@@ -84,9 +84,7 @@ load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 
 llvm_toolchain(
     name = "llvm_toolchain",
-    # Try using llvm version 10.0.1 if you are getting an "Unknown LLVM
-    # release" error.  This is a known issue for Ubuntu 16.04 LTS.
-    llvm_version = "10.0.0",
+    llvm_version = "13.0.0",
 )
 
 load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
