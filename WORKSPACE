@@ -35,8 +35,8 @@ http_archive(
 new_git_repository(
     name = "openfhe",
     build_file = "//patches:openfhe.BUILD",
-    # HEAD as of 2022-09-22
-    commit = "7d8e1e63e30f642ff6d8fc9493dd286b01e9c8a2",
+    # v1.0.0, 2022-11-03
+    commit = "5fc1a84cad234ffdea547db03985d888ff943ad1",
     init_submodules = True,
     remote = "https://github.com/openfheorg/openfhe-development.git",
     shallow_since = "1649455211 -0400",

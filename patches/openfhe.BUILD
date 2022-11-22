@@ -22,7 +22,7 @@ cmake(
     lib_source = ":openfhe_srcs",
     out_include_dir = "include",
     out_shared_libs = [
-        "libPALISADEcore.so.1",
+        "libOPENFHEcore.so.1",
     ],
     visibility = ["//visibility:public"],
 )
@@ -46,8 +46,8 @@ cmake(
     lib_source = ":openfhe_srcs",
     out_include_dir = "include",
     out_shared_libs = [
-        "libPALISADEbinfhe.so.1",
-        "libPALISADEcore.so.1",
+        "libOPENFHEbinfhe.so.1",
+        "libOPENFHEcore.so.1",
     ],
     visibility = ["//visibility:public"],
 )
