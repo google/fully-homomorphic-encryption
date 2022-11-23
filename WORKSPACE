@@ -42,8 +42,7 @@ new_git_repository(
     shallow_since = "1649455211 -0400",
 )
 
-# Install XLS with transitive dependencies.
-# 2022-06-01
+# Install XLS and its transitive dependencies.
 http_archive(
     name = "com_google_xls",
     patches = [
@@ -52,9 +51,9 @@ http_archive(
         "//patches:xls-visibility-logging.patch",
         "//patches:xls-visibility-status.patch",
     ],
-    sha256 = "d34199f5783b444e230d6a097e1f6b1bdfbd9ffd596a1236835a3dc566b1e76d",
-    strip_prefix = "xls-74933e379f651a70c1b98e146d3c4290822c743c",
-    url = "https://github.com/google/xls/archive/74933e379f651a70c1b98e146d3c4290822c743c.tar.gz",
+    sha256 = "565706bb4817b6310f48a46c713e3e3c1f7500863bee76fd941979966a391ce7",
+    strip_prefix = "xls-26fb6c8d3cfec98ca940e76525af7d3f303e55fb",
+    url = "https://github.com/google/xls/archive/26fb6c8d3cfec98ca940e76525af7d3f303e55fb.tar.gz",
 )
 
 # Used by xlscc.
