@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
 # TODO: Consider the project-wide visibility policy.
 package(
     default_visibility = ["//visibility:public"],

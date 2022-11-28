@@ -1,3 +1,4 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
     "//transpiler:fhe_demo.bzl",
     "gen_demos",

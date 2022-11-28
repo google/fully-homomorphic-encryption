@@ -14,6 +14,7 @@
 
 # Build rules for the template-based string reversal example.
 
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//transpiler:fhe.bzl", "fhe_cc_library")
 
 licenses(["notice"])
