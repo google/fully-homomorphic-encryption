@@ -14,9 +14,9 @@
 
 #include <stdint.h>
 
-#include "testing/base/public/benchmark.h"
-#include "testing/base/public/gmock.h"
-#include "testing/base/public/gunit.h"
+#include "benchmark/benchmark.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 #include "transpiler/data/tfhe_data.h"
 
 #ifdef USE_YOSYS_OPTIMIZER

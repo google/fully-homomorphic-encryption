@@ -121,7 +121,7 @@ cc_test(
     srcs = ["simple_sum_test.cc"],
     deps = [
         ":simple_sum",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
     ],
 )

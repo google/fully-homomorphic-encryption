@@ -29,9 +29,9 @@ INT_TYPES = [
 ]
 
 BENCHMARK_ARGS = [
-    # Run all the benchmarks (defined with BENCHMARK()) in the test file.
-    "--benchmark_filter=all",
-    "--benchmark_min_iters=4",
+    #     # Run all the benchmarks (defined with BENCHMARK()) in the test file.
+    #     "--benchmark_filter=all",
+    #     "--benchmark_min_iters=4",
 ]
 
 BENCHMARK_TAGS = [
@@ -51,7 +51,7 @@ cc_test(
     copts = ["-DUSE_YOSYS_OPTIMIZER"],
     tags = BENCHMARK_TAGS,
     deps = [
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
         "//transpiler/data:tfhe_data",
         "@tfhe//:libtfhe",
@@ -65,7 +65,7 @@ cc_test(
     args = BENCHMARK_ARGS,
     tags = BENCHMARK_TAGS,
     deps = [
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
         "//transpiler/data:tfhe_data",
         "@tfhe//:libtfhe",
@@ -80,7 +80,7 @@ cc_test(
     copts = ["-DUSE_YOSYS_OPTIMIZER"],
     tags = BENCHMARK_TAGS,
     deps = [
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
         "//transpiler/data:openfhe_data",
         "@openfhe//:binfhe",
@@ -94,7 +94,7 @@ cc_test(
     args = BENCHMARK_ARGS,
     tags = BENCHMARK_TAGS,
     deps = [
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
         "//transpiler/data:openfhe_data",
         "@openfhe//:binfhe",

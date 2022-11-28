@@ -60,7 +60,7 @@ cc_test(
         ":convert_struct_to_encoded",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_protobuf//:protobuf",
         "@com_google_xls//xls/common/status:matchers",
         "@com_google_xls//xls/common/status:status_macros",

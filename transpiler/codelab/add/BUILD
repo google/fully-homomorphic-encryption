@@ -31,7 +31,7 @@ cc_test(
     deps = [
         ":add_fhe_lib",
         "//transpiler/data:openfhe_data",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
         "@openfhe//:binfhe",
     ],

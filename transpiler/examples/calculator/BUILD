@@ -142,7 +142,7 @@ cc_test(
     srcs = ["calculator_test.cc"],
     deps = [
         ":calculator",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
     ],
 )

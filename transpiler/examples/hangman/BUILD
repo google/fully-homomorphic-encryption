@@ -51,7 +51,7 @@ cc_test(
     srcs = ["hangman_client_test.cc"],
     deps = [
         ":hangman_client_lib",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
     ],
 )

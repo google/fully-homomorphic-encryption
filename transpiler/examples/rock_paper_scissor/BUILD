@@ -97,7 +97,7 @@ cc_test(
     srcs = ["rock_paper_scissor_test.cc"],
     deps = [
         ":rock_paper_scissor",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
     ],
 )

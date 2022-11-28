@@ -120,6 +120,14 @@ new_git_repository(
     remote = "https://github.com/YosysHQ/yosys.git",
 )
 
+# Install google benchmark framework
+new_git_repository(
+    name = "com_google_benchmark",
+    build_file = "//patches:google_benchmark.BUILD",
+    commit = "d572f4777349d43653b21d6c2fc63020ab326db2",
+    remote = "https://github.com/google/benchmark.git",
+)
+
 load("@com_google_xls//dependency_support:initialize_external.bzl", "initialize_external_repositories")
 
 initialize_external_repositories()

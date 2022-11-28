@@ -248,7 +248,7 @@ cc_test(
         ":fibonacci_sequence_tfhe",
         "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
         "@tfhe//:libtfhe",
     ],

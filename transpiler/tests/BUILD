@@ -89,7 +89,7 @@ cc_test(
         ":struct_tfhe",
         ":struct2_tfhe",
         ":namespaced_struct_tfhe",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/strings",
@@ -108,7 +108,7 @@ cc_test(
         ":struct_openfhe",
         ":struct2_openfhe",
         ":namespaced_struct_openfhe",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/strings",
@@ -155,7 +155,7 @@ cc_test(
     shard_count = 8,
     deps = [":%s_tfhe" % i for i in _CONTROL_STRUCTURE] + [
         ":tfhe_test_util",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/strings",
@@ -172,7 +172,7 @@ cc_test(
     shard_count = 8,
     deps = [":%s_openfhe" % i for i in _CONTROL_STRUCTURE] + [
         ":openfhe_test_util",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/strings",
@@ -233,7 +233,7 @@ cc_test(
         ":single_out_param_with_return_cleartext",
         "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
     ],
 )
@@ -285,7 +285,7 @@ cc_test(
         ":struct_cleartext",
         "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
     ],
 )
@@ -298,7 +298,7 @@ cc_test(
         ":tfhe_test_util",
         "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
     ],
 )
@@ -311,7 +311,7 @@ cc_test(
         ":struct_openfhe",
         "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
     ],
 )
@@ -322,7 +322,7 @@ cc_test(
     deps = [
         "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
     ],
 )
@@ -334,7 +334,7 @@ cc_test(
         ":tfhe_test_util",
         "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
     ],
 )
@@ -346,7 +346,7 @@ cc_test(
         ":openfhe_test_util",
         "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
     ],
 )

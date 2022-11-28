@@ -14,10 +14,10 @@
 
 #include <stdint.h>
 
+#include "benchmark/benchmark.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 #include "openfhe/binfhe/binfhecontext.h"
-#include "testing/base/public/benchmark.h"
-#include "testing/base/public/gmock.h"
-#include "testing/base/public/gunit.h"
 #include "transpiler/data/openfhe_data.h"
 
 #ifdef USE_YOSYS_OPTIMIZER
@@ -58,7 +58,7 @@ void BM_AddInt(benchmark::State& state) {
   OpenFhe<int> result(cc);
 
   for (auto s : state) {
-    ASSERT_OK(AddInt(result, a, b, cc));
+    benchmark::DoNotOptimize(AddInt(result, a, b, cc));
   }
 }
 BENCHMARK(BM_AddInt);
