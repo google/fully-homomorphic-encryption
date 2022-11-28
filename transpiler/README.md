@@ -114,7 +114,7 @@ In order to install the FHE C++ Transpiler on your Linux machine:
     run
 
     ```shell
-    docker build -t google-fhe-transpiler .
+    docker build -t google-fhe-transpiler -f docker/debian-bullseye.Dockerfile .
     ```
 
     This may take around 1 hour, depending on your system configuration.
