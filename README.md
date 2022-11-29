@@ -32,7 +32,7 @@ encrypted data using FHE is still orders of magnitude slower than performing the
 computation on the plaintext. On top of that, converting a program that operates
 on unencrypted data to one that FHE-operates on encrypted data is far from being
 a trivial translation. If not properly done, this translation can significantly
-increase the performance gap between computing on unencrypted data and the 
+increase the performance gap between computing on unencrypted data and the
 FHE-computation on encrypted data, thus precluding wide FHE adoption.
 
 ## FHE C++ Transpiler
@@ -71,13 +71,14 @@ We are committed to open-sourcing our work to support your use cases. We want to
 know how you use this library and what problems it helps you to solve. We have
 two communication channels for you to contact us:
 
-* A [public discussion group](https://groups.google.com/g/fhe-open-source-users)
-where we will also share our preliminary roadmap, updates, events, and more.
+*   A
+    [public discussion group](https://groups.google.com/g/fhe-open-source-users)
+    where we will also share our preliminary roadmap, updates, events, and more.
 
-* A private email alias at
-[fhe-open-source@google.com](mailto:fhe-open-source@google.com)
-where you can reach out to us directly about your use cases and what more we can
-do to help and improve the library.
+*   A private email alias at
+    [fhe-open-source@google.com](mailto:fhe-open-source@google.com) where you
+    can reach out to us directly about your use cases and what more we can do to
+    help and improve the library.
 
 Please refrain from sending any sensitive or confidential information. If you
 wish to delete a message you've previously sent, please contact us.
@@ -86,40 +87,42 @@ wish to delete a message you've previously sent, please contact us.
 
 The contributors to this project are (sorted by last name):
 
-- [Eric Astor](https://github.com/ericastor)
-- [Damien Desfontaines](https://desfontain.es/serious.html)
-- Christoph Dibak
-- [Alain Forget](https://people.scs.carleton.ca/~aforget/)
-- [Bryant Gipson](https://www.linkedin.com/in/bryant-gipson-33478419)
-- [Shruthi Gorantala](https://github.com/code-perspective) (Lead)
-- [Miguel Guevara](https://www.linkedin.com/in/miguel-guevara-8a5a332a)
-- [Aishwarya Krishnamurthy](https://www.linkedin.com/in/aishe-k)
-- Sasha Kulankhina
-- [William Lam](https://www.linkedin.com/in/william-m-lam)
-- [David Marn](http://dmarn.org)
-- [Rafael Misoczki](https://www.linkedin.com/in/rafael-misoczki-phd-24b33013)
-- Bernat Guillén Pegueroles
-- [Milinda Perera](https://milinda-perera.com)
-- [Sean Purser-Haskell](https://www.linkedin.com/in/sean-purser-haskell-30b5268)
-- [Sam Ruth](https://www.linkedin.com/in/samuelruth)
-- [Rob Springer](https://github.com/RobSpringer)
-- [Yurii Sushko](https://www.linkedin.com/in/midnighter)
-- [Cameron Tew](https://github.com/cam2337)
-- [Royce Wilson](https://research.google/people/RoyceJWilson)
-- [Xinyu Ye](https://github.com/xinyuye)
-- [Itai Zukerman](https://github.com/izuk)
-- [Iliyan Malchev](https://github.com/malchev)
-
+-   [Eric Astor](https://github.com/ericastor)
+-   [Damien Desfontaines](https://desfontain.es/serious.html)
+-   Christoph Dibak
+-   [Alain Forget](https://people.scs.carleton.ca/~aforget/)
+-   [Bryant Gipson](https://www.linkedin.com/in/bryant-gipson-33478419)
+-   [Shruthi Gorantala](https://github.com/code-perspective) (Lead)
+-   [Miguel Guevara](https://www.linkedin.com/in/miguel-guevara-8a5a332a)
+-   [Aishwarya Krishnamurthy](https://www.linkedin.com/in/aishe-k)
+-   Sasha Kulankhina
+-   [Jeremy Kun](https://jeremykun.com)
+-   [William Lam](https://www.linkedin.com/in/william-m-lam)
+-   [David Marn](http://dmarn.org)
+-   [Rafael Misoczki](https://www.linkedin.com/in/rafael-misoczki-phd-24b33013)
+-   Bernat Guillén Pegueroles
+-   [Milinda Perera](https://milinda-perera.com)
+-   [Sean Purser-Haskell](https://www.linkedin.com/in/sean-purser-haskell-30b5268)
+-   [Sam Ruth](https://www.linkedin.com/in/samuelruth)
+-   [Rob Springer](https://github.com/RobSpringer)
+-   [Yurii Sushko](https://www.linkedin.com/in/midnighter)
+-   [Cameron Tew](https://github.com/cam2337)
+-   [Royce Wilson](https://research.google/people/RoyceJWilson)
+-   [Xinyu Ye](https://github.com/xinyuye)
+-   [Itai Zukerman](https://github.com/izuk)
+-   [Iliyan Malchev](https://github.com/malchev)
 
 ## Citing FHE Transpiler
+
 To cite FHE Transpiler in academic papers, please use the following entry:
-```shell
-@misc{cryptoeprint:2021/811,
-      author = {Shruthi Gorantala and Rob Springer and Sean Purser-Haskell and William Lam and Royce Wilson and Asra Ali and Eric P. Astor and Itai Zukerman and Sam Ruth and Christoph Dibak and Phillipp Schoppmann and Sasha Kulankhina and Alain Forget and David Marn and Cameron Tew and Rafael Misoczki and Bernat Guillen and Xinyu Ye and Dennis Kraft and Damien Desfontaines and Aishe Krishnamurthy and Miguel Guevara and Irippuge Milinda Perera and Yurii Sushko and Bryant Gipson},
-      title = {A General Purpose Transpiler for Fully Homomorphic Encryption},
-      howpublished = {Cryptology ePrint Archive, Paper 2021/811},
-      year = {2021},
-      note = {\url{https://eprint.iacr.org/2021/811}},
-      url = {https://eprint.iacr.org/2021/811}
-}
-```
+`shell @misc{cryptoeprint:2021/811, author = {Shruthi Gorantala and Rob Springer
+and Sean Purser-Haskell and William Lam and Royce Wilson and Asra Ali and Eric
+P. Astor and Itai Zukerman and Sam Ruth and Christoph Dibak and Phillipp
+Schoppmann and Sasha Kulankhina and Alain Forget and David Marn and Cameron Tew
+and Rafael Misoczki and Bernat Guillen and Xinyu Ye and Dennis Kraft and Damien
+Desfontaines and Aishe Krishnamurthy and Miguel Guevara and Irippuge Milinda
+Perera and Yurii Sushko and Bryant Gipson}, title = {A General Purpose
+Transpiler for Fully Homomorphic Encryption}, howpublished = {Cryptology ePrint
+Archive, Paper 2021/811}, year = {2021}, note =
+{\url{https://eprint.iacr.org/2021/811}}, url =
+{https://eprint.iacr.org/2021/811} }`
