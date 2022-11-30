@@ -26,6 +26,7 @@ RUN apt-get update && apt-get install -y \
   libtinfo5 \
   python3 \
   python3-pip \
+  python-is-python3 \
   autoconf \
   libreadline-dev \
   flex \
