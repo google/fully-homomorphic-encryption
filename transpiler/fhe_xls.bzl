@@ -296,7 +296,6 @@ def _generate_verilog(ctx, stem, src, extension, entry):
         [
             src.path,
             "--delay_model=unit",
-            "--clock_period_ps=1000",
             "--generator=combinational",
             "--use_system_verilog=false",  # edit the YS script if this changes
         ],
