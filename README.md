@@ -113,7 +113,7 @@ The contributors to this project are (sorted by last name):
 
 ## Citing FHE Transpiler
 To cite FHE Transpiler in academic papers, please use the following entry:
-```shell
+```bibtex
 @misc{cryptoeprint:2021/811,
       author = {Shruthi Gorantala and Rob Springer and Sean Purser-Haskell and William Lam and Royce Wilson and Asra Ali and Eric P. Astor and Itai Zukerman and Sam Ruth and Christoph Dibak and Phillipp Schoppmann and Sasha Kulankhina and Alain Forget and David Marn and Cameron Tew and Rafael Misoczki and Bernat Guillen and Xinyu Ye and Dennis Kraft and Damien Desfontaines and Aishe Krishnamurthy and Miguel Guevara and Irippuge Milinda Perera and Yurii Sushko and Bryant Gipson},
       title = {A General Purpose Transpiler for Fully Homomorphic Encryption},
