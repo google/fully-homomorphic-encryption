@@ -30,9 +30,6 @@ INT_TYPES = [
 ]
 
 BENCHMARK_ARGS = [
-    #     # Run all the benchmarks (defined with BENCHMARK()) in the test file.
-    #     "--benchmark_filter=all",
-    #     "--benchmark_min_iters=4",
 ]
 
 BENCHMARK_TAGS = [
