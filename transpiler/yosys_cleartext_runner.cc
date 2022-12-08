@@ -17,8 +17,7 @@
 #include "absl/strings/substitute.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
-#include "xls/ir/bits.h"
-#include "xls/ir/bits_ops.h"
+#include "xls/public/value.h"
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {

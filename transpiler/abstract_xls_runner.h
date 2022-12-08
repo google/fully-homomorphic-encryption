@@ -52,13 +52,8 @@
 #include "xls/common/file/filesystem.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
-#include "xls/ir/function.h"
-#include "xls/ir/ir_parser.h"
-#include "xls/ir/node.h"
-#include "xls/ir/node_iterator.h"
-#include "xls/ir/nodes.h"
-#include "xls/ir/package.h"
-#include "xls/ir/type.h"
+#include "xls/public/ir.h"
+#include "xls/public/ir_parser.h"
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {
@@ -476,7 +471,7 @@ absl::StatusOr<std::unique_ptr<Derived>> AbstractXlsRunner<
     EncodedBitConstRef>::CreateFromFile(absl::string_view ir_path,
                                         absl::string_view metadata_path) {
   XLS_ASSIGN_OR_RETURN(std::string ir_text, xls::GetFileContents(ir_path));
-  XLS_ASSIGN_OR_RETURN(auto package, xls::Parser::ParsePackage(ir_text));
+  XLS_ASSIGN_OR_RETURN(auto package, xls::ParsePackage(ir_text, std::nullopt));
 
   XLS_ASSIGN_OR_RETURN(std::string metadata_binary,
                        xls::GetFileContents(metadata_path));
@@ -494,7 +489,8 @@ absl::StatusOr<std::unique_ptr<Derived>> AbstractXlsRunner<
     Derived, EncodedBit, EncodedBitRef,
     EncodedBitConstRef>::CreateFromStrings(absl::string_view xls_package,
                                            absl::string_view metadata_text) {
-  XLS_ASSIGN_OR_RETURN(auto package, xls::Parser::ParsePackage(xls_package));
+  XLS_ASSIGN_OR_RETURN(
+      auto package, xls::ParsePackage(xls_package, /*filename=*/std::nullopt));
 
   xlscc_metadata::MetadataOutput metadata;
   if (!google::protobuf::TextFormat::ParseFromString(std::string(metadata_text),

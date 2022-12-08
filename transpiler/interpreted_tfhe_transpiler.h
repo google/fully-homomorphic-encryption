@@ -22,8 +22,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
-#include "xls/ir/function.h"
-#include "xls/ir/node.h"
+#include "xls/public/ir.h"
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {

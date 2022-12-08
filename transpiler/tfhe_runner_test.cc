@@ -24,7 +24,7 @@
 #include "transpiler/data/tfhe_data.h"
 #include "xls/common/status/matchers.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
-#include "xls/ir/ir_parser.h"
+#include "xls/public/ir_parser.h"
 
 constexpr int kMainMinimumLambda = 120;
 
@@ -112,8 +112,9 @@ TEST(TfheRunnerTest, EndToEnd) {
   absl::flat_hash_map<std::string, absl::Span<const LweSample>> in_args = {
       {"x", ciphertext.get()}};
 
-  XLS_ASSERT_OK_AND_ASSIGN(auto package,
-                           xls::Parser::ParsePackage(kEndToEndExample));
+  XLS_ASSERT_OK_AND_ASSIGN(
+      auto package,
+      xls::ParsePackage(kEndToEndExample, /*filename=*/std::nullopt));
   xlscc_metadata::MetadataOutput metadata;
   metadata.mutable_top_func_proto()->mutable_name()->set_name("my_package");
 

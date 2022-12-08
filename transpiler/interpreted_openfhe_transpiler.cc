@@ -26,10 +26,7 @@
 #include "google/protobuf/text_format.h"
 #include "transpiler/common_transpiler.h"
 #include "xls/common/status/status_macros.h"
-#include "xls/ir/function.h"
-#include "xls/ir/node.h"
-#include "xls/ir/node_iterator.h"
-#include "xls/ir/nodes.h"
+#include "xls/public/ir.h"
 #include "xls/public/value.h"
 
 namespace fully_homomorphic_encryption {
@@ -92,7 +89,7 @@ $2 {
   XLS_CHECK(
       google::protobuf::TextFormat::PrintToString(metadata, &metadata_text));
 
-  return absl::Substitute(kSourceTemplate, function->package()->DumpIr(),
+  return absl::Substitute(kSourceTemplate, xls::GetPackage(*function).DumpIr(),
                           metadata_text, signature, return_param,
                           absl::StrJoin(in_param_entries, ", "),
                           absl::StrJoin(inout_param_entries, ", "));

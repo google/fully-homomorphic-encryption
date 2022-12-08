@@ -38,12 +38,9 @@
 #include "xls/common/status/matchers.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
-#include "xls/ir/function.h"
-#include "xls/ir/ir_parser.h"
-#include "xls/ir/node.h"
-#include "xls/ir/package.h"
-#include "xls/ir/source_location.h"
-#include "xls/ir/type.h"
+#include "xls/public/function_builder.h"
+#include "xls/public/ir.h"
+#include "xls/public/ir_parser.h"
 
 namespace fully_homomorphic_encryption::transpiler {
 namespace {
@@ -65,7 +62,7 @@ absl::StatusOr<std::unique_ptr<xls::Package>> BooleanizeIr(xls::Package* p) {
                                                           temp_file.path())),
                            absl::StrCat("--top=", p->GetTop().value()->name()),
                        }));
-  return xls::Parser::ParsePackage(std::get<0>(out_err));
+  return xls::ParsePackage(std::get<0>(out_err), /*filename=*/std::nullopt);
 }
 
 // Creates an aggregate value containing individual bits representing an

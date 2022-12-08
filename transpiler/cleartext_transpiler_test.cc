@@ -26,10 +26,8 @@
 #include "gtest/gtest.h"
 #include "xls/common/status/matchers.h"
 #include "xls/common/status/status_macros.h"
-#include "xls/ir/function.h"
-#include "xls/ir/package.h"
-#include "xls/ir/type.h"
 #include "xls/public/function_builder.h"
+#include "xls/public/ir.h"
 
 namespace fully_homomorphic_encryption::transpiler {
 namespace {

@@ -42,10 +42,9 @@
 #include "xls/common/file/filesystem.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
-#include "xls/ir/bits.h"
-#include "xls/ir/function.h"
-#include "xls/ir/ir_parser.h"
-#include "xls/ir/package.h"
+#include "xls/public/ir.h"
+#include "xls/public/ir_parser.h"
+#include "xls/public/value.h"
 
 namespace {
 
@@ -144,7 +143,8 @@ absl::Status RealMain(const std::filesystem::path& ir_path,
                          YosysTranspiler::Translate(metadata, cell_library_text,
                                                     ir_text, encryption));
   } else {
-    XLS_ASSIGN_OR_RETURN(auto package, xls::Parser::ParsePackage(ir_text));
+    XLS_ASSIGN_OR_RETURN(auto package,
+                         xls::ParsePackage(ir_text, /*filename=*/std::nullopt));
     XLS_ASSIGN_OR_RETURN(xls::Function * function,
                          package->GetFunction(function_name));
 

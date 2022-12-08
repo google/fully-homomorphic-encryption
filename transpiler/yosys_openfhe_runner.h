@@ -25,11 +25,7 @@
 #include "openfhe/binfhe/binfhecontext.h"
 #include "transpiler/data/openfhe_data.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
-#include "xls/netlist/cell_library.h"
-#include "xls/netlist/function_extractor.h"
-#include "xls/netlist/interpreter.h"
-#include "xls/netlist/lib_parser.h"
-#include "xls/netlist/netlist_parser.h"
+#include "xls/protected/netlist.h"
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {

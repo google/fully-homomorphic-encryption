@@ -26,10 +26,7 @@
 #include "absl/strings/substitute.h"
 #include "transpiler/common_transpiler.h"
 #include "xls/common/status/status_macros.h"
-#include "xls/ir/function.h"
-#include "xls/ir/node.h"
-#include "xls/ir/node_iterator.h"
-#include "xls/ir/nodes.h"
+#include "xls/public/ir.h"
 #include "xls/public/value.h"
 
 namespace xls {

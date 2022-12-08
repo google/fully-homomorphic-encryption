@@ -58,7 +58,8 @@ cc_library(
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
-        "@com_google_xls//xls/ir",
+        "@com_google_xls//xls/protected:ir",
+        "@com_google_xls//xls/public:ir",
     ],
 )
 
@@ -101,7 +102,7 @@ cc_library(
         "@com_google_absl//absl/strings:str_format",
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
-        "@com_google_xls//xls/ir",
+        "@com_google_xls//xls/public:ir",
         "@com_google_xls//xls/public:value",
     ],
 )
@@ -119,7 +120,7 @@ cc_library(
         "@com_google_protobuf//:protobuf",
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
-        "@com_google_xls//xls/ir",
+        "@com_google_xls//xls/public:ir",
         "@com_google_xls//xls/public:value",
     ],
 )
@@ -154,13 +155,12 @@ cc_library(
         "@com_google_protobuf//:protobuf",
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
-        "@com_google_xls//xls/ir:bits",
-        "@com_google_xls//xls/ir:bits_ops",
         "@com_google_xls//xls/netlist:cell_library",
         "@com_google_xls//xls/netlist:function_extractor",
         "@com_google_xls//xls/netlist:interpreter",
         "@com_google_xls//xls/netlist:lib_parser",
         "@com_google_xls//xls/netlist:netlist_parser",
+        "@com_google_xls//xls/public:value",
     ],
 )
 
@@ -179,14 +179,13 @@ cc_library(
         "@com_google_protobuf//:protobuf",
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
-        "@com_google_xls//xls/ir:bits",
-        "@com_google_xls//xls/ir:bits_ops",
         "@com_google_xls//xls/netlist",
         "@com_google_xls//xls/netlist:cell_library",
         "@com_google_xls//xls/netlist:function_extractor",
         "@com_google_xls//xls/netlist:interpreter",
         "@com_google_xls//xls/netlist:lib_parser",
         "@com_google_xls//xls/netlist:netlist_parser",
+        "@com_google_xls//xls/public:value",
     ],
 )
 
@@ -205,14 +204,8 @@ cc_library(
         "@com_google_protobuf//:protobuf",
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
-        "@com_google_xls//xls/ir:bits",
-        "@com_google_xls//xls/ir:bits_ops",
-        "@com_google_xls//xls/netlist",
-        "@com_google_xls//xls/netlist:cell_library",
-        "@com_google_xls//xls/netlist:function_extractor",
-        "@com_google_xls//xls/netlist:interpreter",
-        "@com_google_xls//xls/netlist:lib_parser",
-        "@com_google_xls//xls/netlist:netlist_parser",
+        "@com_google_xls//xls/protected:netlist",
+        "@com_google_xls//xls/public:value",
         "@openfhe//:binfhe",
     ],
 )
@@ -260,7 +253,7 @@ cc_test(
         "@com_google_googletest//:gtest_main",
         "@com_google_xls//xls/common/status:matchers",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
-        "@com_google_xls//xls/ir:ir_parser",
+        "@com_google_xls//xls/public:ir_parser",
     ],
 )
 
@@ -279,9 +272,8 @@ cc_library(
         "@com_google_xls//xls/common/file:filesystem",
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
-        "@com_google_xls//xls/ir",
-        "@com_google_xls//xls/ir:ir_parser",
-        "@com_google_xls//xls/ir:type",
+        "@com_google_xls//xls/public:ir",
+        "@com_google_xls//xls/public:ir_parser",
     ],
 )
 
@@ -312,7 +304,7 @@ cc_library(
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
-        "@com_google_xls//xls/ir",
+        "@com_google_xls//xls/public:ir",
         "@com_google_xls//xls/public:value",
     ],
 )
@@ -327,9 +319,8 @@ cc_test(
         "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
         "@com_google_xls//xls/common/status:status_macros",
-        "@com_google_xls//xls/ir",
-        "@com_google_xls//xls/ir:type",
         "@com_google_xls//xls/public:function_builder",
+        "@com_google_xls//xls/public:ir",
     ],
 )
 
@@ -346,7 +337,7 @@ cc_library(
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_xls//xls/common/status:status_macros",
-        "@com_google_xls//xls/ir",
+        "@com_google_xls//xls/public:ir",
         "@com_google_xls//xls/public:value",
     ],
 )
@@ -364,7 +355,7 @@ cc_library(
         "@com_google_protobuf//:protobuf",
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
-        "@com_google_xls//xls/ir",
+        "@com_google_xls//xls/public:ir",
         "@com_google_xls//xls/public:value",
     ],
 )
@@ -400,9 +391,9 @@ cc_binary(
         "@com_google_xls//xls/common/file:filesystem",
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
-        "@com_google_xls//xls/ir",
-        "@com_google_xls//xls/ir:bits",
-        "@com_google_xls//xls/ir:ir_parser",
+        "@com_google_xls//xls/public:ir",
+        "@com_google_xls//xls/public:ir_parser",
+        "@com_google_xls//xls/public:value",
     ],
 )
 
@@ -427,11 +418,9 @@ cc_test(
         "@com_google_xls//xls/common/status:matchers",
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
-        "@com_google_xls//xls/ir",
-        "@com_google_xls//xls/ir:ir_parser",
-        "@com_google_xls//xls/ir:source_location",
-        "@com_google_xls//xls/ir:type",
         "@com_google_xls//xls/public:function_builder",
+        "@com_google_xls//xls/public:ir",
+        "@com_google_xls//xls/public:ir_parser",
     ],
 )
 
