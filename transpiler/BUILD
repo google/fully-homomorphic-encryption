@@ -423,5 +423,3 @@ cc_test(
         "@com_google_xls//xls/public:ir_parser",
     ],
 )
-
-exports_files(glob(["*.liberty"]))

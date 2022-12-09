@@ -14,14 +14,13 @@
 
 """Common helper utilities and constants for fhe bazel files."""
 
-_TFHE_CELLS_LIBERTY = "//transpiler:tfhe_cells.liberty"
-_OPENFHE_CELLS_LIBERTY = "//transpiler:openfhe_cells.liberty"
+TFHE_CELLS_LIBERTY = "//transpiler/yosys:tfhe_cells.liberty"
+OPENFHE_CELLS_LIBERTY = "//transpiler/yosys:openfhe_cells.liberty"
 
 FHE_ENCRYPTION_SCHEMES = {
-    "cleartext": _TFHE_CELLS_LIBERTY,
-    "openfhe": _OPENFHE_CELLS_LIBERTY,
-    "tfhe": _TFHE_CELLS_LIBERTY,
-    "tfhe_jax": _TFHE_CELLS_LIBERTY,
+    "cleartext": TFHE_CELLS_LIBERTY,
+    "openfhe": OPENFHE_CELLS_LIBERTY,
+    "tfhe": TFHE_CELLS_LIBERTY,
 }
 
 BooleanifiedIrOutputInfo = provider(
