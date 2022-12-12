@@ -182,7 +182,7 @@ absl::Status YosysOpenFheRunner::YosysOpenFheRunnerState::Run(
 
   xls::netlist::AbstractNetRef2Value<OpenFheBoolValue> input_nets;
   const std::vector<NetRef>& module_inputs = module->inputs();
-  XLS_CHECK(module_inputs.size() == input_bits.size());
+  XLS_CHECK_EQ(module_inputs.size(), input_bits.size());
 
   for (int i = 0; i < module->inputs().size(); i++) {
     const NetRef in = module_inputs[i];

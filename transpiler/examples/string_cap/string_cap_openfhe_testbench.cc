@@ -35,8 +35,6 @@
 #include "transpiler/examples/string_cap/string_cap_openfhe_xls_transpiled.h"
 #endif
 
-constexpr int kMainMinimumLambda = 120;
-
 void OpenFheStringCap(OpenFheArray<char>& ciphertext,
                       lbcrypto::BinFHEContext cc) {
   absl::Time start_time = absl::Now();

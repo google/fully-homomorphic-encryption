@@ -5,6 +5,10 @@ load(
     "gen_fhe_cc_library_for_all_optimizers_translators_cryptosystems",
 )
 
+package(
+    default_visibility = ["//visibility:public"],
+)
+
 licenses(["notice"])
 
 gen_fhe_cc_library_for_all_optimizers_translators_cryptosystems(
