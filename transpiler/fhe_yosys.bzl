@@ -28,7 +28,11 @@ _YOSYS = "@yosys//:yosys_bin"
 _ABC = "@abc//:abc_bin"
 
 _LUT_TO_LUTMUX_SCRIPT = "//transpiler/yosys:map_lut_to_lutmux.v"
-VALID_LUT_SIZES = [0, 2, 3]
+VALID_LUT_SIZES = {
+    "yosys": [0, 2, 3],
+    # No other optimizers currently support LUTs, so they should all be [0]
+    "xls": [0],
+}
 
 _YOSYS_SCRIPT_TEMPLATE_NO_LUT = """cat>{script}<<EOF
 read_verilog {verilog}
@@ -133,7 +137,7 @@ _verilog_to_netlist = rule(
 
             A value of zero means that LUTs should not be used.
             """,
-            values = VALID_LUT_SIZES,
+            values = VALID_LUT_SIZES["yosys"],
             default = 0,
         ),
         "lutmap_script": attr.label(
