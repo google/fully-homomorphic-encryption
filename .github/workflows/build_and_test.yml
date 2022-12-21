@@ -1,0 +1,25 @@
+name: Test all dockerfiles
+
+on:
+  push:
+    branches: [ $default-branch ]
+  pull_request:
+    branches: [ $default-branch ]
+
+jobs:
+  docker-ubuntu:
+   runs-on: ubuntu-latest
+   steps:
+     - uses: actions/checkout@v3
+     - name: Build container image
+       run: docker build -t fhe-ubuntu -f docker/ubuntu-jammy.Dockerfile .
+     - name: Run tests inside the container
+       run: docker run fhe-ubuntu 'bazel test ...:all'
+  docker-debian:
+   runs-on: ubuntu-latest
+   steps:
+     - uses: actions/checkout@v3
+     - name: Build container image
+       run: docker build -t fhe-debian -f docker/debian-bullseye.Dockerfile .
+     - name: Run tests inside the container
+       run: docker run fhe-debian 'bazel test ...:all'
