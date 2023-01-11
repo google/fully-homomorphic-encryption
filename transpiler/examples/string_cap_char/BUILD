@@ -98,3 +98,8 @@ cc_test(
         "@tfhe//:libtfhe",
     ],
 )
+
+exports_files([
+    "string_cap_char.cc",
+    "string_cap_char.h",
+])

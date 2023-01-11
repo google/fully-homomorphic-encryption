@@ -49,7 +49,8 @@ void OpenFheStringCap(OpenFheArray<char>& cipherresult,
   for (int i = 0; i < data_size; i++) {
     const absl::Time start_time = absl::Now();
     const double cpu_start_time = clock();
-    XLS_CHECK_OK(my_package(cipherresult[i], cipherstate, ciphertext[i], cc));
+    XLS_CHECK_OK(
+        capitalize_char(cipherresult[i], cipherstate, ciphertext[i], cc));
     const double cpu_end_time = clock();
     const absl::Time end_time = absl::Now();
     const absl::Duration char_time = end_time - start_time;

@@ -84,7 +84,7 @@ TEST(StringCapCharTest, CorrectlyCapitalizesLongPhraseEncrypted) {
   state.SetUnencrypted(State(), key.cloud());
   for (int i = 0; i < data_size; i++) {
     XLS_ASSERT_OK(
-        my_package(cipher_result[i], state, ciphertext[i], key.cloud()));
+        capitalize_char(cipher_result[i], state, ciphertext[i], key.cloud()));
   }
   std::string result = cipher_result.Decrypt(key);
 

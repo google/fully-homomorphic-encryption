@@ -26,4 +26,4 @@ unsigned char State::process(unsigned char c) {
 }
 
 #pragma hls_top
-char my_package(State &st, char c) { return st.process(c); }
+char capitalize_char(State &st, char c) { return st.process(c); }
