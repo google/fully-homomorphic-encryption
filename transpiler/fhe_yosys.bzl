@@ -44,9 +44,14 @@ abc -liberty {cell_library}
 opt_clean -purge
 clean
 write_verilog {netlist_path}
+show -format dot -prefix {netlist_path} -viewer touch
 EOF
 """
 
+# In the script below, putting a second `write_verilog` command before the
+# `techmap` command is required to make a visualization compact and useful. The
+# output of the techmap results in the wires organized in such a way that yosys
+# doesn't display the circuit in nice layers.
 _YOSYS_SCRIPT_TEMPLATE_LUT = """cat>{script}<<EOF
 read_verilog {verilog}
 hierarchy -check -top $(cat {entry})
@@ -55,6 +60,8 @@ techmap
 opt
 abc -lut {lut_size}
 opt_clean -purge
+write_verilog -attr2comment {netlist_path}.pre_techmap
+show -format dot -prefix {netlist_path} -viewer touch
 techmap -map {lutmap_script}
 opt_clean -purge
 clean
@@ -81,9 +88,10 @@ def _verilog_to_netlist_impl(ctx):
     name = stem + "_" + ctx.attr.encryption
     if stem != library_name:
         name = library_name
-    netlist_file, yosys_script_file = _generate_netlist(ctx, name, verilog_ir_file, metadata_entry_file)
+    generated_files = _generate_netlist(ctx, name, verilog_ir_file, metadata_entry_file)
+    netlist_file = generated_files[0]
 
-    outputs = [netlist_file, yosys_script_file]
+    outputs = generated_files
     return [
         DefaultInfo(files = depset(outputs + src[DefaultInfo].files.to_list())),
         BooleanifiedIrOutputInfo(
@@ -169,8 +177,11 @@ def verilog_to_netlist(name, src, encryption, cell_library = None, lut_size = 0)
 
 def _generate_yosys_script(ctx, stem, verilog, netlist_path, entry):
     ys_script = ctx.actions.declare_file("%s.ys" % stem)
+    dot_visualization = ctx.actions.declare_file("%s.netlist.v.dot" % stem)
+    additional_files = [dot_visualization]
 
     if ctx.attr.lut_size:
+        additional_files.append(ctx.actions.declare_file("%s.netlist.v.pre_techmap" % stem))
         sh_cmd = _YOSYS_SCRIPT_TEMPLATE_LUT.format(
             entry = entry.path,
             lut_size = ctx.attr.lut_size,
@@ -194,12 +205,12 @@ def _generate_yosys_script(ctx, stem, verilog, netlist_path, entry):
         command = sh_cmd,
     )
 
-    return ys_script
+    return ys_script, additional_files
 
 def _generate_netlist(ctx, stem, verilog, entry):
     netlist = ctx.actions.declare_file("%s.netlist.v" % stem)
 
-    script = _generate_yosys_script(ctx, stem, verilog, netlist.path, entry)
+    script, additional_files = _generate_yosys_script(ctx, stem, verilog, netlist.path, entry)
 
     yosys_runfiles_dir = ctx.executable._yosys.path + ".runfiles"
 
@@ -212,7 +223,7 @@ def _generate_netlist(ctx, stem, verilog, entry):
 
     ctx.actions.run(
         inputs = [verilog, script],
-        outputs = [netlist],
+        outputs = [netlist] + additional_files,
         arguments = [args],
         executable = ctx.executable._yosys,
         tools = [
@@ -225,4 +236,4 @@ def _generate_netlist(ctx, stem, verilog, entry):
         },
     )
 
-    return (netlist, script)
+    return [netlist, script] + additional_files
