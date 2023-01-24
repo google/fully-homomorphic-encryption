@@ -27,7 +27,11 @@ load(
 _YOSYS = "@yosys//:yosys_bin"
 _ABC = "@abc//:abc_bin"
 
-_LUT_TO_LUTMUX_SCRIPT = "//transpiler/yosys:map_lut_to_lutmux.v"
+_LUT_TO_LUTMUX_SCRIPTS = {
+    0: "//transpiler/yosys:map_lut_to_lutmux.v",
+    2: "//transpiler/yosys:map_lut_to_lutmux2.v",
+    3: "//transpiler/yosys:map_lut_to_lutmux3.v",
+}
 VALID_LUT_SIZES = {
     "yosys": [0, 2, 3],
     # No other optimizers currently support LUTs, so they should all be [0]
@@ -170,7 +174,7 @@ def verilog_to_netlist(name, src, encryption, cell_library = None, lut_size = 0)
             cell_library = cell_library,
             lut_size = lut_size,
             # unused if lut_size is not set
-            lutmap_script = _LUT_TO_LUTMUX_SCRIPT,
+            lutmap_script = _LUT_TO_LUTMUX_SCRIPTS[lut_size],
         )
     else:
         fail("Invalid encryption value:", encryption)
