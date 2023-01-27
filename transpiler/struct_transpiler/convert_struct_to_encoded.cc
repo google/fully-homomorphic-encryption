@@ -483,7 +483,7 @@ class GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
   size_t length() const { return length_; }
   size_t bit_width() const { return length_ * element_bit_width(); }
   static constexpr size_t element_bit_width() { return element_bit_width_; }
-  
+
   const BootstrappingKey* bk() const { return bk_; }
 
  private:
@@ -1725,6 +1725,15 @@ class Tfhe<$1> : public __TfheBase<$0> {
       : __TfheBase<$0>(new_gate_bootstrapping_ciphertext_array(
                            Tfhe<$1>::element_bit_width(), params),
                        1, LweSampleArrayDeleter(Tfhe<$1>::element_bit_width()),
+                       params),
+        params_(params) {}
+
+  // The `samples` arg must contain Tfhe<$1>element_bit_width number of samples,
+  // and ownership is transferred to this class.
+  Tfhe(LweSample *samples, const TFheGateBootstrappingParameterSet* params)
+      : __TfheBase<$0>(samples,
+                       1,
+                       LweSampleArrayDeleter(Tfhe<$1>::element_bit_width()),
                        params),
         params_(params) {}
 

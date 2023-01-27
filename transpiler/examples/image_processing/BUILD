@@ -1,7 +1,10 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//transpiler:fhe.bzl", "fhe_cc_library")
 
-licenses(["notice"])
+package(
+    default_visibility = ["//visibility:public"],
+    licenses = ["notice"],  # Apache 2.0
+)
 
 cc_library(
     name = "commons",
