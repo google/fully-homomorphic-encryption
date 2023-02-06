@@ -591,6 +591,7 @@ def fhe_cc_library(
         encryption = "tfhe",
         optimizer = "xls",
         interpreter = False,
+        library_name = None,
         **kwargs):
     """A rule for building FHE-based cc_libraries.
 
@@ -632,14 +633,18 @@ def fhe_cc_library(
             is more powerful.)
       interpreter: Defaults to False; controls whether the resulting program executes
             directly (single-threaded C++), or invokes a multi-threaded interpreter.
+      library_name: The name stem to use for the generated .h and .cc files,
+            defaulting to `name` if not provided.
       **kwargs: Keyword arguments to pass through to the cc_library target.
     """
     transpiled_xlscc_files = "{}.cc_to_xls_ir".format(name)
+    library_name = library_name or name
     cc_to_xls_ir(
         name = transpiled_xlscc_files,
-        library_name = name,
+        library_name = library_name,
         src = src,
         hdrs = hdrs,
+        defines = kwargs.get("defines", None),
     )
 
     transpiled_structs_headers = "{}.xls_cc_transpiled_structs".format(name)

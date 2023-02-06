@@ -73,14 +73,18 @@ def _build_xls_ir(ctx, library_name):
     """
     ir_file = ctx.actions.declare_file("%s.ir" % library_name)
     metadata_file = ctx.actions.declare_file("%s_meta.proto" % library_name)
+    defines = ""
+    if ctx.attr.defines:
+        defines = "-defines " + ",".join(ctx.attr.defines)
     ctx.actions.run_shell(
         inputs = [ctx.file.src] + ctx.files.hdrs,
         outputs = [ir_file, metadata_file],
         tools = [ctx.executable._xlscc],
-        command = "%s %s -meta_out %s > %s" % (
+        command = "%s %s -meta_out %s %s > %s" % (
             ctx.executable._xlscc.path,
             ctx.file.src.path,
             metadata_file.path,
+            defines,
             ir_file.path,
         ),
     )
@@ -174,6 +178,14 @@ cc_to_xls_ir = rule(
             A list of struct names to unwrap.  To unwrap a struct is defined
             only for structs that contain a single field.  When unwrapping a
             struct, its type is replaced by the type of its field.
+            """,
+        ),
+        "defines": attr.string_list(
+            doc = """
+            A list of defines to pass to xlscc of the form "NAME=VALUE". The
+            end user can set `defines=["FOO=BAR", "BAZ=QUXX"]` in an
+            fhe_cc_library rule or similar to propagate defines through to
+            xlscc.
             """,
         ),
         "struct_header_generator": executable_attr(_STRUCT_HEADER_GENERATOR),
