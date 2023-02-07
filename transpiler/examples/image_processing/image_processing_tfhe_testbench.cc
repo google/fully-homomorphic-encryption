@@ -16,12 +16,15 @@
 #ifdef USE_INTERPRETED_TFHE
 #include "transpiler/examples/image_processing/kernel_gaussian_blur_interpreted_tfhe.h"
 #include "transpiler/examples/image_processing/kernel_sharpen_interpreted_tfhe.h"
+#include "transpiler/examples/image_processing/ricker_wavelet_interpreted_tfhe.h"
 #elif defined(USE_YOSYS_INTERPRETED_TFHE)
 #include "transpiler/examples/image_processing/kernel_gaussian_blur_yosys_interpreted_tfhe.h"
 #include "transpiler/examples/image_processing/kernel_sharpen_yosys_interpreted_tfhe.h"
+#include "transpiler/examples/image_processing/ricker_wavelet_yosys_interpreted_tfhe.h"
 #else
 #include "transpiler/examples/image_processing/kernel_gaussian_blur_tfhe.h"
 #include "transpiler/examples/image_processing/kernel_sharpen_tfhe.h"
+#include "transpiler/examples/image_processing/ricker_wavelet_tfhe.h"
 #endif
 
 const int kMainMinimumLambda = 120;
@@ -107,6 +110,42 @@ void runGaussianBlurFilter(TfheArray<unsigned char>& encrypted_input,
   }
 }
 
+void runRickerWaveletFilter(TfheArray<unsigned char>& encrypted_input,
+                            TfheArray<unsigned char>& encrypted_result,
+                            TFHEParameters& params, TFHESecretKeySet& key) {
+  TfheArray<unsigned char, 9> window(params);
+
+  std::cout << "Running 'Ricker Wavelet' filter" << std::endl;
+  absl::Duration total_duration = absl::ZeroDuration();
+  constexpr int total_pixels = MAX_PIXELS * MAX_PIXELS;
+  for (int i = 0; i < MAX_PIXELS; ++i) {
+    for (int j = 0; j < MAX_PIXELS; ++j) {
+      std::cout << absl::StrFormat("Processing pixel: (%d, %d) out of (%d, %d)",
+                                   i + 1, j + 1, MAX_PIXELS, MAX_PIXELS);
+      absl::Time t1 = absl::Now();
+      double cpu_t1 = clock();
+      encryptedSubsetImage(encrypted_input, window, i, j, key.cloud());
+      XLS_CHECK_OK(ricker_wavelet(encrypted_result[i * MAX_PIXELS + j], window,
+                                  key.cloud()));
+
+      double last_pixel_cpu_duration = (clock() - cpu_t1) / 1'000'000;
+      absl::Duration last_pixel_duration = absl::Now() - t1;
+      total_duration += last_pixel_duration;
+
+      const int pixels_processed = i * MAX_PIXELS + j + 1;
+      absl::Duration remaining_time = (total_duration / pixels_processed) *
+                                      (total_pixels - pixels_processed);
+      std::cout << "... took " << absl::ToDoubleSeconds(last_pixel_duration)
+                << " sec. (" << last_pixel_cpu_duration << " CPU sec)"
+                << " ETA remaining: "
+                << absl::IDivDuration(remaining_time, absl::Minutes(1),
+                                      &remaining_time)
+                << "m" << absl::ToInt64Seconds(remaining_time) << "s."
+                << std::endl;
+    }
+  }
+}
+
 int main(int argc, char** argv) {
   // Generate a keyset.
   TFHEParameters params(kMainMinimumLambda);
@@ -138,8 +177,10 @@ int main(int argc, char** argv) {
   TfheArray<unsigned char> encrypted_result(MAX_PIXELS * MAX_PIXELS, params);
   if (chooseFilterType() == 1) {
     runSharpenFilter(encrypted_input, encrypted_result, params, key);
-  } else {
+  } else if (chooseFilterType() == 2) {
     runGaussianBlurFilter(encrypted_input, encrypted_result, params, key);
+  } else if (chooseFilterType() == 3) {
+    runRickerWaveletFilter(encrypted_input, encrypted_result, params, key);
   }
 
   std::cout << "Decrypting result" << std::endl;

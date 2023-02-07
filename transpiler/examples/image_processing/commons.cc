@@ -17,13 +17,14 @@ int chooseFilterType() {
   int option;
 
   while (true) {
-    cout << "Choose your filter: 1 - Sharpen filter, 2 - Gaussian blur: ";
+    cout << "Choose your filter: 1 - Sharpen filter, 2 - Gaussian blur, 3 - "
+            "Ricker wavelet: ";
     cin >> option;
 
-    if (option == 1 || option == 2) {
+    if (option == 1 || option == 2 || option == 3) {
       return option;
     }
 
-    cout << "Invalid option chosen. Please choose 1 or 2." << endl;
+    cout << "Invalid option chosen. Please choose 1-3." << endl;
   }
 }

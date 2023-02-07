@@ -6,6 +6,7 @@
 #include "commons.h"
 #include "kernel_gaussian_blur.h"
 #include "kernel_sharpen.h"
+#include "ricker_wavelet.h"
 using namespace std;
 
 int main(int argc, char** argv) {
@@ -28,9 +29,10 @@ int main(int argc, char** argv) {
   for (int i = 0; i < MAX_PIXELS; ++i) {
     for (int j = 0; j < MAX_PIXELS; ++j) {
       subsetImage(padded_image, window, i, j);
-      output[i * MAX_PIXELS + j] = filterType == 1
-                                       ? kernel_sharpen(window)
-                                       : kernel_gaussian_blur(window);
+      output[i * MAX_PIXELS + j] = filterType == 1 ? kernel_sharpen(window)
+                                   : filterType == 2
+                                       ? kernel_gaussian_blur(window)
+                                       : ricker_wavelet(window);
     }
   }
 

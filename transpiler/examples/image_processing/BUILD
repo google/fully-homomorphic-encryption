@@ -21,10 +21,12 @@ cc_library(
     srcs = [
         "kernel_gaussian_blur.cc",
         "kernel_sharpen.cc",
+        "ricker_wavelet.cc",
     ],
     hdrs = [
         "kernel_gaussian_blur.h",
         "kernel_sharpen.h",
+        "ricker_wavelet.h",
     ],
     deps = [
         ":commons",
@@ -195,6 +197,82 @@ fhe_cc_library(
     optimizer = "yosys",
 )
 
+fhe_cc_library(
+    name = "ricker_wavelet_cleartext",
+    src = "ricker_wavelet.cc",
+    hdrs = ["ricker_wavelet.h"],
+    encryption = "cleartext",
+    num_opt_passes = 2,
+)
+
+fhe_cc_library(
+    name = "ricker_wavelet_yosys_interpreted_cleartext",
+    src = "ricker_wavelet.cc",
+    hdrs = ["ricker_wavelet.h"],
+    encryption = "cleartext",
+    interpreter = True,
+    num_opt_passes = 2,
+    optimizer = "yosys",
+)
+
+fhe_cc_library(
+    name = "ricker_wavelet_tfhe",
+    src = "ricker_wavelet.cc",
+    hdrs = ["ricker_wavelet.h"],
+    encryption = "tfhe",
+    num_opt_passes = 2,
+    optimizer = "xls",
+)
+
+fhe_cc_library(
+    name = "ricker_wavelet_interpreted_tfhe",
+    src = "ricker_wavelet.cc",
+    hdrs = ["ricker_wavelet.h"],
+    encryption = "tfhe",
+    interpreter = True,
+    num_opt_passes = 2,
+    optimizer = "xls",
+)
+
+fhe_cc_library(
+    name = "ricker_wavelet_yosys_interpreted_tfhe",
+    src = "ricker_wavelet.cc",
+    hdrs = ["ricker_wavelet.h"],
+    encryption = "tfhe",
+    interpreter = True,
+    num_opt_passes = 2,
+    optimizer = "yosys",
+)
+
+fhe_cc_library(
+    name = "ricker_wavelet_openfhe",
+    src = "ricker_wavelet.cc",
+    hdrs = ["ricker_wavelet.h"],
+    encryption = "openfhe",
+    num_opt_passes = 2,
+    optimizer = "xls",
+)
+
+fhe_cc_library(
+    name = "ricker_wavelet_interpreted_openfhe",
+    src = "ricker_wavelet.cc",
+    hdrs = ["ricker_wavelet.h"],
+    encryption = "openfhe",
+    interpreter = True,
+    num_opt_passes = 2,
+    optimizer = "xls",
+)
+
+fhe_cc_library(
+    name = "ricker_wavelet_yosys_interpreted_openfhe",
+    src = "ricker_wavelet.cc",
+    hdrs = ["ricker_wavelet.h"],
+    encryption = "openfhe",
+    interpreter = True,
+    num_opt_passes = 2,
+    optimizer = "yosys",
+)
+
 cc_binary(
     name = "image_processing_cleartext_testbench",
     srcs = ["image_processing_cleartext_testbench.cc"],
@@ -202,6 +280,7 @@ cc_binary(
         ":commons",
         ":kernel_gaussian_blur_cleartext",
         ":kernel_sharpen_cleartext",
+        ":ricker_wavelet_cleartext",
         "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/time",
@@ -218,6 +297,7 @@ cc_test(
         ":image_processing",
         ":kernel_gaussian_blur_yosys_interpreted_cleartext",
         ":kernel_sharpen_yosys_interpreted_cleartext",
+        ":ricker_wavelet_yosys_interpreted_cleartext",
         "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/time",
@@ -225,6 +305,16 @@ cc_test(
         "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:matchers",
         "@com_google_xls//xls/common/status:status_macros",
+    ],
+)
+
+cc_test(
+    name = "ricker_wavelet_test",
+    srcs = ["ricker_wavelet_test.cc"],
+    deps = [
+        ":image_processing",
+        "@com_google_benchmark//:benchmark_main",
+        "@com_google_xls//xls/common/status:matchers",
     ],
 )
 
@@ -236,6 +326,7 @@ cc_binary(
         ":commons",
         ":kernel_gaussian_blur_yosys_interpreted_cleartext",
         ":kernel_sharpen_yosys_interpreted_cleartext",
+        ":ricker_wavelet_yosys_interpreted_cleartext",
         "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/time",
@@ -251,6 +342,7 @@ cc_binary(
         ":commons",
         ":kernel_gaussian_blur_tfhe",
         ":kernel_sharpen_tfhe",
+        ":ricker_wavelet_tfhe",
         "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/time",
@@ -268,6 +360,7 @@ cc_binary(
         ":commons",
         ":kernel_gaussian_blur_interpreted_tfhe",
         ":kernel_sharpen_interpreted_tfhe",
+        ":ricker_wavelet_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/time",
@@ -285,6 +378,7 @@ cc_binary(
         ":commons",
         ":kernel_gaussian_blur_yosys_interpreted_tfhe",
         ":kernel_sharpen_yosys_interpreted_tfhe",
+        ":ricker_wavelet_yosys_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/time",
@@ -301,6 +395,7 @@ cc_binary(
         ":commons",
         ":kernel_gaussian_blur_openfhe",
         ":kernel_sharpen_openfhe",
+        ":ricker_wavelet_openfhe",
         "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/time",
@@ -318,6 +413,7 @@ cc_binary(
         ":commons",
         ":kernel_gaussian_blur_interpreted_openfhe",
         ":kernel_sharpen_interpreted_openfhe",
+        ":ricker_wavelet_interpreted_openfhe",
         "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/time",
@@ -335,6 +431,7 @@ cc_binary(
         ":commons",
         ":kernel_gaussian_blur_yosys_interpreted_openfhe",
         ":kernel_sharpen_yosys_interpreted_openfhe",
+        ":ricker_wavelet_yosys_interpreted_openfhe",
         "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/time",
