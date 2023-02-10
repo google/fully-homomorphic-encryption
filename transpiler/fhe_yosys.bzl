@@ -31,9 +31,12 @@ _LUT_TO_LUTMUX_SCRIPTS = {
     0: "//transpiler/yosys:map_lut_to_lutmux.v",
     2: "//transpiler/yosys:map_lut_to_lutmux2.v",
     3: "//transpiler/yosys:map_lut_to_lutmux3.v",
+    4: "//transpiler/yosys:map_lut_to_lutmux4.v",
+    5: "//transpiler/yosys:map_lut_to_lutmux5.v",
+    6: "//transpiler/yosys:map_lut_to_lutmux6.v",
 }
 VALID_LUT_SIZES = {
-    "yosys": [0, 2, 3],
+    "yosys": [0, 2, 3, 4, 5, 6],
     # No other optimizers currently support LUTs, so they should all be [0]
     "xls": [0],
 }
