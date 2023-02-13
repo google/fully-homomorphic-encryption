@@ -88,7 +88,6 @@ def _verilog_to_netlist_impl(ctx):
     metadata_file = src[VerilogOutputInfo].metadata.to_list()[0]
     metadata_entry_file = src[VerilogOutputInfo].metadata_entry.to_list()[0]
     verilog_ir_file = src[VerilogOutputInfo].verilog_ir_file.to_list()[0]
-    generic_struct_header = src[VerilogOutputInfo].generic_struct_header.to_list()[0]
     library_name = src[VerilogInfo].library_name
     stem = src[VerilogInfo].stem
 
@@ -104,7 +103,6 @@ def _verilog_to_netlist_impl(ctx):
         BooleanifiedIrOutputInfo(
             ir = depset([netlist_file]),
             metadata = depset([metadata_file]),
-            generic_struct_header = depset([generic_struct_header]),
             hdrs = depset(src[VerilogOutputInfo].hdrs.to_list()),
         ),
         BooleanifiedIrInfo(

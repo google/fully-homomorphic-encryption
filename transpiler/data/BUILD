@@ -2,11 +2,17 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
     "//transpiler:fhe.bzl",
     "cc_fhe_bool_ir_library",
+)
+load(
+    "//transpiler:fhe_structs.bzl",
     "xls_cc_transpiled_structs",
 )
 load(
-    "//transpiler:fhe_xls.bzl",
+    "//transpiler:parsers.bzl",
     "cc_to_xls_ir",
+)
+load(
+    "//transpiler:fhe_xls.bzl",
     "xls_ir_to_bool_ir",
 )
 load(
@@ -37,7 +43,6 @@ cc_to_xls_ir(
     name = "primitives_xls_ir",
     src = "primitives.cc",
     hdrs = ["primitives.h"],
-    unwrap = FHE_PRIMITIVES,
 )
 
 # Generate struct encodings for each encryption scheme from the XLS IR and its metadata.

@@ -12,10 +12,19 @@ bzl_library(
 )
 
 bzl_library(
+    name = "parsers_bzl",
+    srcs = ["parsers.bzl"],
+    deps = [
+        ":fhe_common_bzl",
+    ],
+)
+
+bzl_library(
     name = "fhe_xls_bzl",
     srcs = ["fhe_xls.bzl"],
     deps = [
         ":fhe_common_bzl",
+        ":parsers_bzl",
     ],
 )
 
@@ -28,12 +37,23 @@ bzl_library(
 )
 
 bzl_library(
+    name = "fhe_structs_bzl",
+    srcs = ["fhe_structs.bzl"],
+    deps = [
+        ":fhe_common_bzl",
+        ":parsers_bzl",
+    ],
+)
+
+bzl_library(
     name = "fhe_bzl",
     srcs = ["fhe.bzl"],
     deps = [
         ":fhe_common_bzl",
+        ":fhe_structs_bzl",
         ":fhe_xls_bzl",
         ":fhe_yosys_bzl",
+        ":parsers_bzl",
         "//transpiler/data:primitives_bzl",
     ],
 )
