@@ -45,8 +45,8 @@ _YOSYS_SCRIPT_TEMPLATE_NO_LUT = """cat>{script}<<EOF
 read_verilog {verilog}
 hierarchy -check -top $(cat {entry})
 proc
-techmap
-opt
+memory
+techmap; opt
 abc -liberty {cell_library}
 opt_clean -purge
 clean
@@ -63,8 +63,8 @@ _YOSYS_SCRIPT_TEMPLATE_LUT = """cat>{script}<<EOF
 read_verilog {verilog}
 hierarchy -check -top $(cat {entry})
 proc
-techmap
-opt
+memory
+techmap; opt
 abc -lut {lut_size}
 opt_clean -purge
 write_verilog -attr2comment {netlist_path}.pre_techmap
