@@ -8,6 +8,19 @@ load(
 )
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
+http_archive(
+    name = "bazel_skylib",
+    sha256 = "74d544d96f4a5bb630d465ca8bbcfe231e3594e5aae57e1edbf17a6eb3ca2506",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
+    ],
+)
+
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
+
 # Install TFHE
 http_archive(
     name = "rules_foreign_cc",
@@ -45,9 +58,9 @@ new_git_repository(
 # Install XLS and its transitive dependencies.
 http_archive(
     name = "com_google_xls",
-    sha256 = "7956424408df65f7da450427592e2dcb1724c091e1a062b365fd7aa6a3e02f33",
-    strip_prefix = "xls-7f430fe69498665af14d89255b5891c2ae5efa01",
-    url = "https://github.com/google/xls/archive/7f430fe69498665af14d89255b5891c2ae5efa01.tar.gz",
+    sha256 = "5a945caa897a6bbba19e6d419e0ed707c3e1d9f4e9db2fe97f9aa6a6cdf7a91f",
+    strip_prefix = "xls-2a613724dd84e891f7536ca81a5e0a960c21b447",
+    url = "https://github.com/google/xls/archive/2a613724dd84e891f7536ca81a5e0a960c21b447.tar.gz",
 )
 
 # Used by xlscc.
