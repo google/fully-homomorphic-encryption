@@ -496,6 +496,7 @@ def fhe_cc_library(
         optimizer = "xls",
         interpreter = False,
         library_name = None,
+        loop_unroll_rlimit = 10000,
         **kwargs):
     """A rule for building FHE-based cc_libraries.
 
@@ -539,6 +540,9 @@ def fhe_cc_library(
             directly (single-threaded C++), or invokes a multi-threaded interpreter.
       library_name: The name stem to use for the generated .h and .cc files,
             defaulting to `name` if not provided.
+      loop_unroll_rlimit: The computation limit to pass to xlscc, to instruct its Z3
+            solver on how much effort to spend trying to prove that loops unwrap.
+            See fhe_xls.bzl::cc_to_xls_ir.z3_rlimit for more details.
       **kwargs: Keyword arguments to pass through to the cc_library target.
     """
     transpiled_xlscc_files = "{}.cc_to_xls_ir".format(name)
@@ -548,6 +552,7 @@ def fhe_cc_library(
         library_name = library_name,
         src = src,
         hdrs = hdrs,
+        z3_rlimit = loop_unroll_rlimit,
         defines = kwargs.get("defines", None),
     )
 

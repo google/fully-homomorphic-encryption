@@ -351,3 +351,13 @@ cc_test(
         "@com_google_xls//xls/common/status:matchers",
     ],
 )
+
+fhe_cc_library(
+    name = "issue_36",
+    src = "issue_36.cc",
+    hdrs = ["issue_36.h"],
+    encryption = "tfhe",
+    interpreter = True,
+    loop_unroll_rlimit = 500000,
+    optimizer = "yosys",
+)

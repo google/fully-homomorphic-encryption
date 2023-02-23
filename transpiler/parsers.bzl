@@ -67,16 +67,22 @@ def _build_xls_ir(ctx, library_name):
     metadata_file = ctx.actions.declare_file("%s_meta.proto" % library_name)
     defines = ""
     if ctx.attr.defines:
-        defines = "-defines " + ",".join(ctx.attr.defines)
+        defines = "--defines " + ",".join(ctx.attr.defines)
+
+    rlimit = ""
+    if ctx.attr.z3_rlimit:
+        rlimit = "--z3_rlimit %d" % (ctx.attr.z3_rlimit,)
+
     ctx.actions.run_shell(
         inputs = [ctx.file.src] + ctx.files.hdrs,
         outputs = [ir_file, metadata_file],
         tools = [ctx.executable._xlscc],
-        command = "%s %s -meta_out %s %s > %s" % (
+        command = "%s %s --meta_out %s %s %s > %s" % (
             ctx.executable._xlscc.path,
             ctx.file.src.path,
             metadata_file.path,
             defines,
+            rlimit,
             ir_file.path,
         ),
     )
@@ -134,6 +140,19 @@ cc_to_xls_ir = rule(
             fhe_cc_library rule or similar to propagate defines through to
             xlscc.
             """,
+        ),
+        "z3_rlimit": attr.int(
+            doc = """
+            The computation limit to pass to xlscc, to instruct its Z3 solver
+            on how much effort to spend trying to prove that loops unwrap. In
+            some cases where the break logic within a loop is complicated, but
+            the loop bounds are simple, setting and/or lowering this limit can
+            improve compilation speed. However, some loops may not unroll if
+            this limit is set too low.
+
+            If set to zero, Z3 is given no limit and may run indefinitely.
+            """,
+            default = 10000,
         ),
         "_xlscc": executable_attr(_XLSCC),
         "_get_top_func_from_proto": attr.label(
