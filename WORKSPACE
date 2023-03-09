@@ -72,13 +72,12 @@ http_archive(
     urls = ["https://github.com/hlslibs/ac_types/archive/57d89634cb5034a241754f8f5347803213dabfca.tar.gz"],
 )
 
-# Install dependencies for XLS
+# Toolchain to install LLVM, a requirements for XLS
 http_archive(
     name = "com_grail_bazel_toolchain",
-    sha256 = "dd03374af7885d255eb735b9065a32463a1154d9de6eb47261a49c8acc1cd497",
-    strip_prefix = "bazel-toolchain-0.6.3",
+    strip_prefix = "bazel-toolchain-0.8",
     urls = [
-        "https://github.com/grailbio/bazel-toolchain/archive/0.6.3.zip",
+        "https://github.com/grailbio/bazel-toolchain/archive/refs/tags/0.8.zip",
     ],
 )
 
@@ -90,7 +89,16 @@ load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 
 llvm_toolchain(
     name = "llvm_toolchain",
-    llvm_version = "13.0.0",
+    llvm_version = "14.0.0",
+    strip_prefix = {"": "clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-18.04"},
+    # In Docker, this ensures that we use the toolchain uses a pre-installed LLVM,
+    # which is required because llvm_toolchain does not support Docker using its
+    # introspection capabilities.
+    urls = {
+        "": [
+            "https://github.com/llvm/llvm-project/releases/download/llvmorg-14.0.0/clang+llvm-14.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz",
+        ],
+    },
 )
 
 load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")

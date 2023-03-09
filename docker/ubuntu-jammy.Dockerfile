@@ -33,18 +33,6 @@ RUN apt-get update && apt-get install -y \
   bison \
   wget
 
-# Install deps required to install LLVM
-RUN apt-get install -y \
-  lsb-release \
-  software-properties-common \
-  gnupg
-
-RUN wget -O llvm.sh https://apt.llvm.org/llvm.sh \
-  && chmod +x llvm.sh \
-  # It's critical that this version matches the version specified in
-  # llvm_toolchain in the WORKSPACE file.
-  && ./llvm.sh 13
-
 # Install bazel
 RUN wget -O bazel "https://github.com/bazelbuild/bazel/releases/download/5.3.2/bazel-5.3.2-linux-x86_64" \
   && test "973e213b1e9207ccdd3ea4730c0f92cbef769ec112ac2b84980583220d8db845  bazel" = "$(sha256sum bazel)" \
@@ -55,6 +43,12 @@ WORKDIR /usr/src/fhe/
 
 # This step implies docker must be run from the repository root
 COPY . .
+
+# Build LLVM. In the case that the above install of LLVM fails, this step will
+# result in building LLVM from source, which will take a long time. But if
+# it's necessary for some reason, this will allow docker to cache the resulting
+# image and build failures unrelated to LLVM will not incur a rebuild of LLVM.
+RUN bazel build @llvm_toolchain//:all
 
 # Build all targets.
 RUN bazel build ...
