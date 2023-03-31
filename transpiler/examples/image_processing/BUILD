@@ -440,3 +440,8 @@ cc_binary(
         "@openfhe//:binfhe",
     ],
 )
+
+exports_files([
+    "kernel_gaussian_blur.cc",
+    "kernel_gaussian_blur.h",
+])
