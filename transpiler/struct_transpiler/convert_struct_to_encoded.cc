@@ -1737,6 +1737,11 @@ class Tfhe<$1> : public __TfheBase<$0> {
                        params),
         params_(params) {}
 
+  Tfhe<$1>& CopyFrom(const TfheRef<$1>& rhs) {
+    ::TfheCopy(rhs.get(), params_, this->get());
+    return *this;
+  }
+
   Tfhe<$1>& operator=(const TfheRef<$1> rhs) {
     ::TfheCopy(rhs.get(), params_, this->get());
     return *this;
@@ -2049,6 +2054,11 @@ class OpenFhe<$1> : public __OpenFheBase<$0> {
         cc_(cc) {
     // Initialize the LWECiphertexts.
     SetUnencrypted({}, &cc_);
+  }
+
+  OpenFhe<$1>& CopyFrom(const OpenFheRef<$1>& rhs) {
+    ::OpenFheCopy(rhs.get(), &cc_, this->get());
+    return *this;
   }
 
   OpenFhe<$1>& operator=(const OpenFheRef<$1> rhs) {
