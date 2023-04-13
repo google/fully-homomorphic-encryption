@@ -146,6 +146,36 @@ cc_library(
 )
 
 cc_library(
+    name = "netlist_utils",
+    srcs = ["netlist_utils.cc"],
+    hdrs = ["netlist_utils.h"],
+    deps = [
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@com_google_xls//xls/netlist",
+    ],
+)
+
+cc_test(
+    name = "netlist_utils_test",
+    srcs = ["netlist_utils_test.cc"],
+    deps = [
+        ":netlist_utils",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_benchmark//:benchmark_main",
+        "@com_google_xls//xls/common/status:matchers",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@com_google_xls//xls/netlist",
+        "@com_google_xls//xls/netlist:cell_library",
+        "@com_google_xls//xls/netlist:function_extractor",
+        "@com_google_xls//xls/netlist:lib_parser",
+        "@com_google_xls//xls/netlist:netlist_parser",
+    ],
+)
+
+cc_library(
     name = "yosys_transpiler",
     srcs = ["yosys_transpiler.cc"],
     hdrs = ["yosys_transpiler.h"],
