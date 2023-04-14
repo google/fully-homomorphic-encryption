@@ -56,7 +56,7 @@ class TestTemplates : public CodegenTemplates {
 };
 
 TEST(NetRefIdToNumericIdTest, Convert7) {
-  EXPECT_THAT(NetRefIdToNumericId("_7_"), IsOkAndHolds(StrEq("7")));
+  EXPECT_THAT(NetRefIdToNumericId("_7_"), IsOkAndHolds(Eq(7)));
 }
 
 TEST(NetRefIdToNumericIdTest, FailConvertNonInt) {
@@ -81,12 +81,12 @@ TEST(ConstantToValueTest, Convert0) {
 }
 
 TEST(ConstantToValueTest, FailConvertNonInt) {
-  EXPECT_THAT(NetRefIdToNumericId("<constant_wat>"),
+  EXPECT_THAT(ConstantToValue("<constant_wat>"),
               StatusIs(absl::StatusCode::kInvalidArgument));
 }
 
 TEST(ConstantToValueTest, FailConvertImproperlyStructured) {
-  EXPECT_THAT(NetRefIdToNumericId("constant_7"),
+  EXPECT_THAT(ConstantToValue("constant_7"),
               StatusIs(absl::StatusCode::kInvalidArgument));
 }
 

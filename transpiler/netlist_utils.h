@@ -55,9 +55,9 @@ class CodegenTemplates {
   virtual std::string InputOrOutputReference(absl::string_view ref) const = 0;
 };
 
-// Convert a netlist cell identifier `_\d+_` into (the string containing) the
-// numeric part of the identifier.
-absl::StatusOr<std::string> NetRefIdToNumericId(absl::string_view netref_id);
+// Convert a netlist cell identifier `_\d+_` into the numeric part of the
+// identifier.
+absl::StatusOr<int> NetRefIdToNumericId(absl::string_view netref_id);
 
 // Get the part of a string like `foo[7]` before the first `[`.
 // Since some inputs and outputs can be single-bits, the `[7]` is also optional

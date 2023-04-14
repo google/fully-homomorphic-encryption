@@ -34,7 +34,7 @@ using ::xls::netlist::rtl::AbstractCell;
 using ::xls::netlist::rtl::AbstractNetRef;
 using ::xls::netlist::rtl::NetDeclKind;
 
-absl::StatusOr<std::string> NetRefIdToNumericId(absl::string_view netref_id) {
+absl::StatusOr<int> NetRefIdToNumericId(absl::string_view netref_id) {
   absl::string_view stripped =
       absl::StripSuffix(absl::StripPrefix(netref_id, "_"), "_");
   int output = 0;
@@ -44,7 +44,7 @@ absl::StatusOr<std::string> NetRefIdToNumericId(absl::string_view netref_id) {
         "like '_0123_', but got '%s'",
         netref_id));
   }
-  return absl::StrFormat("%d", output);
+  return output;
 }
 
 std::string NetRefStem(std::string_view netref) {
@@ -82,9 +82,9 @@ absl::StatusOr<int> ConstantToValue(std::string_view constant) {
 absl::StatusOr<std::string> ResolveNetRefName(
     const AbstractNetRef<bool>& netref, const CodegenTemplates& templates) {
   if (netref->kind() == NetDeclKind::kWire) {
-    XLS_ASSIGN_OR_RETURN(std::string numeric_ref,
-                         NetRefIdToNumericId(netref->name()));
-    return absl::Substitute(templates.PriorGateOutputReference(numeric_ref));
+    XLS_ASSIGN_OR_RETURN(int numeric_ref, NetRefIdToNumericId(netref->name()));
+    return absl::Substitute(
+        templates.PriorGateOutputReference(std::to_string(numeric_ref)));
   } else {
     return templates.InputOrOutputReference(netref->name());
   }
