@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "absl/status/statusor.h"
+#include "absl/strings/match.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
 #include "absl/strings/strip.h"
@@ -43,6 +44,21 @@ absl::StatusOr<int> NetRefIdToNumericId(absl::string_view netref_id) {
         "Netlist contains non-numeric netref id. Expected an expression "
         "like '_0123_', but got '%s'",
         netref_id));
+  }
+  return output;
+}
+
+absl::StatusOr<int> NetRefIdToIndex(absl::string_view netref) {
+  std::vector<std::string> tokens =
+      absl::StrSplit(netref, absl::ByAnyChar("[]"));
+  if (tokens.size() <= 1) {
+    return 0;
+  }
+  int output;
+  if (!absl::SimpleAtoi(tokens[1], &output)) {
+    return absl::InvalidArgumentError(absl::Substitute(
+        "Non integral index value for netref $0; extracted: $1", netref,
+        tokens[1]));
   }
   return output;
 }
@@ -122,6 +138,21 @@ absl::StatusOr<GateInputs> ExtractGateInputs(
   }
 
   return GateInputs{.inputs = gate_inputs, .lut_definition = lut_definition};
+}
+
+// Extract the output data for a single cell
+absl::StatusOr<GateOutput> ExtractGateOutput(const AbstractCell<bool>* cell) {
+  auto& gate_output = cell->outputs().front().netref;
+  bool is_output = gate_output->kind() == NetDeclKind::kOutput;
+  bool is_single_bit = !absl::StrContains(gate_output->name(), '[');
+
+  XLS_ASSIGN_OR_RETURN(int index,
+                       is_output ? NetRefIdToIndex(gate_output->name())
+                                 : NetRefIdToNumericId(gate_output->name()));
+  return GateOutput{.name = gate_output->name(),
+                    .is_single_bit = is_single_bit,
+                    .index = index,
+                    .is_output = is_output};
 }
 
 }  // namespace transpiler

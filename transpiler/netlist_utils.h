@@ -35,6 +35,23 @@ struct GateInputs {
   uint64_t lut_definition;
 };
 
+// Data describing the output of a cell.
+struct GateOutput {
+  // The full name of the output netref, e.g., `out`, `out[4]`, or `_5_`
+  std::string name;
+
+  // Whether the output is part of a netref with more than one bit.
+  // E.g., for `out[4]` this field is true, but for `out` and `_5_`
+  // it is false.
+  bool is_single_bit;
+
+  // The integer part of the full name, is_single_bit is false
+  int index;
+
+  // True if the output corresponds to the module's output net.
+  bool is_output;
+};
+
 // The template functions for handling language-specific constructions
 // E.g., in a Python backend a gate output is stored to temp_nodes[$0],
 // but in another backend it will have a different syntax.
@@ -58,6 +75,10 @@ class CodegenTemplates {
 // Convert a netlist cell identifier `_\d+_` into the numeric part of the
 // identifier.
 absl::StatusOr<int> NetRefIdToNumericId(absl::string_view netref_id);
+
+// Convert a netlist cell identifier `foo[\d+]` into the numeric part of the
+// index. If there is none, default to 0.
+absl::StatusOr<int> NetRefIdToIndex(absl::string_view netref_id);
 
 // Get the part of a string like `foo[7]` before the first `[`.
 // Since some inputs and outputs can be single-bits, the `[7]` is also optional
@@ -110,6 +131,10 @@ absl::StatusOr<std::string> ResolveNetRefName(
 absl::StatusOr<GateInputs> ExtractGateInputs(
     const xls::netlist::rtl::AbstractCell<bool>* cell,
     const CodegenTemplates& templates);
+
+// Extract the output data for a single cell
+absl::StatusOr<GateOutput> ExtractGateOutput(
+    const xls::netlist::rtl::AbstractCell<bool>* cell);
 
 }  // namespace transpiler
 }  // namespace fully_homomorphic_encryption
