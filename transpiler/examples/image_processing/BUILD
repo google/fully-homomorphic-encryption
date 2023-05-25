@@ -2,6 +2,7 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//transpiler:fhe.bzl", "fhe_cc_library")
 
 package(
+    default_applicable_licenses = ["@com_google_fully_homomorphic_encryption//:license"],
     default_visibility = ["//visibility:public"],
     licenses = ["notice"],  # Apache 2.0
 )

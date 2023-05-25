@@ -6,6 +6,7 @@ load(
 )
 
 package(
+    default_applicable_licenses = ["@com_google_fully_homomorphic_encryption//:license"],
     default_visibility = ["//visibility:public"],
 )
 
