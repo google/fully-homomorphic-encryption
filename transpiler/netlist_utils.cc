@@ -26,14 +26,48 @@
 #include "absl/strings/string_view.h"
 #include "absl/strings/strip.h"
 #include "xls/common/status/status_macros.h"
+#include "xls/netlist/cell_library.h"
+#include "xls/netlist/function_extractor.h"
+#include "xls/netlist/lib_parser.h"
 #include "xls/netlist/netlist.h"
+#include "xls/netlist/netlist_parser.h"
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 
+using ::xls::netlist::AbstractCellLibrary;
+using ::xls::netlist::CellLibraryProto;
+using ::xls::netlist::cell_lib::CharStream;
 using ::xls::netlist::rtl::AbstractCell;
+using ::xls::netlist::rtl::AbstractNetlist;
 using ::xls::netlist::rtl::AbstractNetRef;
+using ::xls::netlist::rtl::AbstractParser;
 using ::xls::netlist::rtl::NetDeclKind;
+using ::xls::netlist::rtl::Scanner;
+
+absl::StatusOr<std::unique_ptr<AbstractNetlist<bool>>> ParseNetlist(
+    const absl::string_view cell_library_text,
+    const absl::string_view netlist_text) {
+  XLS_ASSIGN_OR_RETURN(CharStream char_stream,
+                       CharStream::FromText(std::string(cell_library_text)));
+  CellLibraryProto cell_library_proto =
+      *xls::netlist::function::ExtractFunctions(&char_stream);
+
+  XLS_ASSIGN_OR_RETURN(
+      AbstractCellLibrary<bool> cell_library,
+      AbstractCellLibrary<bool>::FromProto(cell_library_proto, false, true));
+
+  Scanner scanner(netlist_text);
+  XLS_ASSIGN_OR_RETURN(
+      std::unique_ptr<AbstractNetlist<bool>> parsed_netlist_ptr,
+      AbstractParser<bool>::ParseNetlist(&cell_library, &scanner, false, true));
+  if (parsed_netlist_ptr->modules().length() > 1) {
+    return absl::InvalidArgumentError(
+        "Multiple module definitions not supported");
+  }
+
+  return parsed_netlist_ptr;
+}
 
 absl::StatusOr<int> NetRefIdToNumericId(absl::string_view netref_id) {
   absl::string_view stripped =

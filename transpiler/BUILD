@@ -155,6 +155,10 @@ cc_library(
         "@com_google_absl//absl/strings",
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/netlist",
+        "@com_google_xls//xls/netlist:cell_library",
+        "@com_google_xls//xls/netlist:function_extractor",
+        "@com_google_xls//xls/netlist:lib_parser",
+        "@com_google_xls//xls/netlist:netlist_parser",
     ],
 )
 

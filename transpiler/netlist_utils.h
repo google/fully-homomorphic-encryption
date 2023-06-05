@@ -28,6 +28,10 @@
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 
+absl::StatusOr<std::unique_ptr<::xls::netlist::rtl::AbstractNetlist<bool>>>
+ParseNetlist(const absl::string_view cell_library_text,
+             const absl::string_view netlist_text);
+
 // The set of inputs to a gate, along with a truth table, if the gate contains a
 // truth table hard coded among its input gates.
 struct GateInputs {
