@@ -32,6 +32,20 @@ absl::StatusOr<std::unique_ptr<::xls::netlist::rtl::AbstractNetlist<bool>>>
 ParseNetlist(const absl::string_view cell_library_text,
              const absl::string_view netlist_text);
 
+// Returns the list of cell names in topologically sorted order, or return an
+// error if the netlist is cyclic. An error should be impossible for FHE
+// programs, since they are represented as pure combinational circuits.
+absl::StatusOr<std::vector<std::string>> TopoSortedCellNames(
+    const xls::netlist::rtl::AbstractModule<bool>& module);
+
+// Returns a vector of vectors of node names, where each vector represents
+// a different level in the graph. Nodes in the same level can be executed in
+// parallel.
+// Returns an error if the netlist is cyclic. An error should be impossible for
+// FHE programs, since they are represented as pure combinational circuits.
+absl::StatusOr<std::vector<std::vector<std::string>>> LevelSortedCellNames(
+    const xls::netlist::rtl::AbstractModule<bool>& module);
+
 // The set of inputs to a gate, along with a truth table, if the gate contains a
 // truth table hard coded among its input gates.
 struct GateInputs {

@@ -151,6 +151,7 @@ cc_library(
     srcs = ["netlist_utils.cc"],
     hdrs = ["netlist_utils.h"],
     deps = [
+        ":graph",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
         "@com_google_xls//xls/common/status:status_macros",
@@ -476,5 +477,32 @@ cc_test(
         "@com_google_xls//xls/public:function_builder",
         "@com_google_xls//xls/public:ir",
         "@com_google_xls//xls/public:ir_parser",
+    ],
+)
+
+cc_library(
+    name = "graph",
+    hdrs = ["graph.h"],
+    deps = [
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/types:optional",
+        "@com_google_xls//xls/common/status:status_macros",
+    ],
+)
+
+cc_test(
+    name = "graph_test",
+    srcs = ["graph_test.cc"],
+    deps = [
+        ":graph",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_benchmark//:benchmark_main",
+        "@com_google_xls//xls/common/status:matchers",
+        "@com_google_xls//xls/common/status:status_macros",
     ],
 )

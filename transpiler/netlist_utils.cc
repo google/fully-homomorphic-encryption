@@ -25,6 +25,7 @@
 #include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
 #include "absl/strings/strip.h"
+#include "transpiler/graph.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/netlist/cell_library.h"
 #include "xls/netlist/function_extractor.h"
@@ -67,6 +68,84 @@ absl::StatusOr<std::unique_ptr<AbstractNetlist<bool>>> ParseNetlist(
   }
 
   return parsed_netlist_ptr;
+}
+
+absl::StatusOr<Graph<absl::string_view, int>> ParseNetlistToGraph(
+    const xls::netlist::rtl::AbstractModule<bool>& module) {
+  // The netlist graph is bipartite between cells and intermediate
+  // wires/inputs/outputs. A wire connects the output of one cell to inputs of
+  // other cells. we need to keep track of which cell is connected
+  // to a given output wire, so that when we process a cell that uses that wire
+  // as an input, we know which cell to use as the other end of the edge.
+  absl::flat_hash_map<absl::string_view, absl::string_view>
+      output_wire_to_cell_name;
+  for (const auto& cell : module.cells()) {
+    for (const auto& pin : cell->outputs()) {
+      if (pin.netref->kind() == NetDeclKind::kWire ||
+          pin.netref->kind() == NetDeclKind::kOutput) {
+        output_wire_to_cell_name[pin.netref->name()] = cell->name();
+      }
+    }
+  }
+
+  Graph<absl::string_view, int> graph;
+  for (const auto& cell : module.cells()) {
+    bool uses_wire = false;
+    for (const auto& pin : cell->inputs()) {
+      // The netlist parser does not distinguish between constant inputs and
+      // wire inputs (constants have type kWire), so we use the name as a proxy.
+      if ((pin.netref->kind() == NetDeclKind::kWire ||
+           pin.netref->kind() == NetDeclKind::kOutput) &&
+          !absl::StrContains(pin.netref->name(), "constant")) {
+        // An edge is added from the cell that produces output at the output_pin
+        //  to the current cell.
+        if (output_wire_to_cell_name.contains(pin.netref->name())) {
+          graph.AddVertex(output_wire_to_cell_name.at(pin.netref->name()), 1);
+          graph.AddVertex(cell->name(), 1);
+          graph.AddEdge(output_wire_to_cell_name.at(pin.netref->name()),
+                        cell->name());
+        } else {
+          return absl::InvalidArgumentError("usage of uninitialized wire");
+        }
+        uses_wire = true;
+      }
+    }
+
+    if (!uses_wire) {
+      // Some cells may have only in/out/constant arguments, and these can be
+      // processed in any order. There is no wire dependency with another cell.
+      graph.AddVertex(cell->name(), 1);
+    }
+  }
+  return graph;
+}
+
+absl::StatusOr<std::vector<std::string>> TopoSortedCellNames(
+    const xls::netlist::rtl::AbstractModule<bool>& module) {
+  XLS_ASSIGN_OR_RETURN(auto graph, ParseNetlistToGraph(module));
+  XLS_ASSIGN_OR_RETURN(auto topo_order, graph.TopologicalSort());
+  std::vector<std::string> output;
+  output.reserve(topo_order.size());
+  for (const auto& cell_name : topo_order) {
+    output.push_back(std::string(cell_name));
+  }
+  return output;
+}
+
+// Returns a vector of vectors of node names, where each vector represents
+// a different level in the graph. Nodes in the same level can be executed in
+// parallel.
+absl::StatusOr<std::vector<std::vector<std::string>>> LevelSortedCellNames(
+    const xls::netlist::rtl::AbstractModule<bool>& module) {
+  XLS_ASSIGN_OR_RETURN(auto graph, ParseNetlistToGraph(module));
+  XLS_ASSIGN_OR_RETURN(auto level_sorted_nodes, graph.SortGraphByLevels());
+  std::vector<std::vector<std::string>> output(level_sorted_nodes.size());
+  for (int level = 0; level < level_sorted_nodes.size(); ++level) {
+    for (const auto& cell_name : level_sorted_nodes[level]) {
+      output[level].push_back(std::string(cell_name));
+    }
+  }
+  return output;
 }
 
 absl::StatusOr<int> NetRefIdToNumericId(absl::string_view netref_id) {
