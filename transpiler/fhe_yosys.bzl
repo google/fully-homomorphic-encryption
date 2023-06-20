@@ -24,6 +24,8 @@ load(
     "executable_attr",
 )
 
+_NETLIST_ANALYZER = "//transpiler/tools:netlist_analyzer_main"
+
 _YOSYS = "@yosys//:yosys_bin"
 _ABC = "@abc//:abc_bin"
 
@@ -96,10 +98,10 @@ def _verilog_to_netlist_impl(ctx):
         name = library_name
     generated_files = _generate_netlist(ctx, name, verilog_ir_file, metadata_entry_file)
     netlist_file = generated_files[0]
-
+    netlist_analyzer_files = _generate_netlist_analysis(ctx, name, netlist_file)
     outputs = generated_files
     return [
-        DefaultInfo(files = depset(outputs + src[DefaultInfo].files.to_list())),
+        DefaultInfo(files = depset(outputs + netlist_analyzer_files + src[DefaultInfo].files.to_list())),
         BooleanifiedIrOutputInfo(
             ir = depset([netlist_file]),
             metadata = depset([metadata_file]),
@@ -160,6 +162,11 @@ _verilog_to_netlist = rule(
             """,
             allow_single_file = [".v"],
         ),
+        "_netlist_analyzer": attr.label(
+            default = Label(_NETLIST_ANALYZER),
+            executable = True,
+            cfg = "exec",
+        ),
         "_yosys": executable_attr(_YOSYS),
         "_abc": executable_attr(_ABC),
     },
@@ -211,6 +218,24 @@ def _generate_yosys_script(ctx, stem, verilog, netlist_path, entry):
     )
 
     return ys_script, additional_files
+
+def _generate_netlist_analysis(ctx, stem, netlist):
+    netlist_analysis_result = ctx.actions.declare_file("%s.netlist.v.analysis.txt" % stem)
+    args = [
+        "-cell_library",
+        ctx.file.cell_library.path,
+        "-netlist",
+        netlist.path,
+        "-output_path",
+        netlist_analysis_result.path,
+    ]
+    ctx.actions.run(
+        inputs = [netlist, ctx.file.cell_library],
+        outputs = [netlist_analysis_result],
+        arguments = args,
+        executable = ctx.executable._netlist_analyzer,
+    )
+    return [netlist_analysis_result]
 
 def _generate_netlist(ctx, stem, verilog, entry):
     netlist = ctx.actions.declare_file("%s.netlist.v" % stem)
