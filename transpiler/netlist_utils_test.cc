@@ -41,6 +41,7 @@ using ::xls::netlist::rtl::AbstractModule;
 using ::xls::netlist::rtl::AbstractNetDef;
 using ::xls::netlist::rtl::AbstractNetlist;
 using ::xls::netlist::rtl::NetDeclKind;
+using ::xls::status_testing::IsOk;
 using ::xls::status_testing::IsOkAndHolds;
 using ::xls::status_testing::StatusIs;
 
@@ -105,7 +106,7 @@ endmodule
 
   absl::StatusOr<std::vector<std::vector<std::string>>> level_sorted =
       run_levelsort(netlist);
-  EXPECT_THAT(level_sorted, ::xls::status_testing::IsOk());
+  EXPECT_THAT(level_sorted, IsOk());
   std::vector<std::vector<std::string>> level_unwrapped = level_sorted.value();
   EXPECT_EQ(level_unwrapped.size(), 3);
   EXPECT_THAT(level_unwrapped[0], UnorderedElementsAre("_2_"));
@@ -152,6 +153,48 @@ endmodule
   EXPECT_THAT(run_toposort(netlist),
               StatusIs(absl::StatusCode::kInvalidArgument,
                        testing::HasSubstr("usage of uninitialized wire")));
+}
+
+TEST(ToposortTest, HandlesWireToWireAssignmentBetweenCells) {
+  static constexpr absl::string_view netlist = R"netlist(
+module TestModule(in, out);
+  input [2:0] in;
+  wire [2:0] in;
+  output [1:0] out;
+  wire [2:0] out;
+  wire _0_;
+  wire _1_;
+  wire _6_;
+  wire _7_;
+  or2 _2_ ( .A(in[0]), .B(in[1]), .Y(_0_));
+  assign _6_ = _0_;
+  assign _7_ = _6_;
+  and2 _3_ ( .A(_7_), .B(in[1]), .Y(_1_));
+  assign { out[1:0] } = { _1_, _0_ };
+endmodule
+)netlist";
+  EXPECT_THAT(run_toposort(netlist), IsOk());
+}
+
+TEST(ToposortTest, HandlesWireToWireAssignmentInNonToposortedStatementOrder) {
+  static constexpr absl::string_view netlist = R"netlist(
+module TestModule(in, out);
+  input [2:0] in;
+  wire [2:0] in;
+  output [1:0] out;
+  wire [2:0] out;
+  wire _0_;
+  wire _1_;
+  wire _6_;
+  wire _7_;
+  or2 _2_ ( .A(in[0]), .B(in[1]), .Y(_0_));
+  and2 _3_ ( .A(_7_), .B(in[1]), .Y(_1_));
+  assign _6_ = _0_;
+  assign _7_ = _6_;
+  assign { out[1:0] } = { _1_, _0_ };
+endmodule
+)netlist";
+  EXPECT_THAT(run_toposort(netlist), IsOk());
 }
 
 TEST(ToposortTest, IncludesCellWithoutWire) {

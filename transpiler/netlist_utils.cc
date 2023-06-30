@@ -98,15 +98,21 @@ absl::StatusOr<Graph<absl::string_view, int>> ParseNetlistToGraph(
            pin.netref->kind() == NetDeclKind::kOutput) &&
           !absl::StrContains(pin.netref->name(), "constant")) {
         // An edge is added from the cell that produces output at the output_pin
-        //  to the current cell.
-        if (output_wire_to_cell_name.contains(pin.netref->name())) {
-          graph.AddVertex(output_wire_to_cell_name.at(pin.netref->name()), 1);
-          graph.AddVertex(cell->name(), 1);
-          graph.AddEdge(output_wire_to_cell_name.at(pin.netref->name()),
-                        cell->name());
-        } else {
-          return absl::InvalidArgumentError("usage of uninitialized wire");
+        // to the current cell.
+        AbstractNetRef<bool> netref_to_lookup = pin.netref;
+        while (!output_wire_to_cell_name.contains(netref_to_lookup->name())) {
+          // try looking backwards through reassignments of wires
+          if (!module.assigns().contains(netref_to_lookup)) {
+            return absl::InvalidArgumentError(absl::StrFormat(
+                "usage of uninitialized wire %s", netref_to_lookup->name()));
+          }
+          netref_to_lookup = module.assigns().at(netref_to_lookup);
         }
+
+        auto source = output_wire_to_cell_name.at(netref_to_lookup->name());
+        graph.AddVertex(source, 1);
+        graph.AddVertex(cell->name(), 1);
+        graph.AddEdge(source, cell->name());
         uses_wire = true;
       }
     }
