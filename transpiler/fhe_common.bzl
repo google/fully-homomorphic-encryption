@@ -16,11 +16,14 @@
 
 TFHE_CELLS_LIBERTY = "//transpiler/yosys:tfhe_cells.liberty"
 OPENFHE_CELLS_LIBERTY = "//transpiler/yosys:openfhe_cells.liberty"
+LUT_CELLS_LIBERTY = "//transpiler/yosys:lut_cells.liberty"
 
 FHE_ENCRYPTION_SCHEMES = {
     "cleartext": TFHE_CELLS_LIBERTY,
     "openfhe": OPENFHE_CELLS_LIBERTY,
     "tfhe": TFHE_CELLS_LIBERTY,
+    "jaxite": TFHE_CELLS_LIBERTY,
+    "tfhe-rs": LUT_CELLS_LIBERTY,
 }
 
 BooleanifiedIrOutputInfo = provider(
