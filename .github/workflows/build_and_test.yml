@@ -1,25 +1,32 @@
-name: Test all dockerfiles
-
+name: Build and Test
+permissions: read-all
 on:
   push:
-    branches: [ $default-branch ]
+    branches:
+      - main
   pull_request:
-    branches: [ $default-branch ]
-
+    branches:
+      - main
 jobs:
-  docker-ubuntu:
-   runs-on: ubuntu-latest
-   steps:
-     - uses: actions/checkout@v3
-     - name: Build container image
-       run: docker build -t fhe-ubuntu -f docker/ubuntu-jammy.Dockerfile .
-     - name: Run tests inside the container
-       run: docker run fhe-ubuntu 'bazel test ...:all'
-  docker-debian:
-   runs-on: ubuntu-latest
-   steps:
-     - uses: actions/checkout@v3
-     - name: Build container image
-       run: docker build -t fhe-debian -f docker/debian-bullseye.Dockerfile .
-     - name: Run tests inside the container
-       run: docker run fhe-debian 'bazel test ...:all'
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # pin@v3
+
+      - name: Cache bazel build artifacts
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # pin@v3.3.1
+        with:
+          path: |
+            ~/.cache/bazel
+          key: ${{ runner.os }}-bazel-${{ hashFiles('.bazelversion', '.bazelrc', 'WORKSPACE') }}
+          restore-keys: |
+            ${{ runner.os }}-bazel-
+
+      - name: "Run `bazel build`"
+        run: |
+          bazel build //...
+
+      - name: "Run `bazel test`"
+        run: |
+          bazel test //...
