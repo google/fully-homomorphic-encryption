@@ -156,3 +156,17 @@ new_git_repository(
 load("@com_google_xls//dependency_support:initialize_external.bzl", "initialize_external_repositories")
 
 initialize_external_repositories()
+
+# Install rules_rust for rust codegen
+http_archive(
+    name = "rules_rust",
+    sha256 = "4a9cb4fda6ccd5b5ec393b2e944822a62e050c7c06f1ea41607f14c4fdec57a2",
+    urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.25.1/rules_rust-v0.25.1.tar.gz"],
+)
+
+load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
+
+rules_rust_dependencies()
+
+rust_register_toolchains()
+
