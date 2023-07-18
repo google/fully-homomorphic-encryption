@@ -107,7 +107,7 @@ endmodule
   vector<std::string> tasks = {
       "((0, false, 120), &[Arg(0, 0), Arg(0, 1), Arg(0, 2)]),"};
   vector<std::string> output_assignments = {
-      "    out[0] = temp_nodes[0].clone();",
+      "    out[0] = temp_nodes[&0].clone();",
       "    out[1] = data[0].clone();",
   };
   std::string expected = absl::StrReplaceAll(
@@ -175,7 +175,7 @@ endmodule
       absl::StrFormat(kRunLevelTemplate, 1),
   };
   vector<std::string> output_assignments = {
-      "    out[0] = temp_nodes[0].clone();",
+      "    out[0] = temp_nodes[&0].clone();",
       "    out[1] = data[0].clone();",
   };
   std::string expected = absl::StrReplaceAll(

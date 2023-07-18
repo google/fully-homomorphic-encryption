@@ -35,6 +35,7 @@ using ::fully_homomorphic_encryption::transpiler::CodegenTemplates;
 using ::fully_homomorphic_encryption::transpiler::ConstantToValue;
 using ::fully_homomorphic_encryption::transpiler::ExtractGateInputs;
 using ::fully_homomorphic_encryption::transpiler::ExtractGateOutput;
+using ::fully_homomorphic_encryption::transpiler::ExtractPriorGateOutputIds;
 using ::fully_homomorphic_encryption::transpiler::GateInputs;
 using ::fully_homomorphic_encryption::transpiler::GateOutput;
 using ::fully_homomorphic_encryption::transpiler::LevelSortedCellNames;
@@ -57,7 +58,8 @@ class InScopeTfheRsTemplates : public CodegenTemplates {
   }
 
   std::string PriorGateOutputReference(absl::string_view ref) const override {
-    return absl::StrFormat("temp_nodes[%s]", ref);
+    // Need the & because temp_nodes is a hash_map
+    return absl::StrFormat("temp_nodes[&%s]", ref);
   }
 
   std::string InputOrOutputReference(absl::string_view ref) const override {
@@ -150,13 +152,17 @@ absl::StatusOr<int> CoerceIntegralOutputIndex(
 }  // namespace
 
 absl::StatusOr<std::string> YosysTfheRsTranspiler::Translate(int parallelism) {
-  std::pair<std::string, int> gate_ops_and_level_count;
-  XLS_ASSIGN_OR_RETURN(gate_ops_and_level_count, BuildGateOps(parallelism));
+  XLS_ASSIGN_OR_RETURN(BuildGateOpsOutput gate_ops_data,
+                       BuildGateOps(parallelism));
   std::vector<std::string> run_level_commands;
-  auto level_count = gate_ops_and_level_count.second;
+  auto level_count = gate_ops_data.level_count;
   run_level_commands.reserve(level_count);
   for (int level_id = 0; level_id < level_count; ++level_id) {
     run_level_commands.push_back(absl::StrFormat(kRunLevelTemplate, level_id));
+    if (gate_ops_data.levels_with_prune.count(level_id)) {
+      run_level_commands.push_back(
+          absl::StrFormat(kRunPruneTemplate, level_id));
+    }
   }
 
   XLS_ASSIGN_OR_RETURN(std::string signature, FunctionSignature());
@@ -178,7 +184,7 @@ absl::StatusOr<std::string> YosysTfheRsTranspiler::Translate(int parallelism) {
 
   return absl::StrReplaceAll(
       kCodegenTemplate,
-      {{"$gate_levels", gate_ops_and_level_count.first},
+      {{"$gate_levels", gate_ops_data.task_blocks},
        {"$function_signature", signature},
        {"$ordered_params", absl::StrJoin(ordered_params, ", ")},
        {"$num_luts", absl::StrFormat("%d", luts.size())},
@@ -191,7 +197,7 @@ absl::StatusOr<std::string> YosysTfheRsTranspiler::Translate(int parallelism) {
        {"$return_statement", return_statement}});
 }
 
-absl::StatusOr<std::pair<std::string, int>> YosysTfheRsTranspiler::BuildGateOps(
+absl::StatusOr<BuildGateOpsOutput> YosysTfheRsTranspiler::BuildGateOps(
     int parallelism) {
   // If parallelism = 0, it's interpreted as unbounded parallelism,
   // and because the impl code depends on a nonzero value for parallelism,
@@ -200,6 +206,11 @@ absl::StatusOr<std::pair<std::string, int>> YosysTfheRsTranspiler::BuildGateOps(
       parallelism == 0 ? module().cells().size() : parallelism;
 
   std::vector<std::string> task_blocks;
+  // For each gate output (key to the temp_nodes map), keep track of the last
+  // level in which that key is used by a cell. We use this to populate the
+  // "prune" command after each level to determine which cells can be dropped
+  // from memory.
+  absl::flat_hash_map<int, int> temp_node_id_to_max_level;
   XLS_LOG(INFO) << "Generating parallel gate ops with parallelism "
                 << gate_parallelism << "\n";
 
@@ -246,6 +257,12 @@ absl::StatusOr<std::pair<std::string, int>> YosysTfheRsTranspiler::BuildGateOps(
                             extracted_inputs.lut_definition,
                             absl::StrJoin(extracted_inputs.inputs, ", "));
         tasks.push_back(std::move(task));
+
+        XLS_ASSIGN_OR_RETURN(const std::vector<int> used_temp_nodes,
+                             ExtractPriorGateOutputIds(cell));
+        for (int temp_node : used_temp_nodes) {
+          temp_node_id_to_max_level[temp_node] = codegen_level_id;
+        }
       }
       task_blocks.push_back(absl::StrFormat(kLevelTemplate, codegen_level_id,
                                             tasks.size(),
@@ -254,7 +271,29 @@ absl::StatusOr<std::pair<std::string, int>> YosysTfheRsTranspiler::BuildGateOps(
     }
   }
 
-  return std::pair(absl::StrJoin(task_blocks, "\n"), codegen_level_id);
+  // After all the gates have been processed, the temp_node_id_to_max_level map
+  // contains enough information to build the prune blocks. Since this data is
+  // statically defined at the top of the module, we can just append it to the
+  // task_blocks, and ensure that the calls to `prune` are interleaved with the
+  // calls to `run_level`.
+  absl::flat_hash_map<int, std::vector<std::string>> level_id_to_prune_nodes;
+  absl::flat_hash_set<int> levels_with_prune;
+  for (const auto& [temp_node_id, last_used_level] :
+       temp_node_id_to_max_level) {
+    level_id_to_prune_nodes[last_used_level].push_back(
+        absl::StrFormat("  %d,", temp_node_id));
+  }
+
+  for (const auto& [level_id, nodes_to_prune] : level_id_to_prune_nodes) {
+    task_blocks.push_back(absl::StrFormat(kPruneTemplate, level_id,
+                                          nodes_to_prune.size(),
+                                          absl::StrJoin(nodes_to_prune, "\n")));
+    levels_with_prune.insert(level_id);
+  }
+
+  return BuildGateOpsOutput{.task_blocks = absl::StrJoin(task_blocks, "\n"),
+                            .level_count = codegen_level_id,
+                            .levels_with_prune = levels_with_prune};
 }
 
 // Statements that copy internal temp_nodes to the output locations.
@@ -367,7 +406,7 @@ absl::StatusOr<std::string> YosysTfheRsTranspiler::AssignOutputs() {
         XLS_CHECK(absl::SimpleAtoi(idx, &param_bit_idx));
       }
       // The i'th parameter subscript must be within range (e.g., 0 must be less
-      // than 8, since c is a byte in out example.)
+      // than 8, since c is a byte in our example.)
       XLS_CHECK(param_bit_idx < arg_size);
       assignments.push_back(
           absl::StrFormat(kAssignmentTemplate, name_and_idx[0], param_bit_idx,

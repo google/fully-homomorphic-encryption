@@ -32,6 +32,12 @@ use GateInput::*;
 
 $gate_levels
 
+fn prune(temp_nodes: &mut HashMap<usize, Ciphertext>, temp_node_ids: &[usize]) {
+  for x in temp_node_ids {
+    temp_nodes.remove(&x);
+  }
+}
+
 pub fn $function_signature {
     let constant_false: Ciphertext = server_key.create_trivial(0);
     let constant_true: Ciphertext = server_key.create_trivial(1);
@@ -53,12 +59,14 @@ pub fn $function_signature {
         return server_key.apply_lookup_table(&ct_input, &luts[&lut]);
     };
 
-    let mut temp_nodes = Vec::new();
-    temp_nodes.resize($total_num_gates, constant_false.clone());
+    let mut temp_nodes = HashMap::new();
     let mut $output_stem = Vec::new();
     $output_stem.resize($num_outputs, constant_false.clone());
 
-    let mut run_level = |tasks: &[((usize, bool, u64), &[GateInput])]| {
+    let mut run_level = |
+      temp_nodes: &mut HashMap<usize, Ciphertext>,
+      tasks: &[((usize, bool, u64), &[GateInput])]
+    | {
         let updates = tasks
             .into_par_iter()
             .map(|(k, task_args)| {
@@ -68,7 +76,7 @@ pub fn $function_signature {
                     Cst(false) => &constant_false,
                     Cst(true) => &constant_true,
                     Arg(pos, ndx) => &args[*pos][*ndx],
-                    Tv(ndx) => &temp_nodes[*ndx],
+                    Tv(ndx) => &temp_nodes[ndx],
                     Output(ndx) => &$output_stem[*ndx],
                   }).collect::<Vec<_>>();
                 ((id, is_output), lut3(&task_args, lut))
@@ -79,10 +87,11 @@ pub fn $function_signature {
             if is_output {
                 $output_stem[index] = v;
             } else {
-                temp_nodes[index] = v;
+                temp_nodes.insert(index, v);
             }
         });
     };
+
 $run_level_ops
 
 $output_assignment_block
@@ -103,7 +112,14 @@ $output_assignment_block
 //   ];
 //
 constexpr absl::string_view kLevelTemplate = R"rust(
-const LEVEL_%d: [((usize, bool, u64), &[GateInput]); %d] = [
+static LEVEL_%d: [((usize, bool, u64), &[GateInput]); %d] = [
+%s
+];)rust";
+
+// The data specifying, for each LEVEL_K, the set of gate output ids
+// that can be safely deleted from memory after LEVEL_K is run.
+constexpr absl::string_view kPruneTemplate = R"rust(
+static PRUNE_%d: [usize; %d] = [
 %s
 ];)rust";
 
@@ -125,7 +141,22 @@ constexpr absl::string_view kTaskTemplate = "    ((%d, %s, %d), &[%s]),";
 //  run_level(&LEVEL_1);
 //  ...
 //
-constexpr absl::string_view kRunLevelTemplate = "    run_level(&LEVEL_%d);";
+constexpr absl::string_view kRunLevelTemplate =
+    "    run_level(&mut temp_nodes, &LEVEL_%d);";
+
+// The commands used to clean up old temp_nodes values that are no longer
+// needed. Necessary for large programs with 1M or more gates to conserve RAM.
+//
+// e.g.,
+//
+//  run_level(&LEVEL_0);
+//  prune(&PRUNE_0);
+//  run_level(&LEVEL_1);
+//  prune(&PRUNE_1);
+//  ...
+//
+constexpr absl::string_view kRunPruneTemplate =
+    "    prune(&mut temp_nodes, &PRUNE_%d);";
 
 // This is needed for the output section of a program,
 // when the output values from the yosys netlist must be split off into multiple

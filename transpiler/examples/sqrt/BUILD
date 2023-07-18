@@ -1,6 +1,8 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//transpiler:fhe.bzl", "fhe_cc_library")
 
+# load rust deps
+
 licenses(["notice"])
 
 fhe_cc_library(
@@ -203,3 +205,5 @@ cc_test(
         "@tfhe//:libtfhe",
     ],
 )
+
+# sqrt_rs_fhe_lib rules

@@ -19,6 +19,12 @@ namespace fhe {
 namespace rust {
 namespace transpiler {
 
+struct BuildGateOpsOutput {
+  std::string task_blocks;
+  int level_count;
+  absl::flat_hash_set<int> levels_with_prune;
+};
+
 class YosysTfheRsTranspiler {
  public:
   // Takes ownership of the input netlist ptr
@@ -46,7 +52,7 @@ class YosysTfheRsTranspiler {
     return *netlist_->modules().front();
   }
 
-  absl::StatusOr<std::pair<std::string, int>> BuildGateOps(int parallelism);
+  absl::StatusOr<BuildGateOpsOutput> BuildGateOps(int parallelism);
   absl::StatusOr<std::string> FunctionSignature();
   absl::StatusOr<std::string> AssignOutputs();
 };

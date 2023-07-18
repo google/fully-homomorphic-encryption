@@ -225,6 +225,25 @@ absl::StatusOr<std::string> ResolveNetRefName(
   }
 }
 
+absl::StatusOr<std::vector<int>> ExtractPriorGateOutputIds(
+    const AbstractCell<bool>* cell) {
+  std::vector<int> gate_inputs;
+  for (const AbstractCell<bool>::Pin& input : cell->inputs()) {
+    if (absl::StartsWith(input.name, "P") ||
+        absl::StrContains(input.netref->name(), "constant")) {
+      continue;
+      // Input and output references are not included, and we rule them out by
+      // the wire type
+    } else if (input.netref->kind() == NetDeclKind::kWire) {
+      XLS_ASSIGN_OR_RETURN(int numeric_ref,
+                           NetRefIdToNumericId(input.netref->name()));
+      gate_inputs.push_back(numeric_ref);
+    }
+  }
+
+  return gate_inputs;
+}
+
 absl::StatusOr<GateInputs> ExtractGateInputs(
     const AbstractCell<bool>* cell, const CodegenTemplates& templates) {
   // For a LUT cell, the table is a constant numeric value determined by the
@@ -234,13 +253,13 @@ absl::StatusOr<GateInputs> ExtractGateInputs(
   // The LUT pins are in order from LSB to MSB (P0 is the LSB). They are
   // defined as separate pins because the value assigned to a pin must be a
   // single bit. In this case we need to combine all the constant single bits
-  // into an integer, and pass that along to the jaxite API.
+  // into an integer, and pass that along to the backend API.
   uint64_t lut_definition = 0;
   int bit_posn = 0;
   std::vector<std::string> gate_inputs;
   for (const AbstractCell<bool>::Pin& input : cell->inputs()) {
-    // "P" is the magic string, defined by the cell liberty file, that contains
-    // the bits of the truth table.
+    // "P" is the magic string, defined by the cell liberty file, that
+    // contains the bits of the truth table.
     if (absl::StartsWith(input.name, "P")) {
       XLS_ASSIGN_OR_RETURN(int lut_bit, ConstantToValue(input.netref->name()));
       lut_definition |= (uint64_t)lut_bit << bit_posn;

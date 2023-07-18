@@ -150,6 +150,12 @@ absl::StatusOr<GateInputs> ExtractGateInputs(
     const xls::netlist::rtl::AbstractCell<bool>* cell,
     const CodegenTemplates& templates);
 
+// The same as the above method, but only extracts the numeric ids for the
+// inputs to this cell that correspond to the outputs of previously evaluated
+// cells.
+absl::StatusOr<std::vector<int>> ExtractPriorGateOutputIds(
+    const xls::netlist::rtl::AbstractCell<bool>* cell);
+
 // Extract the output data for a single cell
 absl::StatusOr<GateOutput> ExtractGateOutput(
     const xls::netlist::rtl::AbstractCell<bool>* cell);
