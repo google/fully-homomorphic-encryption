@@ -79,6 +79,7 @@ static auto kCellNameToJaxiteOp =
 
 static auto kCellNameToJaxitePmapOp =
     absl::flat_hash_map<absl::string_view, absl::string_view>({
+        {"lut2", "jaxite_bool.pmap_lut2"},
         {"lut3", "jaxite_bool.pmap_lut3"},
     });
 
