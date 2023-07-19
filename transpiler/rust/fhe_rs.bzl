@@ -157,8 +157,8 @@ def rust_codegen(name, rust_file_name, src, cell_library = None, parallelism = 0
         srcs = [":" + transpiled_source],
         tags = tags,
         deps = [
-            "//third_party/rust/rayon/v1:rayon",
-            "//third_party/rust/tfhe/v0_2:tfhe",
+            "@crate_index//:rayon",
+            "@crate_index//:tfhe",
         ],
         **kwargs
     )

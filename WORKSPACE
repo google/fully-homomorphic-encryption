@@ -168,5 +168,36 @@ load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_regi
 
 rules_rust_dependencies()
 
-rust_register_toolchains()
+rust_register_toolchains(
+    edition = "2021",
+    versions = [
+      # see https://github.com/bazelbuild/rules_rust/blob/main/util/fetch_shas_VERSIONS.txt
+      "1.70.0",
+    ],
+)
+
+# Rust dependencies ("Cargo free" setup)
+load("@rules_rust//crate_universe:defs.bzl", "crate", "crates_repository", "render_config")
+
+crates_repository(
+    name = "crate_index",
+    cargo_lockfile = "//:Cargo.lock",
+    lockfile = "//:Cargo.Bazel.lock",
+    packages = {
+        "tfhe": crate.spec(
+            version = "0.2.4",
+            features = ["boolean", "shortint", "x86_64-unix"],
+        ),
+        "rayon": crate.spec(
+            version = "1.7.0",
+        ),
+    },
+    render_config = render_config(
+        default_package_name = ""
+    ),
+)
+
+load("@crate_index//:defs.bzl", "crate_repositories")
+
+crate_repositories()
 
