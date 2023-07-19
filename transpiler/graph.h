@@ -35,7 +35,7 @@ static absl::flat_hash_set<K> Keys(const absl::flat_hash_map<K, V>& map) {
 
 // A graph data structure.
 //
-// Parameter `V` is the type of vertices, which is expected to be cheap to copy.
+// Parameter `V` is the vertex type, which is expected to be cheap to copy.
 // Parameter `VW` is the type of vertex weights.
 template <typename V, typename VW>
 class Graph {
