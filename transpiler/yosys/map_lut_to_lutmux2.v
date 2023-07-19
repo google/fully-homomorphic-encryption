@@ -40,7 +40,7 @@ module _tjc_lut1 (A, Y);
     wire [2**WIDTH-1:0] PBITS = LUT;
 
     (* LUT=LUT *)
-    lut1 _TECHMAP_REPLACE_(.B(0), .A(A[0]),
+    lut2 _TECHMAP_REPLACE_(.B(0), .A(A[0]),
             .P3(0),
             .P2(0),
             .P1(PBITS[1]),
