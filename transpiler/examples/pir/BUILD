@@ -1,5 +1,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//transpiler:fhe.bzl", "fhe_cc_library")
+load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 
 licenses(["notice"])
 
@@ -119,4 +121,26 @@ cc_test(
         "//transpiler/tests:tfhe_test_util",
         "@tfhe//:libtfhe",
     ],
+)
+
+fhe_rust_library(
+    name = "pir_rs_fhe_lib",
+    src = "pir_api.cc",
+    hdrs = ["pir_api.h"],
+)
+
+rust_library(
+    name = "pir_rs_lib",
+    srcs = ["pir_rs_lib.rs"],
+    deps = [
+        ":pir_rs_fhe_lib",
+        "@crate_index//:tfhe",
+    ],
+)
+
+rust_test(
+    name = "pir_rs_test",
+    size = "large",
+    crate = ":pir_rs_lib",
+    tags = ["nofastbuild"],
 )

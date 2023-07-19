@@ -1,5 +1,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//transpiler:fhe.bzl", "fhe_cc_library")
+load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library", "rust_test")
 
 licenses(["notice"])
 
@@ -54,5 +56,36 @@ cc_test(
         ":hangman_client_lib",
         "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
+    ],
+)
+
+fhe_rust_library(
+    name = "hangman_rs_fhe_lib",
+    src = "hangman_api.cc",
+    hdrs = ["hangman_api.h"],
+)
+
+rust_library(
+    name = "hangman_rs_lib",
+    srcs = ["hangman_rs_lib.rs"],
+    deps = [
+        ":hangman_rs_fhe_lib",
+        "@crate_index//:tfhe",
+    ],
+)
+
+rust_test(
+    name = "hangman_rs_test",
+    size = "large",
+    crate = ":hangman_rs_lib",
+    tags = ["nofastbuild"],
+)
+
+rust_binary(
+    name = "hangman_rs_main",
+    srcs = ["hangman_rs_lib.rs"],
+    deps = [
+        ":hangman_rs_fhe_lib",
+        "@crate_index//:tfhe",
     ],
 )

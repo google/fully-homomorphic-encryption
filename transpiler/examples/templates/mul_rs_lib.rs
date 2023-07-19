@@ -24,18 +24,21 @@ pub fn decrypt(ciphertexts: &[Ciphertext], client_key: &ClientKey) -> i16 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sqrt_rs_fhe_lib::isqrt;
+    use mul_rs_fhe_lib::mul16;
     use tfhe::shortint::parameters::PARAM_MESSAGE_1_CARRY_2;
 
-    fn run_test_for(x: i16) -> i16 {
+    fn run_test_for(a: i16, b:i16, c:i16) -> i16 {
         let (client_key, server_key) = gen_keys(PARAM_MESSAGE_1_CARRY_2);
-        let fhe_val = encrypt(x, &client_key);
-        let fhe_output = &isqrt(&fhe_val, &server_key);
+        let fhe_a = encrypt(a, &client_key);
+        let fhe_b = encrypt(b, &client_key);
+        let fhe_c = encrypt(c, &client_key);
+        let fhe_output = &mul16(&fhe_a, &fhe_b, &fhe_c, &server_key);
         decrypt(&fhe_output, &client_key)
     }
 
     #[test]
-    fn test_sqrt() {
-        assert_eq!(run_test_for(169), 13);
+    fn test_mul() {
+        assert_eq!(run_test_for(700, 15, 0), 10500);
+        assert_eq!(run_test_for(-5, 5, 1), -24);
     }
 }

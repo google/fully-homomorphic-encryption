@@ -21,6 +21,8 @@ load(
     "//transpiler:fhe_yosys.bzl",
     "verilog_to_netlist",
 )
+# load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
+# load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 
 licenses(["notice"])
 
@@ -218,3 +220,25 @@ cc_binary(
         "@openfhe//:binfhe",
     ],
 )
+
+# fhe_rust_library(
+#     name = "ifte_rs_fhe_lib",
+#     src = "ifte.cc",
+#     hdrs = ["ifte.h"],
+# )
+#
+# rust_library(
+#     name = "ifte_rs_lib",
+#     srcs = ["ifte_rs_lib.rs"],
+#     deps = [
+#         ":ifte_rs_fhe_lib",
+#         "@crate_index//:tfhe",
+#     ],
+# )
+#
+# rust_test(
+#     name = "ifte_rs_test",
+#     size = "large",
+#     crate = ":ifte_rs_lib",
+#     tags = ["nofastbuild"],
+# )

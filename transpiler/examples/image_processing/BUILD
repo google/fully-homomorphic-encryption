@@ -1,5 +1,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//transpiler:fhe.bzl", "fhe_cc_library")
+load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 
 package(
     default_applicable_licenses = ["@com_google_fully_homomorphic_encryption//:license"],
@@ -440,6 +442,28 @@ cc_binary(
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],
+)
+
+fhe_rust_library(
+    name = "ricker_wavelet_rs_fhe_lib",
+    src = "ricker_wavelet.cc",
+    hdrs = ["ricker_wavelet.h"],
+)
+
+rust_library(
+    name = "ricker_wavelet_rs_lib",
+    srcs = ["ricker_wavelet_rs_lib.rs"],
+    deps = [
+        ":ricker_wavelet_rs_fhe_lib",
+        "@crate_index//:tfhe",
+    ],
+)
+
+rust_test(
+    name = "ricker_wavelet_rs_test",
+    size = "large",
+    crate = ":ricker_wavelet_rs_lib",
+    tags = ["nofastbuild"],
 )
 
 exports_files([

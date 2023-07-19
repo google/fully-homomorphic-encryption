@@ -1,5 +1,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//transpiler:fhe.bzl", "fhe_cc_library")
+load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 
 licenses(["notice"])
 
@@ -101,4 +103,26 @@ cc_test(
         "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
     ],
+)
+
+fhe_rust_library(
+    name = "rock_paper_scissor_rs_fhe_lib",
+    src = "rock_paper_scissor.cc",
+    hdrs = ["rock_paper_scissor.h"],
+)
+
+rust_library(
+    name = "rock_paper_scissor_rs_lib",
+    srcs = ["rock_paper_scissor_rs_lib.rs"],
+    deps = [
+        ":rock_paper_scissor_rs_fhe_lib",
+        "@crate_index//:tfhe",
+    ],
+)
+
+rust_test(
+    name = "rock_paper_scissor_rs_test",
+    size = "large",
+    crate = ":rock_paper_scissor_rs_lib",
+    tags = ["nofastbuild"],
 )

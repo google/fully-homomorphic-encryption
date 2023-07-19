@@ -1,21 +1,9 @@
-# Copyright 2021 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 # Build rules for the template-based string reversal example.
-
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//transpiler:fhe.bzl", "fhe_cc_library")
+load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 
 licenses(["notice"])
 
@@ -94,4 +82,29 @@ cc_binary(
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/time",
     ],
+)
+
+fhe_rust_library(
+    name = "mul_rs_fhe_lib",
+    src = "mul16.cc",
+    hdrs = [
+        "mul.h",
+        "mul16.h",
+    ],
+)
+
+rust_library(
+    name = "mul_rs_lib",
+    srcs = ["mul_rs_lib.rs"],
+    deps = [
+        ":mul_rs_fhe_lib",
+        "@crate_index//:tfhe",
+    ],
+)
+
+rust_test(
+    name = "mul_rs_test",
+    size = "large",
+    crate = ":mul_rs_lib",
+    tags = ["nofastbuild"],
 )

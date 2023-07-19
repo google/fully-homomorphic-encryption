@@ -1,5 +1,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//transpiler:fhe.bzl", "fhe_cc_library")
+load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library", "rust_test")
 
 licenses(["notice"])
 
@@ -252,5 +254,36 @@ cc_test(
         "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
         "@tfhe//:libtfhe",
+    ],
+)
+
+fhe_rust_library(
+    name = "fibonacci_rs_fhe_lib",
+    src = "fibonacci.cc",
+    hdrs = ["fibonacci.h"],
+)
+
+rust_library(
+    name = "fibonacci_rs_lib",
+    srcs = ["fibonacci_rs_lib.rs"],
+    deps = [
+        ":fibonacci_rs_fhe_lib",
+        "@crate_index//:tfhe",
+    ],
+)
+
+rust_test(
+    name = "fibonacci_rs_test",
+    size = "large",
+    crate = ":fibonacci_rs_lib",
+    tags = ["nofastbuild"],
+)
+
+rust_binary(
+    name = "fibonacci_rs_main",
+    srcs = ["fibonacci_rs_lib.rs"],
+    deps = [
+        ":fibonacci_rs_fhe_lib",
+        "@crate_index//:tfhe",
     ],
 )

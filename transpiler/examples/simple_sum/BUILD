@@ -1,5 +1,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//transpiler:fhe.bzl", "fhe_cc_library")
+load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 
 licenses(["notice"])
 
@@ -125,4 +127,26 @@ cc_test(
         "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
     ],
+)
+
+fhe_rust_library(
+    name = "simple_sum_rs_fhe_lib",
+    src = "simple_sum.cc",
+    hdrs = ["simple_sum.h"],
+)
+
+rust_library(
+    name = "simple_sum_rs_lib",
+    srcs = ["simple_sum_rs_lib.rs"],
+    deps = [
+        ":simple_sum_rs_fhe_lib",
+        "@crate_index//:tfhe",
+    ],
+)
+
+rust_test(
+    name = "simple_sum_rs_test",
+    size = "large",
+    crate = ":simple_sum_rs_lib",
+    tags = ["nofastbuild"],
 )
