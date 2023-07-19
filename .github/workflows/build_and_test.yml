@@ -7,9 +7,14 @@ on:
   pull_request:
     branches:
       - main
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on:
+      labels: ubuntu-20.04-16core
+    timeout-minutes: 360
     steps:
       - name: Check out repository code
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # pin@v3
@@ -25,8 +30,8 @@ jobs:
 
       - name: "Run `bazel build`"
         run: |
-          bazel build --jobs=1 //...
+          bazel build //...
 
       - name: "Run `bazel test`"
         run: |
-          bazel test --jobs=1 //...
+          bazel test //...
