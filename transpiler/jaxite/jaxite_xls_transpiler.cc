@@ -10,7 +10,7 @@
 #include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
 #include "absl/strings/substitute.h"
-#include "google/protobuf/util/internal/utility.h"
+#include "transpiler/util/string.h"
 #include "xls/public/ir.h"
 
 namespace fhe {
@@ -19,12 +19,13 @@ namespace transpiler {
 
 namespace {
 
-using xls::Bits;
-using xls::Function;
-using xls::Literal;
-using xls::Node;
-using xls::Op;
-using xls::Param;
+using ::fully_homomorphic_encryption::ToSnakeCase;
+using ::xls::Bits;
+using ::xls::Function;
+using ::xls::Literal;
+using ::xls::Node;
+using ::xls::Op;
+using ::xls::Param;
 
 }  // namespace
 
@@ -124,8 +125,7 @@ absl::StatusOr<std::string> JaxiteXlsTranspiler::FunctionSignature(
   constexpr absl::string_view server_key_set = "sks: jaxite_bool.ServerKeySet";
   constexpr absl::string_view parameters = "params: jaxite_bool.Parameters";
   return absl::Substitute(
-      "def $0($1, $2, $3) -> None",
-      google::protobuf::util::converter::ToSnakeCase(function->name()),
+      "def $0($1, $2, $3) -> None", ToSnakeCase(function->name()),
       absl::StrJoin(param_signatures, ", "), server_key_set, parameters);
 }
 

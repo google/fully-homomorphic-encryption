@@ -39,3 +39,12 @@ cc_library(
         "@com_google_absl//absl/status:statusor",
     ],
 )
+
+cc_library(
+    name = "string",
+    srcs = ["string.cc"],
+    hdrs = ["string.h"],
+    deps = [
+        "@com_google_absl//absl/strings",
+    ],
+)

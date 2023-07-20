@@ -24,9 +24,7 @@ jobs:
         with:
           path: |
             ~/.cache/bazel
-          key: ${{ runner.os }}-bazel-${{ hashFiles('.bazelversion', '.bazelrc', 'WORKSPACE') }}
-          restore-keys: |
-            ${{ runner.os }}-bazel-
+          key: ${{ runner.os }}-bazel-${{ hashFiles('.bazelversion', '.bazelrc', 'WORKSPACE', 'patches/**') }}
 
       - name: "Run `bazel build`"
         run: |

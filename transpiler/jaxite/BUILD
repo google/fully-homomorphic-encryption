@@ -35,11 +35,11 @@ cc_library(
     hdrs = ["jaxite_xls_transpiler.h"],
     deps = [
         "//transpiler:abstract_xls_transpiler",
+        "//transpiler/util:string",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",
-        "@com_google_protobuf//:protobuf",
         "@com_google_xls//xls/public:ir",
     ],
 )
@@ -65,9 +65,9 @@ cc_library(
     hdrs = ["yosys_transpiler.h"],
     deps = [
         "//transpiler:netlist_utils",
+        "//transpiler/util:string",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
-        "@com_google_protobuf//:protobuf",
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/netlist",
         "@com_google_xls//xls/netlist:cell_library",

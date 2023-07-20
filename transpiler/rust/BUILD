@@ -35,10 +35,10 @@ cc_library(
     deps = [
         ":tfhe_rs_templates",
         "//transpiler:netlist_utils",
+        "//transpiler/util:string",
         "@com_google_absl//absl/container:btree",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
-        "@com_google_protobuf//:protobuf",
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
         "@com_google_xls//xls/netlist",

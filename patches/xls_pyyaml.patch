@@ -1,0 +1,13 @@
+--- dependency_support/pip_requirements.txt
++++ dependency_support/pip_requirements.txt
+@@ -7,7 +7,9 @@ markupsafe==2.1.1
+ termcolor==1.1.0
+ psutil==5.7.0
+ portpicker==1.3.1
+-pyyaml==5.4.1
++
++# See https://github.com/yaml/pyyaml/issues/724 for issues with pyyaml 5.4.1
++pyyaml==6.0.1
+
+ # Note: numpy and scipy version availability seems to differ between Ubuntu
+ # versions that we want to support (e.g. 18.04 vs 20.04), so we accept a

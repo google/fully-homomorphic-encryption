@@ -11,8 +11,8 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
-#include "google/protobuf/util/internal/utility.h"
 #include "transpiler/netlist_utils.h"
+#include "transpiler/util/string.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/netlist/cell_library.h"
 #include "xls/netlist/function_extractor.h"
@@ -37,6 +37,7 @@ using ::xls::netlist::rtl::AbstractParser;
 using ::xls::netlist::rtl::NetDeclKind;
 using ::xls::netlist::rtl::Scanner;
 
+using ::fully_homomorphic_encryption::ToSnakeCase;
 using ::fully_homomorphic_encryption::transpiler::CodegenTemplates;
 using ::fully_homomorphic_encryption::transpiler::ExtractGateInputs;
 using ::fully_homomorphic_encryption::transpiler::GateInputs;
@@ -446,8 +447,8 @@ absl::StatusOr<std::string> YosysTranspiler::FunctionSignature(
   return absl::Substitute(
       "def $0($1, sks: jaxite_bool.ServerKeySet, params: "
       "jaxite_bool.Parameters) -> $2",
-      google::protobuf::util::converter::ToSnakeCase(module.name()),
-      absl::StrJoin(param_signatures, ", "), output_type);
+      ToSnakeCase(module.name()), absl::StrJoin(param_signatures, ", "),
+      output_type);
 }
 
 }  // namespace transpiler

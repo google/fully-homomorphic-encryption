@@ -62,15 +62,18 @@ new_git_repository(
     commit = "5fc1a84cad234ffdea547db03985d888ff943ad1",
     init_submodules = True,
     remote = "https://github.com/openfheorg/openfhe-development.git",
-    shallow_since = "1649455211 -0400",
+    shallow_since = "1667502783 +0200",
 )
 
 # Install XLS and its transitive dependencies.
 http_archive(
     name = "com_google_xls",
-    sha256 = "5a945caa897a6bbba19e6d419e0ed707c3e1d9f4e9db2fe97f9aa6a6cdf7a91f",
-    strip_prefix = "xls-2a613724dd84e891f7536ca81a5e0a960c21b447",
-    url = "https://github.com/google/xls/archive/2a613724dd84e891f7536ca81a5e0a960c21b447.tar.gz",
+    patches = [
+        "//patches:xls_pyyaml.patch",
+    ],
+    sha256 = "35e1b60b82e22d6bf0c17e63aaf2d74d16b41e0250c3b9434b88fd33394f59f3",
+    strip_prefix = "xls-a5ba70ebd4e18a83fc5fa29c0d54f00cc16210e8",
+    url = "https://github.com/google/xls/archive/a5ba70ebd4e18a83fc5fa29c0d54f00cc16210e8.tar.gz",
 )
 
 # Used by xlscc.
@@ -85,6 +88,7 @@ http_archive(
 # Toolchain to install LLVM, a requirements for XLS
 http_archive(
     name = "com_grail_bazel_toolchain",
+    sha256 = "06e1421091f153029c070f1ae364f8cb5a61dab20ede97a844a0f7bfcec632a4",
     strip_prefix = "bazel-toolchain-0.8",
     urls = [
         "https://github.com/grailbio/bazel-toolchain/archive/refs/tags/0.8.zip",
@@ -143,6 +147,7 @@ new_git_repository(
     # Release v0.21
     commit = "e6d2a900a979df59bee82a6293e467411a0bac7c",
     remote = "https://github.com/YosysHQ/yosys.git",
+    shallow_since = "1662445410 +0200",
 )
 
 # Install google benchmark framework
@@ -171,8 +176,8 @@ rules_rust_dependencies()
 rust_register_toolchains(
     edition = "2021",
     versions = [
-      # see https://github.com/bazelbuild/rules_rust/blob/main/util/fetch_shas_VERSIONS.txt
-      "1.70.0",
+        # see https://github.com/bazelbuild/rules_rust/blob/main/util/fetch_shas_VERSIONS.txt
+        "1.70.0",
     ],
 )
 
@@ -185,19 +190,22 @@ crates_repository(
     lockfile = "//:Cargo.Bazel.lock",
     packages = {
         "tfhe": crate.spec(
+            features = [
+                "boolean",
+                "shortint",
+                "x86_64-unix",
+            ],
             version = "0.2.4",
-            features = ["boolean", "shortint", "x86_64-unix"],
         ),
         "rayon": crate.spec(
             version = "1.7.0",
         ),
     },
     render_config = render_config(
-        default_package_name = ""
+        default_package_name = "",
     ),
 )
 
 load("@crate_index//:defs.bzl", "crate_repositories")
 
 crate_repositories()
-

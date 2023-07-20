@@ -15,9 +15,9 @@
 #include "absl/strings/str_replace.h"
 #include "absl/strings/string_view.h"
 #include "absl/strings/strip.h"
-#include "google/protobuf/util/internal/utility.h"
 #include "transpiler/netlist_utils.h"
 #include "transpiler/rust/tfhe_rs_templates.h"
+#include "transpiler/util/string.h"
 #include "xls/common/status/status_macros.h"
 // This comment will include status matchers externally.  See copybara config.
 
@@ -31,6 +31,7 @@ using ::xls::netlist::rtl::AbstractModule;
 using ::xls::netlist::rtl::AbstractNetRef;
 using ::xls::netlist::rtl::NetDeclKind;
 
+using ::fully_homomorphic_encryption::ToSnakeCase;
 using ::fully_homomorphic_encryption::transpiler::CodegenTemplates;
 using ::fully_homomorphic_encryption::transpiler::ConstantToValue;
 using ::fully_homomorphic_encryption::transpiler::ExtractGateInputs;
@@ -483,10 +484,9 @@ absl::StatusOr<std::string> YosysTfheRsTranspiler::FunctionSignature() {
     }
   }
 
-  return absl::Substitute(
-      "$0($1, server_key: &ServerKey) -> $2",
-      google::protobuf::util::converter::ToSnakeCase(module().name()),
-      absl::StrJoin(param_signatures, ", "), output_type);
+  return absl::Substitute("$0($1, server_key: &ServerKey) -> $2",
+                          ToSnakeCase(module().name()),
+                          absl::StrJoin(param_signatures, ", "), output_type);
 }
 
 }  // namespace transpiler
