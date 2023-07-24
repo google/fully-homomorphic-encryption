@@ -44,6 +44,14 @@ load("@rules_foreign_cc//foreign_cc:repositories.bzl", "rules_foreign_cc_depende
 rules_foreign_cc_dependencies()
 
 http_archive(
+    name = "com_nlohmann_json",
+    build_file = "//patches:nlohmann_json.BUILD",
+    sha256 = "d69f9deb6a75e2580465c6c4c5111b89c4dc2fa94e3a85fcd2ffcd9a143d9273",
+    strip_prefix = "json-3.11.2",
+    url = "https://github.com/nlohmann/json/archive/refs/tags/v3.11.2.tar.gz",
+)
+
+http_archive(
     name = "tfhe",
     build_file = "//patches:tfhe.BUILD",
     sha256 = "7ad88b70b389bfdb871488a90372b0cecd9ba731183ba02c3cd0ce86c9adcc93",

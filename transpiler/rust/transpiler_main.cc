@@ -10,6 +10,7 @@
 #include "absl/flags/parse.h"
 #include "absl/flags/usage.h"
 #include "absl/status/status.h"
+#include "transpiler/metadata_utils.h"
 #include "transpiler/netlist_utils.h"
 #include "transpiler/rust/yosys_transpiler.h"
 #include "xls/common/file/filesystem.h"
@@ -19,6 +20,9 @@
 ABSL_FLAG(std::string, ir_path, "", "Path to the input IR to process.");
 ABSL_FLAG(std::string, metadata_path, "",
           "Path to a [binary-format] xlscc MetadataOutput protobuf "
+          "containing data about the function to transpile.");
+ABSL_FLAG(std::string, heir_metadata_path, "",
+          "Path to a [json-format] HEIR metadata file "
           "containing data about the function to transpile.");
 ABSL_FLAG(std::string, rs_out, "",
           "Path to a .rs output file for the resulting generated code. If "
@@ -43,17 +47,11 @@ absl::Status RealMain() {
   }
 
   const std::string metadata_path = absl::GetFlag(FLAGS_metadata_path);
-  if (metadata_path.empty()) {
+  const std::string heir_metadata_path =
+      absl::GetFlag(FLAGS_heir_metadata_path);
+  if (metadata_path.empty() && heir_metadata_path.empty()) {
     return absl::InvalidArgumentError(
-        "--metadata_path must be specified, but was: " + metadata_path);
-  }
-
-  XLS_ASSIGN_OR_RETURN(std::string proto_text,
-                       xls::GetFileContents(metadata_path));
-  xlscc_metadata::MetadataOutput metadata;
-  if (!metadata.ParseFromString(proto_text)) {
-    return absl::InvalidArgumentError(
-        "Could not parse function metadata proto.");
+        "--metadata_path or --heir-metadata-path must be specified");
   }
 
   XLS_ASSIGN_OR_RETURN(std::string ir_text, xls::GetFileContents(ir_path));
@@ -72,6 +70,23 @@ absl::Status RealMain() {
       std::unique_ptr<::xls::netlist::rtl::AbstractNetlist<bool>> netlist,
       fully_homomorphic_encryption::transpiler::ParseNetlist(cell_library_text,
                                                              ir_text));
+
+  xlscc_metadata::MetadataOutput metadata;
+  if (!metadata_path.empty()) {
+    XLS_ASSIGN_OR_RETURN(std::string proto_text,
+                         xls::GetFileContents(metadata_path));
+    if (!metadata.ParseFromString(proto_text)) {
+      return absl::InvalidArgumentError(
+          "Could not parse function metadata proto.");
+    }
+  } else {
+    XLS_ASSIGN_OR_RETURN(std::string json_text,
+                         xls::GetFileContents(heir_metadata_path));
+    XLS_ASSIGN_OR_RETURN(
+        metadata,
+        fully_homomorphic_encryption::transpiler::CreateMetadataFromHeirJson(
+            json_text, netlist->modules().front()));
+  }
 
   YosysTfheRsTranspiler transpiler(metadata, std::move(netlist));
   XLS_ASSIGN_OR_RETURN(std::string module_impl,

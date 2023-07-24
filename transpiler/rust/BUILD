@@ -67,6 +67,7 @@ cc_binary(
     srcs = ["transpiler_main.cc"],
     deps = [
         ":yosys_transpiler",
+        "//transpiler:metadata_utils",
         "//transpiler:netlist_utils",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
