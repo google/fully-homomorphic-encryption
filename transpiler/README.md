@@ -201,6 +201,8 @@ without the server knowing the integers or the result.
 The Fibonacci demo calculates the sum of the Fibonacci sequence up to the
 n<sup>th</sup> integer in the sequence.
 
+*   TFHE-rs multi-threaded translation command:
+    *   Using TFHE-rs: `shell bazel run //transpiler/examples/fibonacci:fibonacci_tfhe_testbench`
 *   Baseline FHE-C++ translation command:
     *   Using TFHE: `shell bazel run
         //transpiler/examples/fibonacci:fibonacci_tfhe_testbench`
@@ -244,6 +246,13 @@ This demo reverses an encrypted string without the server knowing the string.
 *   Multi-core interpreter command: `shell bazel run
     //transpiler/examples/string_reverse:string_reverse_interpreted_tfhe_testbench
     "hello"`
+
+### Add one
+
+This simple demo adds 1 to an integer.
+
+*   Jaxite Command: `shell bazel run
+        //transpiler/jaxite/examples/add_one:add_one`
 
 ### Simple sum
 
@@ -469,6 +478,12 @@ If Bazel reports an error about an unknown LLVM release, try replacing the
     the End of Moore's Law (EoML) era.
 *   [TFHE Library](https://github.com/tfhe/tfhe), Fast Fully Homomorphic
     Encryption Library
+*   [OpenFHE Library](https://github.com/openfheorg/openfhe-development), OpenFHE BinFHE
+*   [Jaxite](https://github.com/google/jaxite), Jaxite
+*   [TFHE-rs](https://github.com/zama-ai/tfhe-rs), TFHE-rs
+*   [Yosys](https://github.com/YosysHQ), Yosys
+*   [ABC](https://github.com/berkeley-abc/abc), ABC
+*   [HEIR](https://github.com/google/heir), Homomorphic Encryption Intermediate Representation
 
 ## Endnotes
 
