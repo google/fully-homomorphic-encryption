@@ -1,6 +1,6 @@
 """Rules for generating FHE targeting Python cryptograhpic backends."""
 
-# copybara: py_library
+load("@rules_python//python:defs.bzl", "py_library")
 load(
     "//transpiler:fhe_common.bzl",
     "BooleanifiedIrInfo",
@@ -23,8 +23,6 @@ load(
     "VALID_LUT_SIZES",
     "verilog_to_netlist",
 )
-
-pylib_impl = native.py_library
 
 FHE_OPTIMIZERS = ["xls", "yosys"]
 _FHE_TRANSPILER = "//transpiler/jaxite:transpiler"
@@ -158,12 +156,12 @@ def py_fhe_bool_ir_library(name, py_file_name, src, cell_library = None, paralle
         tags = tags,
     )
 
-    pylib_impl(
+    py_library(
         name = name,
         srcs = [":" + transpiled_source],
         tags = tags,
         deps = [
-            "//third_party/py/jaxite",
+            "@transpiler_pip_deps//pypi__jaxite",
         ],
         **kwargs
     )

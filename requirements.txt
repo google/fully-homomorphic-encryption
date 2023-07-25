@@ -1,0 +1,2 @@
+# Requirements for running jaxite backend examples
+jaxite==0.0.2

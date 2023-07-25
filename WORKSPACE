@@ -214,3 +214,14 @@ crates_repository(
 load("@crate_index//:defs.bzl", "crate_repositories")
 
 crate_repositories()
+
+# @xls_pip_deps installs rules_python and uses the system python, and for
+# whatever reason that means we can't use a hermetic python here. If you try,
+# you will see it fail to load numpy C-extensions.
+load("@rules_python//python:pip.bzl", "pip_install")
+
+pip_install(
+    name = "transpiler_pip_deps",
+    python_interpreter = "python3",
+    requirements = "//:requirements.txt",
+)

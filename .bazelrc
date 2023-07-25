@@ -6,3 +6,4 @@ build --copt "-Wno-comment"
 build --host_copt "-Wno-sign-compare"
 build --host_copt "-Wno-comment"
 build -c opt
+test --test_output=errors
