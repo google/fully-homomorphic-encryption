@@ -70,7 +70,7 @@ export LIBERTY_CELLS=${TRANSPILER_ROOT}/transpiler/yosys/lut_cells.liberty
 
 export MODEL_NAME=hello_world
 export INPUT_TOSA=${EXAMPLE_DIR}/hello_world.tosa.mlir
-export INPUT_METADATA=${EXAMPLE_DIR}/hello_world_meta.pb
+export OUTPUT_METADATA=${EXAMPLE_DIR}/hello_world_meta.json
 export OUTPUT_VERILOG=${EXAMPLE_DIR}/hello_world.v
 export OUTPUT_NETLIST=${EXAMPLE_DIR}/hello_world.netlist.v
 export OUTPUT_RUST=${EXAMPLE_DIR}/hello_world_fhe_lib.rs
@@ -79,7 +79,7 @@ export OUTPUT_RUST=${EXAMPLE_DIR}/hello_world_fhe_lib.rs
 Convert the TOSA MLIR model to Verilog:
 
 ```bash
-heir-opt --heir-tosa-to-arith ${INPUT_TOSA} | heir-translate --emit-verilog -o ${OUTPUT_VERILOG}
+heir-opt --heir-tosa-to-arith ${INPUT_TOSA} | tee >(heir-translate --emit-netadata -o ${OUTPUT_METADATA}) |  heir-translate --emit-verilog -o ${OUTPUT_VERILOG}
 ```
 
 Run the Yosys optimizer. This first script runs faster (few minutes) but creates
@@ -97,13 +97,12 @@ the second script.
 ```bash
 YOSYS_SCRIPT="read_verilog ${OUTPUT_VERILOG}; hierarchy -check -top main; techmap; opt; splitnets -ports for_*; flatten; opt_expr; opt; opt_clean -purge; abc -lut 3; opt_clean -purge; techmap -map ${LUTMAP_SCRIPT}; opt_clean -purge; rename -hide */w:*; rename -enumerate */w:*; rename -top ${MODEL_NAME}; clean; write_verilog -noattr ${OUTPUT_NETLIST}"
 yosys -p "${YOSYS_SCRIPT}"
-sed -i 's/arg[0-9]\+/arg0/' ${OUTPUT_NETLIST}
 ```
 
 Run the tfhe-rs transpiler:
 
 ```bash
-transpiler --ir_path ${OUTPUT_NETLIST} --liberty_path ${LIBERTY_CELLS} --metadata_path ${INPUT_METADATA} --parallelism=0 --rs_out ${OUTPUT_RUST}
+transpiler --ir_path ${OUTPUT_NETLIST} --liberty_path ${LIBERTY_CELLS} --metadata_path ${OUTPUT_METADATA} --parallelism=0 --rs_out ${OUTPUT_RUST}
 ```
 
 Then run the testbench with the following:
@@ -134,7 +133,7 @@ export MODEL_NAME=micro_speech
 export OUTPUT_DIR=$(mktemp -d -t ${MODEL_NAME}_XXX)
 cp -r ${EXAMPLE_DIR}/* ${OUTPUT_DIR}
 export INPUT_TOSA=${OUTPUT_DIR}/micro_speech.tosa.mlir
-export INPUT_METADATA=${OUTPUT_DIR}/micro_speech_meta.pb
+export OUTPUT_METADATA=${OUTPUT_DIR}/micro_speech_meta.json
 export OUTPUT_VERILOG=${OUTPUT_DIR}/micro_speech.v
 export OUTPUT_NETLIST=${OUTPUT_DIR}/micro_speech.netlist.v
 export OUTPUT_RUST=${OUTPUT_DIR}/src/micro_speech/micro_speech_fhe_lib.rs
@@ -142,10 +141,11 @@ export OUTPUT_RUST=${OUTPUT_DIR}/src/micro_speech/micro_speech_fhe_lib.rs
 
 1. Convert the model to Verilog
 
-Use `heir-opt` and `heir-translate` to convert the model to Verilog.
+Use `heir-opt` and `heir-translate` to convert the model to Verilog and emit
+metadata for the transpiler.
 
 ```bash
-heir-opt --heir-tosa-to-arith ${INPUT_TOSA} | heir-translate --emit-verilog -o ${OUTPUT_VERILOG}
+heir-opt --heir-tosa-to-arith ${INPUT_TOSA} | tee >(heir-translate --emit-netadata -o ${OUTPUT_METADATA}) |  heir-translate --emit-verilog -o ${OUTPUT_VERILOG}
 ```
 
 2. Yosys Optimization
@@ -160,7 +160,7 @@ yosys -p "${YOSYS_SCRIPT}"
 3. Rust Transpiler
 
 ```bash
-transpiler --ir_path ${OUTPUT_NETLIST} --liberty_path ${LIBERTY_CELLS} --metadata_path ${INPUT_METADATA} --parallelism=0 --rs_out ${OUTPUT_RUST}
+transpiler --ir_path ${OUTPUT_NETLIST} --liberty_path ${LIBERTY_CELLS} --metadata_path ${OUTPUT_METADATA} --parallelism=0 --rs_out ${OUTPUT_RUST}
 ```
 
 4. Run the testbench
@@ -190,9 +190,12 @@ The following limitations are due to our existing tools and dependencies:
   `tfl.custom` are not supported.
 * Named arguments are not supported due to our intermediate representation with
   MLIR and the Verilog translation.
-* TFLite can only quantize to [8-bits](https://www.tensorflow.org/lite/performance/quantization_spec), but it may be possible to use [Brevitas](https://github.com/Xilinx/brevitas) and lower to the TOSA MLIR dialect using [Torch-MLIR](https://github.com/llvm/torch-mlir).
+* TFLite can only quantize to
+  [8-bits](https://www.tensorflow.org/lite/performance/quantization_spec), but
+  it may be possible to use [Brevitas](https://github.com/Xilinx/brevitas) and
+  lower to the TOSA MLIR dialect using
+  [Torch-MLIR](https://github.com/llvm/torch-mlir).
 
-<!--
 
 ### Transpiling your TensorFlow Lite model
 
@@ -206,14 +209,13 @@ export INPUT_TFLITE=model.tflite
 export MODEL_NAME=${INPUT_TFLITE%.tflite}
 export OUTPUT_DIR=$(mktemp -d -t ${MODEL_NAME}_XXX)
 export OUTPUT_TOSA=${OUTPUT_DIR}/${MODEL_NAME}.tosa.mlir
+export OUTPUT_METADATA=${OUTPUT_DIR}/${MODEL_NAME}_meta.json
 export OUTPUT_VERILOG=${OUTPUT_DIR}/${MODEL_NAME}.verilog
 export OUTPUT_NETLIST=${OUTPUT_DIR}/${MODEL_NAME}.netlist.v
 
 mkdir -p ${OUTPUT_DIR}/src/${MODEL_NAME}
 export OUTPUT_RUST=${OUTPUT_DIR}/src/${MODEL_NAME}/${MODEL_NAME}_fhe_lib.rs
 export TESTBENCH_FILE=${OUTPUT_DIR}/src/main.rs
-
-cp ${INPUT_TFLITE} ${OUTPUT_DIR}
 ```
 
 1. Convert the TensorFlow Lite model to TOSA MLIR.
@@ -222,18 +224,9 @@ cp ${INPUT_TFLITE} ${OUTPUT_DIR}
 flatbuffer_translate --tflite-flatbuffer-to-mlir ${INPUT_TFLITE} | tf-opt --tf-tfl-to-tosa-pipeline --tosa-strip-quant-types -o ${OUTPUT_TOSA}
 ```
 
-2. Lower TOSA MLIR to Arith MLIR and Translate to Verilog.
+2. Run steps 1-3 of the [Micro Speech](#micro-speech) example above.
 
-```bash
-heir-opt --heir-tosa-to-arith ${OUTPUT_TOSA} | heir-translate --emit-verilog -o ${OUTPUT_VERILOG}
-```
-
-3. Create a metadata file.
-
-4. Run [Yosys Optimization](#yosys-optimization) and the [Rust
-   Transpiler](#rust-transpiler) step from above.
-
-5. Setup a Cargo project. Add the following `Cargo.toml` in `${OUTPUT_DIR}` with
+4. Setup a Cargo project. Add the following `Cargo.toml` in `${OUTPUT_DIR}` with
    the string substitutions:
 
 ```toml
@@ -247,14 +240,7 @@ rayon = "1.6.1"
 tfhe = { version = "0.2.4", features = ["boolean", "shortint", "x86_64-unix"] }
 ```
 
-You can build the library with
-
-```
-cd ${OUTPUT_DIR}
-cargo run --release
-```
-
-6. Create a testbench file `${TESTBENCH_FILE}` that invokes the transpiled model
+5. Create a testbench file `${TESTBENCH_FILE}` that invokes the transpiled model
    in the `${OUTPUT_RUST}` file. You can check the function signature from the
    file using
 
@@ -265,8 +251,9 @@ grep "pub fn ${MODEL_NAME}" ${OUTPUT_RUST}
 Run the testbench with:
 
 ```bash
-cargo build --lib
-``` -->
+cd ${OUTPUT_DIR}
+cargo run --release
+```
 
 ## Future Work
 
@@ -275,6 +262,7 @@ the size of the generated netlist and source and speed up execution time by
 pipelining loops. This will also improve compilation time. Currently, the Rust
 transpiler using LUTs yields the best performance.
 
-We also plan to integrate with other MLIR-based FHE efforts, including the [CONCRETE compiler](https://github.com/zama-ai/concrete).
+We also plan to integrate with other MLIR-based FHE efforts, including the
+[CONCRETE compiler](https://github.com/zama-ai/concrete).
 
 
