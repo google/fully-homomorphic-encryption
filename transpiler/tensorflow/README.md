@@ -79,7 +79,7 @@ export OUTPUT_RUST=${EXAMPLE_DIR}/hello_world_fhe_lib.rs
 Convert the TOSA MLIR model to Verilog:
 
 ```bash
-heir-opt --heir-tosa-to-arith ${INPUT_TOSA} | tee >(heir-translate --emit-netadata -o ${OUTPUT_METADATA}) |  heir-translate --emit-verilog -o ${OUTPUT_VERILOG}
+heir-opt --heir-tosa-to-arith ${INPUT_TOSA} | tee >(heir-translate --emit-metadata -o ${OUTPUT_METADATA}) |  heir-translate --emit-verilog -o ${OUTPUT_VERILOG}
 ```
 
 Run the Yosys optimizer. This first script runs faster (few minutes) but creates
@@ -88,7 +88,6 @@ a model with longer inference time.
 ```bash
 YOSYS_SCRIPT="read_verilog ${OUTPUT_VERILOG}; hierarchy -check -top main; techmap; opt; splitnets -ports for_*; abc -lut 3; opt_clean -purge; techmap -map ${LUTMAP_SCRIPT}; opt_clean -purge; flatten; hierarchy -generate lut3 o:Y i:P* i:A i:B i:C; opt_expr; opt; opt_clean -purge; rename -hide */w:*; rename -enumerate */w:*; rename -top ${MODEL_NAME}; clean; write_verilog -noattr ${OUTPUT_NETLIST}"
 yosys -p "${YOSYS_SCRIPT}"
-sed -i 's/arg[0-9]\+/arg0/' ${OUTPUT_NETLIST}
 ```
 
 For the fastest inference but with a longer Yosys processing time (an hour), run
@@ -145,7 +144,7 @@ Use `heir-opt` and `heir-translate` to convert the model to Verilog and emit
 metadata for the transpiler.
 
 ```bash
-heir-opt --heir-tosa-to-arith ${INPUT_TOSA} | tee >(heir-translate --emit-netadata -o ${OUTPUT_METADATA}) |  heir-translate --emit-verilog -o ${OUTPUT_VERILOG}
+heir-opt --heir-tosa-to-arith ${INPUT_TOSA} | tee >(heir-translate --emit-metadata -o ${OUTPUT_METADATA}) |  heir-translate --emit-verilog -o ${OUTPUT_VERILOG}
 ```
 
 2. Yosys Optimization
