@@ -500,8 +500,9 @@ endmodule
 
 TEST(YosysTranspilerTest, TopoSortsNetlist) {
   // This netlist was the (non-topo-sorted) intermediate output of the
-  // transpiler for examples/add_one. Note that cell _06_ is the cell connected
-  // to wire _00_, but the cell just before it (_05_) has _00_ as it's A  input.
+  // transpiler for transpiler/examples/add_one. Note that cell _06_ is the cell
+  // connected to wire _00_, but the cell just before it (_05_) has _00_ as it's
+  // A  input.
   constexpr absl::string_view kNetlistText =
       R"netlist(
 module add_one(x, out);

@@ -3,8 +3,8 @@ from collections.abc import Sequence
 
 from absl import app
 
-from transpiler.jaxite.examples.add_one import add_one_fhe_lib
-from transpiler.jaxite.examples.add_one import add_one_lib
+from transpiler.examples.add_one import add_one_fhe_py_lib
+from transpiler.examples.add_one import add_one_lib
 
 
 def main(argv: Sequence[str]) -> None:
@@ -17,7 +17,7 @@ def main(argv: Sequence[str]) -> None:
   boolean_params, cks, sks, ciphertext_x = add_one_lib.setup(x)
 
   print('Running FHE circuit')
-  result_ciphertext = add_one_fhe_lib.add_one(
+  result_ciphertext = add_one_fhe_py_lib.add_one(
       ciphertext_x,
       sks,
       boolean_params,

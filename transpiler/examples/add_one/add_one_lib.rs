@@ -1,4 +1,3 @@
-use add_one_fhe_lib;
 use tfhe::shortint::prelude::*;
 use tfhe::shortint::CiphertextBig as Ciphertext;
 
@@ -25,7 +24,7 @@ pub fn decrypt(ciphertexts: &[Ciphertext], client_key: &ClientKey) -> u8 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use add_one_fhe_lib::add_one;
+    use add_one_fhe_rs_lib::add_one;
     use tfhe::shortint::parameters::PARAM_MESSAGE_1_CARRY_2;
 
     fn run_test_for(x: u8) -> u8 {
