@@ -201,7 +201,9 @@ The Fibonacci demo calculates the sum of the Fibonacci sequence up to the
 n<sup>th</sup> integer in the sequence.
 
 *   TFHE-rs multi-threaded translation command:
-    *   Using TFHE-rs: `shell bazel run //transpiler/examples/fibonacci:fibonacci_tfhe_testbench`
+    *   Using TFHE-rs: ```shell bazel run 
+        //transpiler/examples/fibonacci:fibonacci_rs_main ```
+
 *   Baseline FHE-C++ translation command:
     *   Using TFHE: `shell bazel run
         //transpiler/examples/fibonacci:fibonacci_tfhe_testbench`
