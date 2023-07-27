@@ -38,11 +38,10 @@ This repository offers two ways to install the FHE C++ Transpiler.
 
 In order to install the FHE C++ Transpiler on your Linux machine:
 
-1.  Install Bazel version 4.0.0, if you don't have it already. Bazel 4.0.0 can
-    be
-    [installed directly](https://docs.bazel.build/versions/master/install.html)
-    or Bazel versions can be managed through
-    [Bazelisk](https://docs.bazel.build/versions/master/install-bazelisk.html).
+1.  Install
+    [Bazelisk](https://docs.bazel.build/versions/master/install-bazelisk.html)
+    to run the bazel build system. This will use the bazel version defined in
+    `.bazelversion` in the repository root.
 
 2.  Install the following additional required packages using your Linux
     distribution's package manager:
