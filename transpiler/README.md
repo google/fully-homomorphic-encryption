@@ -253,7 +253,7 @@ This demo reverses an encrypted string without the server knowing the string.
 This simple demo adds 1 to an integer.
 
 *   Jaxite Command: `shell bazel run
-        //transpiler/jaxite/examples/add_one:add_one`
+        //transpiler/examples/add_one:add_one`
 
 ### Simple sum
 
