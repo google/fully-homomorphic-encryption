@@ -28,8 +28,11 @@
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 
+absl::StatusOr<::xls::netlist::AbstractCellLibrary<bool>> ParseCellLibrary(
+    const absl::string_view cell_library_text);
+
 absl::StatusOr<std::unique_ptr<::xls::netlist::rtl::AbstractNetlist<bool>>>
-ParseNetlist(const absl::string_view cell_library_text,
+ParseNetlist(::xls::netlist::AbstractCellLibrary<bool>& cell_library,
              const absl::string_view netlist_text);
 
 // Returns the list of cell names in topologically sorted order, or return an

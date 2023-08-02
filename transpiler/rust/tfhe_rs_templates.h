@@ -12,10 +12,20 @@ namespace transpiler {
 constexpr absl::string_view kCodegenTemplate = R"rust(
 use rayon::prelude::*;
 use std::collections::HashMap;
+
+#[cfg(lut)]
 use tfhe::shortint;
+#[cfg(lut)]
 use tfhe::shortint::prelude::*;
+#[cfg(lut)]
 use tfhe::shortint::CiphertextBig as Ciphertext;
 
+#[cfg(not(lut))]
+use tfhe::boolean::prelude::*;
+#[cfg(not(lut))]
+use tfhe::boolean::ciphertext::Ciphertext;
+
+#[cfg(lut)]
 fn generate_lut(lut_as_int: u64, server_key: &ServerKey) -> shortint::server_key::LookupTableOwned {
     let f = |x: u64| (lut_as_int >> (x as u8)) & 1;
     return server_key.generate_accumulator(f);
@@ -30,6 +40,25 @@ enum GateInput {
 
 use GateInput::*;
 
+#[cfg(not(lut))]
+enum CellType {
+    AND2,
+    NAND2,
+    XOR2,
+    XNOR2,
+    OR2,
+    NOR2,
+    INV,
+    IMUX2,
+}
+
+#[cfg(lut)]
+enum CellType {
+    LUT3(u64), // lut_as_int
+}
+
+use CellType::*;
+
 $gate_levels
 
 fn prune(temp_nodes: &mut HashMap<usize, Ciphertext>, temp_node_ids: &[usize]) {
@@ -39,10 +68,16 @@ fn prune(temp_nodes: &mut HashMap<usize, Ciphertext>, temp_node_ids: &[usize]) {
 }
 
 pub fn $function_signature {
-    let constant_false: Ciphertext = server_key.create_trivial(0);
-    let constant_true: Ciphertext = server_key.create_trivial(1);
+    #[cfg(lut)]
+    let (constant_false, constant_true): (Ciphertext, Ciphertext) = (
+      server_key.create_trivial(0), server_key.create_trivial(1));
+    #[cfg(not(lut))]
+    let (constant_false, constant_true): (Ciphertext, Ciphertext) = (
+      server_key.trivial_encrypt(false), server_key.trivial_encrypt(true));
+
     let args: &[&Vec<Ciphertext>] = &[$ordered_params];
 
+    #[cfg(lut)]
     let luts = {
         let mut luts: HashMap<u64, shortint::server_key::LookupTableOwned> = HashMap::new();
         const LUTS_AS_INTS: [u64; $num_luts] = [$comma_separated_luts];
@@ -52,6 +87,7 @@ pub fn $function_signature {
         luts
     };
 
+    #[cfg(lut)]
     let lut3 = |args: &[&Ciphertext], lut: u64| -> Ciphertext {
         let top_bit = server_key.unchecked_scalar_mul(args[2], 4);
         let middle_bit = server_key.unchecked_scalar_mul(args[1], 2);
@@ -65,12 +101,12 @@ pub fn $function_signature {
 
     let mut run_level = |
       temp_nodes: &mut HashMap<usize, Ciphertext>,
-      tasks: &[((usize, bool, u64), &[GateInput])]
+      tasks: &[((usize, bool, CellType), &[GateInput])]
     | {
         let updates = tasks
             .into_par_iter()
             .map(|(k, task_args)| {
-                let (id, is_output, lut) = *k;
+                let (id, is_output, celltype) = k;
                 let task_args = task_args.into_iter()
                   .map(|arg| match arg {
                     Cst(false) => &constant_false,
@@ -79,7 +115,22 @@ pub fn $function_signature {
                     Tv(ndx) => &temp_nodes[ndx],
                     Output(ndx) => &$output_stem[*ndx],
                   }).collect::<Vec<_>>();
-                ((id, is_output), lut3(&task_args, lut))
+                #[cfg(lut)]
+                let gate_func = |args: &[&Ciphertext]| match celltype {
+                  LUT3(defn) => lut3(args, *defn),
+                };
+                #[cfg(not(lut))]
+                let gate_func = |args: &[&Ciphertext]| match celltype {
+                  AND2 => server_key.and(args[0], args[1]),
+                  NAND2 => server_key.nand(args[0], args[1]),
+                  OR2 => server_key.or(args[0], args[1]),
+                  NOR2 => server_key.nor(args[0], args[1]),
+                  XOR2 => server_key.xor(args[0], args[1]),
+                  XNOR2 => server_key.xnor(args[0], args[1]),
+                  INV => server_key.not(args[0]),
+                  IMUX2 => server_key.mux(args[0], args[1], args[2]),
+                };
+                ((*id, *is_output), gate_func(&task_args))
             })
             .collect::<Vec<_>>();
         updates.into_iter().for_each(|(k, v)| {
@@ -105,14 +156,14 @@ $output_assignment_block
 //
 // e.g.,
 //
-//   const LEVEL_3: [((usize, bool, u64), &[GateInput]); 8] = [
-//       ((1, true, 6), &[Arg(0, 0), Arg(0, 1), Cst(false)]),
-//       ((2, true, 120), &[Arg(0, 0), Arg(0, 1), Arg(0, 2)]),
+//   const LEVEL_3: [((usize, bool, CellType), &[GateInput]); 8] = [
+//       ((1, true, LUT3(6)), &[Arg(0, 0), Arg(0, 1), Cst(false)]),
+//       ((2, true, LUT3(120)), &[Arg(0, 0), Arg(0, 1), Arg(0, 2)]),
 //       ...
 //   ];
 //
 constexpr absl::string_view kLevelTemplate = R"rust(
-static LEVEL_%d: [((usize, bool, u64), &[GateInput]); %d] = [
+static LEVEL_%d: [((usize, bool, CellType), &[GateInput]); %d] = [
 %s
 ];)rust";
 
@@ -125,13 +176,15 @@ static PRUNE_%d: [usize; %d] = [
 
 // A single gate operation defined as constant data
 //
-//   ((output_id, is_output, lut_defn), &[arglist]),
+//   ((output_id, is_output, LUT3(lut_defn)), &[arglist]),
 //
 // e.g.,
 //
-//   ((2, false, 120), &[Arg(0, 0), Arg(0, 1), Arg(0, 2)]),
+//   ((2, false, LUT3(120)), &[Arg(0, 0), Arg(0, 1), Arg(0, 2)]),
+// or
+//   ((2, false, AND), &[Arg(0, 0), Arg(0, 1), Arg(0, 2)]),
 //
-constexpr absl::string_view kTaskTemplate = "    ((%d, %s, %d), &[%s]),";
+constexpr absl::string_view kTaskTemplate = "    ((%d, %s, %s), &[%s]),";
 
 // The commands used to run the levels defined by kLevelTemplate above.
 //

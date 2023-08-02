@@ -27,6 +27,7 @@
 #include "gtest/gtest.h"
 #include "xls/common/status/matchers.h"
 #include "xls/common/status/status_macros.h"
+#include "xls/netlist/cell_library.h"
 #include "xls/netlist/netlist.h"
 
 namespace fully_homomorphic_encryption {
@@ -37,6 +38,7 @@ using ::testing::ElementsAre;
 using ::testing::Eq;
 using ::testing::StrEq;
 using ::testing::UnorderedElementsAre;
+using ::xls::netlist::AbstractCellLibrary;
 using ::xls::netlist::rtl::AbstractModule;
 using ::xls::netlist::rtl::AbstractNetDef;
 using ::xls::netlist::rtl::AbstractNetlist;
@@ -69,9 +71,11 @@ class TestTemplates : public CodegenTemplates {
 
 absl::StatusOr<std::vector<std::string>> run_toposort(
     absl::string_view netlist) {
+  XLS_ASSIGN_OR_RETURN(AbstractCellLibrary<bool> cell_library,
+                       ParseCellLibrary(std::string(kCells)));
   XLS_ASSIGN_OR_RETURN(
       std::unique_ptr<AbstractNetlist<bool>> parsed_netlist_ptr,
-      ParseNetlist(std::string(kCells), netlist));
+      ParseNetlist(cell_library, netlist));
   const AbstractModule<bool>& module = *parsed_netlist_ptr->modules().front();
 
   return TopoSortedCellNames(module);
@@ -79,9 +83,11 @@ absl::StatusOr<std::vector<std::string>> run_toposort(
 
 absl::StatusOr<std::vector<std::vector<std::string>>> run_levelsort(
     absl::string_view netlist) {
+  XLS_ASSIGN_OR_RETURN(AbstractCellLibrary<bool> cell_library,
+                       ParseCellLibrary(std::string(kCells)));
   XLS_ASSIGN_OR_RETURN(
       std::unique_ptr<AbstractNetlist<bool>> parsed_netlist_ptr,
-      ParseNetlist(std::string(kCells), netlist));
+      ParseNetlist(cell_library, netlist));
   const AbstractModule<bool>& module = *parsed_netlist_ptr->modules().front();
 
   return LevelSortedCellNames(module);

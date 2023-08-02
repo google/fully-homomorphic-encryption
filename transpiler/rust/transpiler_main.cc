@@ -16,6 +16,7 @@
 #include "xls/common/file/filesystem.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
+#include "xls/netlist/cell_library.h"
 
 ABSL_FLAG(std::string, ir_path, "", "Path to the input IR to process.");
 ABSL_FLAG(std::string, metadata_path, "",
@@ -67,8 +68,13 @@ absl::Status RealMain() {
                        xls::GetFileContents(liberty_path));
 
   XLS_ASSIGN_OR_RETURN(
+      xls::netlist::AbstractCellLibrary<bool> cell_library,
+      fully_homomorphic_encryption::transpiler::ParseCellLibrary(
+          cell_library_text));
+
+  XLS_ASSIGN_OR_RETURN(
       std::unique_ptr<::xls::netlist::rtl::AbstractNetlist<bool>> netlist,
-      fully_homomorphic_encryption::transpiler::ParseNetlist(cell_library_text,
+      fully_homomorphic_encryption::transpiler::ParseNetlist(cell_library,
                                                              ir_text));
 
   xlscc_metadata::MetadataOutput metadata;

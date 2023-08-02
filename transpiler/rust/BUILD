@@ -39,6 +39,7 @@ cc_library(
         "@com_google_absl//absl/container:btree",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings:str_format",
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
         "@com_google_xls//xls/netlist",
@@ -57,8 +58,11 @@ cc_test(
         ":yosys_transpiler",
         "//transpiler:netlist_utils",
         "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings:str_format",
         "@com_google_benchmark//:benchmark_main",
         "@com_google_xls//xls/common/status:matchers",
+        "@com_google_xls//xls/netlist",
+        "@com_google_xls//xls/netlist:cell_library",
     ],
 )
 
@@ -75,5 +79,6 @@ cc_binary(
         "@com_google_xls//xls/common/file:filesystem",
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
+        "@com_google_xls//xls/netlist:cell_library",
     ],
 )

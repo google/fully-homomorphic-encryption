@@ -9,8 +9,10 @@
 
 #include "absl/container/btree_set.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_replace.h"
 #include "absl/strings/string_view.h"
@@ -133,6 +135,9 @@ absl::StatusOr<absl::btree_set<int>> ExtractLuts(
     const AbstractModule<bool>& module) {
   absl::btree_set<int> luts;
   for (const auto& cell : module.cells()) {
+    if (!absl::StrContains(cell->cell_library_entry()->name(), "lut")) {
+      continue;
+    }
     XLS_ASSIGN_OR_RETURN(const GateInputs extracted_inputs,
                          ExtractGateInputs(cell.get(), GetTfheRsTemplates()));
     luts.insert(extracted_inputs.lut_definition);
@@ -170,6 +175,7 @@ absl::StatusOr<std::string> YosysTfheRsTranspiler::Translate(int parallelism) {
   XLS_ASSIGN_OR_RETURN(std::string output_stem, OutputStem(module()));
 
   XLS_ASSIGN_OR_RETURN(absl::btree_set<int> luts, ExtractLuts(module()));
+
   int num_gates = module().cells().size();
 
   std::vector<std::string> ordered_params;
@@ -227,12 +233,6 @@ absl::StatusOr<BuildGateOpsOutput> YosysTfheRsTranspiler::BuildGateOps(
 
     int num_batches = (int)ceil((double)level.size() / gate_parallelism);
     for (int batch_index = 0; batch_index < num_batches; ++batch_index) {
-      // All cells in each level are assumed to have the same gate operation
-      // name (e.g., they are all lut3 or all xnor), and if this is not the
-      // case it is an error with the yosys techmapping step.
-      // TODO: assert all cells in the level have the same gate
-      // operation or fail.
-
       int remaining_gates = level.size() - (batch_index * gate_parallelism);
       int batch_bound = std::min(gate_parallelism, remaining_gates);
       std::vector<std::string> tasks;
@@ -252,10 +252,17 @@ absl::StatusOr<BuildGateOpsOutput> YosysTfheRsTranspiler::BuildGateOps(
                              ExtractGateInputs(cell, const_templates));
         XLS_ASSIGN_OR_RETURN(const GateOutput extracted_output,
                              ExtractGateOutput(cell));
+
+        std::string gate_name =
+            absl::AsciiStrToUpper(cell->cell_library_entry()->name());
+        std::string gate =
+            absl::StrContains(gate_name, "LUT")
+                ? absl::StrFormat("%s(%d)", gate_name,
+                                  extracted_inputs.lut_definition)
+                : gate_name;
         std::string task =
             absl::StrFormat(kTaskTemplate, extracted_output.index,
-                            extracted_output.is_output ? "true" : "false",
-                            extracted_inputs.lut_definition,
+                            extracted_output.is_output ? "true" : "false", gate,
                             absl::StrJoin(extracted_inputs.inputs, ", "));
         tasks.push_back(std::move(task));
 

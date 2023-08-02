@@ -6,6 +6,7 @@ load(
     "BooleanifiedIrInfo",
     "BooleanifiedIrOutputInfo",
     "LUT_CELLS_LIBERTY",
+    "TFHERS_CELLS_LIBERTY",
     "executable_attr",
 )
 load(
@@ -122,7 +123,7 @@ _rust_codegen = rule(
     },
 )
 
-def rust_codegen(name, rust_file_name, src, cell_library = None, parallelism = 0, **kwargs):
+def rust_codegen(name, rust_file_name, src, cell_library = None, parallelism = 0, rustc_flags = [], **kwargs):
     """Given a boolean IR `src`, creates a Jaxite equivalent rust_library.
 
     Args:
@@ -160,6 +161,7 @@ def rust_codegen(name, rust_file_name, src, cell_library = None, parallelism = 0
             "@crate_index//:rayon",
             "@crate_index//:tfhe",
         ],
+        rustc_flags = rustc_flags,
         **kwargs
     )
 
@@ -212,7 +214,7 @@ def fhe_rust_library(
     if not valid_lut_sizes:
         fail("No valid lut sizes configured for ", optimizer, ". Please report a bug.")
 
-    if lut_size != 3:
+    if lut_size > 0 and lut_size != 3:
         fail("Only lut_size=3 is supported")
 
     rust_file_name = generated_rust_file_name or name
@@ -231,7 +233,11 @@ def fhe_rust_library(
     )
     netlist = "{}.netlist".format(name)
 
-    cell_library = LUT_CELLS_LIBERTY
+    cell_library = TFHERS_CELLS_LIBERTY
+    rustc_flags = []
+    if lut_size > 0:
+        cell_library = LUT_CELLS_LIBERTY
+        rustc_flags = ["--cfg", "lut"]
 
     verilog_to_netlist(
         name = netlist,
@@ -246,5 +252,6 @@ def fhe_rust_library(
         cell_library = cell_library,
         src = ":" + netlist,
         parallelism = parallelism,
+        rustc_flags = rustc_flags,
         **kwargs
     )

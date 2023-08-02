@@ -7,13 +7,17 @@
 #include <vector>
 
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_replace.h"
+#include "absl/strings/string_view.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "transpiler/netlist_utils.h"
 #include "transpiler/rust/tfhe_rs_templates.h"
 #include "xls/common/status/matchers.h"
+#include "xls/netlist/cell_library.h"
+#include "xls/netlist/netlist.h"
 
 namespace fhe {
 namespace rust {
@@ -24,6 +28,14 @@ using ::std::vector;
 
 constexpr absl::string_view kCells = R"lib(
 library(testlib) {
+  cell(and2) {pin(A) {direction : input;} pin(B) {direction : input;} pin(Y) {direction: output; function : "(A * B)";}}
+  cell(inv) {pin(A) {direction : input;} pin(Y) {direction : output; function : "A'";}}
+  cell(imux2) {pin(A) {direction : input;} pin(B) {direction : input;} pin(S) {direction : input;} pin(Y) {direction: output; function : "(A * S) + (B * (S'))";}}
+  cell(nand2) {pin(A) {direction : input;} pin(B) {direction : input;} pin(Y) {direction: output; function : "(A * B)'";}}
+  cell(nor2) {pin(A) {direction : input;} pin(B) {direction : input;} pin(Y) {direction: output; function : "(A + B)'";}}
+  cell(or2) {pin(A) {direction : input;} pin(B) {direction : input;} pin(Y) {direction: output; function : "(A + B)";}}
+  cell(xnor2) {pin(A) {direction : input;} pin(B) {direction : input;} pin(Y) {direction: output; function : "((A * (B')) + ((A') * B))'";}}
+  cell(xor2) {pin(A) {direction : input;} pin(B) {direction : input;} pin(Y) {direction: output; function : "(A * (B')) + ((A') * B)";}}
   cell(lut3) { pin(A) { direction : input; } pin(B) { direction : input; } pin(C) { direction : input; } pin(P0) { direction : input; } pin(P1) { direction : input; } pin(P2) { direction : input; } pin(P3) { direction : input; } pin(P4) { direction : input; } pin(P5) { direction : input; } pin(P6) { direction : input; } pin(P7) { direction : input; } pin(Y) { direction: output; function : "(C' B' A' P0) | (C' B' A P1) | (C' B A' P2) | (C' B A P3) | (C B' A' P4) | (C B' A P5) | (C B A' P6) | (C B A P7)"; } }
 }
 )lib";
@@ -105,7 +117,7 @@ endmodule
   vector<std::string> outputs = {"temp_nodes[0]", "data[0]"};
 
   vector<std::string> tasks = {
-      "((0, false, 120), &[Arg(0, 0), Arg(0, 1), Arg(0, 2)]),"};
+      "((0, false, LUT3(120)), &[Arg(0, 0), Arg(0, 1), Arg(0, 2)]),"};
   vector<std::string> output_assignments = {
       "    out[0] = temp_nodes[&0].clone();",
       "    out[1] = data[0].clone();",
@@ -116,11 +128,11 @@ endmodule
           {"$gate_levels", BuildExpectedGateOps(0, tasks)},
           {"$function_signature", signature},
           {"$ordered_params", absl::StrJoin(ordered_params, ", ")},
-          {"$num_luts", absl::StrFormat("%d", luts.size())},
-          {"$comma_separated_luts", absl::StrJoin(luts, ", ")},
           {"$total_num_gates", absl::StrFormat("%d", num_gates)},
           {"$output_stem", output_stem},
           {"$num_outputs", absl::StrFormat("%d", num_outputs)},
+          {"$num_luts", absl::StrFormat("%d", luts.size())},
+          {"$comma_separated_luts", absl::StrJoin(luts, ", ")},
           {"$run_level_ops", absl::StrFormat(kRunLevelTemplate, 0)},
           {"$output_assignment_block", absl::StrJoin(output_assignments, "\n")},
           {"$return_statement", output_stem},
@@ -129,8 +141,11 @@ endmodule
   auto metadata = CreateFunctionMetadata(
       {{"data", false, /*return_bit_width=*/3}}, true, num_outputs);
   XLS_ASSERT_OK_AND_ASSIGN(
+      xls::netlist::AbstractCellLibrary<bool> cell_library,
+      fully_homomorphic_encryption::transpiler::ParseCellLibrary(kCells));
+  XLS_ASSERT_OK_AND_ASSIGN(
       std::unique_ptr<::xls::netlist::rtl::AbstractNetlist<bool>> netlist,
-      fully_homomorphic_encryption::transpiler::ParseNetlist(kCells,
+      fully_homomorphic_encryption::transpiler::ParseNetlist(cell_library,
                                                              netlist_text));
   YosysTfheRsTranspiler transpiler(metadata, std::move(netlist));
 
@@ -162,9 +177,9 @@ endmodule
   vector<std::string> ordered_params = {"data"};
 
   vector<std::string> tasks0 = {
-      "((2, true, 120), &[Arg(0, 0), Arg(0, 1), Arg(0, 2)]),"};
+      "((2, true, LUT3(120)), &[Arg(0, 0), Arg(0, 1), Arg(0, 2)]),"};
   vector<std::string> tasks1 = {
-      "((0, false, 120), &[Arg(0, 0), Output(2), Arg(0, 2)]),"};
+      "((0, false, LUT3(120)), &[Arg(0, 0), Output(2), Arg(0, 2)]),"};
 
   vector<std::string> gate_levels = {
       BuildExpectedGateOps(0, tasks0),
@@ -184,11 +199,11 @@ endmodule
           {"$gate_levels", absl::StrJoin(gate_levels, "\n")},
           {"$function_signature", signature},
           {"$ordered_params", absl::StrJoin(ordered_params, ", ")},
-          {"$num_luts", absl::StrFormat("%d", luts.size())},
-          {"$comma_separated_luts", absl::StrJoin(luts, ", ")},
           {"$total_num_gates", absl::StrFormat("%d", num_gates)},
           {"$output_stem", output_stem},
           {"$num_outputs", absl::StrFormat("%d", num_outputs)},
+          {"$num_luts", absl::StrFormat("%d", luts.size())},
+          {"$comma_separated_luts", absl::StrJoin(luts, ", ")},
           {"$run_level_ops", absl::StrJoin(run_level_ops, "\n")},
           {"$output_assignment_block", absl::StrJoin(output_assignments, "\n")},
           {"$return_statement", output_stem},
@@ -197,8 +212,11 @@ endmodule
   auto metadata = CreateFunctionMetadata(
       {{"data", false, /*return_bit_width=*/3}}, true, num_outputs);
   XLS_ASSERT_OK_AND_ASSIGN(
+      xls::netlist::AbstractCellLibrary<bool> cell_library,
+      fully_homomorphic_encryption::transpiler::ParseCellLibrary(kCells));
+  XLS_ASSERT_OK_AND_ASSIGN(
       std::unique_ptr<::xls::netlist::rtl::AbstractNetlist<bool>> netlist,
-      fully_homomorphic_encryption::transpiler::ParseNetlist(kCells,
+      fully_homomorphic_encryption::transpiler::ParseNetlist(cell_library,
                                                              netlist_text));
   YosysTfheRsTranspiler transpiler(metadata, std::move(netlist));
 
@@ -230,7 +248,7 @@ endmodule
   vector<std::string> ordered_params = {"data"};
 
   vector<std::string> tasks = {
-      "((0, false, 120), &[Arg(0, 0), Arg(0, 1), Arg(0, 2)]),"};
+      "((0, false, LUT3(120)), &[Arg(0, 0), Arg(0, 1), Arg(0, 2)]),"};
 
   vector<std::string> gate_levels = {
       BuildExpectedGateOps(0, tasks),
@@ -262,8 +280,11 @@ endmodule
   auto metadata = CreateFunctionMetadata(
       {{"data", false, /*return_bit_width=*/3}}, true, num_outputs);
   XLS_ASSERT_OK_AND_ASSIGN(
+      xls::netlist::AbstractCellLibrary<bool> cell_library,
+      fully_homomorphic_encryption::transpiler::ParseCellLibrary(kCells));
+  XLS_ASSERT_OK_AND_ASSIGN(
       std::unique_ptr<::xls::netlist::rtl::AbstractNetlist<bool>> netlist,
-      fully_homomorphic_encryption::transpiler::ParseNetlist(kCells,
+      fully_homomorphic_encryption::transpiler::ParseNetlist(cell_library,
                                                              netlist_text));
   YosysTfheRsTranspiler transpiler(metadata, std::move(netlist));
 
@@ -300,7 +321,7 @@ endmodule
   vector<std::string> ordered_params = {"data", "outparam"};
 
   vector<std::string> tasks = {
-      "((5, true, 120), &[Arg(0, 0), Arg(0, 1), Arg(0, 2)]),"};
+      "((5, true, LUT3(120)), &[Arg(0, 0), Arg(0, 1), Arg(0, 2)]),"};
 
   vector<std::string> gate_levels = {
       BuildExpectedGateOps(0, tasks),
@@ -318,7 +339,6 @@ endmodule
     outparam[1] = out[1].clone();
     outparam[2] = out[2].clone();
     out = out.split_off(3);)rust";
-
   std::string expected = absl::StrReplaceAll(
       kCodegenTemplate,
       {
@@ -340,8 +360,11 @@ endmodule
                               {"outparam", true, /*return_bit_width=*/3}},
                              true, num_outputs);
   XLS_ASSERT_OK_AND_ASSIGN(
+      xls::netlist::AbstractCellLibrary<bool> cell_library,
+      fully_homomorphic_encryption::transpiler::ParseCellLibrary(kCells));
+  XLS_ASSERT_OK_AND_ASSIGN(
       std::unique_ptr<::xls::netlist::rtl::AbstractNetlist<bool>> netlist,
-      fully_homomorphic_encryption::transpiler::ParseNetlist(kCells,
+      fully_homomorphic_encryption::transpiler::ParseNetlist(cell_library,
                                                              netlist_text));
   YosysTfheRsTranspiler transpiler(metadata, std::move(netlist));
 
@@ -378,7 +401,7 @@ endmodule
   vector<std::string> ordered_params = {"data", "const_ref"};
 
   vector<std::string> tasks = {
-      "((5, true, 120), &[Arg(0, 0), Arg(0, 1), Arg(0, 2)]),"};
+      "((5, true, LUT3(120)), &[Arg(0, 0), Arg(0, 1), Arg(0, 2)]),"};
 
   vector<std::string> gate_levels = {
       BuildExpectedGateOps(0, tasks),
@@ -392,7 +415,6 @@ endmodule
     out[2] = constant_false.clone();
     out[3] = constant_false.clone();
     out[4] = constant_false.clone();)rust";
-
   std::string expected = absl::StrReplaceAll(
       kCodegenTemplate,
       {
@@ -415,8 +437,69 @@ endmodule
                                /*return_bit_width=*/3}},
                              true, num_outputs);
   XLS_ASSERT_OK_AND_ASSIGN(
+      xls::netlist::AbstractCellLibrary<bool> cell_library,
+      fully_homomorphic_encryption::transpiler::ParseCellLibrary(kCells));
+  XLS_ASSERT_OK_AND_ASSIGN(
       std::unique_ptr<::xls::netlist::rtl::AbstractNetlist<bool>> netlist,
-      fully_homomorphic_encryption::transpiler::ParseNetlist(kCells,
+      fully_homomorphic_encryption::transpiler::ParseNetlist(cell_library,
+                                                             netlist_text));
+  YosysTfheRsTranspiler transpiler(metadata, std::move(netlist));
+
+  XLS_ASSERT_OK_AND_ASSIGN(std::string actual, transpiler.Translate());
+  EXPECT_EQ(expected, actual);
+}
+
+TEST(YosysTfheRsTranspilerTest, TranslateSimpleBooleanGateFunction) {
+  constexpr absl::string_view netlist_text = R"netlist(
+module test_module(data, out);
+  wire _0_;
+  input [2:0] data;
+  wire [2:0] data;
+  output [1:0] out;
+  wire [1:0] out;
+  and2 _2_ ( .A(data[0]), .B(data[1]), .Y(_0_));
+  assign { out[1:0] } = { data[0], _0_ };
+endmodule
+)netlist";
+
+  absl::string_view signature =
+      "test_module(data: &Vec<Ciphertext>, server_key: &ServerKey) -> "
+      "Vec<Ciphertext>";
+  const int num_outputs = 2;
+  const int num_gates = 1;
+  const absl::string_view output_stem = "out";
+  vector<std::string> ordered_params = {"data"};
+  vector<std::string> outputs = {"temp_nodes[0]", "data[0]"};
+
+  vector<std::string> tasks = {"((0, false, AND2), &[Arg(0, 0), Arg(0, 1)]),"};
+  vector<std::string> output_assignments = {
+      "    out[0] = temp_nodes[&0].clone();",
+      "    out[1] = data[0].clone();",
+  };
+  std::string expected = absl::StrReplaceAll(
+      kCodegenTemplate,
+      {
+          {"$gate_levels", BuildExpectedGateOps(0, tasks)},
+          {"$function_signature", signature},
+          {"$ordered_params", absl::StrJoin(ordered_params, ", ")},
+          {"$total_num_gates", absl::StrFormat("%d", num_gates)},
+          {"$output_stem", output_stem},
+          {"$num_outputs", absl::StrFormat("%d", num_outputs)},
+          {"$num_luts", absl::StrFormat("%d", 0)},
+          {"$comma_separated_luts", ""},
+          {"$run_level_ops", absl::StrFormat(kRunLevelTemplate, 0)},
+          {"$output_assignment_block", absl::StrJoin(output_assignments, "\n")},
+          {"$return_statement", output_stem},
+      });
+
+  auto metadata = CreateFunctionMetadata(
+      {{"data", false, /*return_bit_width=*/3}}, true, num_outputs);
+  XLS_ASSERT_OK_AND_ASSIGN(
+      xls::netlist::AbstractCellLibrary<bool> cell_library,
+      fully_homomorphic_encryption::transpiler::ParseCellLibrary(kCells));
+  XLS_ASSERT_OK_AND_ASSIGN(
+      std::unique_ptr<::xls::netlist::rtl::AbstractNetlist<bool>> netlist,
+      fully_homomorphic_encryption::transpiler::ParseNetlist(cell_library,
                                                              netlist_text));
   YosysTfheRsTranspiler transpiler(metadata, std::move(netlist));
 

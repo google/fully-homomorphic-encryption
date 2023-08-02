@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <map>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -46,9 +47,8 @@ using ::xls::netlist::rtl::AbstractParser;
 using ::xls::netlist::rtl::NetDeclKind;
 using ::xls::netlist::rtl::Scanner;
 
-absl::StatusOr<std::unique_ptr<AbstractNetlist<bool>>> ParseNetlist(
-    const absl::string_view cell_library_text,
-    const absl::string_view netlist_text) {
+absl::StatusOr<AbstractCellLibrary<bool>> ParseCellLibrary(
+    const absl::string_view cell_library_text) {
   XLS_ASSIGN_OR_RETURN(CharStream char_stream,
                        CharStream::FromText(std::string(cell_library_text)));
   CellLibraryProto cell_library_proto =
@@ -58,6 +58,12 @@ absl::StatusOr<std::unique_ptr<AbstractNetlist<bool>>> ParseNetlist(
       AbstractCellLibrary<bool> cell_library,
       AbstractCellLibrary<bool>::FromProto(cell_library_proto, false, true));
 
+  return cell_library;
+}
+
+absl::StatusOr<std::unique_ptr<AbstractNetlist<bool>>> ParseNetlist(
+    xls::netlist::AbstractCellLibrary<bool>& cell_library,
+    const absl::string_view netlist_text) {
   Scanner scanner(netlist_text);
   XLS_ASSIGN_OR_RETURN(
       std::unique_ptr<AbstractNetlist<bool>> parsed_netlist_ptr,

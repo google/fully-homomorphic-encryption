@@ -15,6 +15,7 @@
 """Common helper utilities and constants for fhe bazel files."""
 
 TFHE_CELLS_LIBERTY = "//transpiler/yosys:tfhe_cells.liberty"
+TFHERS_CELLS_LIBERTY = "//transpiler/yosys:tfhe-rs_cells.liberty"
 OPENFHE_CELLS_LIBERTY = "//transpiler/yosys:openfhe_cells.liberty"
 LUT_CELLS_LIBERTY = "//transpiler/yosys:lut_cells.liberty"
 
@@ -23,7 +24,7 @@ FHE_ENCRYPTION_SCHEMES = {
     "openfhe": OPENFHE_CELLS_LIBERTY,
     "tfhe": TFHE_CELLS_LIBERTY,
     "jaxite": TFHE_CELLS_LIBERTY,
-    "tfhe-rs": LUT_CELLS_LIBERTY,
+    "tfhe-rs": TFHERS_CELLS_LIBERTY,
 }
 
 BooleanifiedIrOutputInfo = provider(

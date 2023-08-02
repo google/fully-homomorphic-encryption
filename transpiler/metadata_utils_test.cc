@@ -30,6 +30,7 @@ namespace fully_homomorphic_encryption {
 namespace transpiler {
 namespace {
 
+using ::xls::netlist::AbstractCellLibrary;
 using ::xls::netlist::rtl::AbstractNetlist;
 using ::xls::status_testing::IsOk;
 using ::xls::status_testing::StatusIs;
@@ -43,9 +44,11 @@ library(testlib) {
 
 absl::StatusOr<xlscc_metadata::MetadataOutput> run_create_metadata(
     absl::string_view netlist, absl::string_view metadata) {
+  XLS_ASSIGN_OR_RETURN(AbstractCellLibrary<bool> cell_library,
+                       ParseCellLibrary(std::string(kCells)));
   XLS_ASSIGN_OR_RETURN(
       std::unique_ptr<AbstractNetlist<bool>> parsed_netlist_ptr,
-      ParseNetlist(std::string(kCells), netlist));
+      ParseNetlist(cell_library, netlist));
 
   return CreateMetadataFromHeirJson(metadata,
                                     parsed_netlist_ptr->modules().front());

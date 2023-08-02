@@ -17,15 +17,44 @@ fhe_rust_library(
 rust_library(
     name = "add_one_rs_lib",
     srcs = ["add_one_lib.rs"],
+    rustc_flags = [
+        "--cfg",
+        "lut",
+    ],
     deps = [
         ":add_one_fhe_rs_lib",
         "@crate_index//:tfhe",
     ],
 )
 
+fhe_rust_library(
+    name = "add_one_gate_fhe_rs_lib",
+    src = "add_one.cc",
+    hdrs = ["add_one.h"],
+    lut_size = 0,
+)
+
+rust_library(
+    name = "add_one_gate_rs_lib",
+    srcs = ["add_one_lib.rs"],
+    deps = [
+        ":add_one_gate_fhe_rs_lib",
+        "@crate_index//:tfhe",
+    ],
+)
+
+rust_test(
+    name = "add_one_gate_rs_test",
+    crate = ":add_one_gate_rs_lib",
+)
+
 rust_test(
     name = "add_one_rs_test",
     crate = ":add_one_rs_lib",
+    rustc_flags = [
+        "--cfg",
+        "lut",
+    ],
 )
 
 fhe_py_library(

@@ -1,4 +1,11 @@
+#[cfg(not(lut))]
+use tfhe::boolean::ciphertext::Ciphertext;
+#[cfg(not(lut))]
+use tfhe::boolean::prelude::*;
+
+#[cfg(lut)]
 use tfhe::shortint::prelude::*;
+#[cfg(lut)]
 use tfhe::shortint::CiphertextBig as Ciphertext;
 
 // Encrypt a u8
@@ -6,7 +13,10 @@ pub fn encrypt(value: u8, client_key: &ClientKey) -> Vec<Ciphertext> {
     (0..8)
         .map(|shift| {
             let bit = (value >> shift) & 1;
-            client_key.encrypt(if bit != 0 { 1 } else { 0 })
+            #[cfg(not(lut))]
+            return client_key.encrypt(if bit != 0 { true } else { false });
+            #[cfg(lut)]
+            return client_key.encrypt(if bit != 0 { 1 } else { 0 });
         })
         .collect()
 }
@@ -24,10 +34,17 @@ pub fn decrypt(ciphertexts: &[Ciphertext], client_key: &ClientKey) -> u8 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(lut)]
     use add_one_fhe_rs_lib::add_one;
+    #[cfg(not(lut))]
+    use add_one_gate_fhe_rs_lib::add_one;
+    #[cfg(lut)]
     use tfhe::shortint::parameters::PARAM_MESSAGE_1_CARRY_2;
 
     fn run_test_for(x: u8) -> u8 {
+        #[cfg(not(lut))]
+        let (client_key, server_key) = gen_keys();
+        #[cfg(lut)]
         let (client_key, server_key) = gen_keys(PARAM_MESSAGE_1_CARRY_2);
         let fhe_val = encrypt(x, &client_key);
         decrypt(&add_one(&fhe_val, &server_key), &client_key)
