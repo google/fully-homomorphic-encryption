@@ -2,6 +2,8 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("//transpiler:fhe.bzl", "fhe_cc_library")
 load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
 load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+load("//transpiler/jaxite:fhe_py.bzl", "fhe_py_library")
+load("@rules_python//python:defs.bzl", "py_binary")
 
 package(
     default_applicable_licenses = ["@com_google_fully_homomorphic_encryption//:license"],
@@ -464,6 +466,26 @@ rust_test(
     size = "large",
     crate = ":ricker_wavelet_rs_lib",
     tags = ["nofastbuild"],
+)
+
+fhe_py_library(
+    name = "kernel_gaussian_blur_fhe_py_lib",
+    src = "kernel_gaussian_blur.cc",
+    hdrs = ["kernel_gaussian_blur.h"],
+    lut_size = 3,
+    num_opt_passes = 2,
+    optimizer = "yosys",
+)
+
+py_binary(
+    name = "kernel_gaussian_blur_jaxite_main",
+    srcs = ["kernel_gaussian_blur.py"],
+    main = "kernel_gaussian_blur.py",
+    deps = [
+        ":kernel_gaussian_blur_fhe_py_lib",
+        "@com_google_absl_py//absl/testing:absltest",
+        "@transpiler_pip_deps//pypi__jaxite",
+    ],
 )
 
 exports_files([

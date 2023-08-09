@@ -39,5 +39,5 @@ int fibonacci_number(int n) {
 
   // Normally this statement shouldn't be reached. If it was reached, it means
   // there was an issue.
-  return -1;
+  return -2;
 }

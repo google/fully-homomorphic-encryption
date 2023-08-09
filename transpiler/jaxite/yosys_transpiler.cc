@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "absl/status/statusor.h"
+#include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
@@ -39,6 +40,7 @@ using ::xls::netlist::rtl::Scanner;
 
 using ::fully_homomorphic_encryption::ToSnakeCase;
 using ::fully_homomorphic_encryption::transpiler::CodegenTemplates;
+using ::fully_homomorphic_encryption::transpiler::ConstantToValue;
 using ::fully_homomorphic_encryption::transpiler::ExtractGateInputs;
 using ::fully_homomorphic_encryption::transpiler::GateInputs;
 using ::fully_homomorphic_encryption::transpiler::LevelSortedCellNames;
@@ -385,10 +387,6 @@ absl::StatusOr<std::string> YosysTranspiler::AssignOutputs(
   std::vector<std::string> assignments;
 
   for (const auto& [key, value] : module.assigns()) {
-    XLS_ASSIGN_OR_RETURN(const std::string variable,
-                         ResolveNetRefName(key, GetJaxiteTemplates()));
-    XLS_ASSIGN_OR_RETURN(const std::string var_value,
-                         ResolveNetRefName(value, GetJaxiteTemplates()));
     // The variable being assigned to must be an output of the module, although
     // this is not a required part of the netlist language spec, the XLS netlist
     // parser seems to assume this by converting the assignment statements to a
@@ -397,6 +395,18 @@ absl::StatusOr<std::string> YosysTranspiler::AssignOutputs(
       return absl::InvalidArgumentError(
           "Unsupported assign statement assigning to non-output variables.");
     }
+
+    auto templates = GetJaxiteTemplates();
+    std::string var_value;
+    if (absl::StrContains(value->name(), "constant")) {
+      XLS_ASSIGN_OR_RETURN(int constant_value, ConstantToValue(value->name()));
+      var_value = templates.ConstantCiphertext(constant_value);
+    } else {
+      XLS_ASSIGN_OR_RETURN(var_value, ResolveNetRefName(value, templates));
+    }
+
+    XLS_ASSIGN_OR_RETURN(const std::string variable,
+                         ResolveNetRefName(key, GetJaxiteTemplates()));
     assignments.push_back(absl::Substitute("  $0 = $1", variable, var_value));
   }
 

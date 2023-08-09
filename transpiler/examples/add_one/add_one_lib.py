@@ -3,23 +3,8 @@ from typing import Any
 
 from jaxite.jaxite_bool import bool_params
 from jaxite.jaxite_bool import jaxite_bool
+from jaxite.jaxite_bool import type_converters
 from jaxite.jaxite_lib import types
-
-
-def bit_slice_to_int(bit_slice: list[bool]) -> int:
-  """Given an list of bits, return a base-10 integer."""
-  result = 0
-  for i, bit in enumerate(bit_slice):
-    result |= int(bit) << i
-  return result
-
-
-def int_to_bit_slice(input_int: int, width: int) -> list[bool]:
-  """Given an integer and bit width, return a bitwise representation."""
-  result: list[bool] = [False] * width
-  for i in range(width):
-    result[i] = ((input_int >> i) & 1) != 0
-  return result
 
 
 def setup(x: int) -> Any:
@@ -32,7 +17,7 @@ def setup(x: int) -> Any:
   sks = jaxite_bool.ServerKeySet(cks, boolean_params, lwe_rng, rlwe_rng)
 
   print('Encrypting inputs')
-  cleartext_x = int_to_bit_slice(x, width=8)
+  cleartext_x = type_converters.u8_to_bit_slice(x)
   ciphertext_x = [jaxite_bool.encrypt(z, cks, lwe_rng) for z in cleartext_x]
 
   return (boolean_params, cks, sks, ciphertext_x)
@@ -43,4 +28,6 @@ def decrypt(
 ) -> int:
   """Decrypt the output of add_one."""
   print('Decrypting result')
-  return bit_slice_to_int([jaxite_bool.decrypt(z, cks) for z in ciphertext])
+  return type_converters.bit_slice_to_u8(
+      [jaxite_bool.decrypt(z, cks) for z in ciphertext]
+  )
