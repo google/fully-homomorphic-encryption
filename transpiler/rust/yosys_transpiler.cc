@@ -356,71 +356,31 @@ absl::StatusOr<std::string> YosysTfheRsTranspiler::AssignOutputs() {
   // MLIR, and when we do that we will use a different interchange format for
   // Yosys that has a more precise specification (RTLIL, for example).
 
-  // The remaining output wires in the netlist follow the declaration order of
-  // the input wires in the verilog file.  Suppose you have the following
-  // netlist:
-  //
-  // module foo(a, b, c, out);
-  //     input [7:0] c;
-  //     input a;
-  //     output [7:0] out;
-  //     input [7:0] b;
-  //
-  // Suppose that in that netlist input wires a, b, and c represent in/out
-  // parameters in the source language (i.e. they are non-const references in
-  // C++).
-  //
-  // In this case, the return values of these parameters will be splayed out in
-  // the output in the same order in which the input wires are declared, rather
-  // than the order in which they appear in the module statement.  In other
-  // words, at this point out will have c[0], c[1], ... c[7], then it will have
-  // a, and finally it will have b[0], ..., b[7].
-  //
-  // However, the inputs to the runner follow the order in the module statement
-  // (which in turn mirrors the order in which they are in the source language.)
-  // Therefore, we have to identify which parts of the output wires correspond
-  // to each of the input arguments.
+  // The output_nets are bits with (return value, set of in_out args) splayed
+  // out in the reverse order (due to verilog endianness).
+
+  // First, in_out args from the output bits are copied over(in reverse order).
+  int params_inout_idx = 0;
+  // Find the number of in-out params from metadata.
+  for (const auto& param : metadata_.top_func_proto().params()) {
+    if (param.is_reference() && !param.is_const()) {
+      params_inout_idx++;
+    }
+  }
   size_t output_index = 0;
-  for (auto input : module().inputs()) {
-    // Start by pulling off the first input net wire.  Following the example
-    // above, it will have the name "c[0]".  (When we get to the single-wire "a"
-    // next, the name will simply be "a".).
-    std::vector<std::string> name_and_idx = absl::StrSplit(input->name(), '[');
-    // Look for the non-indexed name ("c" in the example above) in the list of
-    // function arguments, which we can access from the metadata.
-    auto found = std::find_if(
-        metadata_.top_func_proto().params().cbegin(),
-        metadata_.top_func_proto().params().cend(),
-        [&name_and_idx](const xlscc_metadata::FunctionParameter& arg) {
-          return arg.name() == name_and_idx[0];
-        });
-    // We must be able to find that parameter--failing to is a bug, as we
-    // autogenerate both the netlist and the metadata from the same source file,
-    // and provide these parameters to this method.
-    XLS_CHECK(found != metadata_.top_func_proto().params().cend());
-
-    if (found->is_reference() && !found->is_const()) {
-      // Get the bit size of the argument (e.g., 8 since "c" is defined to be a
-      // byte.)
-      //
-      // In a simplification from the yosys_cleartext_runner, we assume all
-      // inputs are integers. No structs, bools, or arrays in cleartext.
-      int arg_size = found->type().as_int().width();
-
-      // Now read out the index of the parameter itself (e.g., the 0 in "c[0]").
-      size_t param_bit_idx = 0;
-      if (name_and_idx.size() == 2) {
-        absl::string_view idx = absl::StripSuffix(name_and_idx[1], "]");
-        XLS_CHECK(absl::SimpleAtoi(idx, &param_bit_idx));
+  for (const auto& param : metadata_.top_func_proto().params()) {
+    // In a simplification from the yosys_cleartext_runner, we assume all
+    // inputs are integers. No structs, bools, or arrays in cleartext.
+    int arg_size = param.type().as_int().width();
+    if (param.is_reference() && !param.is_const()) {
+      for (int i = 0; i < arg_size; i++) {
+        assignments.push_back(
+            absl::StrFormat(kAssignmentTemplate, param.name(), i,
+                            GetTfheRsTemplates().InputOrOutputReference(
+                                module().outputs()[output_index]->name())));
+        output_index++;
       }
-      // The i'th parameter subscript must be within range (e.g., 0 must be less
-      // than 8, since c is a byte in our example.)
-      XLS_CHECK(param_bit_idx < arg_size);
-      assignments.push_back(
-          absl::StrFormat(kAssignmentTemplate, name_and_idx[0], param_bit_idx,
-                          GetTfheRsTemplates().InputOrOutputReference(
-                              module().outputs()[output_index]->name())));
-      output_index++;
+      params_inout_idx--;
     }
   }
 

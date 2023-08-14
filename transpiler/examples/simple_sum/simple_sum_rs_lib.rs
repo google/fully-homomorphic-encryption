@@ -27,11 +27,11 @@ mod tests {
     use simple_sum_rs_fhe_lib::simple_sum;
     use tfhe::shortint::parameters::PARAM_MESSAGE_1_CARRY_2;
 
-    fn run_test_for(a: i32, b:i32) -> i32 {
+    fn run_test_for(a: i32, b: i32) -> i32 {
         let (client_key, server_key) = gen_keys(PARAM_MESSAGE_1_CARRY_2);
-        let fhe_a = encrypt(a, &client_key);
-        let fhe_b = encrypt(b, &client_key);
-        let fhe_output = &simple_sum(&fhe_a, &fhe_b, &server_key);
+        let mut fhe_a = encrypt(a, &client_key);
+        let mut fhe_b = encrypt(b, &client_key);
+        let fhe_output = &simple_sum(&mut fhe_a, &mut fhe_b, &server_key);
         decrypt(&fhe_output, &client_key)
     }
 

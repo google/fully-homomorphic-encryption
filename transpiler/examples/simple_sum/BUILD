@@ -119,13 +119,87 @@ cc_binary(
     ],
 )
 
+fhe_cc_library(
+    name = "simple_sum_yosys_cleartext",
+    src = "simple_sum.cc",
+    hdrs = ["simple_sum.h"],
+    encryption = "cleartext",
+    interpreter = True,
+    num_opt_passes = 2,
+    optimizer = "yosys",
+)
+
+cc_binary(
+    name = "simple_sum_yosys_cleartext_testbench",
+    srcs = ["simple_sum_cleartext_testbench.cc"],
+    copts = ["-DUSE_YOSYS_INTERPRETED_CLEARTEXT"],
+    deps = [
+        ":simple_sum_yosys_cleartext",
+        "//transpiler/data:cleartext_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+    ],
+)
+
+fhe_cc_library(
+    name = "simple_sum_yosys_interpreted_tfhe",
+    src = "simple_sum.cc",
+    hdrs = ["simple_sum.h"],
+    encryption = "tfhe",
+    interpreter = True,
+    num_opt_passes = 2,
+    optimizer = "yosys",
+)
+
+cc_binary(
+    name = "simple_sum_yosys_interpreted_tfhe_testbench",
+    srcs = ["simple_sum_tfhe_testbench.cc"],
+    copts = ["-DUSE_YOSYS_INTERPRETED_TFHE"],
+    deps = [
+        ":simple_sum_yosys_interpreted_tfhe",
+        "//transpiler/data:tfhe_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@tfhe//:libtfhe",
+    ],
+)
+
+fhe_cc_library(
+    name = "simple_sum_yosys_interpreted_openfhe",
+    src = "simple_sum.cc",
+    hdrs = ["simple_sum.h"],
+    encryption = "openfhe",
+    interpreter = True,
+    num_opt_passes = 2,
+    optimizer = "yosys",
+)
+
+cc_binary(
+    name = "simple_sum_yosys_interpreted_openfhe_testbench",
+    srcs = ["simple_sum_openfhe_testbench.cc"],
+    copts = ["-DUSE_YOSYS_INTERPRETED_OPENFHE"],
+    deps = [
+        ":simple_sum_yosys_interpreted_openfhe",
+        "//transpiler/data:openfhe_data",
+        "@com_google_xls//xls/common/logging",
+        "@com_google_xls//xls/common/status:status_macros",
+        "@openfhe//:binfhe",
+    ],
+)
+
 cc_test(
-    name = "simple_sum_test",
+    name = "simple_sum_yosys_test",
     srcs = ["simple_sum_test.cc"],
+    copts = ["-DUSE_YOSYS_INTERPRETED_TFHE"],
     deps = [
         ":simple_sum",
-        "@com_google_benchmark//:benchmark_main",
+        ":simple_sum_yosys_interpreted_tfhe",
+        # There seems to be a memory leak in TFHE; this fails with heapcheck enabled.
+        "@com_google_googletest//:gtest_main",
+        "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/status:matchers",
+        "//transpiler/data:tfhe_value",
+        "@tfhe//:libtfhe",
     ],
 )
 

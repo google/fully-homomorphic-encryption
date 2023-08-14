@@ -15,8 +15,13 @@
 #include <iostream>
 
 #include "transpiler/data/cleartext_data.h"
-#include "transpiler/examples/simple_sum/simple_sum_cleartext.h"
 #include "xls/common/logging/logging.h"
+
+#ifdef USE_YOSYS_INTERPRETED_CLEARTEXT
+#include "transpiler/examples/simple_sum/simple_sum_yosys_cleartext.h"
+#else
+#include "transpiler/examples/simple_sum/simple_sum_cleartext.h"
+#endif
 
 using namespace std;
 
@@ -31,9 +36,9 @@ int main(int argc, char** argv) {
   Encoded<int> ciphertext_y(y);
   cout << "Encoding done" << endl;
 
-  cout << "Initial state check: " << endl;
+  cout << "Initial state check: x: " << endl;
   cout << ciphertext_x.Decode();
-  cout << "  ";
+  cout << ", y: ";
   cout << ciphertext_y.Decode();
   cout << "\n";
 
@@ -49,4 +54,7 @@ int main(int argc, char** argv) {
 
   cout << "\n";
   cout << "Decoding done" << endl;
+
+  cout << "Decrypted x: " << ciphertext_x.Decode() << endl;
+  cout << "Decrypted y: " << ciphertext_y.Decode() << endl;
 }

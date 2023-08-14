@@ -239,89 +239,22 @@ absl::Status YosysTfheRunner::YosysTfheRunnerState::Run(
 
   // As we iterate over output_bit_vector, we'll use this iterator.
   auto out = output_bit_vector.cbegin();
-
-  // The remaining output wires in the netlist follow the declaration order of
-  // the input wires in the verilog file.  Suppose you have the following
-  // netlist:
-  //
-  // module foo(a, b, c, out);
-  //     input [7:0] c;
-  //     input a;
-  //     output [7:0] out;
-  //     input [7:0] b;
-  //
-  // Suppose that in that netlist input wires a, b, and c represent in/out
-  // parameters in the source language (i.e. they are non-const references in
-  // C++).
-  //
-  // In this case, the return values of these parameters will be splayed out in
-  // the ouput in the same order in which the input wires are declared, rather
-  // than the order in which they appear in the module statement.  In other
-  // words, at this point out will have c[0], c[1], ... c[7], then it will have
-  // a, and finally it will have b[0], ..., b[7].
-  //
-  // However, the inputs to the runner follow the order in the module statement
-  // (which in turn mirrors the order in which they are in the source language.)
-  // Therefore, we have to identify which parts of the output wires correspond
-  // to each of the input arguments.
   size_t copied = 0;
-  for (int i = 0; i < module_inputs.size(); i++) {
-    // Start by pulling off the first input net wire.  Following the example
-    // above, it will have the name "c[0]".  (When we get to the single-wire "a"
-    // next, the name will simply be "a".).
-    std::vector<std::string> name_and_idx =
-        absl::StrSplit(module_inputs[i]->name(), '[');
-    // Look for the non-indexed name ("c" in the example above) in the list of
-    // function arguments, which we can access from the metadata.
-    auto found = std::find_if(
-        metadata_.top_func_proto().params().cbegin(),
-        metadata_.top_func_proto().params().cend(),
-        [&name_and_idx](const xlscc_metadata::FunctionParameter& arg) {
-          return arg.name() == name_and_idx[0];
-        });
-    // We must be able to find that parameter--failing to is a bug, as we
-    // autogenerate both the netlist and the metadata from the same source file,
-    // and provide these parameters to this method.
-    XLS_CHECK(found != metadata_.top_func_proto().params().cend());
 
-    if (found->is_reference() && !found->is_const()) {
-      // Find the index of the argument for our match.  In our example, it will
-      // be 2, since args[2] is the span for the encoded form of argument "c".
-      size_t params_i =
-          std::distance(metadata_.top_func_proto().params().begin(), found);
-      size_t params_inout_i = -1;
-      for (size_t i = 0; i <= params_i; i++) {
-        const auto& param = metadata_.top_func_proto().params().at(i);
-        if (param.is_reference() && !param.is_const()) {
-          params_inout_i++;
-        }
+  // The output_nets are bits with (return value, set of in_out args) splayed
+  // out in the reverse order (due to verilog endianness).
+
+  // First, in_out args from the output bits are copied over(in reverse order).
+  int params_inout_idx = inout_args.size() - 1;
+  for (const auto& param : metadata_.top_func_proto().params()) {
+    if (param.is_reference() && !param.is_const()) {
+      LweSample* lwe = inout_args[params_inout_idx].data();
+      for (int i = 0; i < inout_args[params_inout_idx].size(); i++) {
+        bootsCOPY(&lwe[i], out->get(), bk_);
+        out++;
+        copied++;
       }
-      XLS_CHECK_GE(params_inout_i, 0);
-      XLS_CHECK_LE(params_inout_i, params_i);
-
-      // Get the bit size of the argument (e.g., 8 since "c" is defined to be a
-      // byte.)
-      size_t arg_size = inout_args[params_inout_i].size();
-
-      // Now read out the index of the parameter itself (e.g., the 0 in "c[0]").
-      size_t params_bit_idx = 0;
-      if (name_and_idx.size() == 2) {
-        absl::string_view idx = absl::StripSuffix(name_and_idx[1], "]");
-        XLS_CHECK(absl::SimpleAtoi(idx, &params_bit_idx));
-      }
-      // The i'th parameter subscript must be within range (e.g., 0 must be less
-      // than 8, since c is a byte in out example.)
-      XLS_CHECK(params_bit_idx < arg_size);
-      // Now, the out is the return value for c[0] from the example above.
-      // More generally, out[i] is the write-back value of the param_i'th
-      // argument at index param_i_idx.  Copy that bit directly into the output.
-      // In our example, this represents argument "c" at index 0, which is
-      // exactly args[2].
-      const LweSample* src = out->get();
-      LweSample* dest = inout_args[params_inout_i].data();
-      bootsCOPY(&dest[params_bit_idx], src, bk_);
-      out++;
-      copied++;
+      params_inout_idx--;
     }
   }
 

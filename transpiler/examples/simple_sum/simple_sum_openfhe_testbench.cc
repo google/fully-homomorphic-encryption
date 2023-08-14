@@ -20,8 +20,10 @@
 #include "transpiler/data/openfhe_data.h"
 #include "xls/common/logging/logging.h"
 
-#ifdef USE_INTERPRETED_OPENFHE
+#if defined(USE_INTERPRETED_OPENFHE)
 #include "transpiler/examples/simple_sum/simple_sum_interpreted_openfhe.h"
+#elif defined(USE_YOSYS_INTERPRETED_OPENFHE)
+#include "transpiler/examples/simple_sum/simple_sum_yosys_interpreted_openfhe.h"
 #else
 #include "transpiler/examples/simple_sum/simple_sum_openfhe.h"
 #endif
@@ -71,6 +73,8 @@ int main(int argc, char** argv) {
 
   cout << "\t\t\t\t\tComputation done" << endl;
 
+  cout << "Decrypted x: " << ciphertext_x.Decrypt(sk) << "\n";
+  cout << "Decrypted y: " << ciphertext_y.Decrypt(sk) << "\n";
   cout << "Decrypted result: " << cipher_result.Decrypt(sk) << "\n";
 
   cout << "Decryption done" << endl;
