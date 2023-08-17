@@ -257,39 +257,4 @@ library(supergate) {
       }
     }
   }
-
-  /* 2-input MUX */
-  cell(imux2) {
-    // Per TFHE spec, MUX has 2x the cost of the other gates.
-    area : 200;
-    pin(A) {
-      direction : input;
-    }
-    pin(B) {
-      direction : input;
-    }
-    pin(S) {
-      direction : input;
-    }
-    pin(Y) {
-      direction: output;
-      function : "(A * S) + (B * (S'))";
-      timing() {
-        related_pin : "A B S";
-        timing_sense : non_unate;
-        cell_rise(scalar) {
-            values("1000.0");
-        }
-        cell_fall(scalar) {
-            values("1000.0");
-        }
-        rise_transition(scalar) {
-            values("1000.0");
-        }
-        fall_transition(scalar) {
-            values("1000.0");
-        }
-      }
-    }
-  }
 } /* end */

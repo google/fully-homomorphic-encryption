@@ -13,19 +13,10 @@ constexpr absl::string_view kCodegenTemplate = R"rust(
 use rayon::prelude::*;
 use std::collections::HashMap;
 
-#[cfg(lut)]
 use tfhe::shortint;
-#[cfg(lut)]
 use tfhe::shortint::prelude::*;
-#[cfg(lut)]
 use tfhe::shortint::CiphertextBig as Ciphertext;
 
-#[cfg(not(lut))]
-use tfhe::boolean::prelude::*;
-#[cfg(not(lut))]
-use tfhe::boolean::ciphertext::Ciphertext;
-
-#[cfg(lut)]
 fn generate_lut(lut_as_int: u64, server_key: &ServerKey) -> shortint::server_key::LookupTableOwned {
     let f = |x: u64| (lut_as_int >> (x as u8)) & 1;
     return server_key.generate_accumulator(f);
@@ -41,6 +32,7 @@ enum GateInput {
 use GateInput::*;
 
 #[cfg(not(lut))]
+#[derive(PartialEq, Eq, Hash)]
 enum CellType {
     AND2,
     NAND2,
@@ -49,7 +41,7 @@ enum CellType {
     OR2,
     NOR2,
     INV,
-    IMUX2,
+    // TODO: Add back MUX2
 }
 
 #[cfg(lut)]
@@ -68,12 +60,8 @@ fn prune(temp_nodes: &mut HashMap<usize, Ciphertext>, temp_node_ids: &[usize]) {
 }
 
 pub fn $function_signature {
-    #[cfg(lut)]
     let (constant_false, constant_true): (Ciphertext, Ciphertext) = (
       server_key.create_trivial(0), server_key.create_trivial(1));
-    #[cfg(not(lut))]
-    let (constant_false, constant_true): (Ciphertext, Ciphertext) = (
-      server_key.trivial_encrypt(false), server_key.trivial_encrypt(true));
 
     let args: &[&Vec<Ciphertext>] = &[$ordered_params];
 
@@ -87,12 +75,29 @@ pub fn $function_signature {
         luts
     };
 
+    #[cfg(not(lut))]
+    let luts = {
+        let mut luts: HashMap<CellType, shortint::server_key::LookupTableOwned> = HashMap::new();
+        const CELLS_TO_LUTS: [(CellType, u64); 3] = [(NAND2, 7), (NOR2, 1), (XNOR2, 9)];
+        for (cell, lut) in CELLS_TO_LUTS {
+            luts.insert(cell, generate_lut(lut, server_key));
+        }
+        luts
+    };
+
     #[cfg(lut)]
     let lut3 = |args: &[&Ciphertext], lut: u64| -> Ciphertext {
         let top_bit = server_key.unchecked_scalar_mul(args[2], 4);
         let middle_bit = server_key.unchecked_scalar_mul(args[1], 2);
         let ct_input = server_key.unchecked_add(&top_bit, &server_key.unchecked_add(&middle_bit, args[0]));
         return server_key.apply_lookup_table(&ct_input, &luts[&lut]);
+    };
+
+    #[cfg(not(lut))]
+    let boolean_lut = |args: &[&Ciphertext], cell: CellType| -> Ciphertext {
+        let first_bit = server_key.unchecked_scalar_mul(args[1], 2);
+        let ct_input = &server_key.unchecked_add(&first_bit, args[0]);
+        return server_key.apply_lookup_table(&ct_input, &luts[&cell]);
     };
 
     let mut temp_nodes = HashMap::new();
@@ -121,14 +126,13 @@ pub fn $function_signature {
                 };
                 #[cfg(not(lut))]
                 let gate_func = |args: &[&Ciphertext]| match celltype {
-                  AND2 => server_key.and(args[0], args[1]),
-                  NAND2 => server_key.nand(args[0], args[1]),
-                  OR2 => server_key.or(args[0], args[1]),
-                  NOR2 => server_key.nor(args[0], args[1]),
-                  XOR2 => server_key.xor(args[0], args[1]),
-                  XNOR2 => server_key.xnor(args[0], args[1]),
-                  INV => server_key.not(args[0]),
-                  IMUX2 => server_key.mux(args[0], args[1], args[2]),
+                  AND2 => server_key.bitand(args[0], args[1]),
+                  NAND2 => boolean_lut(args, NAND2),
+                  OR2 => server_key.bitor(args[0], args[1]),
+                  NOR2 => boolean_lut(args, NOR2),
+                  XOR2 => server_key.bitxor(args[0], args[1]),
+                  XNOR2 => boolean_lut(args, XNOR2),
+                  INV => server_key.bitxor(args[0], &constant_true),
                 };
                 ((*id, *is_output), gate_func(&task_args))
             })
