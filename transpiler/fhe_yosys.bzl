@@ -234,6 +234,7 @@ def _generate_netlist_analysis(ctx, stem, netlist):
         outputs = [netlist_analysis_result],
         arguments = args,
         executable = ctx.executable._netlist_analyzer,
+        toolchain = None,
     )
     return [netlist_analysis_result]
 
@@ -264,6 +265,7 @@ def _generate_netlist(ctx, stem, verilog, entry):
         env = {
             "YOSYS_DATDIR": yosys_runfiles_dir + "/yosys/share/yosys",
         },
+        toolchain = None,
     )
 
     return [netlist, script] + additional_files
