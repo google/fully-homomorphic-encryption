@@ -51,6 +51,8 @@ memory
 techmap; opt
 abc -liberty {cell_library}
 opt_clean -purge
+hierarchy -generate * o:Y o:Q i:*
+torder -stop DFFSR Q
 clean
 write_verilog {netlist_path}
 show -format dot -prefix {netlist_path} -viewer touch
@@ -73,6 +75,8 @@ write_verilog -attr2comment {netlist_path}.pre_techmap
 show -format dot -prefix {netlist_path} -viewer touch
 techmap -map {lutmap_script}
 opt_clean -purge
+hierarchy -generate * o:Y o:Q i:*
+torder -stop DFFSR Q
 clean
 write_verilog -noexpr -attr2comment {netlist_path}
 EOF
