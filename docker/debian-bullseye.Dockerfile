@@ -33,9 +33,9 @@ RUN apt-get update && apt-get install -y \
   bison \
   wget
 
-# Install bazel
-RUN wget -O bazel "https://github.com/bazelbuild/bazel/releases/download/5.3.2/bazel-5.3.2-linux-x86_64" \
-  && test "973e213b1e9207ccdd3ea4730c0f92cbef769ec112ac2b84980583220d8db845  bazel" = "$(sha256sum bazel)" \
+# Install bazelisk as bazel
+RUN wget -O bazel "https://github.com/bazelbuild/bazelisk/releases/download/v1.12.0/bazelisk-linux-amd64" \
+  && test "6b0bcb2ea15bca16fffabe6fda75803440375354c085480fe361d2cbf32501db  bazel" = "$(sha256sum bazel)" \
   && chmod +x bazel \
   && mv bazel /bin/bazel
 
