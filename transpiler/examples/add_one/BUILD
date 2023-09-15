@@ -106,7 +106,7 @@ py_binary(
 
 py_test(
     name = "add_one_py_test",
-    size = "large",
+    size = "enormous",
     srcs = [
         "add_one_test.py",
     ],
