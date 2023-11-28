@@ -1,5 +1,9 @@
 # Fully Homomorphic Encryption (FHE)
 
+**Note:** [HEIR](https://github.com/google/heir) is our next generation FHE
+compiler framework, please see [its GitHub repo](https://github.com/google/heir)
+and its website https://heir.dev.
+
 This repository contains open-source libraries and tools to perform fully
 homomorphic encryption (FHE) operations on an encrypted data set.
 
