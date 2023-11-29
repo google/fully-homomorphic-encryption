@@ -29,7 +29,7 @@
 #endif
 
 TEST(StringCapTest, CorrectlyCapitalizesShortPhrase) {
-  char result[] = "do or do not";
+  char result[MAX_LENGTH] = "do or do not";
   CapitalizeString(result);
 
   ASSERT_STREQ(result, "Do Or Do Not");
@@ -65,7 +65,7 @@ TEST(StringCapTest, CorrectlyCapitalizesLongPhraseEncrypted) {
 }
 
 TEST(StringCapTest, CorrectlyProcessesSpecialChars) {
-  char result[] = "d,o o.r^ d&*::o no!t;";
+  char result[MAX_LENGTH] = "d,o o.r^ d&*::o no!t;";
   CapitalizeString(result);
 
   ASSERT_STREQ(result, "D,o O.r^ D&*::o No!t;");
