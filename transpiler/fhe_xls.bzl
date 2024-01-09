@@ -65,7 +65,7 @@ def _optimize_and_booleanify_repeatedly(ctx, stem, ir_file, entry):
     # inlining pass, as the booleanifier expects a single function.
     if ctx.attr.num_opt_passes == 0:
         suffix += ".opt"
-        results.append(optimize_ir(ctx, stem, results[-1], suffix + ".ir", entry, ["--run_only_passes=inlining"]))
+        results.append(optimize_ir(ctx, stem, results[-1], suffix + ".ir", entry, ["--passes=inlining"]))
         suffix += ".bool"
         results.append(_booleanify_ir(ctx, stem, results[-1], suffix + ".ir", entry))
     else:
