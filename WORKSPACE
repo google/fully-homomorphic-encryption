@@ -76,9 +76,9 @@ new_git_repository(
 # Install XLS and its transitive dependencies.
 http_archive(
     name = "com_google_xls",
-    sha256 = "da8807270d854701f51b7171eed3a70b2f64e5a39ad4ee940eec0ea6eda33e77",
-    strip_prefix = "xls-8dee07ff6374302b86cdd21b89df4c476c23288a",
-    url = "https://github.com/google/xls/archive/8dee07ff6374302b86cdd21b89df4c476c23288a.tar.gz",
+    sha256 = "3c7a0d7201a6c87cff274a2bd1a2c88ae2b15dffefd9053936e8000ec0cba106",
+    strip_prefix = "xls-1da08a2e3146a0708719a273119f24d56a8e2015",
+    url = "https://github.com/google/xls/archive/1da08a2e3146a0708719a273119f24d56a8e2015.tar.gz",
 )
 
 # Used by xlscc.
