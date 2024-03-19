@@ -48,8 +48,8 @@ void BoolStringCap(EncodedArray<char>& cipherresult,
               << " secs" << std::endl;
     total_time += char_time;
   }
-  std::cout << "\t\t\t\t\tTotal time "
-            << ": " << total_time / 1000000 << " secs" << std::endl;
+  std::cout << "\t\t\t\t\tTotal time " << ": " << total_time / 1000000
+            << " secs" << std::endl;
 }
 
 int main(int argc, char** argv) {
