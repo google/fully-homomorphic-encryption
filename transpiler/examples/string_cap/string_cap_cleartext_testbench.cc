@@ -37,8 +37,8 @@ void BoolStringCap(EncodedArray<char>& ciphertext) {
   double start_time = clock();
   std::cout << "Starting!" << std::endl;
   XLS_CHECK_OK(CapitalizeString(ciphertext));
-  std::cout << "\t\t\t\t\tTotal time "
-            << ": " << (clock() - start_time) / 1000000 << " secs" << std::endl;
+  std::cout << "\t\t\t\t\tTotal time " << ": "
+            << (clock() - start_time) / 1000000 << " secs" << std::endl;
 }
 
 int main(int argc, char** argv) {
