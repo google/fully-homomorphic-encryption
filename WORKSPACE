@@ -73,6 +73,18 @@ new_git_repository(
     shallow_since = "1667502783 +0200",
 )
 
+# ERROR: An error occurred during the fetch of repository 'xls_pip_deps':
+# AttributeError: module 'pkgutil' has no attribute 'ImpImporter'. Did you mean: 'zipimporter'?
+# Solution: https://github.com/googleapis/gapic-generator-python/issues/1824
+_rules_python_version = "0.24.0" 
+_rules_python_sha256 = "0a8003b044294d7840ac7d9d73eef05d6ceb682d7516781a4ec62eeb34702578" 
+http_archive( 
+    name = "rules_python", 
+    sha256 = _rules_python_sha256, 
+    strip_prefix = "rules_python-{}".format(_rules_python_version), 
+    url = "https://github.com/bazelbuild/rules_python/archive/{}.tar.gz".format(_rules_python_version), 
+)
+
 # Install XLS and its transitive dependencies.
 http_archive(
     name = "com_google_xls",
@@ -132,6 +144,28 @@ load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 
 grpc_deps()
 
+load("@com_google_xls//dependency_support:initialize_external.bzl", "initialize_external_repositories")
+
+initialize_external_repositories()
+
+# https://github.com/google/xls/blob/8dee07ff6374302b86cdd21b89df4c476c23288a/WORKSPACE
+# Loading the extra deps must be called after initialize_eternal_repositories or
+# the call to pip_install fails.
+load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
+
+grpc_extra_deps()
+
+#  ERROR: /usr/local/google/home/gshruthi/.cache/bazel/
+# _bazel_gshruthi/88459525e83498a4c011792c2bbba5c6/external/com_google_xls/xls/ir/
+# BUILD:808:10: no such package '@xls_pip_deps_markupsafe//': 
+# The repository '@xls_pip_deps_markupsafe' could not be resolved: 
+# Repository '@xls_pip_deps_markupsafe' is not defined and 
+# referenced by '@com_google_xls//xls/ir:render_specification_against_template'
+# https://github.com/google/xls/blob/main/WORKSPACE
+load("@xls_pip_deps//:requirements.bzl", xls_pip_install_deps = "install_deps")
+
+xls_pip_install_deps()
+
 # Install ABC
 http_archive(
     name = "abc",
@@ -163,9 +197,7 @@ new_git_repository(
     remote = "https://github.com/google/benchmark.git",
 )
 
-load("@com_google_xls//dependency_support:initialize_external.bzl", "initialize_external_repositories")
 
-initialize_external_repositories()
 
 # Install rules_rust for rust codegen
 http_archive(
