@@ -67,7 +67,7 @@ absl::Status RealMain(absl::string_view netlist_path,
   const xls::netlist::rtl::AbstractModule<bool>* module =
       netlist->modules()[0].get();
 
-  XLS_CHECK(module != nullptr) << "No modules found.";
+  CHECK(module != nullptr) << "No modules found.";
 
   XLS_ASSIGN_OR_RETURN(
       auto sorted_cell_names,
@@ -120,15 +120,15 @@ int main(int argc, char* argv[]) {
   absl::ParseCommandLine(argc, argv);
 
   std::string cell_library_path = absl::GetFlag(FLAGS_cell_library);
-  XLS_CHECK(!cell_library_path.empty()) << " --cell_library must be specified.";
+  CHECK(!cell_library_path.empty()) << " --cell_library must be specified.";
   std::cout << "Using Cell Library: " << cell_library_path << std::endl;
 
   std::string netlist_path = absl::GetFlag(FLAGS_netlist);
-  XLS_CHECK(!netlist_path.empty()) << "--netlist must be specified.";
+  CHECK(!netlist_path.empty()) << "--netlist must be specified.";
   std::cout << "Using Netlist: " << netlist_path << std::endl;
 
-  XLS_CHECK_OK(xls::RealMain(netlist_path, cell_library_path,
-                             absl::GetFlag(FLAGS_output_path)));
+  CHECK_OK(xls::RealMain(netlist_path, cell_library_path,
+                         absl::GetFlag(FLAGS_output_path)));
 
   return 0;
 }

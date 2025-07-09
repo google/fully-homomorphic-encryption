@@ -1,0 +1,39 @@
+diff --git a/xls/common/build_embed.cc b/xls/common/build_embed.cc
+index 7631dc375..d5ceefd1c 100644
+--- a/xls/common/build_embed.cc
++++ b/xls/common/build_embed.cc
+@@ -12,7 +12,7 @@
+ // See the License for the specific language governing permissions and
+ // limitations under the License.
+ 
+-#include "xls/common/build_embed.h"
++#include "build_embed.h"
+ 
+ #include <string>
+ 
+diff --git a/xls/estimators/BUILD b/xls/estimators/BUILD
+index 2983dda33..068dbcf7c 100644
+--- a/xls/estimators/BUILD
++++ b/xls/estimators/BUILD
+@@ -14,6 +14,8 @@
+ 
+ # pytype binary, test, library
+ load("@rules_python//python:proto.bzl", "py_proto_library")
++load("@rules_python//python:py_binary.bzl", "py_binary")
++load("@rules_python//python:py_library.bzl", "py_library")
+ # Load proto_library
+ # cc_proto_library is used in this file
+ 
+diff --git a/xls/estimators/delay_model/BUILD b/xls/estimators/delay_model/BUILD
+index 08ba730ec..90ddb7c69 100644
+--- a/xls/estimators/delay_model/BUILD
++++ b/xls/estimators/delay_model/BUILD
+@@ -17,6 +17,8 @@ load("@rules_hdl//dependency_support/org_theopenroadproject_asap7_pdk_r1p7:cells
+ 
+ # pytype binary only
+ load("@rules_python//python:proto.bzl", "py_proto_library")
++load("@rules_python//python:py_binary.bzl", "py_binary")
++load("@rules_python//python:py_library.bzl", "py_library")
+ load("@xls_pip_deps//:requirements.bzl", "requirement")
+ 
+ # Load proto_library

@@ -182,17 +182,17 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef, EncodedBitConstRef>::
     : package_(std::move(package)), metadata_(metadata) {
   threads_should_exit_.store(false);
 
-  XLS_CHECK_EQ(0, pthread_mutex_init(&lock_, nullptr));
-  XLS_CHECK_EQ(0, sem_init(&input_sem_, 1, 0));
-  XLS_CHECK_EQ(0, sem_init(&output_sem_, 1, 0));
+  CHECK_EQ(0, pthread_mutex_init(&lock_, nullptr));
+  CHECK_EQ(0, sem_init(&input_sem_, 1, 0));
+  CHECK_EQ(0, sem_init(&output_sem_, 1, 0));
 
   // *2 for hyperthreading opportunities
   const int numCPU = sysconf(_SC_NPROCESSORS_ONLN) * 2;
   for (int c = 0; c < numCPU; ++c) {
     pthread_t new_thread;
-    XLS_CHECK_EQ(
-        0, pthread_create(&new_thread, nullptr,
-                          AbstractXlsRunner::ThreadBodyStatic, (void*)this));
+    CHECK_EQ(0,
+             pthread_create(&new_thread, nullptr,
+                            AbstractXlsRunner::ThreadBodyStatic, (void*)this));
     threads_.push_back(new_thread);
   }
 }
@@ -213,9 +213,9 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef,
     pthread_join(pt, nullptr);
   }
 
-  XLS_CHECK_EQ(0, pthread_mutex_destroy(&lock_));
-  XLS_CHECK_EQ(0, sem_destroy(&input_sem_));
-  XLS_CHECK_EQ(0, sem_destroy(&output_sem_));
+  CHECK_EQ(0, pthread_mutex_destroy(&lock_));
+  CHECK_EQ(0, sem_destroy(&input_sem_));
+  CHECK_EQ(0, sem_destroy(&output_sem_));
 }
 
 template <typename Derived, typename EncodedBit, typename EncodedBitRef,
@@ -276,8 +276,8 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef, EncodedBitConstRef>::
 
     // Verify that the only things allowed in a BitSlice chain are array
     // indexes, tuple indexes, other bit slices, and the eventual params.
-    XLS_CHECK(operand->Is<xls::ArrayIndex>() || operand->Is<xls::BitSlice>() ||
-              operand->Is<xls::Param>() || operand->Is<xls::TupleIndex>())
+    CHECK(operand->Is<xls::ArrayIndex>() || operand->Is<xls::BitSlice>() ||
+          operand->Is<xls::Param>() || operand->Is<xls::TupleIndex>())
         << "Invalid BitSlice operand: " << operand->ToString();
   }
 
@@ -287,7 +287,7 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef, EncodedBitConstRef>::
     return op->CopyOf(found_in_arg->second[slice_idx]);
   }
   auto found_inout_arg = inout_args.find(param_name);
-  XLS_CHECK(found_inout_arg != inout_args.end());
+  CHECK(found_inout_arg != inout_args.end());
   return op->CopyOf(found_inout_arg->second[slice_idx]);
 }
 
@@ -403,7 +403,6 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef, EncodedBitConstRef>::
   // check to tell cases A and B apart.
 
   auto top_func_proto = metadata_.top_func_proto();
-  auto params = top_func_proto.params();
   auto return_type = top_func_proto.return_type();
 
   int num_out_params = xlscc_metadata::GetNumOutParams(metadata_);
@@ -515,7 +514,7 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef, EncodedBitConstRef>::
         const absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>>
             inout_args,
         BitOperations* op) {
-  XLS_CHECK(n != nullptr);
+  CHECK(n != nullptr);
   auto node_type = n->op();
   if (node_type == xls::Op::kArray || node_type == xls::Op::kArrayIndex ||
       node_type == xls::Op::kConcat || node_type == xls::Op::kParam ||
@@ -543,31 +542,31 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef, EncodedBitConstRef>::
         // arrays.
         for (const xls::Node* user : literal->users()) {
           if (!user->Is<xls::ArrayIndex>()) {
-            XLS_LOG(FATAL) << "Unsupported literal: " << n->ToString();
+            LOG(FATAL) << "Unsupported literal: " << n->ToString();
           }
         }
         return absl::nullopt;
       }
     } break;
     case xls::Op::kAnd: {
-      XLS_CHECK_EQ(operands.size(), 2);
-      XLS_CHECK(operands[0].has_value());
-      XLS_CHECK(operands[1].has_value());
+      CHECK_EQ(operands.size(), 2);
+      CHECK(operands[0].has_value());
+      CHECK(operands[1].has_value());
       return op->And(*operands[0], *operands[1]);
     } break;
     case xls::Op::kOr: {
-      XLS_CHECK_EQ(operands.size(), 2);
-      XLS_CHECK(operands[0].has_value());
-      XLS_CHECK(operands[1].has_value());
+      CHECK_EQ(operands.size(), 2);
+      CHECK(operands[0].has_value());
+      CHECK(operands[1].has_value());
       return op->Or(*operands[0], *operands[1]);
     } break;
     case xls::Op::kNot: {
-      XLS_CHECK_EQ(operands.size(), 1);
-      XLS_CHECK(operands[0].has_value());
+      CHECK_EQ(operands.size(), 1);
+      CHECK(operands[0].has_value());
       return op->Not(*operands[0]);
     } break;
     default:
-      XLS_LOG(FATAL) << "Unsupported node: " << n->ToString();
+      LOG(FATAL) << "Unsupported node: " << n->ToString();
       return nullptr;
   }
 }
@@ -580,8 +579,8 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef, EncodedBitConstRef>::Run(
     absl::flat_hash_map<std::string, absl::Span<EncodedBitConstRef>> in_args,
     absl::flat_hash_map<std::string, absl::Span<EncodedBitRef>> inout_args,
     BitOperations* op) {
-  XLS_CHECK(input_queue_.empty());
-  XLS_CHECK(output_queue_.empty());
+  CHECK(input_queue_.empty());
+  CHECK(output_queue_.empty());
 
   const_in_args_ = in_args;
   const_inout_args_ = inout_args;
@@ -591,14 +590,14 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef, EncodedBitConstRef>::Run(
   auto type = entry->GetType();
 
   // Arguments must match and all types must be bits.
-  XLS_CHECK(type->parameter_count() == in_args.size() + inout_args.size());
+  CHECK(type->parameter_count() == in_args.size() + inout_args.size());
   for (auto n : entry->params()) {
-    XLS_CHECK(n != nullptr);
-    XLS_CHECK(in_args.contains(n->name()) || inout_args.contains(n->name()));
+    CHECK(n != nullptr);
+    CHECK(in_args.contains(n->name()) || inout_args.contains(n->name()));
   }
 
   auto return_value = entry->return_value();
-  XLS_CHECK(return_value != nullptr);
+  CHECK(return_value != nullptr);
 
   // Map of intermediate bits of ciphertext, indexed by node id.
   absl::flat_hash_map<uint64_t, absl::optional<EncodedBit>> values;
@@ -608,8 +607,8 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef, EncodedBitConstRef>::Run(
 
   while (!unevaluated.empty()) {
     // Threads should not be running right now
-    XLS_CHECK(input_queue_.empty());
-    XLS_CHECK(output_queue_.empty());
+    CHECK(input_queue_.empty());
+    CHECK(output_queue_.empty());
 
     // Scan ahead and find nodes that are ready to be evaluated
     for (xls::Node* n : unevaluated) {
@@ -653,7 +652,7 @@ AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef, EncodedBitConstRef>::Run(
       xls::Node* n = std::get<0>(from_eval);
 
       // Even if the result was nullptr, mark the op as complete
-      XLS_CHECK(!values.contains(n->id()));
+      CHECK(!values.contains(n->id()));
       values[n->id()] = std::move(std::get<1>(from_eval));
 
       unevaluated.erase(n);
@@ -673,7 +672,7 @@ template <typename Derived, typename EncodedBit, typename EncodedBitRef,
           typename EncodedBitConstRef>
 void* AbstractXlsRunner<Derived, EncodedBit, EncodedBitRef,
                         EncodedBitConstRef>::ThreadBodyStatic(void* runner) {
-  XLS_CHECK(reinterpret_cast<Derived*>(runner)->ThreadBody().ok());
+  CHECK(reinterpret_cast<Derived*>(runner)->ThreadBody().ok());
   return 0;
 }
 

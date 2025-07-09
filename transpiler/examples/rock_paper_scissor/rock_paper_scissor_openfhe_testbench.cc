@@ -15,9 +15,10 @@
 
 #include <iostream>
 
-#include "openfhe/binfhe/binfhecontext.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
+#include "src/binfhe/include/binfhecontext.h"
 #include "transpiler/data/openfhe_data.h"
-#include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_OPENFHE
 #include "transpiler/examples/rock_paper_scissor/rock_paper_scissor_interpreted_openfhe.h"
@@ -78,8 +79,7 @@ int main(int argc, char** argv) {
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform addition
   OpenFhe<char> cipher_result(cc);
-  XLS_CHECK_OK(
-      rock_paper_scissor(cipher_result, ciphertext_x, ciphertext_y, cc));
+  CHECK_OK(rock_paper_scissor(cipher_result, ciphertext_x, ciphertext_y, cc));
 
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 

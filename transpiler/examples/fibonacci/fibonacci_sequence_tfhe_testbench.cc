@@ -21,12 +21,13 @@
 #include <string>
 #include <vector>
 
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "absl/strings/str_format.h"
-#include "tfhe/tfhe.h"
-#include "tfhe/tfhe_io.h"
+#include "src/include/tfhe.h"
+#include "src/include/tfhe_io.h"
 #include "transpiler/data/tfhe_data.h"
 #include "transpiler/examples/fibonacci/fibonacci_sequence.h"
-#include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_TFHE
 #include "transpiler/examples/fibonacci/fibonacci_sequence_interpreted_tfhe.h"
@@ -54,8 +55,7 @@ int main(int argc, char** argv) {
             << std::endl;
 
   TfheArray<int, FIBONACCI_SEQUENCE_SIZE> encrypted_result(params);
-  XLS_CHECK_OK(
-      fibonacci_sequence(encrypted_input, encrypted_result, key.cloud()));
+  CHECK_OK(fibonacci_sequence(encrypted_input, encrypted_result, key.cloud()));
   absl::FixedArray<int> result = encrypted_result.Decrypt(key);
   for (int i = 0; i < result.size(); i++) {
     std::cout << absl::StrFormat("Result %d: %d", i, result[i]) << std::endl;

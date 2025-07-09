@@ -37,7 +37,7 @@ using EvalFn = xls::netlist::rtl::CellOutputEvalFn<OpaqueValue>;
 #define IMPL1(cell, OP)                                 \
   absl::StatusOr<BoolValue> YosysRunner::TfheOp_##cell( \
       const std::vector<BoolValue>& args) {             \
-    XLS_CHECK(args.size() == 1);                        \
+    CHECK(args.size() == 1);                            \
     OpaqueValue result = OP(args[0]);                   \
     return BoolValue(result);                           \
   }
@@ -45,7 +45,7 @@ using EvalFn = xls::netlist::rtl::CellOutputEvalFn<OpaqueValue>;
 #define IMPL2(cell, OP)                                 \
   absl::StatusOr<BoolValue> YosysRunner::TfheOp_##cell( \
       const std::vector<BoolValue>& args) {             \
-    XLS_CHECK(args.size() == 2);                        \
+    CHECK(args.size() == 2);                            \
     OpaqueValue result = OP(args[0], args[1]);          \
     return BoolValue(result);                           \
   }
@@ -67,7 +67,7 @@ IMPL2(xnor2, [](auto a, auto b) { return !(a ^ b); });
 
 absl::StatusOr<BoolValue> YosysRunner::TfheOp_imux2(
     const std::vector<BoolValue>& args) {
-  XLS_CHECK(args.size() == 3);
+  CHECK(args.size() == 3);
   OpaqueValue result = (args[0] & args[2]) | (args[1] & !args[2]);
   return BoolValue(result);
 }
@@ -86,8 +86,8 @@ absl::Status YosysRunner::InitializeOnce(
 
     XLS_RETURN_IF_ERROR(state_->netlist_->AddCellEvaluationFns(eval_fns));
 
-    XLS_CHECK(google::protobuf::TextFormat::ParseFromString(
-        metadata_text_, &state_->metadata_));
+    CHECK(google::protobuf::TextFormat::ParseFromString(metadata_text_,
+                                                        &state_->metadata_));
   }
   return absl::OkStatus();
 }
@@ -133,11 +133,11 @@ absl::Status YosysRunner::YosysRunnerState::Run(
   size_t in_i = 0, inout_i = 0;
   for (const auto& param : metadata_.top_func_proto().params()) {
     if (param.is_reference() && !param.is_const()) {
-      XLS_CHECK(inout_i < inout_args.size());
+      CHECK(inout_i < inout_args.size());
       xls::Bits arg_bits(inout_args[inout_i++]);
       input_bits = xls::bits_ops::Concat({input_bits, arg_bits});
     } else {
-      XLS_CHECK(in_i < in_args.size());
+      CHECK(in_i < in_args.size());
       xls::Bits arg_bits(in_args[in_i++]);
       input_bits = xls::bits_ops::Concat({input_bits, arg_bits});
     }
@@ -146,11 +146,11 @@ absl::Status YosysRunner::YosysRunnerState::Run(
 
   xls::netlist::AbstractNetRef2Value<OpaqueValue> input_nets;
   const std::vector<NetRef>& module_inputs = module->inputs();
-  XLS_CHECK(module_inputs.size() == input_bits.bit_count());
+  CHECK(module_inputs.size() == input_bits.bit_count());
 
   for (int i = 0; i < module->inputs().size(); i++) {
     const NetRef in = module_inputs[i];
-    XLS_CHECK(!input_nets.contains(in));
+    CHECK(!input_nets.contains(in));
     input_nets[in] = input_bits.Get(module->GetInputPortOffset(in->name()));
   }
 
@@ -197,8 +197,8 @@ absl::Status YosysRunner::YosysRunnerState::Run(
   out += result.size();
   copied += result.size();
 
-  XLS_CHECK(copied == output_bit_vector.size());
-  XLS_CHECK(out == output_bit_vector.cend());
+  CHECK(copied == output_bit_vector.size());
+  CHECK(out == output_bit_vector.cend());
 
   return absl::OkStatus();
 }

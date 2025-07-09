@@ -15,9 +15,10 @@
 #include <iostream>
 #include <memory>
 
-#include "tfhe/tfhe.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
+#include "src/include/tfhe.h"
 #include "transpiler/data/tfhe_data.h"
-#include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_TFHE
 #include "transpiler/examples/sum3d/sum3d_interpreted_tfhe.h"
@@ -99,7 +100,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   Tfhe<int> cipher_result(params);
-  XLS_CHECK_OK(sum3d(cipher_result, ciphertext_a, ciphertext_b, cloud_key));
+  CHECK_OK(sum3d(cipher_result, ciphertext_a, ciphertext_b, cloud_key));
 
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
   std::cout << "Decoded result: ";

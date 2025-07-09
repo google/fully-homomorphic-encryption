@@ -22,11 +22,12 @@
 #include <type_traits>
 #include <vector>
 
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "openfhe/binfhe/binfhecontext.h"
+#include "src/binfhe/include/binfhecontext.h"
 #include "transpiler/data/openfhe_data.h"
-#include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_OPENFHE
 #include "transpiler/examples/string_cap_char/string_cap_char_openfhe_xls_interpreted.h"
@@ -49,8 +50,7 @@ void OpenFheStringCap(OpenFheArray<char>& cipherresult,
   for (int i = 0; i < data_size; i++) {
     const absl::Time start_time = absl::Now();
     const double cpu_start_time = clock();
-    XLS_CHECK_OK(
-        capitalize_char(cipherresult[i], cipherstate, ciphertext[i], cc));
+    CHECK_OK(capitalize_char(cipherresult[i], cipherstate, ciphertext[i], cc));
     const double cpu_end_time = clock();
     const absl::Time end_time = absl::Now();
     const absl::Duration char_time = end_time - start_time;

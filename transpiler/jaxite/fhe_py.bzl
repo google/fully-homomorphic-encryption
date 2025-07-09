@@ -10,10 +10,6 @@ load(
     "executable_attr",
 )
 load(
-    "//transpiler:parsers.bzl",
-    "cc_to_xls_ir",
-)
-load(
     "//transpiler:fhe_xls.bzl",
     "xls_ir_to_bool_ir",
     "xls_ir_to_verilog",
@@ -22,6 +18,10 @@ load(
     "//transpiler:fhe_yosys.bzl",
     "VALID_LUT_SIZES",
     "verilog_to_netlist",
+)
+load(
+    "//transpiler:parsers.bzl",
+    "cc_to_xls_ir",
 )
 
 FHE_OPTIMIZERS = ["xls", "yosys"]

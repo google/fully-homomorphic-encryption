@@ -398,7 +398,8 @@ constexpr const char kFileTemplate[] = R"(#ifndef $2
 #include <cstdint>
 #include <memory>
 
-#include "xls/common/logging/logging.h"
+#include "absl/log/check.h" 
+#include "absl/log/log.h"
 #include "absl/types/span.h"
 #include "transpiler/common_runner.h"
 #include "transpiler/data/cleartext_value.h"
@@ -434,8 +435,8 @@ class GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
       : length_(length), data_(data), bk_(bk) {}
 
   GenericEncodedRef& operator=(const GenericEncodedRef& rhs) {
-    XLS_CHECK_EQ(length_, rhs.length_);
-    XLS_CHECK_EQ(bit_width(), rhs.bit_width());
+    CHECK_EQ(length_, rhs.length_);
+    CHECK_EQ(bit_width(), rhs.bit_width());
     CopyFn(absl::MakeConstSpan(rhs.data_, bit_width()),
            bk_,
            absl::MakeSpan(data_, bit_width()));
@@ -561,12 +562,12 @@ class GenericEncoded<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
   }
 
   void SetEncrypted(const $1& value, const SecretKey* key, size_t elem = 0) {
-    XLS_CHECK(elem < this->length());
+    CHECK(elem < this->length());
     SetEncryptedInternal(value, key, data_.get() + elem * element_bit_width());
   }
 
   $1 Decrypt(const SecretKey* key, size_t elem = 0) const {
-    XLS_CHECK(elem < this->length());
+    CHECK(elem < this->length());
     $1 result;
     DecryptInternal(key, data_.get() + elem * element_bit_width(), &result);
     return result;
@@ -678,7 +679,7 @@ class GenericEncodedArray<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
   // but it'd be more work than this). For structure types, though, we do
   // enable setting on "borrowed" data to enable recursive setting.
   void SetUnencrypted(const $1* value, size_t len, const PublicKey* key) {
-    XLS_CHECK(this->length() >= len);
+    CHECK(this->length() >= len);
     for (size_t i = 0; i < len; i++) {
       GenericEncoded<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                        BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn,
@@ -687,7 +688,7 @@ class GenericEncodedArray<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
   }
 
   void SetEncrypted(const $1* value, size_t len, const SecretKey* key) {
-    XLS_CHECK(this->length() >= len);
+    CHECK(this->length() >= len);
     for (size_t i = 0; i < len; i++) {
       GenericEncoded<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                        BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn,
@@ -696,7 +697,7 @@ class GenericEncodedArray<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
   }
 
   void SetEncrypted(absl::Span<const $1> values, const SecretKey* key) {
-    XLS_CHECK(this->length() >= values.size());
+    CHECK(this->length() >= values.size());
     for (size_t i = 0; i < values.size(); i++) {
       GenericEncoded<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                        BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn,
@@ -705,7 +706,7 @@ class GenericEncodedArray<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
   }
 
   void Decrypt($1* result, size_t len, const SecretKey* key) const {
-    XLS_CHECK(len >= this->length());
+    CHECK(len >= this->length());
     for (size_t i = 0; i < this->length(); i++) {
       result[i] =
           GenericEncoded<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
@@ -727,7 +728,7 @@ class GenericEncodedArray<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                       BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn,
                       DecryptFn>
   operator[](size_t pos) {
-    XLS_CHECK(pos < this->length());
+    CHECK(pos < this->length());
     auto span = this->get();
     return GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                                BootstrappingKey, CopyFn, UnencryptedFn,
@@ -810,7 +811,7 @@ class GenericEncodedArray<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                       BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn,
                       DecryptFn>
   operator[](size_t pos) {
-    XLS_CHECK(pos < this->length());
+    CHECK(pos < this->length());
     auto span = this->get();
     return GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                                BootstrappingKey, CopyFn, UnencryptedFn,
@@ -901,7 +902,7 @@ class GenericEncodedArray<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                            BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn,
                            DecryptFn, Dimensions...>
   operator[](size_t pos) {
-    XLS_CHECK(pos < this->length());
+    CHECK(pos < this->length());
     auto span = this->get();
     return GenericEncodedArrayRef<$0,
         Sample, SampleArrayDeleter, SecretKey, PublicKey, BootstrappingKey,
@@ -932,7 +933,7 @@ class GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKe
                             DecryptFn>(data, length, bk) {}
 
   void SetUnencrypted(const $1* value, size_t len, const SecretKey* key) {
-    XLS_CHECK(this->length() >= len);
+    CHECK(this->length() >= len);
     for (size_t i = 0; i < len; i++) {
       GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                           BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn,
@@ -941,7 +942,7 @@ class GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKe
   }
 
   void SetEncrypted(const $1* value, size_t len, const SecretKey* key) {
-    XLS_CHECK(this->length() >= len);
+    CHECK(this->length() >= len);
     for (size_t i = 0; i < len; i++) {
       GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                           BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn,
@@ -950,7 +951,7 @@ class GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKe
   }
 
   void Decrypt($1* result, size_t len, const SecretKey* key) const {
-    XLS_CHECK(len >= this->length());
+    CHECK(len >= this->length());
     for (size_t i = 0; i < this->length(); i++) {
       result[i] =
           GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
@@ -972,7 +973,7 @@ class GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKe
                       BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn,
                       DecryptFn>
   operator[](size_t pos) {
-    XLS_CHECK(pos < this->length());
+    CHECK(pos < this->length());
     auto span = this->get();
     return GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                                BootstrappingKey, CopyFn, UnencryptedFn,
@@ -1043,7 +1044,7 @@ class GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKe
                       BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn,
                       DecryptFn>
   operator[](size_t pos) {
-    XLS_CHECK(pos < this->length());
+    CHECK(pos < this->length());
     auto span = this->get();
     return GenericEncodedRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKey,
                                BootstrappingKey, CopyFn, UnencryptedFn,
@@ -1121,7 +1122,7 @@ class GenericEncodedArrayRef<$0, Sample, SampleArrayDeleter, SecretKey, PublicKe
                            BootstrappingKey, CopyFn, UnencryptedFn, EncryptFn,
                            DecryptFn, Dimensions...>
   operator[](size_t pos) {
-    XLS_CHECK(pos < this->length());
+    CHECK(pos < this->length());
     auto span = this->get();
     return GenericEncodedArrayRef<$0,
         Sample, SampleArrayDeleter, SecretKey, PublicKey, BootstrappingKey,
@@ -1222,7 +1223,8 @@ constexpr const char kCleartextFileTemplate[] = R"(#ifndef $0
 
 #include <memory>
 
-#include "xls/common/logging/logging.h"
+#include "absl/log/check.h" 
+#include "absl/log/log.h"
 #include "transpiler/data/cleartext_value.h"
 #include "$1"
 #include "absl/types/span.h"
@@ -1336,17 +1338,17 @@ class EncodedArray<$1> : public __EncodedBaseArray<$0> {
   }
 
   void Encode(const $1* value, size_t length) {
-    XLS_CHECK(this->length() >= length);
+    CHECK(this->length() >= length);
     SetEncrypted(value, length, nullptr);
   }
 
   void Encode(absl::Span<const $1> values) {
-    XLS_CHECK(this->length() >= values.size());
+    CHECK(this->length() >= values.size());
     SetEncrypted(values.data(), values.size(), nullptr);
   }
 
   void Decode($1* value, size_t length) const {
-    XLS_CHECK(length >= this->length());
+    CHECK(length >= this->length());
     Decrypt(value, length, nullptr);
   }
 
@@ -1380,7 +1382,7 @@ class EncodedArray<$1, D1> : public __EncodedBaseArray<$0, D1> {
 
   EncodedArray(std::initializer_list<$1> values)
       : EncodedArray<$1, D1>() {
-    XLS_CHECK_EQ(values.size(), D1);
+    CHECK_EQ(values.size(), D1);
     Encode(std::data(values));
   }
 
@@ -1463,12 +1465,12 @@ class EncodedArrayRef<$1> : public __EncodedBaseArrayRef<$0> {
       : EncodedArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length(), rhs.bk()) {}
 
   void Encode(const $1* value, size_t length) {
-    XLS_CHECK(this->length() >= length);
+    CHECK(this->length() >= length);
     SetEncrypted(value, length, nullptr);
   }
 
   void Decode($1* value, size_t length) const {
-    XLS_CHECK(length >= this->length());
+    CHECK(length >= this->length());
     Decrypt(value, length, nullptr);
   }
 
@@ -1499,7 +1501,7 @@ class EncodedArrayRef<$1, D1> : public __EncodedBaseArrayRef<$0, D1> {
       : EncodedArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length(), rhs.bk()) {}
   EncodedArrayRef(const __EncodedBaseArray<$0>& rhs)
       : EncodedArrayRef(const_cast<bool*>(rhs.get().data()), rhs.length(), rhs.bk()) {
-    XLS_CHECK_EQ(rhs.length(), D1);
+    CHECK_EQ(rhs.length(), D1);
   }
 
   void Encode(std::add_const_t<typename __EncodedBaseArrayRef<$0, D1>::ArrayT> value) {
@@ -1668,7 +1670,7 @@ constexpr const char kTfheFileTemplate[] = R"(#ifndef $0
 #include "transpiler/data/tfhe_value.h"
 #include "$1"
 #include "absl/types/span.h"
-#include "tfhe/tfhe.h"
+#include "src/include/tfhe.h"
 
 template <typename T>
 using __TfheBaseRef = GenericEncodedRef<T,
@@ -1815,7 +1817,7 @@ class TfheArray<$1, D1> : public __TfheBaseArray<$0, D1> {
   static TfheArray<$1, D1> Unencrypted(
      absl::Span<const $1> plaintext,
      const TFheGateBootstrappingCloudKeySet* key) {
-    XLS_CHECK_EQ(plaintext.length(), D1);
+    CHECK_EQ(plaintext.length(), D1);
     TfheArray<$1, D1> shared_value(key->params);
     shared_value.SetUnencrypted(plaintext.data(), key);
     return shared_value;
@@ -1824,7 +1826,7 @@ class TfheArray<$1, D1> : public __TfheBaseArray<$0, D1> {
   static TfheArray<$1, D1> Encrypt(
       absl::Span<const $1> plaintext,
       const TFheGateBootstrappingSecretKeySet* key) {
-    XLS_CHECK_EQ(plaintext.length(), D1);
+    CHECK_EQ(plaintext.length(), D1);
     TfheArray<$1, D1> private_value(key->params);
     private_value.SetEncrypted(plaintext.data(), key);
     return private_value;
@@ -1882,7 +1884,7 @@ class TfheArrayRef<$1, D1> : public __TfheBaseArrayRef<$0, D1> {
   TfheArrayRef(const __TfheBaseArray<$0>& rhs)
       : TfheArrayRef<$1, D1>(const_cast<LweSample*>(rhs.get().data()), rhs.length(),
                              rhs.bk()) {
-    XLS_CHECK_GE(rhs.length(), D1);
+    CHECK_GE(rhs.length(), D1);
   }
   using __TfheBaseArrayRef<$0, D1>::get;
 };
@@ -1973,7 +1975,7 @@ constexpr const char kOpenFheFileTemplate[] = R"(#ifndef $0
 #include "transpiler/data/openfhe_value.h"
 #include "$1"
 #include "absl/types/span.h"
-#include "openfhe/binfhe/binfhecontext.h"
+#include "src/binfhe/include/binfhecontext.h"
 
 template <typename T>
 using __OpenFheBaseRef = GenericEncodedRef<T,
@@ -2179,7 +2181,7 @@ class OpenFheArray<$1, D1> : public __OpenFheBaseArray<$0, D1> {
   }
 
   void SetEncrypted(absl::Span<const $1> value, lbcrypto::LWEPrivateKey sk) {
-    XLS_CHECK_EQ(value.size(), D1);
+    CHECK_EQ(value.size(), D1);
     SetEncrypted(value.data(), value.size(), sk);
   }
 
@@ -2314,7 +2316,7 @@ class OpenFheArrayRef<$1, D1> : public __OpenFheBaseArrayRef<$0, D1> {
       : OpenFheArrayRef<$1, D1>(
             const_cast<lbcrypto::LWECiphertext*>(rhs.get().data()),
             rhs.length(), nullptr) {
-    XLS_CHECK_GE(rhs.length(), D1);
+    CHECK_GE(rhs.length(), D1);
     cc_ = rhs.cc_;
   }
   OpenFheArrayRef(const __OpenFheBaseArrayRef<$0, D1>& rhs,
@@ -2331,7 +2333,7 @@ class OpenFheArrayRef<$1, D1> : public __OpenFheBaseArrayRef<$0, D1> {
             const_cast<lbcrypto::LWECiphertext*>(data.data()),
             __OpenFheBaseArrayRef<$0, D1>::VOLUME,
             nullptr) {
-    XLS_CHECK_EQ(data.length(), this->bit_width());
+    CHECK_EQ(data.length(), this->bit_width());
     cc_ = cc;
   }
 
@@ -2399,7 +2401,7 @@ class OpenFheArrayRef<$1, D1, Dimensions...>
             const_cast<lbcrypto::LWECiphertext*>(data.data()),
             __OpenFheBaseArrayRef<$0, D1, Dimensions...>::VOLUME,
             nullptr) {
-    XLS_CHECK_EQ(data.length(), this->bit_width());
+    CHECK_EQ(data.length(), this->bit_width());
     cc_ = cc;
   }
 

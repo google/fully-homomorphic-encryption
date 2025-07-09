@@ -30,7 +30,7 @@ TEST(TemplatedStruct2Test, TemplatedStruct2CleartextTest) {
 
   Encoded<Array<Tag<int>, LEN>> encoded_in(in);
   Encoded<Tag<Array<short, (LEN << 1)>>> encoded_out;
-  XLS_CHECK_OK(convert(encoded_in, encoded_out));
+  CHECK_OK(convert(encoded_in, encoded_out));
   Tag<Array<short, (LEN << 1)>> decoded_out = encoded_out.Decode();
 
   ASSERT_EQ(0, memcmp(&decoded_out, &reference_out, sizeof(decoded_out)));

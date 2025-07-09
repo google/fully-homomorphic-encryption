@@ -15,7 +15,8 @@
 #include <cstdint>
 #include <iostream>
 
-#include "xls/common/logging/logging.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #ifdef USE_YOSYS_CLEARTEXT
 #include "transpiler/examples/structs/return_struct_yosys_cleartext.h"
 #include "transpiler/examples/structs/return_struct_yosys_cleartext.types.h"
@@ -46,8 +47,8 @@ int main(int argc, char** argv) {
   encoded_a.Encode(8);
   Encoded<char> encoded_c;
   encoded_c.Encode(16);
-  XLS_CHECK_OK(ConstructReturnStruct(encoded_result, encoded_a,
-                                     encoded_embedded, encoded_c));
+  CHECK_OK(ConstructReturnStruct(encoded_result, encoded_a, encoded_embedded,
+                                 encoded_c));
 
   ReturnStruct result = encoded_result.Decode();
   std::cout << "Done. Result: " << std::endl;

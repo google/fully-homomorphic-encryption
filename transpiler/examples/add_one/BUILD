@@ -1,7 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("@rules_python//python:defs.bzl", "py_library")
-load("@rules_python//python:defs.bzl", "py_test")
-load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_python//python:defs.bzl", "py_binary", "py_library", "py_test")
 load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 load("//transpiler/jaxite:fhe_py.bzl", "fhe_py_library")
 load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
@@ -111,9 +109,7 @@ py_test(
         "add_one_test.py",
     ],
     main = "add_one_test.py",
-    python_version = "PY3",
     shard_count = 3,
-    srcs_version = "PY3",
     tags = ["nofastbuild"],
     deps = [
         ":add_one_fhe_py_lib",

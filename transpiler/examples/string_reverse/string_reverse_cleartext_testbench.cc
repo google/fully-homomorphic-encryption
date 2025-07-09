@@ -19,17 +19,18 @@
 #include <iostream>
 #include <string>
 
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "transpiler/data/cleartext_data.h"
 #include "transpiler/examples/string_reverse/string_reverse.h"
 #include "transpiler/examples/string_reverse/string_reverse_cleartext.h"
-#include "xls/common/logging/logging.h"
 
 void BoolStringReverse(EncodedArray<char>& ciphertext) {
   double start_time = clock();
   std::cout << "Starting!" << std::endl;
-  XLS_CHECK_OK(ReverseString(ciphertext));
-  std::cout << "\t\t\t\t\tTotal time " << ": "
-            << (clock() - start_time) / 1000000 << " secs" << std::endl;
+  CHECK_OK(ReverseString(ciphertext));
+  std::cout << "\t\t\t\t\tTotal time "
+            << ": " << (clock() - start_time) / 1000000 << " secs" << std::endl;
 }
 
 int main(int argc, char** argv) {

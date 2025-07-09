@@ -21,7 +21,7 @@
 
 #include "absl/memory/memory.h"
 #include "gtest/gtest.h"
-#include "openfhe/binfhe/binfhecontext.h"
+#include "src/binfhe/include/binfhecontext.h"
 #include "transpiler/data/openfhe_data.h"
 
 constexpr lbcrypto::BINFHE_PARAMSET kSecurityLevel = lbcrypto::MEDIUM;

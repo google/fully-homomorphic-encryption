@@ -17,7 +17,7 @@
 #include "benchmark/benchmark.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "openfhe/binfhe/binfhecontext.h"
+#include "src/binfhe/include/binfhecontext.h"
 #include "transpiler/data/openfhe_data.h"
 
 #ifdef USE_YOSYS_OPTIMIZER

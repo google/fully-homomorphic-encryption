@@ -23,7 +23,8 @@
 #include "transpiler/examples/structs/struct_with_array_cleartext.types.h"
 #endif
 
-#include "xls/common/logging/logging.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 
 int main(int argc, char** argv) {
   StructWithArray input;
@@ -85,8 +86,8 @@ int main(int argc, char** argv) {
   std::cout << std::endl;
 
   std::cout << "Starting computation." << std::endl << std::endl;
-  XLS_CHECK_OK(NegateStructWithArray(encoded_struct_with_array, encoded_other,
-                                     encoded_inner));
+  CHECK_OK(NegateStructWithArray(encoded_struct_with_array, encoded_other,
+                                 encoded_inner));
 
   StructWithArray result = encoded_struct_with_array.Decode();
   std::cout << "Done. Result: " << std::endl;

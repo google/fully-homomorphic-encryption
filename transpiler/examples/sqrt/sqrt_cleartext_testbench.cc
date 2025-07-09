@@ -23,9 +23,10 @@
 #include <vector>
 
 #include "absl/container/fixed_array.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "absl/strings/numbers.h"
 #include "transpiler/data/cleartext_data.h"
-#include "xls/common/logging/logging.h"
 #ifdef USE_YOSYS_CLEARTEXT
 #include "transpiler/examples/sqrt/sqrt_yosys_cleartext.h"
 #else
@@ -36,9 +37,9 @@ Encoded<short> TimedYosysSqrt(Encoded<short>& ciphertext) {
   double start_time = clock();
   std::cout << "Starting!" << std::endl;
   Encoded<short> result;
-  XLS_CHECK_OK(isqrt(result, ciphertext));
-  std::cout << "\t\t\t\t\tTotal time " << ": "
-            << (clock() - start_time) / 1000000 << " secs" << std::endl;
+  CHECK_OK(isqrt(result, ciphertext));
+  std::cout << "\t\t\t\t\tTotal time "
+            << ": " << (clock() - start_time) / 1000000 << " secs" << std::endl;
   return result;
 }
 
@@ -51,7 +52,7 @@ int main(int argc, char** argv) {
   std::string input = argv[1];
 
   int plaintext;
-  XLS_CHECK(absl::SimpleAtoi(input, &plaintext));
+  CHECK(absl::SimpleAtoi(input, &plaintext));
   std::cout << "plaintext: " << plaintext << std::endl;
 
   // Encode data

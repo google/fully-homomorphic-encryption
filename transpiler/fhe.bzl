@@ -15,10 +15,6 @@
 """Rules for generating FHE-C++."""
 
 load(
-    "//transpiler/data:primitives.bzl",
-    "FHE_PRIMITIVES",
-)
-load(
     "//transpiler:fhe_common.bzl",
     "BooleanifiedIrInfo",
     "BooleanifiedIrOutputInfo",
@@ -26,8 +22,9 @@ load(
     "executable_attr",
 )
 load(
-    "//transpiler:parsers.bzl",
-    "cc_to_xls_ir",
+    "//transpiler:fhe_structs.bzl",
+    "TranspiledStructsOutputInfo",
+    "xls_cc_transpiled_structs",
 )
 load(
     "//transpiler:fhe_xls.bzl",
@@ -40,9 +37,12 @@ load(
     "verilog_to_netlist",
 )
 load(
-    "//transpiler:fhe_structs.bzl",
-    "TranspiledStructsOutputInfo",
-    "xls_cc_transpiled_structs",
+    "//transpiler:parsers.bzl",
+    "cc_to_xls_ir",
+)
+load(
+    "//transpiler/data:primitives.bzl",
+    "FHE_PRIMITIVES",
 )
 
 _FHE_TRANSPILER = "//transpiler"
@@ -373,7 +373,7 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
     )
 
     deps = [
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/types:span",
         "//transpiler:common_runner",

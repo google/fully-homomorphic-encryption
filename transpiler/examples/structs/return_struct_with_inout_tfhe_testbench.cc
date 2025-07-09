@@ -15,7 +15,8 @@
 #include <cstdint>
 #include <iostream>
 
-#include "xls/common/logging/logging.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #ifdef USE_YOSYS_INTERPRETED_TFHE
 #include "transpiler/examples/structs/return_struct_with_inout_yosys_interpreted_tfhe.h"
 #include "transpiler/examples/structs/return_struct_with_inout_yosys_interpreted_tfhe.types.h"
@@ -26,7 +27,7 @@
 #include "transpiler/examples/structs/return_struct_with_inout_tfhe.h"
 #include "transpiler/examples/structs/return_struct_with_inout_tfhe.types.h"
 #endif
-#include "tfhe/tfhe.h"
+#include "src/include/tfhe.h"
 
 const int main_minimum_lambda = 120;
 
@@ -89,7 +90,7 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   Tfhe<ReturnStruct> fhe_result(params);
-  XLS_CHECK_OK(ConstructReturnStructWithInout(
+  CHECK_OK(ConstructReturnStructWithInout(
       fhe_result, fhe_helper_a, fhe_helper_b, fhe_helper_c, cloud_key));
 
   ReturnStruct result = fhe_result.Decrypt(key);

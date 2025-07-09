@@ -18,6 +18,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "absl/strings/str_cat.h"
+
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 

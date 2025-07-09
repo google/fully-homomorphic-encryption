@@ -26,6 +26,7 @@ cc_library(
     deps = [
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/types:span",
     ],
@@ -37,6 +38,7 @@ cc_library(
     hdrs = ["temp_file.h"],
     deps = [
         "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
     ],
 )
 

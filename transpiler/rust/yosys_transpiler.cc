@@ -218,8 +218,8 @@ absl::StatusOr<BuildGateOpsOutput> YosysTfheRsTranspiler::BuildGateOps(
   // "prune" command after each level to determine which cells can be dropped
   // from memory.
   absl::flat_hash_map<int, int> temp_node_id_to_max_level;
-  XLS_LOG(INFO) << "Generating parallel gate ops with parallelism "
-                << gate_parallelism << "\n";
+  LOG(INFO) << "Generating parallel gate ops with parallelism "
+            << gate_parallelism << "\n";
 
   XLS_ASSIGN_OR_RETURN(std::string output_stem, OutputStem(module()));
   ConstTfheRsTemplates const_templates(metadata_, output_stem);
@@ -395,7 +395,7 @@ absl::StatusOr<std::string> YosysTfheRsTranspiler::AssignOutputs() {
         absl::StrSplit(module().outputs()[output_index]->name(), '[');
     absl::string_view out_idx = absl::StripSuffix(out_stem_and_idx[1], "]");
     int converted_out_idx = 0;
-    XLS_CHECK(absl::SimpleAtoi(out_idx, &converted_out_idx));
+    CHECK(absl::SimpleAtoi(out_idx, &converted_out_idx));
     assignments.push_back(absl::StrFormat(kSplitTemplate, out_stem_and_idx[0],
                                           out_stem_and_idx[0],
                                           converted_out_idx));
@@ -437,7 +437,7 @@ absl::StatusOr<std::string> YosysTfheRsTranspiler::FunctionSignature() {
         [&input_stem](const xlscc_metadata::FunctionParameter& arg) {
           return arg.name() == input_stem;
         });
-    XLS_CHECK(param_metadata != metadata_.top_func_proto().params().cend());
+    CHECK(param_metadata != metadata_.top_func_proto().params().cend());
     const bool is_outparam =
         param_metadata->is_reference() && !param_metadata->is_const();
     absl::string_view rust_ref_type = is_outparam ? "&mut " : "&";

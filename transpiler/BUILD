@@ -72,11 +72,11 @@ cc_library(
     hdrs = ["abstract_xls_transpiler.h"],
     deps = [
         ":common_transpiler",
+        "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/types:span",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
         "@com_google_xls//xls/protected:ir",
@@ -89,7 +89,7 @@ cc_library(
     srcs = ["common_runner.cc"],
     hdrs = ["common_runner.h"],
     deps = [
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log:check",
     ],
 )
 
@@ -100,11 +100,12 @@ cc_library(
     deps = [
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/types:optional",
         "@com_google_absl//absl/types:span",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
     ],
 )
@@ -227,12 +228,12 @@ cc_library(
     deps = [
         ":common_transpiler",
         ":pipeline_enums",
+        "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_protobuf//:protobuf",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
     ],
@@ -393,12 +394,12 @@ cc_library(
     deps = [
         ":abstract_xls_transpiler",
         ":common_transpiler",
+        "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/types:span",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@com_google_xls//xls/contrib/xlscc:metadata_output_cc_proto",
         "@com_google_xls//xls/public:ir",
@@ -467,7 +468,7 @@ cc_binary(
     name = "transpiler",
     srcs = ["transpiler_main.cc"],
     data = [
-        "@com_google_xls//xls/tools:booleanify_main",
+        "@com_google_xls//xls/dev_tools:booleanify_main",
         "@com_google_xls//xls/tools:opt_main",
     ],
     deps = [
@@ -498,7 +499,7 @@ cc_test(
     name = "tfhe_transpiler_test",
     srcs = ["tfhe_transpiler_test.cc"],
     data = [
-        "@com_google_xls//xls/tools:booleanify_main",
+        "@com_google_xls//xls/dev_tools:booleanify_main",
     ],
     deps = [
         ":tfhe_transpiler",

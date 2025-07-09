@@ -28,7 +28,7 @@ load(
     "XlsCcOutputInfo",
 )
 
-_XLS_BOOLEANIFY = "@com_google_xls//xls/tools:booleanify_main"
+_XLS_BOOLEANIFY = "@com_google_xls//xls/dev_tools:booleanify_main"
 _XLS_CODEGEN = "@com_google_xls//xls/tools:codegen_main"
 _XLS_OPT = "@com_google_xls//xls/tools:opt_main"
 

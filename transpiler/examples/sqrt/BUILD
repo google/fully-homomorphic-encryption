@@ -1,4 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 load("//transpiler:fhe.bzl", "fhe_cc_library")
 
 # load rust deps
@@ -79,8 +80,8 @@ cc_binary(
         ":sqrt_tfhe",
         "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -96,8 +97,8 @@ cc_binary(
         ":sqrt_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -113,8 +114,8 @@ cc_binary(
         ":sqrt_yosys_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -129,8 +130,8 @@ cc_binary(
         ":sqrt_openfhe",
         "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/base",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],
@@ -146,8 +147,8 @@ cc_binary(
         ":sqrt_interpreted_openfhe",
         "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/base",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],
@@ -162,8 +163,8 @@ cc_binary(
         ":sqrt_cleartext",
         "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/container:fixed_array",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -178,8 +179,8 @@ cc_binary(
         ":sqrt_yosys_cleartext",
         "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/container:fixed_array",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )

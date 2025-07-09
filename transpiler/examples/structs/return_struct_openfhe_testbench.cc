@@ -15,7 +15,8 @@
 #include <cstdint>
 #include <iostream>
 
-#include "xls/common/logging/logging.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #ifdef USE_INTERPRETED_OPENFHE
 #include "transpiler/examples/structs/return_struct_interpreted_openfhe.h"
 #include "transpiler/examples/structs/return_struct_interpreted_openfhe.types.h"
@@ -23,7 +24,7 @@
 #include "transpiler/examples/structs/return_struct_openfhe.h"
 #include "transpiler/examples/structs/return_struct_openfhe.types.h"
 #endif
-#include "openfhe/binfhe/binfhecontext.h"
+#include "src/binfhe/include/binfhecontext.h"
 
 constexpr auto kSecurityLevel = lbcrypto::MEDIUM;
 
@@ -56,8 +57,7 @@ int main(int argc, char** argv) {
   OpenFhe<ReturnStruct> fhe_result(cc);
   auto fhe_a = OpenFhe<char>::Encrypt(8, cc, sk);
   auto fhe_c = OpenFhe<char>::Encrypt(16, cc, sk);
-  XLS_CHECK_OK(
-      ConstructReturnStruct(fhe_result, fhe_a, fhe_embedded, fhe_c, cc));
+  CHECK_OK(ConstructReturnStruct(fhe_result, fhe_a, fhe_embedded, fhe_c, cc));
 
   ReturnStruct result = fhe_result.Decrypt(sk);
   std::cout << "Done. Result: " << std::endl;

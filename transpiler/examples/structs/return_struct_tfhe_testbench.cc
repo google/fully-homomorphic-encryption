@@ -15,7 +15,8 @@
 #include <cstdint>
 #include <iostream>
 
-#include "xls/common/logging/logging.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #ifdef USE_INTERPRETED_TFHE
 #include "transpiler/examples/structs/return_struct_interpreted_tfhe.h"
 #include "transpiler/examples/structs/return_struct_interpreted_tfhe.types.h"
@@ -26,7 +27,7 @@
 #include "transpiler/examples/structs/return_struct_tfhe.h"
 #include "transpiler/examples/structs/return_struct_tfhe.types.h"
 #endif
-#include "tfhe/tfhe.h"
+#include "src/include/tfhe.h"
 
 const int main_minimum_lambda = 120;
 
@@ -62,7 +63,7 @@ int main(int argc, char** argv) {
   Tfhe<ReturnStruct> fhe_result(params);
   auto fhe_a = Tfhe<char>::Encrypt(8, key);
   auto fhe_c = Tfhe<char>::Encrypt(16, key);
-  XLS_CHECK_OK(
+  CHECK_OK(
       ConstructReturnStruct(fhe_result, fhe_a, fhe_embedded, fhe_c, cloud_key));
 
   ReturnStruct result = fhe_result.Decrypt(key);

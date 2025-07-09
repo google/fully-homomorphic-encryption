@@ -22,7 +22,7 @@
 #include "absl/status/statusor.h"
 #include "absl/types/span.h"
 #include "google/protobuf/text_format.h"
-#include "openfhe/binfhe/binfhecontext.h"
+#include "src/binfhe/include/binfhecontext.h"
 #include "transpiler/data/openfhe_data.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
 #include "xls/protected/netlist.h"

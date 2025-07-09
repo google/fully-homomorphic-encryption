@@ -44,7 +44,7 @@ TEST(TemplatedStruct2Test, TemplatedStruct2OpenFheTest) {
   OpenFhe<Array<Tag<int>, LEN>> openfhe_in(cc);
   openfhe_in.SetEncrypted(in, sk);
   OpenFhe<Tag<Array<short, (LEN << 1)>>> openfhe_out(cc);
-  XLS_CHECK_OK(convert(openfhe_in, openfhe_out, cc));
+  CHECK_OK(convert(openfhe_in, openfhe_out, cc));
   Tag<Array<short, (LEN << 1)>> decoded_out = openfhe_out.Decrypt(sk);
 
   ASSERT_EQ(0, memcmp(&decoded_out, &reference_out, sizeof(decoded_out)));

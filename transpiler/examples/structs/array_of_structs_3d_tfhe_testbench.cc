@@ -15,8 +15,9 @@
 #include <cstdint>
 #include <iostream>
 
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "transpiler/examples/structs/array_of_structs.h"
-#include "xls/common/logging/logging.h"
 #ifdef USE_INTERPRETED_YOSYS
 #include "transpiler/examples/structs/array_of_structs_3d_yosys_interpreted_tfhe.h"
 #include "transpiler/examples/structs/array_of_structs_3d_yosys_interpreted_tfhe.types.h"
@@ -72,7 +73,7 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   Tfhe<Simple> tfhe_result(params);
-  XLS_CHECK_OK(DoubleSimpleArray3D(tfhe_result, tfhe_simple_array, cloud_key));
+  CHECK_OK(DoubleSimpleArray3D(tfhe_result, tfhe_simple_array, cloud_key));
 
   Simple result = tfhe_result.Decrypt(key);
   std::cout << "Done." << std::endl;
