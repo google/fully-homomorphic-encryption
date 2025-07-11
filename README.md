@@ -1,6 +1,6 @@
 # Fully Homomorphic Encryption (FHE)
 
-**Note:** [HEIR](https://github.com/google/heir) is our next generation FHE
+**Note:**  [HEIR](https://github.com/google/heir) is our next generation FHE
 compiler framework, please see [its GitHub repo](https://github.com/google/heir)
 and its website https://heir.dev.
 
