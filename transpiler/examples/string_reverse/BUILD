@@ -14,6 +14,8 @@
 # limitations under the License.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load("//transpiler:fhe.bzl", "fhe_cc_library")
 
 licenses(["notice"])
