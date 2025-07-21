@@ -15,10 +15,11 @@
 #include <cstdint>
 #include <iostream>
 
-#include "tfhe/tfhe.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
+#include "src/include/tfhe.h"
 #include "transpiler/examples/structs/simple_struct_tfhe.h"
 #include "transpiler/examples/structs/simple_struct_tfhe.types.h"
-#include "xls/common/logging/logging.h"
 
 const int main_minimum_lambda = 120;
 
@@ -53,7 +54,7 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   Tfhe<int> fhe_result(params);
-  XLS_CHECK_OK(SumSimpleStruct(fhe_result, fhe_simple_struct, cloud_key));
+  CHECK_OK(SumSimpleStruct(fhe_result, fhe_simple_struct, cloud_key));
 
   int result = fhe_result.Decrypt(key);
   std::cout << "Done. Result: " << result << std::endl;

@@ -37,7 +37,7 @@ using EvalFn = xls::netlist::rtl::CellOutputEvalFn<LweSample>;
 #define IMPL1(cell, OP)                                         \
   absl::StatusOr<TfheBoolValue> YosysTfheRunner::TfheOp_##cell( \
       const std::vector<TfheBoolValue>& args) {                 \
-    XLS_CHECK(args.size() == 1);                                \
+    CHECK(args.size() == 1);                                    \
     LweSample* result =                                         \
         new_gate_bootstrapping_ciphertext(state_->bk_->params); \
     boots##OP(result, args[0].lwe().get(), state_->bk_);        \
@@ -47,7 +47,7 @@ using EvalFn = xls::netlist::rtl::CellOutputEvalFn<LweSample>;
 #define IMPL2(cell, OP)                                                       \
   absl::StatusOr<TfheBoolValue> YosysTfheRunner::TfheOp_##cell(               \
       const std::vector<TfheBoolValue>& args) {                               \
-    XLS_CHECK(args.size() == 2);                                              \
+    CHECK(args.size() == 2);                                                  \
     LweSample* result =                                                       \
         new_gate_bootstrapping_ciphertext(state_->bk_->params);               \
     boots##OP(result, args[0].lwe().get(), args[1].lwe().get(), state_->bk_); \
@@ -71,7 +71,7 @@ IMPL2(xnor2, XNOR);
 
 absl::StatusOr<TfheBoolValue> YosysTfheRunner::TfheOp_imux2(
     const std::vector<TfheBoolValue>& args) {
-  XLS_CHECK(args.size() == 3);
+  CHECK(args.size() == 3);
   LweSample* result = new_gate_bootstrapping_ciphertext(state_->bk_->params);
   bootsMUX(result, args[2].lwe().get(), args[0].lwe().get(),
            args[1].lwe().get(), state_->bk_);
@@ -124,8 +124,8 @@ absl::Status YosysTfheRunner::InitializeOnce(
 
     XLS_RETURN_IF_ERROR(state_->netlist_->AddCellEvaluationFns(eval_fns));
 
-    XLS_CHECK(google::protobuf::TextFormat::ParseFromString(
-        metadata_text_, &state_->metadata_));
+    CHECK(google::protobuf::TextFormat::ParseFromString(metadata_text_,
+                                                        &state_->metadata_));
   }
   return absl::OkStatus();
 }
@@ -180,14 +180,14 @@ absl::Status YosysTfheRunner::YosysTfheRunnerState::Run(
   for (const auto& param : metadata_.top_func_proto().params()) {
     std::vector<TfheBoolValue> arg_bits;
     if (param.is_reference() && !param.is_const()) {
-      XLS_CHECK(inout_i < inout_args.size());
+      CHECK(inout_i < inout_args.size());
       const auto& arg = inout_args[inout_i++];
       arg_bits.reserve(arg.size());
       for (int i = 0; i < arg.size(); i++) {
         arg_bits.emplace_back(arg.data() + i, bk_);
       }
     } else {
-      XLS_CHECK(in_i < in_args.size());
+      CHECK(in_i < in_args.size());
       const auto& arg = in_args[in_i++];
       arg_bits.reserve(arg.size());
       for (int i = 0; i < arg.size(); i++) {
@@ -200,11 +200,11 @@ absl::Status YosysTfheRunner::YosysTfheRunnerState::Run(
 
   xls::netlist::AbstractNetRef2Value<TfheBoolValue> input_nets;
   const std::vector<NetRef>& module_inputs = module->inputs();
-  XLS_CHECK(module_inputs.size() == input_bits.size());
+  CHECK(module_inputs.size() == input_bits.size());
 
   for (int i = 0; i < module->inputs().size(); i++) {
     const NetRef in = module_inputs[i];
-    XLS_CHECK(!input_nets.contains(in));
+    CHECK(!input_nets.contains(in));
     input_nets.emplace(
         in, std::move(input_bits[module->GetInputPortOffset(in->name())]));
   }
@@ -229,11 +229,11 @@ absl::Status YosysTfheRunner::YosysTfheRunnerState::Run(
 
   std::vector<std::shared_ptr<LweSample>> output_bit_vector;
 
-  XLS_CHECK(module->outputs().size() == output_nets.size());
+  CHECK(module->outputs().size() == output_nets.size());
   for (const NetRef ref : module->outputs()) {
     auto tfhe_bool = output_nets.at(ref);
     auto lwe = tfhe_bool.lwe();
-    XLS_CHECK(lwe != nullptr);
+    CHECK(lwe != nullptr);
     output_bit_vector.push_back(lwe);
   }
 
@@ -266,8 +266,8 @@ absl::Status YosysTfheRunner::YosysTfheRunnerState::Run(
     bootsCOPY(&lwe[i], out->get(), bk_);
   }
 
-  XLS_CHECK(copied == output_bit_vector.size());
-  XLS_CHECK(out == output_bit_vector.cend());
+  CHECK(copied == output_bit_vector.size());
+  CHECK(out == output_bit_vector.cend());
 
   return absl::OkStatus();
 }

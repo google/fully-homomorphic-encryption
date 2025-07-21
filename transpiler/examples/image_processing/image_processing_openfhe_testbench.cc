@@ -4,13 +4,14 @@
 #include <iomanip>
 #include <iostream>
 
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "commons.h"
-#include "openfhe/binfhe/binfhecontext.h"
+#include "src/binfhe/include/binfhecontext.h"
 #include "transpiler/data/openfhe_data.h"
-#include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_OPENFHE
 #include "transpiler/examples/image_processing/kernel_gaussian_blur_interpreted_openfhe.h"
@@ -52,7 +53,7 @@ void runSharpenFilter(OpenFheArray<unsigned char>& encrypted_input,
       absl::Time t1 = absl::Now();
       double cpu_t1 = clock();
       encryptedSubsetImage(encrypted_input, window, i, j, cc);
-      XLS_CHECK_OK(
+      CHECK_OK(
           kernel_sharpen(encrypted_result[i * MAX_PIXELS + j], window, cc));
 
       double last_pixel_cpu_duration = (clock() - cpu_t1) / 1'000'000;
@@ -88,8 +89,8 @@ void runGaussianBlurFilter(OpenFheArray<unsigned char>& encrypted_input,
       absl::Time t1 = absl::Now();
       double cpu_t1 = clock();
       encryptedSubsetImage(encrypted_input, window, i, j, cc);
-      XLS_CHECK_OK(kernel_gaussian_blur(encrypted_result[i * MAX_PIXELS + j],
-                                        window, cc));
+      CHECK_OK(kernel_gaussian_blur(encrypted_result[i * MAX_PIXELS + j],
+                                    window, cc));
 
       double last_pixel_cpu_duration = (clock() - cpu_t1) / 1'000'000;
       absl::Duration last_pixel_duration = absl::Now() - t1;
@@ -124,7 +125,7 @@ void runRickerWaveletFilter(OpenFheArray<unsigned char>& encrypted_input,
       absl::Time t1 = absl::Now();
       double cpu_t1 = clock();
       encryptedSubsetImage(encrypted_input, window, i, j, cc);
-      XLS_CHECK_OK(
+      CHECK_OK(
           ricker_wavelet(encrypted_result[i * MAX_PIXELS + j], window, cc));
 
       double last_pixel_cpu_duration = (clock() - cpu_t1) / 1'000'000;

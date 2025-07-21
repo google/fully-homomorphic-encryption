@@ -15,8 +15,9 @@
 #include <cstdint>
 #include <iostream>
 
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "transpiler/examples/structs/array_of_structs.h"
-#include "xls/common/logging/logging.h"
 #ifdef USE_INTERPRETED_YOSYS
 #include "transpiler/examples/structs/array_of_structs_3d_yosys_interpreted_cleartext.h"
 #include "transpiler/examples/structs/array_of_structs_3d_yosys_interpreted_cleartext.types.h"
@@ -54,7 +55,7 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   Encoded<Simple> bool_result;
-  XLS_CHECK_OK(DoubleSimpleArray3D(bool_result, bool_simple_array));
+  CHECK_OK(DoubleSimpleArray3D(bool_result, bool_simple_array));
 
   Simple result = bool_result.Decode();
   std::cout << "Done." << std::endl;

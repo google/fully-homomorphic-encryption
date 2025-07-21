@@ -15,8 +15,9 @@
 
 #include <iostream>
 
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "transpiler/data/cleartext_data.h"
-#include "xls/common/logging/logging.h"
 
 #ifdef USE_YOSYS_INTERPRETED_CLEARTEXT
 #include "transpiler/examples/ifte/ifte_yosys_interpreted_cleartext.h"
@@ -62,7 +63,7 @@ int main(int argc, char** argv) {
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform addition
   Encoded<char> cipher_result;
-  XLS_CHECK_OK(ifte(cipher_result, encoded_i, encoded_t, encoded_e));
+  CHECK_OK(ifte(cipher_result, encoded_i, encoded_t, encoded_e));
 
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 

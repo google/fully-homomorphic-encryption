@@ -4,14 +4,15 @@
 #include <iomanip>
 #include <iostream>
 
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "commons.h"
-#include "tfhe/tfhe.h"
-#include "tfhe/tfhe_io.h"
+#include "src/include/tfhe.h"
+#include "src/include/tfhe_io.h"
 #include "transpiler/data/tfhe_data.h"
-#include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_TFHE
 #include "transpiler/examples/image_processing/kernel_gaussian_blur_interpreted_tfhe.h"
@@ -53,8 +54,8 @@ void runSharpenFilter(TfheArray<unsigned char>& encrypted_input,
       absl::Time t1 = absl::Now();
       double cpu_t1 = clock();
       encryptedSubsetImage(encrypted_input, window, i, j, key.cloud());
-      XLS_CHECK_OK(kernel_sharpen(encrypted_result[i * MAX_PIXELS + j], window,
-                                  key.cloud()));
+      CHECK_OK(kernel_sharpen(encrypted_result[i * MAX_PIXELS + j], window,
+                              key.cloud()));
 
       double last_pixel_cpu_duration = (clock() - cpu_t1) / 1'000'000;
       absl::Duration last_pixel_duration = absl::Now() - t1;
@@ -89,8 +90,8 @@ void runGaussianBlurFilter(TfheArray<unsigned char>& encrypted_input,
       absl::Time t1 = absl::Now();
       double cpu_t1 = clock();
       encryptedSubsetImage(encrypted_input, window, i, j, key.cloud());
-      XLS_CHECK_OK(kernel_gaussian_blur(encrypted_result[i * MAX_PIXELS + j],
-                                        window, key.cloud()));
+      CHECK_OK(kernel_gaussian_blur(encrypted_result[i * MAX_PIXELS + j],
+                                    window, key.cloud()));
 
       double last_pixel_cpu_duration = (clock() - cpu_t1) / 1'000'000;
       absl::Duration last_pixel_duration = absl::Now() - t1;
@@ -125,8 +126,8 @@ void runRickerWaveletFilter(TfheArray<unsigned char>& encrypted_input,
       absl::Time t1 = absl::Now();
       double cpu_t1 = clock();
       encryptedSubsetImage(encrypted_input, window, i, j, key.cloud());
-      XLS_CHECK_OK(ricker_wavelet(encrypted_result[i * MAX_PIXELS + j], window,
-                                  key.cloud()));
+      CHECK_OK(ricker_wavelet(encrypted_result[i * MAX_PIXELS + j], window,
+                              key.cloud()));
 
       double last_pixel_cpu_duration = (clock() - cpu_t1) / 1'000'000;
       absl::Duration last_pixel_duration = absl::Now() - t1;

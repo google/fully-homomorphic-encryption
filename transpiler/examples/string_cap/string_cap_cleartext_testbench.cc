@@ -23,9 +23,10 @@
 #include <vector>
 
 #include "absl/container/fixed_array.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "transpiler/data/cleartext_data.h"
 #include "transpiler/examples/string_cap/string_cap.h"
-#include "xls/common/logging/logging.h"
 
 #ifdef USE_YOSYS_INTERPRETED_CLEARTEXT
 #include "transpiler/examples/string_cap/string_cap_cleartext_yosys_interpreted.h"
@@ -36,9 +37,9 @@
 void BoolStringCap(EncodedArray<char>& ciphertext) {
   double start_time = clock();
   std::cout << "Starting!" << std::endl;
-  XLS_CHECK_OK(CapitalizeString(ciphertext));
-  std::cout << "\t\t\t\t\tTotal time " << ": "
-            << (clock() - start_time) / 1000000 << " secs" << std::endl;
+  CHECK_OK(CapitalizeString(ciphertext));
+  std::cout << "\t\t\t\t\tTotal time "
+            << ": " << (clock() - start_time) / 1000000 << " secs" << std::endl;
 }
 
 int main(int argc, char** argv) {

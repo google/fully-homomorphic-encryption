@@ -14,7 +14,7 @@ namespace fhe {
 namespace jaxite {
 namespace transpiler {
 namespace {
-using ::xls::status_testing::StatusIs;
+using absl_testing::StatusIs;
 
 constexpr absl::string_view kCells = R"lib(
 library(testlib) {

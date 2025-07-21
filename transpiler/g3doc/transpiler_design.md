@@ -8,7 +8,7 @@ following five stages:
 2.  The **Optimizer stage**
     [optimizes the XLS IR](https://google.github.io/xls/optimizations/).
 3.  The **Booleanifier stage**
-    [re-writes the XLS IR](https://github.com/google/xls/blob/main/xls/tools/booleanify_main.cc)
+    [re-writes the XLS IR](https://github.com/google/xls/blob/main/xls/dev_tools/booleanify_main.cc)
     in terms of its operations' fundamental boolean operations (e.g., AND, OR,
     NOT).
 4.  The **FHE IR Transpiler stage** translates the Booleanified XLS IR into
@@ -44,7 +44,8 @@ bits (since [TFHE](https://tfhe.github.io/tfhe/) and
 This produces a Booleanified graph representing the operations
 to perform. See the illustration below for an example.
 
-For more information, see the [XLS Booleanifier code](https://github.com/google/xls/blob/main/xls/tools/booleanify_main.cc).
+For more information, see the
+[XLS Booleanifier code](https://github.com/google/xls/blob/main/xls/dev_tools/booleanify_main.cc).
 
 ![Illustration of Booleanified graph](../images/FHE-IR.png)
 

@@ -15,7 +15,8 @@
 #include <cstdint>
 #include <iostream>
 
-#include "xls/common/logging/logging.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #ifdef USE_INTERPRETED_TFHE
 #include "transpiler/examples/structs/struct_with_array_interpreted_tfhe.h"
 #include "transpiler/examples/structs/struct_with_array_interpreted_tfhe.types.h"
@@ -26,7 +27,7 @@
 #include "transpiler/examples/structs/struct_with_array_tfhe.h"
 #include "transpiler/examples/structs/struct_with_array_tfhe.types.h"
 #endif
-#include "tfhe/tfhe.h"
+#include "src/include/tfhe.h"
 
 const int main_minimum_lambda = 120;
 
@@ -103,8 +104,8 @@ int main(int argc, char** argv) {
   std::cout << std::endl;
 
   std::cout << "Starting computation." << std::endl << std::endl;
-  XLS_CHECK_OK(NegateStructWithArray(fhe_struct_with_array, fhe_other,
-                                     fhe_inner, cloud_key));
+  CHECK_OK(NegateStructWithArray(fhe_struct_with_array, fhe_other, fhe_inner,
+                                 cloud_key));
 
   StructWithArray result = fhe_struct_with_array.Decrypt(key);
   std::cout << "Done. Result: " << std::endl;

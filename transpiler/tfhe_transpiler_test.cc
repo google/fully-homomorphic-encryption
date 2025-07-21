@@ -45,11 +45,11 @@
 namespace fully_homomorphic_encryption::transpiler {
 namespace {
 
+using absl_testing::StatusIs;
 using ::testing::UnorderedElementsAreArray;
-using ::xls::status_testing::StatusIs;
 
 absl::StatusOr<std::unique_ptr<xls::Package>> BooleanizeIr(xls::Package* p) {
-  constexpr const char kBooleanifierPath[] = "xls/tools/booleanify_main";
+  constexpr const char kBooleanifierPath[] = "xls/dev_tools/booleanify_main";
   XLS_ASSIGN_OR_RETURN(TempFile temp_file, TempFile::Create());
   XLS_RETURN_IF_ERROR(xls::SetFileContents(temp_file.path(), p->DumpIr()));
 
@@ -492,8 +492,8 @@ TEST(TfheIrTranspilerLibTest, Prelude_OnlyPure) {
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 #include "transpiler/common_runner.h"
-#include "tfhe/tfhe.h"
-#include "tfhe/tfhe_io.h"
+#include "src/include/tfhe.h"
+#include "src/include/tfhe_io.h"
 
 static StructReverseEncodeOrderSetter ORDER;
 
@@ -544,8 +544,8 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_NoParam) {
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 #include "transpiler/data/tfhe_data.h"
-#include "tfhe/tfhe.h"
-#include "tfhe/tfhe_io.h"
+#include "src/include/tfhe.h"
+#include "src/include/tfhe_io.h"
 
 absl::Status test_fn_UNSAFE(const TFheGateBootstrappingCloudKeySet* bk);
 
@@ -590,8 +590,8 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_Param) {
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 #include "transpiler/data/tfhe_data.h"
-#include "tfhe/tfhe.h"
-#include "tfhe/tfhe_io.h"
+#include "src/include/tfhe.h"
+#include "src/include/tfhe_io.h"
 
 absl::Status test_fn_UNSAFE(absl::Span<const LweSample> param, const TFheGateBootstrappingCloudKeySet* bk);
 
@@ -638,8 +638,8 @@ TEST(TfheIrTranspilerLibTest, TranslateHeader_MultipleParams) {
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 #include "transpiler/data/tfhe_data.h"
-#include "tfhe/tfhe.h"
-#include "tfhe/tfhe_io.h"
+#include "src/include/tfhe.h"
+#include "src/include/tfhe_io.h"
 
 absl::Status test_fn_UNSAFE($0, const TFheGateBootstrappingCloudKeySet* bk);
 

@@ -4,6 +4,8 @@
 #include <iomanip>
 #include <iostream>
 
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
@@ -15,7 +17,6 @@
 #include "transpiler/data/cleartext_data.h"
 #include "transpiler/examples/image_processing/kernel_gaussian_blur_yosys_interpreted_cleartext.h"
 #include "transpiler/examples/image_processing/kernel_sharpen_yosys_interpreted_cleartext.h"
-#include "xls/common/logging/logging.h"
 
 // Copies 3x3 window from a flattened, padded, encoded image
 void encodedSubsetImage(EncodedArrayRef<unsigned char> padded_image,
@@ -35,7 +36,7 @@ void runSharpenFilter(EncodedArrayRef<unsigned char> encoded_input,
   for (int i = 0; i < MAX_PIXELS; ++i) {
     for (int j = 0; j < MAX_PIXELS; ++j) {
       encodedSubsetImage(encoded_input, window, i, j);
-      XLS_CHECK_OK(kernel_sharpen(encoded_result[i * MAX_PIXELS + j], window));
+      CHECK_OK(kernel_sharpen(encoded_result[i * MAX_PIXELS + j], window));
     }
   }
 }
@@ -47,7 +48,7 @@ void runGaussianBlurFilter(EncodedArrayRef<unsigned char> encoded_input,
   for (int i = 0; i < MAX_PIXELS; ++i) {
     for (int j = 0; j < MAX_PIXELS; ++j) {
       encodedSubsetImage(encoded_input, window, i, j);
-      XLS_CHECK_OK(
+      CHECK_OK(
           kernel_gaussian_blur(encoded_result[i * MAX_PIXELS + j], window));
     }
   }
@@ -81,8 +82,8 @@ TEST(ImageProcessingTest, Sharpen) {
     for (int j = 0; j < MAX_PIXELS; ++j) {
       subsetImage(padded_image.get(), window, i, j);
       cleartext_output[i * MAX_PIXELS + j] = kernel_sharpen(window);
-      XLS_CHECK_EQ(cleartext_output[i * MAX_PIXELS + j],
-                   decoded_output[i * MAX_PIXELS + j]);
+      CHECK_EQ(cleartext_output[i * MAX_PIXELS + j],
+               decoded_output[i * MAX_PIXELS + j]);
     }
   }
 }
@@ -115,8 +116,8 @@ TEST(ImageProcessingTest, GaussianBlur) {
     for (int j = 0; j < MAX_PIXELS; ++j) {
       subsetImage(padded_image.get(), window, i, j);
       cleartext_output[i * MAX_PIXELS + j] = kernel_gaussian_blur(window);
-      XLS_CHECK_EQ(cleartext_output[i * MAX_PIXELS + j],
-                   decoded_output[i * MAX_PIXELS + j]);
+      CHECK_EQ(cleartext_output[i * MAX_PIXELS + j],
+               decoded_output[i * MAX_PIXELS + j]);
     }
   }
 }

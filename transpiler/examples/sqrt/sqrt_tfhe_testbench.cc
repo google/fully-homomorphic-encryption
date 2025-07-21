@@ -22,9 +22,10 @@
 #include <type_traits>
 #include <vector>
 
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "absl/strings/numbers.h"
 #include "transpiler/data/tfhe_data.h"
-#include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_TFHE
 #include "transpiler/examples/sqrt/sqrt_interpreted_tfhe.h"
@@ -42,7 +43,7 @@ Tfhe<short> TfheSqrt(Tfhe<short>& ciphertext,
   double cpu_start_time = clock();
   std::cout << "Starting!" << std::endl;
   Tfhe<short> result(bk->params);
-  XLS_CHECK_OK(isqrt(result, ciphertext, bk));
+  CHECK_OK(isqrt(result, ciphertext, bk));
   double cpu_end_time = clock();
   absl::Time end_time = absl::Now();
   std::cout << "\t\t\t\t\tTotal time: "
@@ -61,7 +62,7 @@ int main(int argc, char** argv) {
   }
 
   int input;
-  XLS_CHECK(absl::SimpleAtoi(argv[1], &input));
+  CHECK(absl::SimpleAtoi(argv[1], &input));
   std::cout << "input: " << input << std::endl;
 
   // generate a keyset

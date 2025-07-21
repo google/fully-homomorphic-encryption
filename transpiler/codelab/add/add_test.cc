@@ -27,7 +27,7 @@ TEST(AddOpenFheTest, Sum) {
   auto ciphertext_x = OpenFhe<signed int>::Encrypt(x, context, sk);
   auto ciphertext_y = OpenFhe<signed int>::Encrypt(y, context, sk);
   OpenFhe<signed int> result(context);
-  XLS_CHECK_OK(add(result, ciphertext_x, ciphertext_y, context));
+  CHECK_OK(add(result, ciphertext_x, ciphertext_y, context));
 
   int result_plaintext = result.Decrypt(sk);
   EXPECT_EQ(result_plaintext, 12);

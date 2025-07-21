@@ -1,9 +1,100 @@
 build --action_env=PYTHON_BIN_PATH=/usr/bin/python3
-build --action_env=BAZEL_CXXOPTS=-std=c++17
-build --cxxopt "-std=c++17"
 build --copt "-Wno-sign-compare"
 build --copt "-Wno-comment"
 build --host_copt "-Wno-sign-compare"
 build --host_copt "-Wno-comment"
 build -c opt
 test --test_output=errors
+
+
+# Need a combination of bzlmod and workspace to set up all dependencies
+common --enable_bzlmod --enable_workspace
+
+### Copied from XLS
+# By default, Bazel compiles *.cc files for tests with -fPIC and for binaries
+# without it resulting in a large number of duplicate compilations.
+# The linker can deal with both, so we can always compile with -fPIC
+# and use the object files in dynamic (=tests) and static (=binaries) contexts.
+# (There might be a minimal overhead even in statically linked binaries. To
+# be benchmarked)
+common --force_pic
+
+# We require the lockfile to be up-to-date for the requested deps.
+# Read https://bazel.build/external/lockfile for more details and instructions
+# on how to update the lockfile.
+common:ci --lockfile_mode=error
+
+# Disable rules_python Starlark rules for Bazel 7+.
+# See https://github.com/bazelbuild/rules_python/issues/1069#issuecomment-1942053014.
+build --action_env=RULES_PYTHON_ENABLE_PYSTAR=0
+
+# Disable automatic generation of __init__.py files. This allows
+# namespace packages (such as `google`) to work correctly.
+# https://github.com/bazelbuild/bazel/issues/10076
+build --incompatible_default_to_explicit_init_py=true
+
+# Mac settings
+# Use 10.13 as the minimum OS for host builds. This is needed to use
+# std::optional and absl::optional together, see
+# https://github.com/abseil/abseil-cpp/commit/512af68a1d397cd2cfa1ac9c6eca7694bf75f2b0.
+build:macos --host_macos_minimum_os=10.13
+build:macos --macos_minimum_os=10.13
+
+# Minimium c++ standard used.
+build --cxxopt "-std=c++20"            --host_cxxopt "-std=c++20"
+build --action_env=BAZEL_CXXOPTS=-std=c++20
+
+# Depending on the installation, clang or clang-tidy need to be told that
+# a c++ file is, indeed, containing c++ (bazel just invokes clang, not clang++)
+build --cxxopt "-xc++"                 --host_cxxopt "-xc++"
+
+# Enable default C++ extensions (required in switching to our packaged LLVM)
+build --copt "-D_DEFAULT_SOURCE=1"     --host_copt "-D_DEFAULT_SOURCE=1"
+
+# Tell that auto_ptr<> is not available. Needed for boost (still needed ?)
+build --copt "-D_HAS_AUTO_PTR_ETC=0"   --host_copt "-D_HAS_AUTO_PTR_ETC=0"
+
+# Turn warnings on...
+build --copt "-Wall"                   --host_copt "-Wall"
+build --copt "-Wextra"                 --host_copt "-Wextra"
+
+# Turn some specific warnings into errors.
+build --copt "-Werror=switch" --host_copt "-Werror=switch"
+build --copt "-Werror=return-type" --host_copt "-Werror=return-type"
+
+# ... and disable the warnings we're not interested in.
+build --copt "-Wno-sign-compare"       --host_copt "-Wno-sign-compare"
+build --copt "-Wno-comment"            --host_copt "-Wno-comment"
+build --copt "-Wno-unused-parameter"   --host_copt "-Wno-unused-parameter"
+build --copt "-Wno-unknown-pragmas"    --host_copt "-Wno-unknown-pragmas"
+build --copt "-Wno-missing-field-initializers" --host_copt "-Wno-missing-field-initializers"
+build --copt "-Wno-bitwise-instead-of-logical" --host_copt "-Wno-bitwise-instead-of-logical"
+
+# For 3rd party code: Disable warnings entirely.
+# They are not actionable and just create noise.
+build --per_file_copt=external/.*@-w
+build --host_per_file_copt=external/.*@-w
+
+# These warnings show up in 3rd party code headers that are included by
+# our targets and thus are reported even with -w. Explicitly disable.
+# Protobuf.
+build --copt "-Wno-deprecated-declarations" --host_copt "-Wno-deprecated-declarations"
+
+# hlslibs_ac_types.
+build --copt "-Wno-deprecated-copy-with-user-provided-copy" --host_copt "-Wno-deprecated-copy-with-user-provided-copy"
+
+# Use absl in googletest to work around
+# https://github.com/google/googletest/issues/4383
+build --define absl=1
+build --incompatible_enable_cc_toolchain_resolution
+build --@llvm_zstd//:llvm_enable_zstd=false
+
+# Do not use some deps from or-tools
+build --@com_google_ortools//ortools/algorithms:with_scip=false
+build --@com_google_ortools//ortools/linear_solver:with_glpk=false
+build --@com_google_ortools//ortools/linear_solver:with_pdlp=false
+build --@com_google_ortools//ortools/linear_solver:with_scip=false
+### End XLS copied section
+
+# shard_count unused
+test --noincompatible_check_sharding_support

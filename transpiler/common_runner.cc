@@ -16,12 +16,12 @@
 
 #include <iostream>
 
-#include "xls/common/logging/logging.h"
+#include "absl/log/check.h"
 
 static StructEncodeOrder ENCODE_ORDER = StructEncodeOrder::UNDEFINED;
 
 StructEncodeOrder GetStructEncodeOrder() {
-  XLS_CHECK(ENCODE_ORDER != StructEncodeOrder::UNDEFINED);
+  CHECK(ENCODE_ORDER != StructEncodeOrder::UNDEFINED);
   return ENCODE_ORDER;
 }
 

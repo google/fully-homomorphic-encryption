@@ -22,10 +22,11 @@
 #include <type_traits>
 #include <vector>
 
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "transpiler/data/tfhe_data.h"
-#include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_TFHE
 #include "transpiler/codelab/string_cap_char/string_cap_char_interpreted_tfhe.h"
@@ -46,7 +47,7 @@ void TfheStringCapChar(TfheArray<char>& cipherresult,
   for (int i = 0; i < data_size; i++) {
     const absl::Time start_time = absl::Now();
     const double cpu_start_time = clock();
-    XLS_CHECK_OK(my_package(cipherresult[i], cipherstate, ciphertext[i], bk));
+    CHECK_OK(my_package(cipherresult[i], cipherstate, ciphertext[i], bk));
     const double cpu_end_time = clock();
     const absl::Time end_time = absl::Now();
     const absl::Duration char_time = end_time - start_time;

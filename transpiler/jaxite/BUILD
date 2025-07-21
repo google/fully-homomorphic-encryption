@@ -92,7 +92,7 @@ cc_binary(
     name = "transpiler",
     srcs = ["transpiler_main.cc"],
     data = [
-        "@com_google_xls//xls/tools:booleanify_main",
+        "@com_google_xls//xls/dev_tools:booleanify_main",
         "@com_google_xls//xls/tools:opt_main",
     ],
     deps = [

@@ -1,7 +1,12 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load(
-    "//transpiler:parsers.bzl",
-    "cc_to_xls_ir",
+    "//transpiler:fhe.bzl",
+    "cc_fhe_bool_ir_library",
+    "cc_fhe_netlist_library",
+)
+load(
+    "//transpiler:fhe_structs.bzl",
+    "xls_cc_transpiled_structs",
 )
 load(
     "//transpiler:fhe_xls.bzl",
@@ -9,20 +14,16 @@ load(
     "xls_ir_to_verilog",
 )
 load(
-    "//transpiler:fhe_structs.bzl",
-    "xls_cc_transpiled_structs",
-)
-load(
-    "//transpiler:fhe.bzl",
-    "cc_fhe_bool_ir_library",
-    "cc_fhe_netlist_library",
-)
-load(
     "//transpiler:fhe_yosys.bzl",
     "verilog_to_netlist",
 )
 # load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
 # load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+
+load(
+    "//transpiler:parsers.bzl",
+    "cc_to_xls_ir",
+)
 
 licenses(["notice"])
 
@@ -162,7 +163,7 @@ cc_binary(
         ":ifte_xls_cleartext",
         "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -175,7 +176,7 @@ cc_binary(
         ":ifte_netlist_cleartext_interpreted",
         "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/base",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -187,7 +188,7 @@ cc_binary(
         ":ifte_xls_tfhe",
         "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -201,7 +202,7 @@ cc_binary(
         ":ifte_netlist_tfhe_interpreted",
         "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -215,7 +216,7 @@ cc_binary(
         ":ifte_netlist_openfhe_interpreted",
         "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/base",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],

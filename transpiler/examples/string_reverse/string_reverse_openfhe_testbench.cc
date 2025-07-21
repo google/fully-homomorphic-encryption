@@ -21,11 +21,12 @@
 #include <iostream>
 #include <string>
 
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "transpiler/data/openfhe_data.h"
 #include "transpiler/examples/string_reverse/string_reverse.h"
-#include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_OPENFHE
 #include "transpiler/examples/string_reverse/string_reverse_interpreted_openfhe.h"
@@ -40,7 +41,7 @@ void OpenFheStringReverse(OpenFheArray<char>& ciphertext,
   std::cout << "Starting!" << std::endl;
   absl::Time start_time = absl::Now();
   double cpu_start_time = clock();
-  XLS_CHECK_OK(ReverseString(ciphertext, cc));
+  CHECK_OK(ReverseString(ciphertext, cc));
   double cpu_end_time = clock();
   absl::Time end_time = absl::Now();
   std::cout << "\t\t\t\t\tTotal time: "

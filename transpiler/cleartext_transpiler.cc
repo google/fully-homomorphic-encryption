@@ -17,6 +17,7 @@
 #include <string>
 #include <type_traits>
 
+#include "absl/log/check.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
@@ -25,7 +26,6 @@
 #include "absl/strings/substitute.h"
 #include "absl/types/span.h"
 #include "transpiler/common_transpiler.h"
-#include "xls/common/logging/logging.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
 #include "xls/public/ir.h"
@@ -92,7 +92,7 @@ absl::StatusOr<std::string> CleartextTranspiler::Execute(const Node* node) {
   if (node->Is<Literal>()) {
     const Literal* literal = node->As<Literal>();
     absl::StatusOr<Bits> bit = literal->value().GetBitsWithStatus();
-    XLS_CHECK(bit.ok()) << bit.status();
+    CHECK(bit.ok()) << bit.status();
     if (bit->IsOne()) {
       op_result = "true";
     } else if (bit->IsZero()) {
@@ -108,15 +108,15 @@ absl::StatusOr<std::string> CleartextTranspiler::Execute(const Node* node) {
     }
   } else {
     if (node->op() == Op::kNot) {
-      XLS_CHECK_EQ(node->operands().size(), 1);
+      CHECK_EQ(node->operands().size(), 1);
       op_result = absl::Substitute("!$0", NodeReference(node->operands()[0]));
     } else if (node->op() == Op::kAnd) {
-      XLS_CHECK_EQ(node->operands().size(), 2);
+      CHECK_EQ(node->operands().size(), 2);
       op_result =
           absl::Substitute("$0 && $1", NodeReference(node->operands()[0]),
                            NodeReference(node->operands()[1]));
     } else if (node->op() == Op::kOr) {
-      XLS_CHECK_EQ(node->operands().size(), 2);
+      CHECK_EQ(node->operands().size(), 2);
       op_result =
           absl::Substitute("$0 || $1", NodeReference(node->operands()[0]),
                            NodeReference(node->operands()[1]));

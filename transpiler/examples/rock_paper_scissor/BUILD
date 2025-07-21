@@ -1,7 +1,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 load("//transpiler:fhe.bzl", "fhe_cc_library")
 load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
-load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 
 licenses(["notice"])
 
@@ -51,7 +51,7 @@ cc_binary(
     deps = [
         ":rock_paper_scissor_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -64,7 +64,7 @@ cc_binary(
     deps = [
         ":rock_paper_scissor_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -76,7 +76,7 @@ cc_binary(
     deps = [
         ":rock_paper_scissor_openfhe",
         "//transpiler/data:openfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],
@@ -89,7 +89,7 @@ cc_binary(
     deps = [
         ":rock_paper_scissor_interpreted_openfhe",
         "//transpiler/data:openfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],

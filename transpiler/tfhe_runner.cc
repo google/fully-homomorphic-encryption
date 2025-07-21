@@ -17,7 +17,7 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/statusor.h"
 #include "absl/types/optional.h"
-#include "tfhe/tfhe.h"
+#include "src/include/tfhe.h"
 
 namespace fully_homomorphic_encryption {
 namespace transpiler {

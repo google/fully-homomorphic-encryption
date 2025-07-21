@@ -22,10 +22,11 @@
 #include <locale>
 #include <string>
 
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "transpiler/data/tfhe_data.h"
 #include "transpiler/examples/hangman/hangman_api_tfhe.h"
 #include "transpiler/examples/hangman/hangman_client.h"
-#include "xls/common/logging/logging.h"
 
 const int MAX_INCORRECT_ATTEMPTS = 6;
 const int MAX_WORD_LENGTH = 7;
@@ -80,7 +81,7 @@ int main() {
     // Make a move.
     Tfhe<int> cipher_result(params);
 
-    XLS_CHECK_OK(hangmanMakeMove(cipher_result, ciphertext, key.cloud()));
+    CHECK_OK(hangmanMakeMove(cipher_result, ciphertext, key.cloud()));
 
     int move_result = cipher_result.Decrypt(key);
     if (move_result == 0) {

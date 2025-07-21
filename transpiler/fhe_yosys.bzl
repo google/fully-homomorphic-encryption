@@ -26,8 +26,8 @@ load(
 
 _NETLIST_ANALYZER = "//transpiler/tools:netlist_analyzer_main"
 
-_YOSYS = "@yosys//:yosys_bin"
-_ABC = "@abc//:abc_bin"
+_YOSYS = "@at_clifford_yosys//:yosys"
+_ABC = "@edu_berkeley_abc//:abc"
 
 _LUT_TO_LUTMUX_SCRIPTS = {
     0: "//transpiler/yosys:map_lut_to_lutmux.v",
@@ -49,7 +49,7 @@ hierarchy -check -top $(cat {entry})
 proc
 memory
 techmap; opt
-abc -liberty {cell_library}
+abc {abc} -liberty {cell_library}
 opt_clean -purge
 hierarchy -generate * o:Y o:Q i:*
 torder -stop DFFSR Q
@@ -69,7 +69,7 @@ hierarchy -check -top $(cat {entry})
 proc
 memory
 techmap; opt
-abc -lut {lut_size}
+abc {abc} -lut {lut_size}
 opt_clean -purge
 write_verilog -attr2comment {netlist_path}.pre_techmap
 show -format dot -prefix {netlist_path} -viewer touch
@@ -191,11 +191,12 @@ def verilog_to_netlist(name, src, encryption, cell_library = None, lut_size = 0)
     else:
         fail("Invalid encryption value:", encryption)
 
-def _generate_yosys_script(ctx, stem, verilog, netlist_path, entry):
+def _generate_yosys_script(ctx, stem, verilog, netlist_path, entry, abc_path):
     ys_script = ctx.actions.declare_file("%s.ys" % stem)
     dot_visualization = ctx.actions.declare_file("%s.netlist.v.dot" % stem)
     additional_files = [dot_visualization]
 
+    abc_args = " -exe %s" % abc_path if abc_path else ""
     if ctx.attr.lut_size:
         additional_files.append(ctx.actions.declare_file("%s.netlist.v.pre_techmap" % stem))
         sh_cmd = _YOSYS_SCRIPT_TEMPLATE_LUT.format(
@@ -203,6 +204,7 @@ def _generate_yosys_script(ctx, stem, verilog, netlist_path, entry):
             lut_size = ctx.attr.lut_size,
             lutmap_script = ctx.file.lutmap_script.path,
             netlist_path = netlist_path,
+            abc = abc_args,
             script = ys_script.path,
             verilog = verilog.path,
         )
@@ -211,6 +213,7 @@ def _generate_yosys_script(ctx, stem, verilog, netlist_path, entry):
             script = ys_script.path,
             verilog = verilog.path,
             entry = entry.path,
+            abc = abc_args,
             cell_library = ctx.file.cell_library.path,
             netlist_path = netlist_path,
         )
@@ -245,7 +248,8 @@ def _generate_netlist_analysis(ctx, stem, netlist):
 def _generate_netlist(ctx, stem, verilog, entry):
     netlist = ctx.actions.declare_file("%s.netlist.v" % stem)
 
-    script, additional_files = _generate_yosys_script(ctx, stem, verilog, netlist.path, entry)
+    abc_path = ctx.executable._abc.path
+    script, additional_files = _generate_yosys_script(ctx, stem, verilog, netlist.path, entry, abc_path)
 
     yosys_runfiles_dir = ctx.executable._yosys.path + ".runfiles"
 
@@ -257,6 +261,7 @@ def _generate_netlist(ctx, stem, verilog, entry):
     args.add_all("-s", [script.path])  # command execution
 
     ctx.actions.run(
+        mnemonic = "YosysGenerateNetlist",
         inputs = [verilog, script],
         outputs = [netlist] + additional_files,
         arguments = [args],
@@ -267,7 +272,8 @@ def _generate_netlist(ctx, stem, verilog, entry):
             ctx.executable._abc,
         ],
         env = {
-            "YOSYS_DATDIR": yosys_runfiles_dir + "/yosys/share/yosys",
+            "YOSYS_DATDIR": yosys_runfiles_dir + "/at_clifford_yosys/techlibs/",
+            "ABCEXTERNAL": abc_path,
         },
         toolchain = None,
     )

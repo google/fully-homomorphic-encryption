@@ -1,7 +1,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 load("//transpiler:fhe.bzl", "fhe_cc_library")
 load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
-load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 
 licenses(["notice"])
 
@@ -64,7 +64,7 @@ cc_binary(
     deps = [
         ":simple_sum_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -77,7 +77,7 @@ cc_binary(
     deps = [
         ":simple_sum_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -89,7 +89,7 @@ cc_binary(
     deps = [
         ":simple_sum_openfhe",
         "//transpiler/data:openfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],
@@ -102,7 +102,7 @@ cc_binary(
     deps = [
         ":simple_sum_interpreted_openfhe",
         "//transpiler/data:openfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],
@@ -114,7 +114,7 @@ cc_binary(
     deps = [
         ":simple_sum_cleartext",
         "//transpiler/data:cleartext_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -136,7 +136,7 @@ cc_binary(
     deps = [
         ":simple_sum_yosys_cleartext",
         "//transpiler/data:cleartext_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -158,7 +158,7 @@ cc_binary(
     deps = [
         ":simple_sum_yosys_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -181,7 +181,7 @@ cc_binary(
     deps = [
         ":simple_sum_yosys_interpreted_openfhe",
         "//transpiler/data:openfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],
@@ -194,10 +194,10 @@ cc_test(
     deps = [
         ":simple_sum",
         ":simple_sum_yosys_interpreted_tfhe",
-        # There seems to be a memory leak in TFHE; this fails with heapcheck enabled.
-        "@com_google_googletest//:gtest_main",
-        "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/status:matchers",
+        # There seems to be a memory leak in TFHE; this fails with heapcheck enabled.
+        "@googletest//:gtest_main",
+        "@com_google_absl//absl/base",
         "//transpiler/data:tfhe_value",
         "@tfhe//:libtfhe",
     ],

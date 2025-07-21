@@ -15,8 +15,9 @@
 #include <cstdint>
 #include <iostream>
 
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "transpiler/examples/structs/array_of_structs.h"
-#include "xls/common/logging/logging.h"
 #ifdef USE_INTERPRETED_OPENFHE
 #include "transpiler/examples/structs/array_of_structs_3d_interpreted_openfhe.h"
 #include "transpiler/examples/structs/array_of_structs_3d_interpreted_openfhe.types.h"
@@ -69,7 +70,7 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   OpenFhe<Simple> tfhe_result(cc);
-  XLS_CHECK_OK(DoubleSimpleArray3D(tfhe_result, openfhe_simple_array, cc));
+  CHECK_OK(DoubleSimpleArray3D(tfhe_result, openfhe_simple_array, cc));
 
   Simple result = tfhe_result.Decrypt(sk);
   std::cout << "Done." << std::endl;

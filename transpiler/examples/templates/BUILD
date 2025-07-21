@@ -1,9 +1,9 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 
 # Build rules for the template-based string reversal example.
 load("//transpiler:fhe.bzl", "fhe_cc_library")
 load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
-load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 
 licenses(["notice"])
 

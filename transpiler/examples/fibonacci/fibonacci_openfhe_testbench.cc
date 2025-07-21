@@ -20,9 +20,10 @@
 #include <string>
 #include <vector>
 
-#include "openfhe/binfhe/binfhecontext.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
+#include "src/binfhe/include/binfhecontext.h"
 #include "transpiler/data/openfhe_data.h"
-#include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_OPENFHE
 #include "transpiler/examples/fibonacci/fibonacci_interpreted_openfhe.h"
@@ -69,7 +70,7 @@ void test_fibonacci_number() {
 
     absl::Time start_time = absl::Now();
     double cpu_start_time = clock();
-    XLS_CHECK_OK(fibonacci_number(encryptedResult, encryptedN, cc));
+    CHECK_OK(fibonacci_number(encryptedResult, encryptedN, cc));
     double cpu_end_time = clock();
     absl::Time end_time = absl::Now();
     cout << "\t\t\t\t\tComputation done" << endl;

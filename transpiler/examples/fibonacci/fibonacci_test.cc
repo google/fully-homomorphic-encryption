@@ -16,8 +16,8 @@
 
 #include "fibonacci_sequence.h"
 #include "gmock/gmock.h"
-#include "tfhe/tfhe.h"
-#include "tfhe/tfhe_io.h"
+#include "src/include/tfhe.h"
+#include "src/include/tfhe_io.h"
 #include "transpiler/data/tfhe_data.h"
 #include "transpiler/examples/fibonacci/fibonacci_sequence_tfhe.h"
 #include "xls/common/status/matchers.h"

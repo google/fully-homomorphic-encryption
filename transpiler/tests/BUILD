@@ -59,8 +59,8 @@ cc_library(
     deps = [
         "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/memory",
-        "@com_google_googletest//:gtest",
         "@com_google_xls//xls/common/status:matchers",
+        "@googletest//:gtest_main",
     ],
 )
 
@@ -75,8 +75,8 @@ cc_library(
     deps = [
         "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/memory",
-        "@com_google_googletest//:gtest",
         "@com_google_xls//xls/common/status:matchers",
+        "@googletest//:gtest_main",
         "@openfhe//:binfhe",
     ],
 )

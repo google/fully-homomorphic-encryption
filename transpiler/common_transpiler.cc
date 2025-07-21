@@ -3,13 +3,14 @@
 #include <string>
 
 #include "absl/container/flat_hash_set.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
 #include "absl/strings/substitute.h"
 #include "absl/types/span.h"
-#include "xls/common/logging/logging.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
 
 namespace fully_homomorphic_encryption {
@@ -25,7 +26,7 @@ absl::optional<std::string> GetTypeName(const xlscc_metadata::Type& type) {
     const xlscc_metadata::IntType& int_type = type.as_int();
     switch (int_type.width()) {
       case 8:
-        XLS_CHECK(int_type.has_is_declared_as_char());
+        CHECK(int_type.has_is_declared_as_char());
         if (int_type.is_declared_as_char()) {
           return "char";
         }
@@ -47,7 +48,7 @@ absl::optional<std::string> GetTypeName(const xlscc_metadata::Type& type) {
         std::vector<std::string> template_args;
         for (const ::xlscc_metadata::TemplateArgument& templ :
              inst_type.args()) {
-          XLS_CHECK(templ.has_as_type());
+          CHECK(templ.has_as_type());
           template_args.push_back(GetTypeName(templ.as_type()).value());
         }
         name += absl::StrCat("<", absl::StrJoin(template_args, ", "), ">");
@@ -75,7 +76,7 @@ absl::optional<std::string> GetTypeName(
       if (templ.has_as_type()) {
         template_args.push_back(GetTypeName(templ.as_type()).value());
       } else {
-        XLS_CHECK(templ.has_as_integral());
+        CHECK(templ.has_as_integral());
         template_args.push_back(absl::StrCat(templ.as_integral()));
       }
     }
@@ -96,7 +97,7 @@ static std::string TypeReference(const xlscc_metadata::Type& type,
     const xlscc_metadata::IntType& int_type = type.as_int();
     switch (int_type.width()) {
       case 8:
-        XLS_CHECK(int_type.has_is_declared_as_char());
+        CHECK(int_type.has_is_declared_as_char());
         if (int_type.is_declared_as_char()) {
           return absl::Substitute("$0$1<char>", prefix,
                                   is_reference ? "Ref" : "");
@@ -127,12 +128,12 @@ static std::string TypeReference(const xlscc_metadata::Type& type,
     std::string name = GetTypeName(type).value();
 
     if (std::find(unwrap.begin(), unwrap.end(), name) != unwrap.end()) {
-      XLS_CHECK(inst_type.name().has_id());
+      CHECK(inst_type.name().has_id());
       auto id = inst_type.name().id();
-      XLS_CHECK(id_to_type.contains(id));
+      CHECK(id_to_type.contains(id));
       const xlscc_metadata::StructType& definition =
           id_to_type.at(inst_type.name().id()).type;
-      XLS_CHECK_EQ(definition.fields_size(), 1);
+      CHECK_EQ(definition.fields_size(), 1);
       auto ref = TypeReference(definition.fields().Get(0).type(), is_reference,
                                prefix, default_type, {}, {});
       return ref;
@@ -158,7 +159,7 @@ static std::string TypeReference(const xlscc_metadata::Type& type,
       const xlscc_metadata::IntType& element_int_type = element_type.as_int();
       switch (element_int_type.width()) {
         case 8:
-          XLS_CHECK(element_int_type.has_is_declared_as_char());
+          CHECK(element_int_type.has_is_declared_as_char());
           // Emit a string only if the array is one-dimensional
           if (element_int_type.is_declared_as_char() &&
               dimensions.size() == 1) {
@@ -174,17 +175,17 @@ static std::string TypeReference(const xlscc_metadata::Type& type,
                                   (element_int_type.is_signed() ? "" : "u"),
                                   element_int_type.width(), str_dimensions);
         default:
-          XLS_CHECK(false);
+          CHECK(false);
       }
     } else {
-      XLS_CHECK(element_type.has_as_inst());
+      CHECK(element_type.has_as_inst());
       const xlscc_metadata::InstanceType& inst_type = element_type.as_inst();
       return absl::Substitute(
           "$0Array$1<$2,$3>", prefix, is_reference ? "Ref" : "",
           inst_type.name().fully_qualified_name(), str_dimensions);
     }
   }
-  XLS_CHECK(false);
+  CHECK(false);
   return default_type;
 }
 
@@ -385,9 +386,9 @@ std::vector<int64_t> GetTypeReferenceOrder(
     // a bug in the topological sort above, or else XLS did not include all the
     // structs in the metadata proto.
     if (ready.empty()) {
-      XLS_LOG(FATAL) << "Dependent types missing from toposorted structs! "
-                     << "Full metadata struct was:\n\n"
-                     << metadata.DebugString();
+      LOG(FATAL) << "Dependent types missing from toposorted structs! "
+                 << "Full metadata struct was:\n\n"
+                 << metadata.DebugString();
     }
     // Pop the front dude off of ready.
     int64_t current_id = ready.front();

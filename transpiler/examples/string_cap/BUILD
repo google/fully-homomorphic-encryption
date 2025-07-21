@@ -28,7 +28,7 @@ gen_demos(
     encryption = "tfhe",
     deps = [
         "@com_google_absl//absl/base",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -42,7 +42,7 @@ gen_demos(
     encryption = "openfhe",
     deps = [
         "@com_google_absl//absl/base",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -57,7 +57,7 @@ gen_demos(
     deps = [
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -91,10 +91,10 @@ cc_test(
     deps = [
         ":string_cap_plaintext",
         ":string_cap_tfhe_xls_interpreted",
-        # There seems to be a memory leak in TFHE; this fails with heapcheck enabled.
-        "@com_google_googletest//:gtest_main",
-        "@com_google_absl//absl/base",
         "@com_google_xls//xls/common/status:matchers",
+        # There seems to be a memory leak in TFHE; this fails with heapcheck enabled.
+        "@googletest//:gtest_main",
+        "@com_google_absl//absl/base",
         "//transpiler/data:tfhe_data",
         "@tfhe//:libtfhe",
     ],

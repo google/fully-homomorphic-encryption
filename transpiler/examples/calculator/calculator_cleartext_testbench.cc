@@ -15,9 +15,10 @@
 #include <iostream>
 
 #include "absl/container/fixed_array.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "transpiler/data/cleartext_data.h"
 #include "transpiler/examples/calculator/calculator_cleartext.h"
-#include "xls/common/logging/logging.h"
 
 using namespace std;
 
@@ -45,8 +46,8 @@ void calculate(short x, short y, char op) {
   Encoded<Calculator> calc;
   calc.Encode(Calculator());
 
-  XLS_CHECK_OK(my_package(cipher_result, calc, ciphertext_x, ciphertext_y,
-                          ciphertext_op));
+  CHECK_OK(my_package(cipher_result, calc, ciphertext_x, ciphertext_y,
+                      ciphertext_op));
 
   cout << "\t\t\t\t\tComputation done" << endl;
 

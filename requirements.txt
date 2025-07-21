@@ -1,2 +1,9 @@
 # Requirements for running jaxite backend examples
 jaxite==0.0.2
+jax~=0.4.13
+jaxlib~=0.4.13
+ml-dtypes==0.5.1
+numpy==2.2.6
+opt-einsum==3.4.0
+scipy==1.15.3
+absl-py==2.3.0

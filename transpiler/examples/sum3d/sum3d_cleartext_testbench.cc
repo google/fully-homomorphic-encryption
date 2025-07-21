@@ -15,7 +15,8 @@
 #include <iostream>
 #include <memory>
 
-#include "xls/common/logging/logging.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #ifdef USE_YOSYS_INTERPRETED_CLEARTEXT
 #include "transpiler/examples/sum3d/sum3d_yosys_interpreted_cleartext.h"
 #else
@@ -79,7 +80,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   Encoded<int> cipher_result;
-  XLS_CHECK_OK(sum3d(cipher_result, ciphertext_a, ciphertext_b));
+  CHECK_OK(sum3d(cipher_result, ciphertext_a, ciphertext_b));
 
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 

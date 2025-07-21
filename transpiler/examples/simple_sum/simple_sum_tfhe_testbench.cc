@@ -16,9 +16,10 @@
 
 #include <iostream>
 
-#include "tfhe/tfhe.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
+#include "src/include/tfhe.h"
 #include "transpiler/data/tfhe_data.h"
-#include "xls/common/logging/logging.h"
 
 #if defined(USE_INTERPRETED_TFHE)
 #include "transpiler/examples/simple_sum/simple_sum_interpreted_tfhe.h"
@@ -68,8 +69,7 @@ int main(int argc, char** argv) {
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform addition
   Tfhe<int> cipher_result(params);
-  XLS_CHECK_OK(
-      simple_sum(cipher_result, ciphertext_x, ciphertext_y, cloud_key));
+  CHECK_OK(simple_sum(cipher_result, ciphertext_x, ciphertext_y, cloud_key));
 
   cout << "\t\t\t\t\tComputation done" << endl;
 

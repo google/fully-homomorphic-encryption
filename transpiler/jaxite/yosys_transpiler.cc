@@ -346,8 +346,8 @@ absl::StatusOr<std::string> YosysTranspiler::AddGateOps(
 absl::StatusOr<std::string> YosysTranspiler::AddParallelGateOps(
     const AbstractModule<bool>& module, int gate_parallelism) {
   std::vector<std::string> statements;
-  XLS_LOG(INFO) << "Generating parallel gate ops with parallelism "
-                << gate_parallelism << "\n";
+  LOG(INFO) << "Generating parallel gate ops with parallelism "
+            << gate_parallelism << "\n";
 
   XLS_ASSIGN_OR_RETURN(std::vector<std::vector<std::string>> cell_levels,
                        LevelSortedCellNames(module));

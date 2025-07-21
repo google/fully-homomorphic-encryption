@@ -17,6 +17,7 @@
 #include <unistd.h>
 
 #include "absl/status/status.h"
+#include "absl/strings/str_cat.h"
 
 namespace fully_homomorphic_encryption {
 

@@ -18,10 +18,13 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
+
 namespace fully_homomorphic_encryption {
 namespace transpiler {
 
-/*static*/ absl::StatusOr<TempFile> TempFile::Create() {
+absl::StatusOr<TempFile> TempFile::Create() {
   // Modified in mkostemp.
   std::string templ = "/tmp/fhe_temp_XXXXXX";
   int fd = mkostemp(templ.data(), O_CLOEXEC);

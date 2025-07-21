@@ -19,7 +19,7 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/substitute.h"
 #include "google/protobuf/text_format.h"
-#include "openfhe/binfhe/binfhecontext.h"
+#include "src/binfhe/include/binfhecontext.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
 #include "xls/protected/netlist.h"
@@ -36,20 +36,20 @@ using EvalFn = xls::netlist::rtl::CellOutputEvalFn<lbcrypto::LWECiphertext>;
 
 absl::StatusOr<OpenFheBoolValue> YosysOpenFheRunner::OpenFheOp_inv(
     const std::vector<OpenFheBoolValue>& args) {
-  XLS_CHECK_EQ(args.size(), 1);
+  CHECK_EQ(args.size(), 1);
   return OpenFheBoolValue(state_->cc_.EvalNOT(args[0].lwe()), state_->cc_);
 }
 
 absl::StatusOr<OpenFheBoolValue> YosysOpenFheRunner::OpenFheOp_buffer(
     const std::vector<OpenFheBoolValue>& args) {
-  XLS_CHECK_EQ(args.size(), 1);
+  CHECK_EQ(args.size(), 1);
   return args[0];
 }
 
 #define IMPL2(cell, GATE)                                                      \
   absl::StatusOr<OpenFheBoolValue> YosysOpenFheRunner::OpenFheOp_##cell(       \
       const std::vector<OpenFheBoolValue>& args) {                             \
-    XLS_CHECK_EQ(args.size(), 2);                                              \
+    CHECK_EQ(args.size(), 2);                                                  \
     return OpenFheBoolValue(                                                   \
         state_->cc_.EvalBinGate(lbcrypto::GATE, args[0].lwe(), args[1].lwe()), \
         state_->cc_);                                                          \
@@ -108,8 +108,8 @@ absl::Status YosysOpenFheRunner::InitializeOnce(
 
     XLS_RETURN_IF_ERROR(state_->netlist_->AddCellEvaluationFns(eval_fns));
 
-    XLS_CHECK(google::protobuf::TextFormat::ParseFromString(
-        metadata_text_, &state_->metadata_));
+    CHECK(google::protobuf::TextFormat::ParseFromString(metadata_text_,
+                                                        &state_->metadata_));
   }
   return absl::OkStatus();
 }
@@ -164,14 +164,14 @@ absl::Status YosysOpenFheRunner::YosysOpenFheRunnerState::Run(
   for (const auto& param : metadata_.top_func_proto().params()) {
     std::vector<OpenFheBoolValue> arg_bits;
     if (param.is_reference() && !param.is_const()) {
-      XLS_CHECK(inout_i < inout_args.size());
+      CHECK(inout_i < inout_args.size());
       const auto& arg = inout_args[inout_i++];
       arg_bits.reserve(arg.size());
       for (int i = 0; i < arg.size(); i++) {
         arg_bits.emplace_back(arg[i], cc_);
       }
     } else {
-      XLS_CHECK(in_i < in_args.size());
+      CHECK(in_i < in_args.size());
       const auto& arg = in_args[in_i++];
       arg_bits.reserve(arg.size());
       for (int i = 0; i < arg.size(); i++) {
@@ -184,11 +184,11 @@ absl::Status YosysOpenFheRunner::YosysOpenFheRunnerState::Run(
 
   xls::netlist::AbstractNetRef2Value<OpenFheBoolValue> input_nets;
   const std::vector<NetRef>& module_inputs = module->inputs();
-  XLS_CHECK_EQ(module_inputs.size(), input_bits.size());
+  CHECK_EQ(module_inputs.size(), input_bits.size());
 
   for (int i = 0; i < module->inputs().size(); i++) {
     const NetRef in = module_inputs[i];
-    XLS_CHECK(!input_nets.contains(in));
+    CHECK(!input_nets.contains(in));
     input_nets.emplace(
         in, std::move(input_bits[module->GetInputPortOffset(in->name())]));
   }
@@ -213,11 +213,11 @@ absl::Status YosysOpenFheRunner::YosysOpenFheRunnerState::Run(
 
   std::vector<lbcrypto::LWECiphertext> output_bit_vector;
 
-  XLS_CHECK(module->outputs().size() == output_nets.size());
+  CHECK(module->outputs().size() == output_nets.size());
   for (const NetRef ref : module->outputs()) {
     auto tfhe_bool = output_nets.at(ref);
     auto lwe = tfhe_bool.lwe();
-    XLS_CHECK(lwe != nullptr);
+    CHECK(lwe != nullptr);
     output_bit_vector.push_back(lwe);
   }
 
@@ -248,8 +248,8 @@ absl::Status YosysOpenFheRunner::YosysOpenFheRunnerState::Run(
     result[i] = *out;
   }
 
-  XLS_CHECK(copied == output_bit_vector.size());
-  XLS_CHECK(out == output_bit_vector.cend());
+  CHECK(copied == output_bit_vector.size());
+  CHECK(out == output_bit_vector.cend());
 
   return absl::OkStatus();
 }

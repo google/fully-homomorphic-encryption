@@ -20,11 +20,12 @@
 #include <string>
 #include <vector>
 
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "absl/strings/str_format.h"
-#include "openfhe/binfhe/binfhecontext.h"
+#include "src/binfhe/include/binfhecontext.h"
 #include "transpiler/data/openfhe_data.h"
 #include "transpiler/examples/fibonacci/fibonacci_sequence.h"
-#include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_OPENFHE
 #include "transpiler/examples/fibonacci/fibonacci_sequence_interpreted_openfhe.h"
@@ -51,7 +52,7 @@ int main(int argc, char** argv) {
             << std::endl;
 
   OpenFheArray<int, FIBONACCI_SEQUENCE_SIZE> encrypted_result(cc);
-  XLS_CHECK_OK(fibonacci_sequence(encrypted_input, encrypted_result, cc));
+  CHECK_OK(fibonacci_sequence(encrypted_input, encrypted_result, cc));
 
   absl::FixedArray<int> result = encrypted_result.Decrypt(sk);
   for (int i = 0; i < result.size(); i++) {

@@ -119,7 +119,7 @@ TEST(TfheRunnerTest, EndToEnd) {
   metadata.mutable_top_func_proto()->mutable_name()->set_name("my_package");
 
   TfheRunner runner{std::move(package), metadata};
-  XLS_CHECK(runner.Run(result.get(), in_args, {}, key.cloud()).ok());
+  CHECK(runner.Run(result.get(), in_args, {}, key.cloud()).ok());
   auto r = result.Decrypt(key);
   EXPECT_EQ(r, 'b');
 }

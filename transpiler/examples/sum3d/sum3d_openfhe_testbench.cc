@@ -15,9 +15,10 @@
 #include <iostream>
 #include <memory>
 
-#include "openfhe/binfhe/binfhecontext.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
+#include "src/binfhe/include/binfhecontext.h"
 #include "transpiler/data/openfhe_data.h"
-#include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_OPENFHE
 #include "transpiler/examples/sum3d/sum3d_interpreted_openfhe.h"
@@ -95,7 +96,7 @@ int main(int argc, char** argv) {
 
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   OpenFhe<int> cipher_result(cc);
-  XLS_CHECK_OK(sum3d(cipher_result, ciphertext_a, ciphertext_b, cc));
+  CHECK_OK(sum3d(cipher_result, ciphertext_a, ciphertext_b, cc));
 
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
   std::cout << "Decoded result: ";

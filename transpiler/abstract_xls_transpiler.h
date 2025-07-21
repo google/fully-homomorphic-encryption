@@ -24,6 +24,7 @@
 #include <type_traits>
 #include <vector>
 
+#include "absl/log/check.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
@@ -31,7 +32,6 @@
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
 #include "transpiler/common_transpiler.h"
-#include "xls/common/logging/logging.h"
 #include "xls/common/status/status_macros.h"
 #include "xls/contrib/xlscc/metadata_output.pb.h"
 #include "xls/protected/ir.h"
@@ -278,9 +278,8 @@ class AbstractXLSTranspiler {
         operand = operand->operand(0);
         // Verify that the only things allowed in a BitSlice chain are array
         // indexes, tuple indexes, other bit slices, and the eventual params.
-        XLS_CHECK(operand->Is<xls::ArrayIndex>() ||
-                  operand->Is<xls::BitSlice>() || operand->Is<xls::Param>() ||
-                  operand->Is<xls::TupleIndex>())
+        CHECK(operand->Is<xls::ArrayIndex>() || operand->Is<xls::BitSlice>() ||
+              operand->Is<xls::Param>() || operand->Is<xls::TupleIndex>())
             << "Invalid BitSlice operand: " << operand->ToString();
       }
     } else if (operand->Is<xls::TupleIndex>()) {
@@ -292,9 +291,8 @@ class AbstractXLSTranspiler {
         operand = operand->operand(0);
         // Verify that the only things allowed in a BitSlice chain are array
         // indexes, tuple indexes, other bit slices, and the eventual params.
-        XLS_CHECK(operand->Is<xls::ArrayIndex>() ||
-                  operand->Is<xls::BitSlice>() || operand->Is<xls::Param>() ||
-                  operand->Is<xls::TupleIndex>())
+        CHECK(operand->Is<xls::ArrayIndex>() || operand->Is<xls::BitSlice>() ||
+              operand->Is<xls::Param>() || operand->Is<xls::TupleIndex>())
             << "Invalid BitSlice operand: " << operand->ToString();
       }
     } else if (operand->Is<xls::Param>()) {

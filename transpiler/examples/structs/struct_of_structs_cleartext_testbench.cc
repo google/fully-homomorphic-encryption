@@ -15,7 +15,8 @@
 #include <cstdint>
 #include <iostream>
 
-#include "xls/common/logging/logging.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #ifdef USE_YOSYS_CLEARTEXT
 #include "transpiler/examples/structs/struct_of_structs_yosys_cleartext.h"
 #include "transpiler/examples/structs/struct_of_structs_yosys_cleartext.types.h"
@@ -71,7 +72,7 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   Encoded<int> encoded_result;
-  XLS_CHECK_OK(SumStructOfStructs(encoded_result, encoded_sos));
+  CHECK_OK(SumStructOfStructs(encoded_result, encoded_sos));
 
   int result = encoded_result.Decode();
   std::cout << "Done. Result: " << result << std::endl;

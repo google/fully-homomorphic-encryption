@@ -15,7 +15,8 @@
 #include <cstdint>
 #include <iostream>
 
-#include "xls/common/logging/logging.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #ifdef USE_INTERPRETED_TFHE
 #include "transpiler/examples/structs/struct_of_structs_interpreted_tfhe.h"
 #include "transpiler/examples/structs/struct_of_structs_interpreted_tfhe.types.h"
@@ -26,7 +27,7 @@
 #include "transpiler/examples/structs/struct_of_structs_tfhe.h"
 #include "transpiler/examples/structs/struct_of_structs_tfhe.types.h"
 #endif
-#include "tfhe/tfhe.h"
+#include "src/include/tfhe.h"
 
 const int main_minimum_lambda = 120;
 
@@ -89,7 +90,7 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   Tfhe<int> fhe_result(params);
-  XLS_CHECK_OK(SumStructOfStructs(fhe_result, fhe_sos, cloud_key));
+  CHECK_OK(SumStructOfStructs(fhe_result, fhe_sos, cloud_key));
 
   int result = fhe_result.Decrypt(key);
   std::cout << "Done. Result: " << result << std::endl;

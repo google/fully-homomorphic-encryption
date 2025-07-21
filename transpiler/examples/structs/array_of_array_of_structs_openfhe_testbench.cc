@@ -15,10 +15,11 @@
 #include <cstdint>
 #include <iostream>
 
-#include "openfhe/binfhe/binfhecontext.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
+#include "src/binfhe/include/binfhecontext.h"
 #include "transpiler/examples/structs/array_of_array_of_structs_openfhe.h"
 #include "transpiler/examples/structs/array_of_array_of_structs_openfhe.types.h"
-#include "xls/common/logging/logging.h"
 
 const int main_minimum_lambda = 120;
 
@@ -79,7 +80,7 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   OpenFhe<Base> openfhe_result(cc);
-  XLS_CHECK_OK(DoubleBase(openfhe_result, openfhe_input, cc));
+  CHECK_OK(DoubleBase(openfhe_result, openfhe_input, cc));
 
   Base result = openfhe_result.Decrypt(sk);
   std::cout << "Done. Result: " << std::endl;

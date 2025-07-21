@@ -15,9 +15,10 @@
 
 #include <iostream>
 
-#include "openfhe/binfhe/binfhecontext.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
+#include "src/binfhe/include/binfhecontext.h"
 #include "transpiler/data/openfhe_data.h"
-#include "xls/common/logging/logging.h"
 
 #if defined(USE_INTERPRETED_OPENFHE)
 #include "transpiler/examples/ifte/ifte_interpreted_openfhe.h"
@@ -74,8 +75,7 @@ int main(int argc, char** argv) {
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform addition
   OpenFhe<char> cipher_result(cc);
-  XLS_CHECK_OK(
-      ifte(cipher_result, ciphertext_i, ciphertext_t, ciphertext_e, cc));
+  CHECK_OK(ifte(cipher_result, ciphertext_i, ciphertext_t, ciphertext_e, cc));
 
   std::cout << "\t\t\t\t\tComputation done" << std::endl;
 

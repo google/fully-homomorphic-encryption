@@ -18,13 +18,14 @@
 #include <iostream>
 #include <string>
 
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "absl/types/span.h"
 #include "transpiler/data/tfhe_data.h"
 #include "transpiler/examples/pir/pir_api.h"
 #include "transpiler/examples/pir/pir_cloud_service.h"
-#include "xls/common/logging/logging.h"
 
 constexpr int kMainMinimumLambda = 120;
 
@@ -92,7 +93,7 @@ int main() {
     std::cout << "Querying the database..." << std::endl;
     auto index_ciphertext = TfheIndex::Encrypt(static_cast<Index>(index), key);
     TfheRecordT result_ciphertext(params);
-    XLS_CHECK_OK(
+    CHECK_OK(
         service.QueryRecord(result_ciphertext, index_ciphertext, key.cloud()));
 
     const RecordT result = result_ciphertext.Decrypt(key);

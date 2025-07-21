@@ -1,9 +1,9 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("//transpiler:fhe.bzl", "fhe_cc_library")
-load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
-load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
-load("//transpiler/jaxite:fhe_py.bzl", "fhe_py_library")
 load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+load("//transpiler:fhe.bzl", "fhe_cc_library")
+load("//transpiler/jaxite:fhe_py.bzl", "fhe_py_library")
+load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
 
 package(
     default_applicable_licenses = ["@com_google_fully_homomorphic_encryption//:license"],
@@ -287,9 +287,9 @@ cc_binary(
         ":kernel_sharpen_cleartext",
         ":ricker_wavelet_cleartext",
         "//transpiler/data:cleartext_data",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/time",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -304,10 +304,10 @@ cc_test(
         ":kernel_sharpen_yosys_interpreted_cleartext",
         ":ricker_wavelet_yosys_interpreted_cleartext",
         "//transpiler/data:cleartext_data",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/time",
         "@com_google_benchmark//:benchmark_main",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:matchers",
         "@com_google_xls//xls/common/status:status_macros",
     ],
@@ -333,9 +333,9 @@ cc_binary(
         ":kernel_sharpen_yosys_interpreted_cleartext",
         ":ricker_wavelet_yosys_interpreted_cleartext",
         "//transpiler/data:cleartext_data",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/time",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -349,9 +349,9 @@ cc_binary(
         ":kernel_sharpen_tfhe",
         ":ricker_wavelet_tfhe",
         "//transpiler/data:tfhe_data",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/time",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -367,9 +367,9 @@ cc_binary(
         ":kernel_sharpen_interpreted_tfhe",
         ":ricker_wavelet_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/time",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -385,9 +385,9 @@ cc_binary(
         ":kernel_sharpen_yosys_interpreted_tfhe",
         ":ricker_wavelet_yosys_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/time",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -402,9 +402,9 @@ cc_binary(
         ":kernel_sharpen_openfhe",
         ":ricker_wavelet_openfhe",
         "//transpiler/data:openfhe_data",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/time",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],
@@ -420,9 +420,9 @@ cc_binary(
         ":kernel_sharpen_interpreted_openfhe",
         ":ricker_wavelet_interpreted_openfhe",
         "//transpiler/data:openfhe_data",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/time",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],
@@ -438,9 +438,9 @@ cc_binary(
         ":kernel_sharpen_yosys_interpreted_openfhe",
         ":ricker_wavelet_yosys_interpreted_openfhe",
         "//transpiler/data:openfhe_data",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/time",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],
@@ -483,8 +483,8 @@ py_binary(
     main = "kernel_gaussian_blur.py",
     deps = [
         ":kernel_gaussian_blur_fhe_py_lib",
-        "@com_google_absl_py//absl/testing:absltest",
-        "@transpiler_pip_deps//pypi__jaxite",
+        "@transpiler_pip_deps//absl_py",
+        "@transpiler_pip_deps//jaxite",
     ],
 )
 

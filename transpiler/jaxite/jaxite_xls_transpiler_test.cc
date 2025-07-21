@@ -19,9 +19,9 @@ namespace jaxite {
 namespace transpiler {
 namespace {
 
+using absl_testing::StatusIs;
 using xls::Function;
 using xls::Package;
-using ::xls::status_testing::StatusIs;
 
 constexpr char kTestFunction[] = "test_fn";
 constexpr char kTestPackage[] = "test_package";

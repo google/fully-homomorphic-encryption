@@ -39,7 +39,7 @@ cc_binary(
     srcs = ["array_of_structs_cleartext_testbench.cc"],
     deps = [
         ":array_of_structs_cleartext",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -50,7 +50,7 @@ cc_binary(
     copts = ["-DUSE_INTERPRETED_YOSYS"],
     deps = [
         ":array_of_structs_yosys_interpreted_cleartext",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -77,7 +77,7 @@ cc_binary(
     srcs = ["array_of_structs_tfhe_testbench.cc"],
     deps = [
         ":array_of_structs_tfhe",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -88,7 +88,7 @@ cc_binary(
     copts = ["-DUSE_INTERPRETED_YOSYS"],
     deps = [
         ":array_of_structs_yosys_interpreted_tfhe",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -150,7 +150,7 @@ cc_binary(
     srcs = ["array_of_structs_3d_cleartext_testbench.cc"],
     deps = [
         ":array_of_structs_3d_cleartext",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -161,7 +161,7 @@ cc_binary(
     copts = ["-DUSE_INTERPRETED_YOSYS"],
     deps = [
         ":array_of_structs_3d_yosys_interpreted_cleartext",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -172,7 +172,7 @@ cc_binary(
     copts = ["-DUSE_INTERPRETED_TFHE"],
     deps = [
         ":array_of_structs_3d_interpreted_tfhe",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -184,7 +184,7 @@ cc_binary(
     copts = ["-DUSE_YOSYS_INTERPRETED_OPENFHE"],
     deps = [
         ":array_of_structs_3d_yosys_interpreted_openfhe",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -196,7 +196,7 @@ cc_binary(
     copts = ["-DUSE_INTERPRETED_OPENFHE"],
     deps = [
         ":array_of_structs_3d_interpreted_openfhe",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -230,7 +230,7 @@ cc_binary(
     deps = [
         ":array_of_array_of_structs_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -242,7 +242,7 @@ cc_binary(
     deps = [
         ":array_of_array_of_structs_openfhe",
         "//transpiler/data:openfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],
@@ -320,7 +320,7 @@ cc_binary(
     deps = [
         ":return_struct_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -333,7 +333,7 @@ cc_binary(
     deps = [
         ":return_struct_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -346,7 +346,7 @@ cc_binary(
     deps = [
         ":return_struct_yosys_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -358,7 +358,7 @@ cc_binary(
     deps = [
         ":return_struct_openfhe",
         "//transpiler/data:openfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],
@@ -371,7 +371,7 @@ cc_binary(
     deps = [
         ":return_struct_interpreted_openfhe",
         "//transpiler/data:openfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],
@@ -383,7 +383,7 @@ cc_binary(
     deps = [
         ":return_struct_cleartext",
         "//transpiler/data:cleartext_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -395,7 +395,7 @@ cc_binary(
     deps = [
         ":return_struct_yosys_cleartext",
         "//transpiler/data:cleartext_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -446,7 +446,7 @@ cc_binary(
     deps = [
         ":return_struct_with_inout_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -459,7 +459,7 @@ cc_binary(
     deps = [
         ":return_struct_with_inout_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -472,7 +472,7 @@ cc_binary(
     deps = [
         ":return_struct_with_inout_yosys_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -484,7 +484,7 @@ cc_binary(
     deps = [
         ":return_struct_with_inout_openfhe",
         "//transpiler/data:openfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],
@@ -518,7 +518,7 @@ cc_binary(
     deps = [
         ":simple_struct_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -530,7 +530,7 @@ cc_binary(
     deps = [
         ":simple_struct_openfhe",
         "//transpiler/data:openfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],
@@ -582,7 +582,7 @@ cc_binary(
     deps = [
         ":struct_of_structs_cleartext",
         "//transpiler/data:cleartext_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -595,7 +595,7 @@ cc_binary(
     deps = [
         ":struct_of_structs_yosys_cleartext",
         "//transpiler/data:cleartext_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -606,7 +606,7 @@ cc_binary(
     deps = [
         ":struct_of_structs_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -619,7 +619,7 @@ cc_binary(
     deps = [
         ":struct_of_structs_yosys_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -680,7 +680,7 @@ cc_binary(
     deps = [
         ":struct_with_array_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -693,7 +693,7 @@ cc_binary(
     deps = [
         ":struct_with_array_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -706,7 +706,7 @@ cc_binary(
     deps = [
         ":struct_with_array_yosys_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -717,7 +717,7 @@ cc_binary(
     srcs = ["struct_with_array_cleartext_testbench.cc"],
     deps = [
         ":struct_with_array_cleartext",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -728,7 +728,7 @@ cc_binary(
     copts = ["-DUSE_YOSYS_CLEARTEXT"],
     deps = [
         ":struct_with_array_yosys_cleartext",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -771,7 +771,7 @@ cc_binary(
     deps = [
         ":struct_with_struct_array_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -784,7 +784,7 @@ cc_binary(
     deps = [
         ":struct_with_struct_array_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -797,7 +797,7 @@ cc_binary(
     deps = [
         ":struct_with_struct_array_yosys_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -822,7 +822,7 @@ cc_binary(
     deps = [
         ":templated_struct",
         ":templated_struct_cleartext",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )

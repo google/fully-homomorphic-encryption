@@ -18,17 +18,18 @@
 #include <vector>
 
 #include "absl/container/fixed_array.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "absl/strings/str_format.h"
 #include "transpiler/data/cleartext_data.h"
 #include "transpiler/examples/fibonacci/fibonacci_sequence.h"
 #include "transpiler/examples/fibonacci/fibonacci_sequence_cleartext.h"
-#include "xls/common/logging/logging.h"
 
 int main(int argc, char** argv) {
   Encoded<int> input(7);
   EncodedArray<int, FIBONACCI_SEQUENCE_SIZE> encoded_result({0, 0, 0, 0, 0});
 
-  XLS_CHECK_OK(fibonacci_sequence(input, encoded_result));
+  CHECK_OK(fibonacci_sequence(input, encoded_result));
 
   absl::FixedArray<int> result = encoded_result.Decode();
   for (int i = 0; i < result.size(); i++) {

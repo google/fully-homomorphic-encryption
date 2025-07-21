@@ -55,7 +55,7 @@ TEST(LevelSortTest, SimpleGraphLevelSort) {
   graph.AddEdge("3", "4");
 
   auto level_sorted = graph.SortGraphByLevels();
-  EXPECT_THAT(level_sorted, ::xls::status_testing::IsOk());
+  EXPECT_THAT(level_sorted, absl_testing::IsOk());
   std::vector<std::vector<absl::string_view>> level_unwrapped =
       level_sorted.value();
   EXPECT_EQ(level_unwrapped.size(), 4);
@@ -107,7 +107,7 @@ TEST(LevelSortTest, MultiInputGraphLevelSort) {
   graph.AddEdge("9", "10");
 
   auto level_sorted = graph.SortGraphByLevels();
-  EXPECT_THAT(level_sorted, ::xls::status_testing::IsOk());
+  EXPECT_THAT(level_sorted, absl_testing::IsOk());
   std::vector<std::vector<absl::string_view>> level_unwrapped =
       level_sorted.value();
   EXPECT_EQ(level_unwrapped.size(), 7);
@@ -159,7 +159,7 @@ TEST(LevelSortTest, MultiOutputGraphLevelSort) {
   graph.AddEdge("3", "7");
 
   auto level_sorted = graph.SortGraphByLevels();
-  EXPECT_THAT(level_sorted, ::xls::status_testing::IsOk());
+  EXPECT_THAT(level_sorted, absl_testing::IsOk());
   std::vector<std::vector<absl::string_view>> level_unwrapped =
       level_sorted.value();
   EXPECT_EQ(level_unwrapped.size(), 6);

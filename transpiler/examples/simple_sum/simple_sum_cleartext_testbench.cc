@@ -14,8 +14,9 @@
 
 #include <iostream>
 
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "transpiler/data/cleartext_data.h"
-#include "xls/common/logging/logging.h"
 
 #ifdef USE_YOSYS_INTERPRETED_CLEARTEXT
 #include "transpiler/examples/simple_sum/simple_sum_yosys_cleartext.h"
@@ -45,7 +46,7 @@ int main(int argc, char** argv) {
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform addition
   Encoded<int> cipher_result;
-  XLS_CHECK_OK(simple_sum(cipher_result, ciphertext_x, ciphertext_y));
+  CHECK_OK(simple_sum(cipher_result, ciphertext_x, ciphertext_y));
 
   cout << "\t\t\t\t\tComputation done" << endl;
 

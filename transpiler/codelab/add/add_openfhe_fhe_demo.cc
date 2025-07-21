@@ -30,8 +30,8 @@ int main(int argc, char** argv) {
   }
 
   int x, y;
-  XLS_CHECK(absl::SimpleAtoi(argv[1], &x));
-  XLS_CHECK(absl::SimpleAtoi(argv[2], &y));
+  CHECK(absl::SimpleAtoi(argv[1], &x));
+  CHECK(absl::SimpleAtoi(argv[2], &y));
   std::cout << "Computing " << x << " + " << y << std::endl;
 
   // Set up backend context and encryption keys.
@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
   auto ciphertext_x = OpenFhe<signed int>::Encrypt(x, context, sk);
   auto ciphertext_y = OpenFhe<signed int>::Encrypt(y, context, sk);
   OpenFhe<signed int> result(context);
-  XLS_CHECK_OK(add(result, ciphertext_x, ciphertext_y, context));
+  CHECK_OK(add(result, ciphertext_x, ciphertext_y, context));
 
   std::cout << "Result: " << result.Decrypt(sk) << "\n";
   return 0;

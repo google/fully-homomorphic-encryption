@@ -30,10 +30,10 @@ namespace fully_homomorphic_encryption {
 namespace transpiler {
 namespace {
 
+using absl_testing::IsOk;
+using absl_testing::StatusIs;
 using ::xls::netlist::AbstractCellLibrary;
 using ::xls::netlist::rtl::AbstractNetlist;
-using ::xls::status_testing::IsOk;
-using ::xls::status_testing::StatusIs;
 
 constexpr absl::string_view kCells = R"lib(
 library(testlib) {

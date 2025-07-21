@@ -10,9 +10,10 @@
 
 #include "absl/base/casts.h"
 #include "absl/container/fixed_array.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "absl/types/span.h"
 #include "include/ac_int.h"
-#include "xls/common/logging/logging.h"
 #include "xls/common/status/status_macros.h"
 
 inline void CleartextCopy(absl::Span<const bool> src, const void*,
@@ -63,7 +64,7 @@ inline T CleartextDecode(absl::Span<bool> value) {
 template <int Width, bool Sign>
 inline void CleartextEncodeInteger(const ac_int<Width, Sign>& value,
                                    absl::Span<bool> out) {
-  XLS_CHECK_EQ(Width, out.size());
+  CHECK_EQ(Width, out.size());
   for (int j = 0; j < Width; ++j) {
     out[j] = value.template slc<1>(j);
   }
@@ -71,7 +72,7 @@ inline void CleartextEncodeInteger(const ac_int<Width, Sign>& value,
 
 template <int Width, bool Sign>
 inline ac_int<Width, Sign> CleartextDecodeInteger(absl::Span<bool> value) {
-  XLS_CHECK_EQ(Width, value.size());
+  CHECK_EQ(Width, value.size());
   ac_int<Width, Sign> val = 0;
   for (int j = 0; j < Width; j++) {
     val.set_slc(j, ac_int<1, false>(value[j]));

@@ -1,7 +1,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 load("//transpiler:fhe.bzl", "fhe_cc_library")
 load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
-load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 
 licenses(["notice"])
 
@@ -62,10 +62,10 @@ cc_binary(
     deps = [
         ":pir_cloud_service",
         "//transpiler/data:tfhe_data",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/types:span",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -79,10 +79,10 @@ cc_binary(
     deps = [
         ":pir_interpreted_cloud_service",
         "//transpiler/data:tfhe_data",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/types:span",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
     ],
 )
@@ -111,12 +111,12 @@ cc_test(
     copts = ["-DUSE_INTERPRETED_TFHE"],
     deps = [
         ":pir_api_interpreted_tfhe",
+        "@com_google_xls//xls/common/status:matchers",
         # There seems to be a memory leak in TFHE; this fails with heapcheck enabled.
-        "@com_google_googletest//:gtest_main",
+        "@googletest//:gtest_main",
         "@com_google_absl//absl/base",
         "@com_google_absl//absl/container:fixed_array",
         "@com_google_absl//absl/strings",
-        "@com_google_xls//xls/common/status:matchers",
         "//transpiler/data:tfhe_data",
         "//transpiler/tests:tfhe_test_util",
         "@tfhe//:libtfhe",

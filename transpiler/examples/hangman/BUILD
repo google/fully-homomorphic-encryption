@@ -1,9 +1,9 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("//transpiler:fhe.bzl", "fhe_cc_library")
-load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
-load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library", "rust_test")
-load("//transpiler/jaxite:fhe_py.bzl", "fhe_py_library")
 load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library", "rust_test")
+load("//transpiler:fhe.bzl", "fhe_cc_library")
+load("//transpiler/jaxite:fhe_py.bzl", "fhe_py_library")
+load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
 
 licenses(["notice"])
 
@@ -25,7 +25,7 @@ cc_binary(
         ":hangman_client_lib",
         "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -107,7 +107,7 @@ py_binary(
     main = "hangman.py",
     deps = [
         ":hangman_fhe_py_lib",
-        "@com_google_absl_py//absl:app",
-        "@transpiler_pip_deps//pypi__jaxite",
+        "@transpiler_pip_deps//absl_py",
+        "@transpiler_pip_deps//jaxite",
     ],
 )

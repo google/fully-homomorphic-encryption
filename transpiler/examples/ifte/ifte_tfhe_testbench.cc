@@ -15,9 +15,10 @@
 
 #include <iostream>
 
-#include "tfhe/tfhe.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
+#include "src/include/tfhe.h"
 #include "transpiler/data/tfhe_data.h"
-#include "xls/common/logging/logging.h"
 
 #ifdef USE_INTERPRETED_TFHE
 #include "transpiler/examples/ifte/ifte_interpreted_tfhe.h"
@@ -77,7 +78,7 @@ int main(int argc, char** argv) {
   std::cout << "\t\t\t\t\tServer side computation:" << std::endl;
   // Perform addition
   Tfhe<char> cipher_result(params);
-  XLS_CHECK_OK(
+  CHECK_OK(
       ifte(cipher_result, ciphertext_i, ciphertext_t, ciphertext_e, cloud_key));
 
   std::cout << "\t\t\t\t\tComputation done" << std::endl;

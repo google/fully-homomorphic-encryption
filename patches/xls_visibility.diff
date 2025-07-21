@@ -1,0 +1,215 @@
+diff --git a/xls/tools/BUILD b/xls/tools/BUILD
+index e0b4cfb7d..76043197b 100644
+--- a/xls/tools/BUILD
++++ b/xls/tools/BUILD
+@@ -682,7 +682,7 @@ cc_library(
+ cc_binary(
+     name = "codegen_main",
+     srcs = ["codegen_main.cc"],
+-    visibility = ["//xls:xls_users"],
++    visibility = ["//visibility:public"],
+     deps = [
+         ":codegen",
+         ":codegen_flags",
+diff --git a/xls/common/status/BUILD b/xls/common/status/BUILD
+index 2896871ec..9900bebf6 100644
+--- a/xls/common/status/BUILD
++++ b/xls/common/status/BUILD
+@@ -127,7 +127,7 @@ cc_test(
+ cc_library(
+     name = "status_macros",
+     hdrs = ["status_macros.h"],
+-    visibility = ["//xls:xls_utility_users"],
++    visibility = ["//visibility:public"],
+     deps = [
+         ":status_builder",
+         "//xls/common:source_location",
+@@ -153,4 +153,5 @@ cc_test(
+ cc_library(
+     name = "matchers",
+     testonly = True,
++    visibility = ["//visibility:public"],
+     srcs = ["matchers.cc"],
+diff --git a/xls/contrib/xlscc/BUILD b/xls/contrib/xlscc/BUILD
+index 77ef2c9b9..4429151f1 100644
+--- a/xls/contrib/xlscc/BUILD
++++ b/xls/contrib/xlscc/BUILD
+@@ -66,7 +66,7 @@ proto_library(
+ 
+ cc_proto_library(
+     name = "metadata_output_cc_proto",
+-    visibility = ["//xls:xls_users"],
++    visibility = ["//visibility:public"],
+     deps = [":metadata_output_proto"],
+ )
+ 
+@@ -86,7 +86,7 @@ build_test(
+ py_binary(
+     name = "get_top_func_from_proto",
+     srcs = ["get_top_func_from_proto.py"],
+-    visibility = ["//xls:xls_users"],
++    visibility = ["//visibility:public"],
+     deps = [
+         ":metadata_output_py_pb2",
+         "@abseil-py//absl:app",
+@@ -272,7 +272,7 @@ cc_binary(
+         "flags.h",
+         "main.cc",
+     ],
+-    visibility = ["//xls:xls_users"],
++    visibility = ["//visibility:public"],
+     deps = [
+         ":hls_block_cc_proto",
+         ":metadata_output_cc_proto",
+diff --git a/xls/dev_tools/BUILD b/xls/dev_tools/BUILD
+index 9e9368f4b..ec387bfec 100644
+--- a/xls/dev_tools/BUILD
++++ b/xls/dev_tools/BUILD
+@@ -436,7 +436,7 @@ cc_test(
+ cc_binary(
+     name = "booleanify_main",
+     srcs = ["booleanify_main.cc"],
+-    visibility = ["//xls:xls_users"],
++    visibility = ["//visibility:public"],
+     deps = [
+         ":booleanifier",
+         "//xls/common:exit_status",
+diff --git a/xls/netlist/BUILD b/xls/netlist/BUILD
+index 2b0310cba..5f46b0098 100644
+--- a/xls/netlist/BUILD
++++ b/xls/netlist/BUILD
+@@ -33,7 +33,7 @@ cc_library(
+     hdrs = [
+         "netlist.h",
+     ],
+-    visibility = ["//xls:xls_users"],
++    visibility = ["//visibility:public"],
+     deps = [
+         ":cell_library",
+         "//xls/common:bits_util",
+@@ -68,7 +68,7 @@ cc_library(
+     hdrs = [
+         "interpreter.h",
+     ],
+-    visibility = ["//xls:xls_users"],
++    visibility = ["//visibility:public"],
+     deps = [
+         ":cell_library",
+         ":function_parser",
+@@ -116,7 +116,7 @@ cc_library(
+     name = "netlist_parser",
+     srcs = ["netlist_parser.cc"],
+     hdrs = ["netlist_parser.h"],
+-    visibility = ["//xls:xls_users"],
++    visibility = ["//visibility:public"],
+     deps = [
+         ":cell_library",
+         ":netlist",
+@@ -170,7 +170,7 @@ cc_library(
+     name = "cell_library",
+     srcs = ["cell_library.cc"],
+     hdrs = ["cell_library.h"],
+-    visibility = ["//xls:xls_users"],
++    visibility = ["//visibility:public"],
+     deps = [
+         ":netlist_cc_proto",
+         "//xls/common/status:ret_check",
+@@ -297,7 +297,7 @@ cc_library(
+     name = "lib_parser",
+     srcs = ["lib_parser.cc"],
+     hdrs = ["lib_parser.h"],
+-    visibility = ["//xls:xls_users"],
++    visibility = ["//visibility:public"],
+     deps = [
+         "//xls/common/status:status_macros",
+         "@com_google_absl//absl/container:flat_hash_set",
+@@ -330,7 +330,7 @@ cc_library(
+     name = "function_extractor",
+     srcs = ["function_extractor.cc"],
+     hdrs = ["function_extractor.h"],
+-    visibility = ["//xls:xls_users"],
++    visibility = ["//visibility:public"],
+     deps = [
+         ":lib_parser",
+         ":netlist_cc_proto",
+diff --git a/xls/protected/BUILD b/xls/protected/BUILD
+index aa332c891..3a8a0909e 100644
+--- a/xls/protected/BUILD
++++ b/xls/protected/BUILD
+@@ -38,6 +38,7 @@ cc_library(
+ cc_library(
+     name = "ir",
+     hdrs = ["ir.h"],
++    visibility = ["//visibility:public"],
+     deps = [
+         "//xls/ir",
+     ],
+@@ -46,6 +47,7 @@ cc_library(
+ cc_library(
+     name = "netlist",
+     hdrs = ["netlist.h"],
++    visibility = ["//visibility:public"],
+     deps = [
+         "//xls/netlist",
+         "//xls/netlist:cell_library",
+diff --git a/xls/public/BUILD b/xls/public/BUILD
+index bc82567f2..551983785 100644
+--- a/xls/public/BUILD
++++ b/xls/public/BUILD
+@@ -84,6 +84,7 @@ cc_library(
+ cc_library(
+     name = "function_builder",
+     hdrs = ["function_builder.h"],
++    visibility = ["//visibility:public"],
+     deps = [
+         "//xls/ir:function_builder",
+         "//xls/ir:source_location",
+@@ -111,6 +111,7 @@ cc_library(
+ cc_library(
+     name = "value",
+     hdrs = ["value.h"],
++    visibility = ["//visibility:public"],
+     deps = [
+         "//xls/ir:bits",
+         "//xls/ir:bits_ops",
+@@ -140,6 +141,7 @@ cc_library(
+     name = "ir",
+     srcs = ["ir.cc"],
+     hdrs = ["ir.h"],
++    visibility = ["//visibility:public"],
+     deps = [
+         "//xls/ir",
+         "//xls/ir:events",
+@@ -156,6 +158,7 @@ cc_library(
+     name = "ir_parser",
+     srcs = ["ir_parser.cc"],
+     hdrs = ["ir_parser.h"],
++    visibility = ["//visibility:public"],
+     deps = [
+         ":ir",
+         "//xls/ir",
+diff --git a/xls/tools/BUILD b/xls/tools/BUILD
+index e0b4cfb7d..d4ba5d531 100644
+--- a/xls/tools/BUILD
++++ b/xls/tools/BUILD
+@@ -385,7 +385,7 @@ cc_library(
+ cc_binary(
+     name = "opt_main",
+     srcs = ["opt_main.cc"],
+-    visibility = ["//xls:xls_users"],
++    visibility = ["//visibility:public"],
+     deps = [
+         ":opt",
+         "//xls/common:exit_status",
+diff --git a/xls/common/file/BUILD b/xls/common/file/BUILD
+index ac420872c..f3ab45860 100644
+--- a/xls/common/file/BUILD
++++ b/xls/common/file/BUILD
+@@ -55,6 +55,7 @@ cc_library(
+     name = "filesystem",
+     srcs = ["filesystem.cc"],
+     hdrs = ["filesystem.h"],
++    visibility = ["//visibility:public"],
+     deps = [
+         ":temp_file",
+         "//xls/common/status:error_code_to_status",

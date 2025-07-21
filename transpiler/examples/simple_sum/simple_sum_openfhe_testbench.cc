@@ -16,9 +16,10 @@
 
 #include <iostream>
 
-#include "openfhe/binfhe/binfhecontext.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
+#include "src/binfhe/include/binfhecontext.h"
 #include "transpiler/data/openfhe_data.h"
-#include "xls/common/logging/logging.h"
 
 #if defined(USE_INTERPRETED_OPENFHE)
 #include "transpiler/examples/simple_sum/simple_sum_interpreted_openfhe.h"
@@ -69,7 +70,7 @@ int main(int argc, char** argv) {
   cout << "\t\t\t\t\tServer side computation:" << endl;
   // Perform addition
   OpenFhe<int> cipher_result(cc);
-  XLS_CHECK_OK(simple_sum(cipher_result, ciphertext_x, ciphertext_y, cc));
+  CHECK_OK(simple_sum(cipher_result, ciphertext_x, ciphertext_y, cc));
 
   cout << "\t\t\t\t\tComputation done" << endl;
 

@@ -4,12 +4,13 @@
 #include <iomanip>
 #include <iostream>
 
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "commons.h"
 #include "transpiler/data/cleartext_data.h"
-#include "xls/common/logging/logging.h"
 
 #ifdef USE_YOSYS_INTERPRETED_CLEARTEXT
 #include "transpiler/examples/image_processing/kernel_gaussian_blur_yosys_interpreted_cleartext.h"
@@ -59,7 +60,7 @@ void runSharpenFilter(EncodedArrayRef<unsigned char> encoded_input,
       absl::Time t1 = absl::Now();
       double cpu_t1 = clock();
       encodedSubsetImage(encoded_input, window, i, j);
-      XLS_CHECK_OK(kernel_sharpen(encoded_result[i * MAX_PIXELS + j], window));
+      CHECK_OK(kernel_sharpen(encoded_result[i * MAX_PIXELS + j], window));
 
       double last_pixel_cpu_duration = (clock() - cpu_t1) / 1'000'000;
       absl::Duration last_pixel_duration = absl::Now() - t1;
@@ -93,7 +94,7 @@ void runGaussianBlurFilter(EncodedArrayRef<unsigned char> encoded_input,
       absl::Time t1 = absl::Now();
       double cpu_t1 = clock();
       encodedSubsetImage(encoded_input, window, i, j);
-      XLS_CHECK_OK(
+      CHECK_OK(
           kernel_gaussian_blur(encoded_result[i * MAX_PIXELS + j], window));
 
       double last_pixel_cpu_duration = (clock() - cpu_t1) / 1'000'000;
@@ -128,7 +129,7 @@ void runRickerWaveletFilter(EncodedArrayRef<unsigned char> encoded_input,
       absl::Time t1 = absl::Now();
       double cpu_t1 = clock();
       encodedSubsetImage(encoded_input, window, i, j);
-      XLS_CHECK_OK(ricker_wavelet(encoded_result[i * MAX_PIXELS + j], window));
+      CHECK_OK(ricker_wavelet(encoded_result[i * MAX_PIXELS + j], window));
 
       double last_pixel_cpu_duration = (clock() - cpu_t1) / 1'000'000;
       absl::Duration last_pixel_duration = absl::Now() - t1;

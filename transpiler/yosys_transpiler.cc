@@ -17,6 +17,7 @@
 #include <string>
 #include <utility>
 
+#include "absl/log/check.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/ascii.h"
@@ -28,7 +29,6 @@
 #include "google/protobuf/text_format.h"
 #include "transpiler/common_transpiler.h"
 #include "transpiler/pipeline_enums.h"
-#include "xls/common/logging/logging.h"
 #include "xls/common/status/status_macros.h"
 
 namespace fully_homomorphic_encryption {
@@ -115,8 +115,7 @@ $3 {
 
   // Serialize the metadata, removing the trailing null.
   std::string metadata_text;
-  XLS_CHECK(
-      google::protobuf::TextFormat::PrintToString(metadata, &metadata_text));
+  CHECK(google::protobuf::TextFormat::PrintToString(metadata, &metadata_text));
 
   std::string runner_prefix;
   std::string args_suffix;
@@ -181,8 +180,8 @@ $3#endif  // $1
                                      "bk", unwrap);
       scheme_data_header = R"hdr(
 #include "transpiler/data/tfhe_data.h"
-#include "tfhe/tfhe.h"
-#include "tfhe/tfhe_io.h"
+#include "src/include/tfhe.h"
+#include "src/include/tfhe_io.h"
 )hdr";
       break;
     case Encryption::kOpenFHE:
@@ -190,7 +189,7 @@ $3#endif  // $1
                                      "lbcrypto::BinFHEContext", "bk", unwrap);
       scheme_data_header = R"hdr(
 #include "transpiler/data/openfhe_data.h"
-#include "openfhe/binfhe/binfhecontext.h"
+#include "src/binfhe/include/binfhecontext.h"
 )hdr";
       break;
     case Encryption::kCleartext:

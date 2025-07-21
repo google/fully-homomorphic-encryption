@@ -16,8 +16,9 @@
 #include <cstring>
 #include <iostream>
 
+#include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "transpiler/examples/structs/templated_struct.h"
-#include "xls/common/logging/logging.h"
 #ifdef USE_INTERPRETED_YOSYS
 #include "transpiler/examples/structs/templated_struct_yosys_interpreted_cleartext.h"
 #include "transpiler/examples/structs/templated_struct_yosys_interpreted_cleartext.types.h"
@@ -36,7 +37,7 @@ int main(int argc, char** argv) {
   Encoded<StructWithArray<short, 3>> encoded_a(a);
   Encoded<StructWithArray<char, 2>> encoded_b(b);
   Encoded<StructWithArray<int, 6>> encoded_result;
-  XLS_CHECK_OK(CollateThem(encoded_result, encoded_a, encoded_b));
+  CHECK_OK(CollateThem(encoded_result, encoded_a, encoded_b));
   StructWithArray<int, 6> result = encoded_result.Decode();
   StructWithArray<int, 6> reference_result = CollateThem(a, b);
   if (!memcmp(&result, &reference_result, sizeof(result))) {

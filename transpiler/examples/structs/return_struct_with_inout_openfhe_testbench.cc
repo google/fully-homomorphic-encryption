@@ -15,10 +15,11 @@
 #include <cstdint>
 #include <iostream>
 
-#include "openfhe/binfhe/binfhecontext.h"
+#include "absl/log/check.h"
+#include "absl/log/log.h"
+#include "src/binfhe/include/binfhecontext.h"
 #include "transpiler/examples/structs/return_struct_with_inout_openfhe.h"
 #include "transpiler/examples/structs/return_struct_with_inout_openfhe.types.h"
-#include "xls/common/logging/logging.h"
 
 constexpr auto kSecurityLevel = lbcrypto::MEDIUM;
 
@@ -78,8 +79,8 @@ int main(int argc, char** argv) {
 
   std::cout << "Starting computation." << std::endl;
   OpenFhe<ReturnStruct> fhe_result(cc);
-  XLS_CHECK_OK(ConstructReturnStructWithInout(fhe_result, fhe_helper_a,
-                                              fhe_helper_b, fhe_helper_c, cc));
+  CHECK_OK(ConstructReturnStructWithInout(fhe_result, fhe_helper_a,
+                                          fhe_helper_b, fhe_helper_c, cc));
 
   ReturnStruct result = fhe_result.Decrypt(sk);
   std::cout << "Done. Function return: " << std::endl;

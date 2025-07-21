@@ -41,7 +41,7 @@ absl::StatusOr<std::string> InterpretedOpenFheTranspiler::Translate(
 #include "absl/types/span.h"
 #include "transpiler/openfhe_runner.h"
 #include "transpiler/common_runner.h"
-#include "openfhe/binfhe/binfhecontext.h"
+#include "src/binfhe/include/binfhecontext.h"
 #include "xls/common/status/status_macros.h"
 
 namespace {
@@ -86,8 +86,7 @@ $2 {
 
   // Serialize the metadata, removing the trailing null.
   std::string metadata_text;
-  XLS_CHECK(
-      google::protobuf::TextFormat::PrintToString(metadata, &metadata_text));
+  CHECK(google::protobuf::TextFormat::PrintToString(metadata, &metadata_text));
 
   return absl::Substitute(kSourceTemplate, xls::GetPackage(*function).DumpIr(),
                           metadata_text, signature, return_param,
@@ -111,7 +110,7 @@ absl::StatusOr<std::string> InterpretedOpenFheTranspiler::TranslateHeader(
 #include "absl/status/status.h"
 #include "absl/types/span.h"
 $4
-#include "openfhe/binfhe/binfhecontext.h"
+#include "src/binfhe/include/binfhecontext.h"
 
 $0;
 

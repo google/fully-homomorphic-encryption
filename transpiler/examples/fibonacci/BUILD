@@ -1,9 +1,9 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("//transpiler:fhe.bzl", "fhe_cc_library")
-load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
-load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library", "rust_test")
-load("//transpiler/jaxite:fhe_py.bzl", "fhe_py_library")
 load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library", "rust_test")
+load("//transpiler:fhe.bzl", "fhe_cc_library")
+load("//transpiler/jaxite:fhe_py.bzl", "fhe_py_library")
+load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
 
 licenses(["notice"])
 
@@ -99,7 +99,7 @@ cc_binary(
         ":fibonacci_tfhe",
         "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -113,7 +113,7 @@ cc_binary(
         ":fibonacci_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
         "@com_google_absl//absl/base",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -126,7 +126,7 @@ cc_binary(
         ":fibonacci_openfhe",
         "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/base",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],
@@ -140,7 +140,7 @@ cc_binary(
         ":fibonacci_interpreted_openfhe",
         "//transpiler/data:openfhe_data",
         "@com_google_absl//absl/base",
-        "@com_google_xls//xls/common/logging",
+        "@com_google_absl//absl/log",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],
@@ -152,8 +152,8 @@ cc_binary(
     deps = [
         ":fibonacci_sequence_tfhe",
         "//transpiler/data:tfhe_data",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings:str_format",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -166,8 +166,8 @@ cc_binary(
     deps = [
         ":fibonacci_sequence_interpreted_tfhe",
         "//transpiler/data:tfhe_data",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings:str_format",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -180,8 +180,8 @@ cc_binary(
         ":fibonacci_sequence_cleartext",
         "//transpiler/data:cleartext_data",
         "@com_google_absl//absl/container:fixed_array",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings:str_format",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@tfhe//:libtfhe",
     ],
@@ -193,8 +193,8 @@ cc_binary(
     deps = [
         ":fibonacci_sequence_openfhe",
         "//transpiler/data:openfhe_data",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings:str_format",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],
@@ -207,8 +207,8 @@ cc_binary(
     deps = [
         ":fibonacci_sequence_interpreted_openfhe",
         "//transpiler/data:openfhe_data",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings:str_format",
-        "@com_google_xls//xls/common/logging",
         "@com_google_xls//xls/common/status:status_macros",
         "@openfhe//:binfhe",
     ],
@@ -305,8 +305,8 @@ py_binary(
     main = "fibonacci.py",
     deps = [
         ":fibonacci_fhe_py_lib",
-        "@com_google_absl_py//absl:app",
-        "@transpiler_pip_deps//pypi__jaxite",
+        "@transpiler_pip_deps//absl_py",
+        "@transpiler_pip_deps//jaxite",
     ],
 )
 

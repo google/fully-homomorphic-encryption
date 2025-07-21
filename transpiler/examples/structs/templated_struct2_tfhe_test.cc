@@ -41,7 +41,7 @@ TEST(TemplatedStruct2Test, TemplatedStruct2TfheTest) {
   Tfhe<Array<Tag<int>, LEN>> tfhe_in(params);
   tfhe_in.SetEncrypted(in, key);
   Tfhe<Tag<Array<short, (LEN << 1)>>> tfhe_out(params);
-  XLS_CHECK_OK(convert(tfhe_in, tfhe_out, key.cloud()));
+  CHECK_OK(convert(tfhe_in, tfhe_out, key.cloud()));
   Tag<Array<short, (LEN << 1)>> decoded_out = tfhe_out.Decrypt(key);
 
   ASSERT_EQ(0, memcmp(&decoded_out, &reference_out, sizeof(decoded_out)));

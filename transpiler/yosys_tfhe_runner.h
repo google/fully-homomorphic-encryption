@@ -186,7 +186,7 @@ class YosysTfheRunner {
                    const TFheGateBootstrappingCloudKeySet* bk);
 
   std::unique_ptr<TfheBoolValue> CreateTfheBoolValue(bool in) {
-    XLS_CHECK(state_->bk_ != nullptr);
+    CHECK(state_->bk_ != nullptr);
     return std::make_unique<TfheBoolValue>(in, state_->bk_);
   }
 
