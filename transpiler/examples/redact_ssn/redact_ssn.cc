@@ -9,7 +9,7 @@ void RedactSsn(char my_string[MAX_LENGTH]) {
   int consecutive_digits_p2 = 0;
 
 #pragma hls_unroll yes
-  for (int i = 0; i < MAX_LENGTH; i++) {
+  for (int i = 0; i < MAX_LENGTH && my_string[i] != '\0'; i++) {
     if (my_string[i] >= '0' && my_string[i] <= '9') {
       consecutive_digits_p1++;
       consecutive_digits_p2++;
