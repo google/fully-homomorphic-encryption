@@ -28,6 +28,6 @@ short Calculator::process(short x, short y, char op) {
 
 // TODO: Way to mark Calculator::process() as main function
 #pragma hls_top
-short my_package(Calculator &calc, short x, short y, char op) {
+short my_package(Calculator& calc, short x, short y, char op) {
   return calc.process(x, y, op);
 }

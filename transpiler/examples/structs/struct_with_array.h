@@ -20,6 +20,6 @@ struct StructWithArray {
   short z;
 };
 
-void NegateStructWithArray(StructWithArray &outer, int &other, Inner &inner);
+void NegateStructWithArray(StructWithArray& outer, int& other, Inner& inner);
 
 #endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_STRUCTS_STRUCT_WITH_ARRAY_H_
