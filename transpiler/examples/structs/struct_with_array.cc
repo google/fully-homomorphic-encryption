@@ -1,7 +1,7 @@
 #include "struct_with_array.h"
 
 #pragma hls_top
-void NegateStructWithArray(StructWithArray &outer, int &other, Inner &inner) {
+void NegateStructWithArray(StructWithArray& outer, int& other, Inner& inner) {
   outer.c = -outer.c;
   outer.i.q = -outer.i.q;
 #pragma hls_unroll yes
