@@ -1,4 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load(
     "//transpiler:fhe.bzl",
     "cc_fhe_bool_ir_library",
@@ -17,13 +18,12 @@ load(
     "//transpiler:fhe_yosys.bzl",
     "verilog_to_netlist",
 )
-# load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
-# load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
-
 load(
     "//transpiler:parsers.bzl",
     "cc_to_xls_ir",
 )
+# load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
+# load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 
 licenses(["notice"])
 
