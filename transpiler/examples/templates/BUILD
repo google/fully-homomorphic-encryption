@@ -1,4 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 
 # Build rules for the template-based string reversal example.

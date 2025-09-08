@@ -15,6 +15,7 @@
 #  BUILD rules for tools useful for transpilation and analysis of circuits.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 
 package(
     default_applicable_licenses = ["@com_google_fully_homomorphic_encryption//:license"],
