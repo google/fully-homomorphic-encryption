@@ -1,6 +1,7 @@
 # Build rules for general utilities not directly tied to transpilation logic.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 
 package(
     default_applicable_licenses = ["@com_google_fully_homomorphic_encryption//:license"],

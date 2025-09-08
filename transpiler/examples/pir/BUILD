@@ -1,4 +1,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
 load("//transpiler:fhe.bzl", "fhe_cc_library")
 load("//transpiler/rust:fhe_rs.bzl", "fhe_rust_library")
@@ -142,5 +145,7 @@ rust_test(
     name = "pir_rs_test",
     size = "large",
     crate = ":pir_rs_lib",
-    tags = ["nofastbuild"],
+    tags = [
+        "nofastbuild",
+    ],
 )

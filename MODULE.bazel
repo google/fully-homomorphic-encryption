@@ -40,5 +40,5 @@ bazel_dep(name = "verible", version = "0.0.3933")
 bazel_dep(name = "googletest", version = "1.17.0", dev_dependency = True)
 ### End XLS copied section
 
-bazel_dep(name = "rules_cc", version = "0.1.1")
+bazel_dep(name = "rules_cc", version = "0.1.5")
 bazel_dep(name = "google_benchmark", version = "1.9.4", repo_name = "com_google_benchmark")
