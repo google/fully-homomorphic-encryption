@@ -14,6 +14,7 @@
 
 """Rules for generating FHE-C++."""
 
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
 load(
     "//transpiler:fhe_common.bzl",
     "BooleanifiedIrInfo",
@@ -450,8 +451,7 @@ def _cc_fhe_common_library(name, optimizer, src, transpiled_structs, encryption,
                     "//transpiler/data:openfhe_data",
                     "@com_google_xls//xls/common/status:status_macros",
                 ])
-
-    native.cc_library(
+    cc_library(
         name = name,
         srcs = [":" + transpiled_source],
         hdrs = [":" + transpiled_headers, ":" + input_headers] + hdrs,

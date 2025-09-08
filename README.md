@@ -39,19 +39,56 @@ a trivial translation. If not properly done, this translation can significantly
 increase the performance gap between computing on unencrypted data and the
 FHE-computation on encrypted data, thus precluding wide FHE adoption.
 
-## FHE C++ Transpiler
+## Building Programs with FHE
 
-The FHE C++ Transpiler is a general purpose library that converts C++ into
-FHE-C++ that works on encrypted input.
+The concept of FHE states that every computation in plaintext space has an equivalent computation in the encrypted space. So building programs on FHE involves translating a program to work in the encrypted space.
 
-The transpiler has a modular architecture that allows varying the underlying FHE
-library, the high-level program description and the output language as well. We
-hope that this flexibility will allow researchers from different fields to work
-together on this exciting goal of making FHE more efficient and broadly
-applicable.
+To perform computations in the encrypted space, FHE programs need to adhere to the FHE
+programming paradigm which includes data-independent computations and ciphertext
+management operations.
 
-The code, examples, and more information is in the [`transpiler`](./transpiler/)
-subdirectory.
+Computations in the encrypted space are oblivious to the underlying data and hence need to follow a data-independent computational paradigm. This means that simple programming constructs such as branches or if-then-else statements that depend on the output of data need to be rewritten.
+
+The keys and ciphertexts (i.e. after encryption, the encrypted data is called
+ciphertext) need to maintain mathematical relations for correct decryption. To
+ensure decryption remains feasible, periodic ciphertext management operations
+need to be performed. These operations are computationally heavy but essential
+for ensuring accurate computation in the encrypted domain. They also vary
+depending on the type of Fully Homomorphic Encryption (FHE) used. FHE schemes
+are generally categorized into two main types: scalar and vector.
+Scalar schemes encrypt small integers or individual bits. They excel at
+general-purpose computations, offering unlimited operations, exact computations
+and less intensive ciphertext management operations.
+Vector schemes, on the other hand, encrypt vectors of integers or floats. These
+schemes excel at large-scale analytics and machine learning tasks. They require
+more intensive ciphertext management and polynomial approximation for non-linear
+functions.
+
+Developing FHE programs with FHE typically includes these steps:
+- Converting the program to its FHE equivalent using domain-specific compilers.
+- Adhering to data-independent programming constraints.
+- Optimizing the program for efficient execution on a selected hardware platform.
+
+It often involves compilers. However, achieving optimal performance on specific FHE
+scheme and hardware accelerators sometimes necessitates cutting-edge research.
+Below are the compilers we offer and some demo programs to try.
+
+## FHE Compilers
+Compilers provide a bridge from unencrypted programs to programs that function on
+encrypted data, including the bridge to hardware accelerators. Google aims to
+provide industry-standard compilers with simple interfaces and modular, reusable
+and interoperable components to accelerate the research and development of
+production-strength privacy-first software systems.
+
+[HEIR](heir.dev) is a compiler toolchain and design environment for Fully
+Homomorphic Encryption. Application developers, compiler engineers, hardware
+designers, and cryptography researchers can build upon HEIR to further
+research and bring FHE to practicality.
+
+Note: Transpiler is a general purpose FHE compiler for C++ that works for
+subclass of FHE problems and uses boolean optimizations such as Yosys and ABC.
+We plan to migrate features of the transpiler into HEIR.
+
 
 ## Support
 

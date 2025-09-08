@@ -1,4 +1,7 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 
 package(
     default_applicable_licenses = ["@com_google_fully_homomorphic_encryption//:license"],
@@ -56,6 +59,7 @@ bzl_library(
         ":fhe_yosys_bzl",
         ":parsers_bzl",
         "//transpiler/data:primitives_bzl",
+        "@rules_cc//cc:core_rules",
     ],
 )
 
@@ -64,6 +68,7 @@ bzl_library(
     srcs = ["fhe_demo.bzl"],
     deps = [
         ":fhe_bzl",
+        "@rules_cc//cc:core_rules",
     ],
 )
 

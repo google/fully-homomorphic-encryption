@@ -14,6 +14,7 @@
 
 """Rules for generating FHE-C++."""
 
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
 load(
     "//transpiler:fhe.bzl",
     "fhe_cc_library",
@@ -130,8 +131,7 @@ def gen_demos(
             calculated_copts = []
             if translator == "interpreted":
                 calculated_copts.append("-DUSE_{}INTERPRETED_{}".format("YOSYS_" if optimizer == "yosys" else "", encryption.upper()))
-
-            native.cc_binary(
+            cc_binary(
                 name = "{}_{}_{}_testbench".format(name, optimizer, translator),
                 srcs = srcs,
                 deps = deps + CRYPTOSYSTEM_DEPS[encryption] + [

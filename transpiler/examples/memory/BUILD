@@ -1,4 +1,5 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
 load("//transpiler:fhe.bzl", "fhe_cc_library")
 
 licenses(["notice"])
