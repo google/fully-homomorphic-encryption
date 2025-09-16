@@ -3,12 +3,12 @@
 This document provides a brief introduction to running FHE programs on FPGA. Research on FPGAs is partially funded by a research gift of Google to KU Leuven - COSIC, ERC advanced grant Belfort 101020005 and Belfort Labs BV.
 
 ## One time setup
-Follow instructions [here](https://github.com/belfortlabs/hello-fpga/blob/f2/AWS.md) to setup an account with Belfort FPGA accelerator VM
 
+Follow instructions [here](https://github.com/belfortlabs/hello-fpga?tab=readme-ov-file#launch-an-f2-instance) to launch an AWS instance with Belfort FPGA accelerator.
 
 ## Running FPGA Demos
 
-ssh into the FPGA machine
+SSH into the FPGA machine
 
 ```sh
 ssh -i <id.pem> ubuntu@<instance_public_dns>
@@ -53,7 +53,7 @@ cargo run --release --package leuvenshtein --bin demo --features fpga
 ```
 For more details see [here](https://github.com/belfortlabs/hello-fpga/tree/f2/demos/leuvenshtein)
 
-### Transciphering
+### AES Transciphering
 Transciphering makes FHE compatible with existing systems and tackles the ciphertext
 blowup issue. This technique involves encrypting data with standard stream ciphers
 like AES, while the AES key itself is encrypted using FHE. Subsequently, a single
@@ -66,15 +66,10 @@ as the data size with AES, significantly reducing the substantial network
 bandwidth and storage requirements associated with conventional FHE encryption
 schemes.
 
-An example of tranciphering with Trivium (AES will be added in the future) cipher on FPGA is 
-available to try. 
+An interactive demo for tranciphering with AES cipher on FPGA is available to try
 
 ```sh
-# With FPGA acceleration
-cargo run --release --package tfhe-trivium --bin demo-shortint --features fpga
-
-# Without FPGA acceleration
-cargo run --release --package tfhe-trivium --bin demo-shortint
+cargo run --release --package fhe-aes --bin demo --features fpga
 ```
 
-For more details see [here](https://github.com/belfortlabs/hello-fpga/tree/f2/demos/trivium)
+For more details see [here](https://github.com/belfortlabs/hello-fpga/blob/f2/demos/fhe-aes)
