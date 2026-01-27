@@ -78,6 +78,7 @@ cc_test(
     name = "redact_ssn_tfhe_test",
     size = "large",
     srcs = ["redact_ssn_tfhe_test.cc"],
+    tags = ["nosan"],
     deps = [
         ":redact_ssn_plaintext",
         ":redact_ssn_tfhe_yosys_interpreted",
