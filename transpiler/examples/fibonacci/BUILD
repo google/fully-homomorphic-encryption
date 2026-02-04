@@ -306,6 +306,7 @@ py_binary(
     name = "fibonacci_jaxite_main",
     srcs = ["fibonacci.py"],
     main = "fibonacci.py",
+    strict_deps = False,  # copybara:strip
     deps = [
         ":fibonacci_fhe_py_lib",
         "@transpiler_pip_deps//absl_py",

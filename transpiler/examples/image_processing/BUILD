@@ -484,6 +484,7 @@ py_binary(
     name = "kernel_gaussian_blur_jaxite_main",
     srcs = ["kernel_gaussian_blur.py"],
     main = "kernel_gaussian_blur.py",
+    strict_deps = False,  # copybara:strip
     deps = [
         ":kernel_gaussian_blur_fhe_py_lib",
         "@transpiler_pip_deps//absl_py",

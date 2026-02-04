@@ -108,6 +108,7 @@ py_binary(
     name = "hangman_jaxite_main",
     srcs = ["hangman.py"],
     main = "hangman.py",
+    strict_deps = False,  # copybara:strip
     deps = [
         ":hangman_fhe_py_lib",
         "@transpiler_pip_deps//absl_py",

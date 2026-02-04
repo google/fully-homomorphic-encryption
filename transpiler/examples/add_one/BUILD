@@ -94,6 +94,7 @@ py_library(
 py_binary(
     name = "add_one",
     srcs = ["add_one.py"],
+    strict_deps = False,  # copybara:strip
     deps = [
         ":add_one_fhe_py_lib",
         ":add_one_py_lib",
