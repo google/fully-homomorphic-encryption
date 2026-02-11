@@ -52,6 +52,7 @@ def _fhe_transpile_ir(ctx, library_name, stem, src, metadata = "", liberty_file 
     ctx.actions.run(
         inputs = inputs,
         outputs = [rust_out],
+        mnemonic = "FheTranspileIr",
         executable = ctx.executable._fhe_transpiler,
         arguments = args,
     )

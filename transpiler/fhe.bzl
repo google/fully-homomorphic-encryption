@@ -93,6 +93,7 @@ def _fhe_transpile_ir(ctx, library_name, stem, src, metadata, optimizer, encrypt
         inputs = [src, metadata, encryption_specific_transpiled_structs_header],
         outputs = [out_cc, out_h],
         executable = ctx.executable._fhe_transpiler,
+        mnemonic = "FheIrTranspile",
         arguments = args,
     )
     return [out_cc, out_h]
@@ -138,6 +139,7 @@ def _fhe_transpile_netlist(ctx, library_name, stem, src, metadata, optimizer, en
         inputs = [src, metadata, encryption_specific_transpiled_structs_header, ctx.file.cell_library],
         outputs = [out_cc, out_h],
         executable = ctx.executable._fhe_transpiler,
+        mnemonic = "FheNetlistTranspile",
         arguments = args,
     )
     return [out_cc, out_h]

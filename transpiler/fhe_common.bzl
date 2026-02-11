@@ -99,5 +99,6 @@ def run_with_stem(ctx, stem, inputs, out_ext, tool, args, entry = None):
         outputs = [out],
         tools = [tool],
         command = "%s %s > %s" % (tool.path, arguments, out.path),
+        mnemonic = "FheTranspilerRun",
     )
     return out

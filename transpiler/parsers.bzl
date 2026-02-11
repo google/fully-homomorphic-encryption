@@ -77,6 +77,7 @@ def _build_xls_ir(ctx, library_name):
         inputs = [ctx.file.src] + ctx.files.hdrs,
         outputs = [ir_file, metadata_file],
         tools = [ctx.executable._xlscc],
+        mnemonic = "CcToXlsIrGen",
         command = "%s %s --meta_out %s %s %s > %s" % (
             ctx.executable._xlscc.path,
             ctx.file.src.path,

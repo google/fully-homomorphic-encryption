@@ -53,6 +53,7 @@ def _generate_encryption_specific_transpiled_structs_header_path(ctx, library_na
         inputs = [metadata, generic_struct_header],
         outputs = [specific_struct_h],
         executable = ctx.executable.struct_header_generator,
+        mnemonic = "FheEncryptionSpecificTranspiledStructsGen",
         arguments = args,
     )
 
@@ -88,6 +89,7 @@ def _generate_generic_struct_header(ctx, library_name, metadata, hdr_files, unwr
         inputs = [metadata],
         outputs = [generic_struct_h],
         executable = ctx.executable.struct_header_generator,
+        mnemonic = "FheGenericTranspiledStructsGen",
         arguments = args,
     )
 
