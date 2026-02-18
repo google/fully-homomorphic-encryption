@@ -2,7 +2,8 @@
 
 **Note:** [HEIR](https://github.com/google/heir) is our next generation FHE
 compiler framework, please see [its GitHub repo](https://github.com/google/heir)
-and its website https://heir.dev.
+and its website https://heir.dev. This branch (`transpiler-sunset`) is preserved
+for archival and research purposes.
 
 This repository contains open-source libraries and tools to perform fully
 homomorphic encryption (FHE) operations on an encrypted data set.
