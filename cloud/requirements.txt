@@ -1,2 +1,0 @@
-google-cloud-compute
-google-cloud-tpu

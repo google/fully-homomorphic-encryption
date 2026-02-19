@@ -1,8 +1,0 @@
-#ifndef FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_IMAGE_PROCESSING_KERNEL_GAUSSIAN_BLUR_H_
-#define FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_IMAGE_PROCESSING_KERNEL_GAUSSIAN_BLUR_H_
-
-// Computes Gaussian blur using kernel of size 3x3
-// Inputs and the output are greyscale colors in 0..15 range.
-unsigned char kernel_gaussian_blur(const unsigned char window[9]);
-
-#endif  // FULLY_HOMOMORPHIC_ENCRYPTION_TRANSPILER_EXAMPLES_IMAGE_PROCESSING_KERNEL_GAUSSIAN_BLUR_H_

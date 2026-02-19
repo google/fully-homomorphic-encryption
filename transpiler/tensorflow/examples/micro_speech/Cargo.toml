@@ -1,8 +1,0 @@
-[package]
-name = "micro_speech"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-rayon = "1.6.1"
-tfhe = { version = "0.2.4", features = ["boolean", "shortint", "x86_64-unix"] }
