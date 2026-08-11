@@ -127,12 +127,14 @@ bazel run //demos/network_anomaly/torch:export_mlir -- --model_type 50 --output 
   $$\text{MSE} = \frac{\text{SSE}}{D} \quad (D = 5 \text{ or } 50)$$
 
 ### 4.2 Classification Decision Logic
+
 - **$\text{MSE} \ge \text{Threshold}$** &rarr; Flagged as **`ANOMALY`** (attack/intrusion traffic, e.g. Mirai botnet attack).
 - **$\text{MSE} < \text{Threshold}$** &rarr; Flagged as **`BENIGN`** (normal, clean traffic).
 
 *Recommended thresholds:* `0.005` for 5-feature baseline, `0.0001` - `0.005` for 50-feature model.
 
 ### 4.3 Confusion Matrix & Performance Metrics
+
 - **True Positives (TP)**: Attack packets correctly flagged as ANOMALY.
 - **True Negatives (TN)**: Benign packets correctly classified as BENIGN.
 - **False Positives (FP)**: False alarms (benign packets flagged as ANOMALY).
