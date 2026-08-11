@@ -10,6 +10,7 @@ module {
     %cst_4 = arith.constant dense_resource<torch_tensor_512_torch.float32> : tensor<512xf32>
     %cst_5 = arith.constant dense_resource<torch_tensor_512_784_torch.float32> : tensor<512x784xf32>
     %collapsed = tensor.collapse_shape %arg0 [[0], [1, 2, 3]] : tensor<1x1x28x28xf32> into tensor<1x784xf32>
+    debug.validate %collapsed {name = "input", metadata = "input"} : tensor<1x784xf32>
     %0 = tensor.empty() : tensor<784x512xf32>
     %transposed = linalg.transpose ins(%cst_5 : tensor<512x784xf32>) outs(%0 : tensor<784x512xf32>) permutation = [1, 0]
     %1 = tensor.empty() : tensor<1x512xf32>
@@ -20,12 +21,14 @@ module {
       %15 = arith.addf %in, %in_8 : f32
       linalg.yield %15 : f32
     } -> tensor<1x512xf32>
+    debug.validate %4 {name = "layer1_linear", metadata = "layer1_linear"} : tensor<1x512xf32>
     %5 = linalg.generic {domain_lower = -4.270929 : f32, domain_upper = 4.270929 : f32, degree= 7 : i32, indexing_maps = [#map, #map], iterator_types = ["parallel", "parallel"]} ins(%4 : tensor<1x512xf32>) outs(%1 : tensor<1x512xf32>) {
     ^bb0(%in: f32, %out: f32):
       %15 = arith.cmpf ugt, %in, %cst : f32
       %16 = arith.select %15, %in, %cst : f32
       linalg.yield %16 : f32
     } -> tensor<1x512xf32>
+    debug.validate %5 {name = "layer1_relu", metadata = "layer1_relu"} : tensor<1x512xf32>
     %6 = tensor.empty() : tensor<512x512xf32>
     %transposed_6 = linalg.transpose ins(%cst_3 : tensor<512x512xf32>) outs(%6 : tensor<512x512xf32>) permutation = [1, 0]
     %7 = linalg.matmul ins(%5, %transposed_6 : tensor<1x512xf32>, tensor<512x512xf32>) outs(%2 : tensor<1x512xf32>) -> tensor<1x512xf32>
@@ -34,12 +37,14 @@ module {
       %15 = arith.addf %in, %in_8 : f32
       linalg.yield %15 : f32
     } -> tensor<1x512xf32>
+    debug.validate %8 {name = "layer2_linear", metadata = "layer2_linear"} : tensor<1x512xf32>
     %9 = linalg.generic {domain_lower = -4.484251 : f32, domain_upper = 4.484251 : f32, degree= 7 : i32, indexing_maps = [#map, #map], iterator_types = ["parallel", "parallel"]} ins(%8 : tensor<1x512xf32>) outs(%1 : tensor<1x512xf32>) {
     ^bb0(%in: f32, %out: f32):
       %15 = arith.cmpf ugt, %in, %cst : f32
       %16 = arith.select %15, %in, %cst : f32
       linalg.yield %16 : f32
     } -> tensor<1x512xf32>
+    debug.validate %9 {name = "layer2_relu", metadata = "layer2_relu"} : tensor<1x512xf32>
     %10 = tensor.empty() : tensor<512x10xf32>
     %transposed_7 = linalg.transpose ins(%cst_1 : tensor<10x512xf32>) outs(%10 : tensor<512x10xf32>) permutation = [1, 0]
     %11 = tensor.empty() : tensor<1x10xf32>
@@ -50,6 +55,7 @@ module {
       %15 = arith.addf %in, %in_8 : f32
       linalg.yield %15 : f32
     } -> tensor<1x10xf32>
+    debug.validate %14 {name = "output", metadata = "output"} : tensor<1x10xf32>
     return %14 : tensor<1x10xf32>
   }
 }

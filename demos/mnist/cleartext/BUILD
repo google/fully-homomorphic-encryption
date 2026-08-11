@@ -36,3 +36,20 @@ py_binary(
         requirement("torch"),
     ],
 )
+
+py_binary(
+    name = "estimate_ranges",
+    srcs = ["estimate_ranges.py"],
+    data = [
+        "//demos/mnist/data:mlp_model.pth",
+        "//demos/mnist/data:mnist.npz",
+    ],
+    main = "estimate_ranges.py",
+    deps = [
+        "//demos/common/python:path_utils",
+        "//demos/mnist/torch:model",
+        "//demos/mnist/utils:mnist_data",
+        requirement("numpy"),
+        requirement("torch"),
+    ],
+)
