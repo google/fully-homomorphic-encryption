@@ -1,0 +1,10 @@
+--- a/MODULE.bazel
++++ b/MODULE.bazel
+@@ -12,3 +12,7 @@
+
+ openfhe_ext = use_extension("//:openfhe_config.bzl", "openfhe_config")
+ use_repo(openfhe_ext, "openfhe_config")
++
++bazel_dep(name = "llvm", version = "0.8.9")
++llvm = use_extension("@llvm//extensions:llvm.bzl", "llvm")
++use_repo(llvm, hermetic_llvm = "llvm-project")

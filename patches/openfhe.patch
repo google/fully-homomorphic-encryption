@@ -1,0 +1,64 @@
+--- a/BUILD
++++ b/BUILD
+@@ -59,21 +59,7 @@
+     },
+ )
+
+-_OPENMP_CLANG_LINKOPTS = [
+-    "-fopenmp",
+-    "-lomp",
+-]
+-
+-_OPENMP_GCC_LINKOPTS = [
+-    "-fopenmp",
+-    "-lgomp",
+-]
+-
+-OPENMP_LINKOPTS = select({
+-    "//:clang_openmp": _OPENMP_CLANG_LINKOPTS,
+-    "//:gcc_openmp": _OPENMP_GCC_LINKOPTS,
+-    "//conditions:default": [],
+-})
++OPENMP_LINKOPTS = []
+
+ OPENMP_COPTS = select({
+     "//:config_enable_openmp": [
+@@ -84,6 +70,11 @@
+     "//conditions:default": [],
+ })
+
++OPENMP_DEPS = select({
++    "//:config_enable_openmp": ["@hermetic_llvm//openmp:libomp"],
++    "//conditions:default": [],
++})
++
+ genrule(
+     name = "generate_config_core_h",
+     outs = ["src/core/include/config_core.h"],
+@@ -137,7 +128,7 @@
+         ":generate_config_core_h",
+         ":prng",
+         "@cereal",
+-    ],
++    ] + OPENMP_DEPS,
+ )
+
+ cc_library(
+@@ -156,7 +147,7 @@
+     deps = [
+         ":core",
+         ":generate_config_core_h",
+-    ],
++    ] + OPENMP_DEPS,
+ )
+
+ cc_library(
+@@ -182,7 +173,7 @@
+         ":core",
+         ":generate_config_core_h",
+         "@cereal",
+-    ],
++    ] + OPENMP_DEPS,
+ )
+
+ # Generates a shared library that can be shipped with the python frontend.

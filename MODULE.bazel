@@ -1,0 +1,144 @@
+module(
+    name = "fully_homomorphic_encryption",
+)
+
+# hermetic C compiler
+bazel_dep(name = "llvm", version = "0.8.9")
+
+register_toolchains("@llvm//toolchain:all")
+
+# We only load the hermetic LLVM sources to get access to the `libopenmp`,
+# needed for OpenFHE. With the block below, openmp is available via
+#
+#    bazel query @hermetic_llvm//openmp:libomp
+#
+llvm = use_extension("@llvm//extensions:llvm.bzl", "llvm")
+llvm.configure(
+    targets = [
+        "AArch64",
+        "AMDGPU",
+        "X86",
+    ],
+)
+use_repo(llvm, hermetic_llvm = "llvm-project")
+
+# Macros for building with HEIR
+bazel_dep(name = "rules_heir", version = "0.1.0")
+
+heir_repos = use_extension("@rules_heir//heir:extensions.bzl", "heir_repositories")
+heir_repos.platform(
+    cpu = "x86_64",
+    heir_opt_sha256 = "919bca7b663e73ad4c550f0145cf3d66c70812d9d77adeabb23275f13874b0af",
+    heir_opt_url = "https://github.com/google/heir/releases/download/v2026.08.11.dev0/heir-opt-manylinux_2_28_x86_64",
+    heir_translate_sha256 = "5f184dcbe350ae0a2cfdfa3ca364a02cfa827bdebedab208ada3a529f8acab1d",
+    heir_translate_url = "https://github.com/google/heir/releases/download/v2026.08.11.dev0/heir-translate-manylinux_2_28_x86_64",
+    os = "linux",
+)
+heir_repos.platform(
+    cpu = "aarch64",
+    heir_opt_sha256 = "136d29bc519126ae1032789ffdccebd097b27bbcc54dbc02146d2e0ad1c4bcdf",
+    heir_opt_url = "https://github.com/google/heir/releases/download/v2026.08.11.dev0/heir-opt-manylinux_2_28_aarch64",
+    heir_translate_sha256 = "b71b17bf0548c48503d2c9ecc17e230f85bb679bb8d4fc62a7b4c05168e6d1f8",
+    heir_translate_url = "https://github.com/google/heir/releases/download/v2026.08.11.dev0/heir-translate-manylinux_2_28_aarch64",
+    os = "linux",
+)
+heir_repos.platform(
+    cpu = "arm64",
+    heir_opt_sha256 = "4a1490bcbb157d1437bc600c4a79790baa64069ee29fe0ba210401baa2de9543",
+    heir_opt_url = "https://github.com/google/heir/releases/download/v2026.08.11.dev0/heir-opt-macosx_11_0_arm64",
+    heir_translate_sha256 = "bc58ae375b9ead6b2259fcf6f3b1f43af49880f4019839db11ad6af199aaaaa2",
+    heir_translate_url = "https://github.com/google/heir/releases/download/v2026.08.11.dev0/heir-translate-macosx_11_0_arm64",
+    os = "macos",
+)
+use_repo(
+    heir_repos,
+    "heir_linux_aarch64",
+    "heir_linux_x86_64",
+    "heir_macos_arm64",
+)
+
+bazel_dep(name = "abseil-cpp", version = "20250814.1", repo_name = "com_google_absl")
+bazel_dep(name = "abseil-py", version = "2.1.0")
+bazel_dep(name = "gazelle", version = "0.51.3")
+bazel_dep(name = "googletest", version = "1.17.0.bcr.2")
+bazel_dep(name = "platforms", version = "1.1.0")
+bazel_dep(name = "rules_cc", version = "0.2.22")
+bazel_dep(name = "rules_go", version = "0.62.0")
+bazel_dep(name = "rules_python", version = "2.0.1")
+bazel_dep(name = "rules_license", version = "1.0.0")
+bazel_dep(name = "openfhe", version = "1.4.2.bcr.1")
+single_version_override(
+    module_name = "openfhe",
+    patch_strip = 1,
+    patches = [
+        "//patches:openfhe_module.patch",
+        "//patches:openfhe.patch",
+    ],
+)
+
+single_version_override(
+    module_name = "rules_heir",
+    patch_strip = 1,
+    patches = [
+        "//patches:rules_heir.patch",
+    ],
+)
+
+# Go setup
+go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
+
+# Bazel ignores go.mod for the purpose of selecting a go version. To see which
+# go version will be used, run:
+#
+#   bazel run @rules_go//go -- version
+#
+go_sdk.download(version = "1.26.0")
+
+go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
+go_deps.from_file(go_mod = "//:go.mod")
+
+# All *direct* Go dependencies of the module have to be listed explicitly.
+use_repo(
+    go_deps,
+    "com_github_tuneinsight_lattigo_v6",
+)
+
+# Hermetic python setup
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+
+pip = use_extension("@rules_python//python/extensions:pip.bzl", "pip")
+
+python.toolchain(python_version = "3.12")
+
+pip.parse(
+    extra_pip_args = [
+        "--extra-index-url",
+        "https://download.pytorch.org/whl/cpu",
+        "--find-links",
+        "https://github.com/llvm/torch-mlir-release/releases/expanded_assets/dev-wheels",
+    ],
+    hub_name = "demo_pip_deps",
+    python_version = "3.12",
+    requirements_lock = "//demos:requirements.txt",
+)
+
+use_repo(python, python_3_12 = "python_3_12")
+
+use_repo(pip, "demo_pip_deps")
+
+# large files needed for demos are pulled from a special GH release artifacts
+http_file = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+
+http_file(
+    name = "criteohelrm_torch_mlir",
+    downloaded_file_path = "criteohelrm_torch.mlir",
+    sha256 = "bff4e8009355072022ef67181c4da11a71d36fc6e71f160dba5679d5939a71ed",
+    urls = ["https://github.com/google/fully-homomorphic-encryption/releases/download/helrm/criteohelrm_torch.mlir"],
+)
+
+http_file(
+    name = "criteohelrm_pth",
+    downloaded_file_path = "criteohelrm.pth",
+    sha256 = "b5010a5babc2a2102077854711d9b9efffe8ac66f113f54fc3d3cd3c9e932b97",
+    urls = ["https://github.com/google/fully-homomorphic-encryption/releases/download/helrm/criteohelrm.pth"],
+)
