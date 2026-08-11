@@ -16,6 +16,10 @@ S Choi et. al. (2019). [Temporal convolution for real-time keyword spotting on m
 
 This demo includes evaluations using Lattigo (Go) backend.
 
+**Warning:** The demos in this directory require a lot of RAM! If your machine
+doesn't have at least 96 GiB of RAM, you can run them by configuring swap space,
+but the result will be significantly slower.
+
 ## Directory Structure
 
 ```

@@ -54,3 +54,34 @@ an interaction step (addition), and a top MLP to produce the final prediction.
 - CKKS FHE Scheme
 - Example run: `bazel run -c opt //demos/criteo/lattigo:evaluate_fhe`
 - [More Examples](https://github.com/google/fully-homomorphic-encryption/blob/main/demos/criteo/README.md)
+
+# Exporting torch to MLIR
+
+The process of exporting a PyTorch model to work with HEIR is not yet automated.
+The process involves:
+
+1. Selecting a torch model specification and pre-trained model file.
+2. Using [`torch-mlir`](https://github.com/llvm/torch-mlir) to export the torch
+   model and frozen weights to an MLIR file (cf.
+   `common/python/export_mlir_utils.py`).
+3. Writing a script that outputs range estimates for the inputs to all
+   activation functions (e.g., ReLU or sigmoid). Cf.
+   `demos/hotword/cleartext/calibrate.py` for an example.
+4. Annotating the MLIR ops (`linalg.generic`) that compute the activations
+   with range bound and a choice of polynomial degree (which controls the
+   accuracy of the approxmiation and allows one to trade off performance for
+   accuracy. Cf. `demos/cc_fraud/data/model_annotated.mlir` for an example. The
+   annotation has syntax like:
+
+```mlir
+    %5 = linalg.generic {
+        degree = 7 : i32,
+        domain_lower = -10.000000e+00 : f64,
+        domain_upper = 10.000000e+00 : f64,
+    ...} ins(%4 : tensor<1x128xf32>) outs(%1 : tensor<1x128xf32>) {
+    ... <activation ops> ...
+    } -> tensor<1x128xf32>
+```
+
+After you have an exported MLIR file with annotations, it can then be given
+as the `mlir_src` argument to a `rules_heir` macro like `heir_lattigo_lib`.

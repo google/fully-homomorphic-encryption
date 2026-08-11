@@ -10,9 +10,10 @@ HEIR_OPT_FLAGS = [
 ]
 
 heir_lattigo_lib(
-    name = "kitnet_model_lattigo",
-    go_library_name = "kitnet_model_lattigo",
+    name = "anomaly_model_lattigo",
+    go_library_name = "anomaly_model_lattigo",
     heir_opt_flags = HEIR_OPT_FLAGS,
+    importpath = "fully_homomorphic_encryption/demos/network_anomaly/lattigo/anomaly_model_lattigo",
     mlir_src = "//demos/network_anomaly/data:torch_kitnet_model_annotated.mlir",
     split_preprocessing = True,
 )
@@ -20,71 +21,61 @@ heir_lattigo_lib(
 go_library(
     name = "utils",
     srcs = ["utils.go"],
+    importpath = "fully_homomorphic_encryption/demos/network_anomaly/lattigo/utils",
     deps = [
         "//demos/common/go/pathutils",
     ],
 )
 
 go_binary(
-    name = "evaluate_lattigo",
+    name = "evaluate_fhe",
     srcs = [
-        "evaluate_lattigo.go",
+        "evaluate_fhe.go",
     ],
     data = [
         "//demos/network_anomaly/data:Mirai_first_batch_32K.bin",
         "//demos/network_anomaly/data:Mirai_labels.csv",
     ],
+    pure = "on",
     deps = [
-        ":kitnet_model_lattigo",
-        ":kitnet_model_lattigo_utils",
+        ":anomaly_model_lattigo",
+        ":anomaly_model_lattigo_utils",
         ":utils",
         "@com_github_tuneinsight_lattigo_v6//core/rlwe",
     ],
 )
 
 go_binary(
-    name = "evaluate_lattigo_suite",
+    name = "evaluate_fhe_suite",
     srcs = [
-        "evaluate_lattigo_suite.go",
+        "evaluate_fhe_suite.go",
     ],
     data = [
         "//demos/network_anomaly/data:Mirai_first_batch_32K.bin",
         "//demos/network_anomaly/data:Mirai_labels.csv",
     ],
+    pure = "on",
     deps = [
-        ":kitnet_model_lattigo",
-        ":kitnet_model_lattigo_utils",
+        ":anomaly_model_lattigo",
+        ":anomaly_model_lattigo_utils",
         ":utils",
         "@com_github_tuneinsight_lattigo_v6//core/rlwe",
     ],
 )
 
-heir_lattigo_lib(
-    name = "kitnet_model_lattigo_timing",
-    extra_srcs = [
-        "timing_helper.go",
-    ],
-    go_library_name = "kitnet_model_lattigo_timing",
-    heir_opt_flags = HEIR_OPT_FLAGS,
-    mlir_src = "//demos/network_anomaly/data:torch_kitnet_model_annotated.mlir",
-    split_preprocessing = True,
-    deps = [
-        "//demos/common/lattigo/debug",
-    ],
-)
-
 go_binary(
-    name = "evaluate_lattigo_timing",
+    name = "evaluate_fhe_timing",
     srcs = [
-        "evaluate_lattigo_timing.go",
+        "evaluate_fhe_timing.go",
     ],
     data = [
         "//demos/network_anomaly/data:Mirai_first_batch_32K.bin",
         "//demos/network_anomaly/data:Mirai_labels.csv",
     ],
+    pure = "on",
     deps = [
-        ":kitnet_model_lattigo_timing",
-        ":kitnet_model_lattigo_timing_utils",
+        ":anomaly_model_lattigo",
+        ":anomaly_model_lattigo_utils",
         ":utils",
     ],
 )

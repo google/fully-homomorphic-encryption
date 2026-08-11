@@ -1,3 +1,4 @@
+"""Export a torch model to mlir linalg."""
 import os
 import re
 import sys
@@ -5,7 +6,6 @@ import sys
 try:
   import torch
   import torch_mlir
-  import torch_mlir.fx
 
   TORCH_MLIR_AVAILABLE = True
 except ImportError:
@@ -17,7 +17,6 @@ def export_and_postprocess(
     example_input,
     output_file,
     entrypoint_name,
-    use_fx=True,
 ):
   """Exports a PyTorch model to MLIR and applies standard modifications.
 
@@ -27,8 +26,6 @@ def export_and_postprocess(
     output_file: Path to save the MLIR file.
     entrypoint_name: New name for the entrypoint function (e.g., 'mnist',
       'hotword').
-    use_fx: If True, use torch_mlir.fx.export_and_import. Otherwise, use
-      torch_mlir.compile on a frozen JIT trace.
   """
   if not TORCH_MLIR_AVAILABLE:
     print(
@@ -43,27 +40,12 @@ def export_and_postprocess(
     sys.exit(1)
 
   model.eval()
-
-  print(
-      "Exporting to MLIR (linalg-on-tensors) using"
-      f" {'FX' if use_fx else 'JIT'}..."
+  module = torch_mlir.fx.export_and_import(
+      model,
+      example_input,
+      output_type=torch_mlir.fx.OutputType.LINALG_ON_TENSORS,
   )
-  if use_fx:
-    module = torch_mlir.fx.export_and_import(
-        model,
-        example_input,
-        output_type=torch_mlir.fx.OutputType.LINALG_ON_TENSORS,
-    )
-    mlir_str = module.operation.get_asm(large_elements_limit=10)
-  else:
-    traced = torch.jit.trace(model, example_input)
-    frozen = torch.jit.freeze(traced)
-    module = torch_mlir.compile(
-        frozen,
-        example_input,
-        output_type=torch_mlir.OutputType.LINALG_ON_TENSORS,
-    )
-    mlir_str = module.operation.get_asm(large_elements_limit=10)
+  mlir_str = module.operation.get_asm(large_elements_limit=10)
 
   # Rename @main or @forward to @entrypoint_name
   mlir_str = re.sub(r"@main\b", f"@{entrypoint_name}", mlir_str)

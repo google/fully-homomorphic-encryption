@@ -54,7 +54,7 @@ heir_lattigo_lib(
     extra_srcs = ["timing_helper.go"],
     go_library_name = "mnist_timing",
     heir_opt_flags = HEIR_OPT_FLAGS,
-    importpath = "fully_homomorphic_encryption/demos/mnist/lattigo/mnist",
+    importpath = "fully_homomorphic_encryption/demos/mnist/lattigo/mnist_timing",
     mlir_src = "//demos/mnist/data:mnist_timing.mlir",
     split_preprocessing = True,
     deps = ["//demos/common/lattigo/debug"],
@@ -64,6 +64,7 @@ go_binary(
     name = "evaluate_fhe_timing",
     srcs = ["evaluate_fhe_timing.go"],
     data = ["//demos/mnist/data:mnist.npz"],
+    pure = "on",
     deps = [
         ":mnist_timing",
         ":mnist_timing_utils",

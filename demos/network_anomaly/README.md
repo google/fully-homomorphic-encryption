@@ -57,9 +57,9 @@ network_anomaly/
 │   └── evaluate_50_suite.py        # 50-feature multi-sample evaluation
 └── lattigo/                        # FHE evaluation via HEIR-generated Lattigo
     ├── BUILD                       # Uses heir_lattigo_lib rule
-    ├── evaluate_lattigo.go         # Single packet sample FHE evaluation
-    ├── evaluate_lattigo_suite.go   # Multi-sample FHE evaluation
-    ├── evaluate_lattigo_timing.go  # Breakdown phase latency benchmarking
+    ├── evaluate_fhe.go             # Single packet sample FHE evaluation
+    ├── evaluate_fhe_suite.go       # Multi-sample FHE evaluation
+    ├── evaluate_fhe_timing.go      # Breakdown phase latency benchmarking
     ├── timing_helper.go            # Wrapper over demos/common/lattigo/debug
     └── utils.go                    # Data & label loaders using pathutils
 ```
@@ -87,17 +87,17 @@ bazel run //demos/network_anomaly/cleartext:evaluate_50_suite -- --num_samples 1
 ### 3.3 Lattigo FHE Homomorphic Inference
 Evaluate a single packet sample under FHE encryption:
 ```bash
-bazel run //demos/network_anomaly/lattigo:evaluate_lattigo -- --sample_idx 0
+bazel run //demos/network_anomaly/lattigo:evaluate_fhe -- --sample_idx 0
 ```
 
 Evaluate a multi-sample batch under FHE and compute confusion matrix:
 ```bash
-bazel run //demos/network_anomaly/lattigo:evaluate_lattigo_suite -- --num_samples 10
+bazel run //demos/network_anomaly/lattigo:evaluate_fhe_suite -- --num_samples 10
 ```
 
 Benchmark FHE timing across encryption, evaluation, and decryption phases:
 ```bash
-bazel run //demos/network_anomaly/lattigo:evaluate_lattigo_timing -- --runs 3
+bazel run //demos/network_anomaly/lattigo:evaluate_fhe_timing -- --runs 3
 ```
 
 ### 3.4 Model Training & MLIR Export

@@ -10,7 +10,7 @@ heir_openfhe_lib(
     generated_lib_header = "mnist_openfhe_lib.inc.h",
     heir_opt_flags = [
         "--annotate-module=backend=openfhe scheme=ckks",
-        "--torch-linalg-to-ckks=min-slot-count=1024 greedy-modulus-switch-after-mul=true experimental-disable-loop-unroll=true greedy-level-budget=20",
+        "--torch-linalg-to-ckks=min-slot-count=1024 greedy-modulus-switch-after-mul=true experimental-disable-loop-unroll=true greedy-level-budget=11 first-mod-bits=30 scaling-mod-bits=24",
         "--scheme-to-openfhe",
     ],
     mlir_src = "//demos/mnist/data:mnist.mlir",
