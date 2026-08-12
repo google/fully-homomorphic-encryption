@@ -8,6 +8,7 @@ exports_files([
     "torch_50_kitnet_model_annotated.mlir",
     "torch_kitnet_model.pt",
     "torch_kitnet_model_annotated.mlir",
+    "torch_kitnet_model_timing.mlir",
 ])
 
 filegroup(

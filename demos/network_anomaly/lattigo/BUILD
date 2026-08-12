@@ -18,6 +18,19 @@ heir_lattigo_lib(
     split_preprocessing = True,
 )
 
+heir_lattigo_lib(
+    name = "anomaly_model_lattigo_timing",
+    extra_srcs = ["timing_helper.go"],
+    go_library_name = "anomaly_model_lattigo_timing",
+    heir_opt_flags = HEIR_OPT_FLAGS,
+    importpath = "fully_homomorphic_encryption/demos/network_anomaly/lattigo/anomaly_model_lattigo_timing",
+    mlir_src = "//demos/network_anomaly/data:torch_kitnet_model_timing.mlir",
+    split_preprocessing = True,
+    deps = [
+        "//demos/common/lattigo/debug",
+    ],
+)
+
 go_library(
     name = "utils",
     srcs = ["utils.go"],
@@ -74,8 +87,8 @@ go_binary(
     ],
     pure = "on",
     deps = [
-        ":anomaly_model_lattigo",
-        ":anomaly_model_lattigo_utils",
+        ":anomaly_model_lattigo_timing",
+        ":anomaly_model_lattigo_timing_utils",
         ":utils",
     ],
 )
