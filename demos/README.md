@@ -11,7 +11,7 @@ identification problem.
 
 - 3-layer MLP neural network
 - CKKS FHE scheme
-- Example run: `bazel run //demos/mnist/lattigo:evaluate_single`
+- Example run: `bazel run -c opt //demos/mnist/lattigo:evaluate_fhe`
 - [More examples](https://github.com/google/fully-homomorphic-encryption/blob/main/demos/mnist/README.md)
 
 ## Credit Card Fraud
@@ -31,7 +31,7 @@ ensemble layer of multiple parallel autoencoders and a final output
 anomaly detector layer.
 
 - CKKS FHE scheme
-- Example run: `bazel run -c opt //demos/network_anomaly/lattigo:evaluate_lattigo -- --sample_idx 0`
+- Example run: `bazel run -c opt //demos/network_anomaly/lattigo:evaluate_fhe -- --sample_idx 0`
 - [More Examples](https://github.com/google/fully-homomorphic-encryption/blob/main/demos/network_anomaly/README.md)
 
 ## Hotword Keyword Spotting
@@ -41,7 +41,7 @@ spotting / wake-word detection.
 
 - TC-ResNet8 model trained on Speech Commands dataset.
 - CKKS FHE scheme.
-- Example run: `bazel run //demos/hotword/lattigo:evaluate_single`
+- Example run: `bazel run -c opt //demos/hotword/lattigo:evaluate_fhe`
 - [More examples](https://github.com/google/fully-homomorphic-encryption/blob/main/demos/hotword/README.md)
 
 ## Private Content Recommendation
