@@ -44,7 +44,7 @@ spotting / wake-word detection.
 - Example run: `bazel run //demos/hotword/lattigo:evaluate_single`
 - [More examples](https://github.com/google/fully-homomorphic-encryption/blob/main/demos/hotword/README.md)
 
-## Private Content Recoomendation
+## Private Content Recommendation
 
  Deep Learning Recommendation Model, Homomorphic Encryption Logistic Regression Model (HELRM),that unlocks serving private content recommendations.
 
