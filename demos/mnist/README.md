@@ -23,13 +23,13 @@ To run unencrypted baseline inference in Python:
 *   **Single Sample Evaluation:**
 
     ```bash
-    bazel run //demos/mnist/cleartext:evaluate_cleartext -- --sample_idx=0
+    bazel run -c opt //demos/mnist/cleartext:evaluate_cleartext -- --sample_idx=0
     ```
 
 *   **Batched Suite Evaluation:**
 
     ```bash
-    bazel run //demos/mnist/cleartext:evaluate_cleartext_suite
+    bazel run -c opt //demos/mnist/cleartext:evaluate_cleartext_suite
     ```
 
 ## Lattigo (Go) FHE Evaluation
@@ -39,13 +39,13 @@ To run FHE evaluation using the Lattigo Go backend:
 *   **Single Sample Evaluation:**
 
     ```bash
-    bazel run //demos/mnist/lattigo:evaluate_fhe -- --sample_idx=0
+    bazel run -c opt //demos/mnist/lattigo:evaluate_fhe -- --sample_idx=0
     ```
 
 *   **Batched Suite Evaluation:**
 
     ```bash
-    bazel run //demos/mnist/lattigo:evaluate_fhe_suite
+    bazel run -c opt //demos/mnist/lattigo:evaluate_fhe_suite
     ```
 
 ## OpenFHE (C++/Python) FHE Evaluation
@@ -55,11 +55,11 @@ To run FHE evaluation using the OpenFHE C++ backend via Python bindings:
 *   **Single Sample Evaluation:**
 
     ```bash
-    bazel run //demos/mnist/openfhe:evaluate_fhe -- --sample_idx=0
+    bazel run -c opt //demos/mnist/openfhe:evaluate_fhe -- --sample_idx=0
     ```
 
 *   **Batched Suite Evaluation:**
 
     ```bash
-    bazel run //demos/mnist/openfhe:evaluate_fhe_suite
+    bazel run -c opt //demos/mnist/openfhe:evaluate_fhe_suite
     ```
