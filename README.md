@@ -12,7 +12,7 @@ versions.
 Intermediate Representation), HEIR provides the abstraction necessary to
 represent and scale complex models across diverse dialects.
 
-Check out the [FHE repository](https://github.com/google/fully-homomorphic-encryption) to see HEIR in action! The team, with help from close collaborators, is currently tackling a variety of models, including CNNs, to unlock transformative use cases for developers—all without requiring you to master cryptography or the complex nuances of FHE.
+Check out the [FHE Demos repository](https://github.com/google/fully-homomorphic-encryption/demos) to see HEIR in action! The team, with help from close collaborators, is currently tackling a variety of models, including CNNs, to unlock transformative use cases for developers—all without requiring you to master cryptography or the complex nuances of FHE.
 
 ### A little History
 
@@ -29,6 +29,10 @@ written in JAX.
 Note: Looking for the original "Google Transpiler" project? See the [archived
 codebase](https://github.com/google/fully-homomorphic-encryption/releases/tag/transpiler)
 
+### Reach out
+Interested in working with us on FHE, HEIR, or Jaxite?
+Check out [HEIR Community Outreach Links](https://heir.dev/community/)
+
 ### What is [Fully Homomorphic Encryption](https://en.wikipedia.org/wiki/Homomorphic_encryption)?
 
 FHE is a breakthrough privacy technology that allows computers to process data
@@ -39,8 +43,9 @@ being processed.
 ####How It Works
 **Encrypted Computation:** Traditional systems must decrypt data to process it. FHE allows mathematical operations—like addition and multiplication—to be performed directly on encrypted "ciphertext."
 
-**The Result:** When the final result is decrypted, it yields equivalent results, as if the operations had been performed on
-the original, unencrypted data.
+**The Result:** When the final result is decrypted, it yields equivalent
+results, as if the operations had been performed on the original,
+unencrypted data.
 
 **Evolution:** Long a theoretical concept, FHE has matured into a practical
 tool, with current research focused on optimizing speed and efficiency for
