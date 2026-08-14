@@ -12,7 +12,7 @@ versions.
 Intermediate Representation), HEIR provides the abstraction necessary to
 represent and scale complex models across diverse dialects.
 
-Check out the [FHE Demos repository](https://github.com/google/fully-homomorphic-encryption/demos) to see HEIR in action! The team, with help from close collaborators, is currently tackling a variety of models, including CNNs, to unlock transformative use cases for developers—all without requiring you to master cryptography or the complex nuances of FHE.
+Check out the [FHE Demos repository](https://github.com/google/fully-homomorphic-encryption/tree/main/demos#readme) to see HEIR in action! The team, with help from close collaborators, is currently tackling a variety of models, including CNNs, to unlock transformative use cases for developers—all without requiring you to master cryptography or the complex nuances of FHE.
 
 ### A little History
 
