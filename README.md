@@ -40,7 +40,7 @@ while it remains encrypted. Unlike standard encryption, which protects data
 only when idle, FHE ensures your information stays private even while it is
 being processed.
 
-####How It Works
+#### How It Works
 **Encrypted Computation:** Traditional systems must decrypt data to process it. FHE allows mathematical operations—like addition and multiplication—to be performed directly on encrypted "ciphertext."
 
 **The Result:** When the final result is decrypted, it yields equivalent
