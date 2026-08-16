@@ -1,16 +1,15 @@
-"""Inference and validation script to measure activation ranges for MLPSigmoid."""
+"""Cleartext evaluation runner for a single credit card fraud sample using PyTorch."""
 
+import argparse
 import os
 import pickle
+import sys
+import time
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import f1_score
-from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 import torch
-from torch import nn
 
 from demos.cc_fraud.torch.model import MLPSigmoid
 from demos.common.python import path_utils
@@ -18,123 +17,147 @@ from demos.common.python import path_utils
 resolve_path = path_utils.resolve_path
 
 
-def main():
-  if "BUILD_WORKSPACE_DIRECTORY" in os.environ:
-    os.chdir(os.environ["BUILD_WORKSPACE_DIRECTORY"])
-
-  checkpoint_path = resolve_path(
-      "demos/cc_fraud/data/mlp_fraud_model_sigmoid.pt"
-  )
-  feature_cols_path = resolve_path(
-      "demos/cc_fraud/data/feature_cols.pkl"
-  )
-
-  print(f"Loading checkpoint from {checkpoint_path}...")
-  checkpoint = torch.load(
-      checkpoint_path, map_location="cpu", weights_only=False
-  )
-
-  input_dim = checkpoint["input_dim"]
-  hidden_dims = checkpoint["hidden_dims"]
-  num_classes = checkpoint["n_classes"]
-
-  print(
-      f"Model parameters: input_dim={input_dim}, hidden_dims={hidden_dims},"
-      f" num_classes={num_classes}"
-  )
-
-  # Instantiate model and load state dict
-  model = MLPSigmoid(input_dim, hidden_dims, num_classes)
-  model.load_state_dict(checkpoint["model_state_dict"])
-  model.eval()
-
-  # Load data
-  feature_cols = pickle.load(open(feature_cols_path, "rb"))
-  try:
-    print("Loading test data from parquet...")
-    # The dataset sparkov_fraud_encoded.parquet is not included in the repository.
-    # See the README.md in the parent directory for instructions on how to download
-    # and preprocess the Kaggle Credit Card Fraud Detection dataset.
-    parquet_path = resolve_path(
-        "demos/cc_fraud/data/sparkov_fraud_encoded.parquet"
+def load_sample(
+    data_path: str, feature_cols: list[str], sample_idx: int
+) -> tuple[np.ndarray, int]:
+  """Loads a single sample from the dataset."""
+  resolved_data_path = resolve_path(data_path)
+  if not os.path.exists(resolved_data_path):
+    raise FileNotFoundError(
+        f"Data file not found at {data_path} (resolved:"
+        f" {resolved_data_path})"
     )
-    df = pd.read_parquet(parquet_path)
+
+  if data_path.endswith(".parquet"):
+    df = pd.read_parquet(resolved_data_path)
     X = df[feature_cols].values.astype(np.float32)
     y = df["is_fraud"].values.astype(np.int64)
     # Retrieve the test split (same random seed/stratify as train.py)
     _, X_test, _, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
-  except (FileNotFoundError, Exception) as e:  # pylint: disable=broad-except
-    print(f"Failed to load parquet: {e}")
-    print("Falling back to test_rows.csv...")
-    csv_path = resolve_path(
-        "demos/cc_fraud/data/test_rows.csv"
-    )
-    df = pd.read_csv(csv_path)
+  elif data_path.endswith(".csv"):
+    df = pd.read_csv(resolved_data_path)
     y_test = df["is_fraud"].values.astype(np.int64)
     X_test = df[feature_cols].values.astype(np.float32)
+  else:
+    raise ValueError(
+        f"Unsupported data format: {data_path}. Expected .parquet or .csv"
+    )
 
-  X_test_tensor = torch.tensor(X_test)
+  if sample_idx < 0 or sample_idx >= len(X_test):
+    raise ValueError(
+        f"Sample index {sample_idx} out of range [0, {len(X_test) - 1}]"
+    )
 
-  # Register forward hooks on Linear layers (except the final output layer) to
-  # capture inputs to Sigmoid
-  activation_outputs = {}
+  return X_test[sample_idx : sample_idx + 1], y_test[sample_idx]
 
-  def make_hook(name):
-    # pylint: disable=unused-argument
-    def hook(module, input_tensor, output):
-      activation_outputs[name] = output.detach()
 
-    # pylint: enable=unused-argument
+def evaluate_single(
+    model_path: str,
+    feature_cols_path: str,
+    data_path: str,
+    sample_idx: int,
+) -> None:
+  """Loads the model and evaluates a single fraud detection sample."""
+  resolved_model_path = resolve_path(model_path)
+  if not os.path.exists(resolved_model_path):
+    raise FileNotFoundError(
+        f"Model file not found at {model_path} (resolved:"
+        f" {resolved_model_path})"
+    )
 
-    return hook
+  print(f"Loading model from: {resolved_model_path}")
+  checkpoint = torch.load(
+      resolved_model_path, map_location="cpu", weights_only=False
+  )
 
-  hooks = []
-  linear_count = 0
-  for name, module in model.named_modules():
-    if isinstance(module, nn.Linear) and module is not model.net[-1]:
-      hook_name = f"Linear_{linear_count}"
-      hooks.append(module.register_forward_hook(make_hook(hook_name)))
-      linear_count += 1
+  input_dim = checkpoint["input_dim"]
+  hidden_dims = checkpoint["hidden_dims"]
+  num_classes = checkpoint["n_classes"]
 
-  print(f"Registered {len(hooks)} hooks on Linear layers.")
+  model = MLPSigmoid(input_dim, hidden_dims, num_classes)
+  model.load_state_dict(checkpoint["model_state_dict"])
+  model.eval()
 
-  # Run evaluation
-  print("Running validation on the test set...")
+  # Load feature columns
+  resolved_feature_cols_path = resolve_path(feature_cols_path)
+  if not os.path.exists(resolved_feature_cols_path):
+    raise FileNotFoundError(
+        f"Feature columns file not found at {feature_cols_path} (resolved:"
+        f" {resolved_feature_cols_path})"
+    )
+  feature_cols = pickle.load(open(resolved_feature_cols_path, "rb"))
+
+  # Load sample
+  sample, label = load_sample(data_path, feature_cols, sample_idx)
+  input_tensor = torch.from_numpy(sample)
+
+  start_time = time.perf_counter()
   with torch.no_grad():
-    logits = model(X_test_tensor)
-    probs = torch.softmax(logits, dim=1).numpy()
-    preds = np.argmax(probs, axis=1)
+    logits = model(input_tensor)
+    probs = torch.softmax(logits, dim=1)
+  end_time = time.perf_counter()
 
-  acc = accuracy_score(y_test, preds)
-  f1 = f1_score(y_test, preds)
-  auc = roc_auc_score(y_test, probs[:, 1])
+  latency_ms = (end_time - start_time) * 1000.0
+  pred = int(torch.argmax(probs, dim=1).item())
+  fraud_prob = probs[0, 1].item()
+  is_correct = pred == label
 
-  print("\nValidation Metrics:")
-  print(f"  Accuracy: {acc:.6f}")
-  print(f"  F1 Score: {f1:.6f}")
-  print(f"  ROC AUC:  {auc:.6f}")
+  print(f"\nEvaluating Credit Card Fraud Sample Index: {sample_idx}")
+  print(f"True Label:      {label} ({'FRAUD' if label == 1 else 'LEGITIMATE'})")
+  print(
+      f"Predicted Label: {pred} ({'FRAUD' if pred == 1 else 'LEGITIMATE'})"
+  )
+  print(f"Fraud Probability: {fraud_prob:.6f}")
+  print(f"Result:          {'CORRECT' if is_correct else 'INCORRECT'}")
+  print(f"Latency:         {latency_ms:.4f} ms")
 
-  # Process and print activation ranges from the hooks
-  print("\nActivation Ranges (outputs of Linear / inputs to Sigmoid):")
-  for name, output in activation_outputs.items():
-    flat = output.flatten().numpy()
-    mn = flat.min().item()
-    mx = flat.max().item()
-    p01 = np.percentile(flat, 1).item()
-    p99 = np.percentile(flat, 99).item()
-    p001 = np.percentile(flat, 0.1).item()
-    p999 = np.percentile(flat, 99.9).item()
 
-    print(f"Layer {name}:")
-    print(f"  Absolute range:                 [{mn:.4f}, {mx:.4f}]")
-    print(f"  98% range (0.01 to 0.99):       [{p01:.4f}, {p99:.4f}]")
-    print(f"  99.8% range (0.001 to 0.999):   [{p001:.4f}, {p999:.4f}]")
+def main():
+  parser = argparse.ArgumentParser(
+      description="Evaluate cleartext credit card fraud model on a single"
+      " sample."
+  )
+  parser.add_argument(
+      "--sample_idx",
+      type=int,
+      default=0,
+      help="Index of the sample to evaluate",
+  )
+  parser.add_argument(
+      "--model_path",
+      type=str,
+      default="demos/cc_fraud/data/mlp_fraud_model_sigmoid.pt",
+      help="Path to PyTorch model checkpoint file",
+  )
+  parser.add_argument(
+      "--feature_cols_path",
+      type=str,
+      default="demos/cc_fraud/data/feature_cols.pkl",
+      help="Path to feature columns pickle file",
+  )
+  parser.add_argument(
+      "--data_path",
+      type=str,
+      default="demos/cc_fraud/data/test_rows.csv",
+      help=(
+          "Path to test data file (.csv or .parquet). For parquet files, the"
+          " test split will be extracted; for CSV files, all rows are used."
+      ),
+  )
+  args = parser.parse_args()
 
-  # Remove hooks
-  for h in hooks:
-    h.remove()
+  try:
+    evaluate_single(
+        args.model_path,
+        args.feature_cols_path,
+        args.data_path,
+        args.sample_idx,
+    )
+  except Exception as e:
+    print(f"Error evaluating sample {args.sample_idx}: {e}", file=sys.stderr)
+    sys.exit(1)
 
 
 if __name__ == "__main__":

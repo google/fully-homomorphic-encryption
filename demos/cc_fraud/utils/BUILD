@@ -9,6 +9,7 @@ py_library(
     deps = [
         requirement("numpy"),
         requirement("pandas"),
+        requirement("pyarrow"),
     ],
 )
 
@@ -18,6 +19,7 @@ py_binary(
     deps = [
         requirement("numpy"),
         requirement("pandas"),
+        requirement("pyarrow"),
     ],
 )
 
@@ -25,6 +27,7 @@ py_binary(
     name = "encode_data",
     srcs = ["encode_data.py"],
     data = [
+        "//demos/cc_fraud/data:sparkov_fraud_prepped.parquet",
         "//demos/cc_fraud/data:encoder_mappings.json",
         "//demos/cc_fraud/data:feature_cols.pkl",
         "//demos/cc_fraud/data:scaler.pkl",
@@ -33,6 +36,8 @@ py_binary(
         "//demos/common/python:path_utils",
         requirement("numpy"),
         requirement("pandas"),
+        requirement("pyarrow"),
+        requirement("scikit-learn"),
     ],
 )
 
@@ -45,5 +50,6 @@ py_binary(
     deps = [
         "//demos/common/python:path_utils",
         requirement("pandas"),
+        requirement("pyarrow"),
     ],
 )
