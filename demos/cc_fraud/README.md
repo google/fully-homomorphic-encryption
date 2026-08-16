@@ -53,32 +53,103 @@ preprocess the raw dataset:
 
     ```bash
     bazel run //demos/cc_fraud/utils:prep_data -- \
-      --train_csv=/path/to/fraudTrain.csv \
-      --test_csv=/path/to/fraudTest.csv \
-      --output=sparkov_fraud_prepped.parquet
+      --train_csv /absolute/path/to/fraudTrain.csv \
+      --test_csv /absolute/path/to/fraudTest.csv \
+      --output /absolute/path/to/sparkov_fraud_prepped.parquet
+    ```
+
+    Or run the binary directly from the workspace root:
+
+    ```bash
+    ./bazel-bin/demos/cc_fraud/utils/prep_data \
+      --train_csv /absolute/path/to/fraudTrain.csv \
+      --test_csv /absolute/path/to/fraudTest.csv \
+      --output demos/cc_fraud/data/sparkov_fraud_prepped.parquet
     ```
 
 3.  **Encode the data:** Run the encoding script to apply ordinal encoding,
     one-hot encoding, and scaling:
 
     ```bash
-    bazel run //demos/cc_fraud/utils:encode_data
+    bazel run //demos/cc_fraud/utils:encode_data -- \
+      --input /absolute/path/to/sparkov_fraud_prepped.parquet \
+      --output /absolute/path/to/sparkov_fraud_encoded.parquet \
+      --mappings /absolute/path/to/demos/cc_fraud/data/encoder_mappings.json \
+      --scaler /absolute/path/to/demos/cc_fraud/data/scaler.pkl \
+      --feature_cols /absolute/path/to/demos/cc_fraud/data/feature_cols.pkl
     ```
 
-    This will generate `sparkov_fraud_encoded.parquet` in this directory, which
-    is used by the training and inference scripts.
+    Or run the binary directly from the workspace root with default paths:
+
+    ```bash
+    ./bazel-bin/demos/cc_fraud/utils/encode_data
+    ```
+
+    This will generate `sparkov_fraud_encoded.parquet`, which is used by the
+    training and inference scripts.
+
+4.  **Extract test rows (optional):** To create a small CSV sample for testing:
+
+    ```bash
+    bazel run //demos/cc_fraud/utils:extract_test_rows -- \
+      --input /absolute/path/to/sparkov_fraud_encoded.parquet \
+      --output /absolute/path/to/test_rows.csv \
+      --feature_cols /absolute/path/to/demos/cc_fraud/data/feature_cols.pkl \
+      --num_fraud 10 \
+      --num_non_fraud 10
+    ```
+
+    Or run the binary directly from the workspace root:
+
+    ```bash
+    ./bazel-bin/demos/cc_fraud/utils/extract_test_rows
+    ```
 
 ## Cleartext Evaluation
 
-To run the unencrypted baseline inference in Python:
+The cleartext directory provides two binaries for unencrypted baseline evaluation:
+
+### Single Sample Evaluation
+
+To evaluate a single sample from the test dataset:
 
 ```bash
-bazel run //demos/cc_fraud/cleartext:evaluate_cleartext
+bazel run //demos/cc_fraud/cleartext:evaluate_cleartext -- \
+  --sample_idx 0 \
+  --model_path /absolute/path/to/demos/cc_fraud/data/mlp_fraud_model_sigmoid.pt \
+  --feature_cols_path /absolute/path/to/demos/cc_fraud/data/feature_cols.pkl \
+  --data_path /absolute/path/to/demos/cc_fraud/data/test_rows.csv
 ```
 
-This script loads the pre-trained model, runs inference on the test set (falling
-back to `test_rows.csv` if the full parquet is not present), and prints
-validation metrics and activation ranges.
+Or run the binary directly from the workspace root with default paths:
+
+```bash
+./bazel-bin/demos/cc_fraud/cleartext/evaluate_cleartext --sample_idx 0
+```
+
+This evaluates a single sample and prints the prediction, true label, fraud
+probability, and latency.
+
+### Activation Range Estimation (Calibration)
+
+To estimate activation ranges for FHE parameter selection:
+
+```bash
+bazel run //demos/cc_fraud/cleartext:estimate_ranges -- \
+  --model_path /absolute/path/to/demos/cc_fraud/data/mlp_fraud_model_sigmoid.pt \
+  --feature_cols_path /absolute/path/to/demos/cc_fraud/data/feature_cols.pkl \
+  --data_path /absolute/path/to/demos/cc_fraud/data/test_rows.csv
+```
+
+Or run the binary directly from the workspace root with default paths:
+
+```bash
+./bazel-bin/demos/cc_fraud/cleartext/estimate_ranges
+```
+
+This script loads the pre-trained model, runs inference on the test set, and
+prints validation metrics and activation ranges for each layer. The activation
+ranges help determine appropriate scaling parameters for FHE encryption.
 
 ## FHE Evaluation
 

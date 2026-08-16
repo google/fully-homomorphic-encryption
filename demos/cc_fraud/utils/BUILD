@@ -26,12 +26,7 @@ py_binary(
 py_binary(
     name = "encode_data",
     srcs = ["encode_data.py"],
-    data = [
-        "//demos/cc_fraud/data:sparkov_fraud_prepped.parquet",
-        "//demos/cc_fraud/data:encoder_mappings.json",
-        "//demos/cc_fraud/data:feature_cols.pkl",
-        "//demos/cc_fraud/data:scaler.pkl",
-    ],
+    main = "encode_data.py",
     deps = [
         "//demos/common/python:path_utils",
         requirement("numpy"),
@@ -44,9 +39,7 @@ py_binary(
 py_binary(
     name = "extract_test_rows",
     srcs = ["extract_test_rows.py"],
-    data = [
-        "//demos/cc_fraud/data:feature_cols.pkl",
-    ],
+    main = "extract_test_rows.py",
     deps = [
         "//demos/common/python:path_utils",
         requirement("pandas"),
