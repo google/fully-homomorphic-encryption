@@ -1,0 +1,7 @@
+__pycache__
+MODULE.bazel.lock
+bazel-bin
+bazel-fully-homomorphic-encryption
+bazel-out
+bazel-testlogs
+venv/

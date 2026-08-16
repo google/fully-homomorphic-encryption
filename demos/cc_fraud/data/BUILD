@@ -7,4 +7,6 @@ exports_files([
     "model_annotated.mlir",
     "scaler.pkl",
     "test_rows.csv",
+    "sparkov_fraud_prepped.parquet",
+    "sparkov_fraud_encoded.parquet",
 ])
