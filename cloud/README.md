@@ -113,7 +113,7 @@ terraform apply -auto-approve
 ### 1. Tunnel Securely over SSH (via IAP)
 Since the VM contains no public IP address, access it securely over Identity-Aware Proxy:
 ```bash
-gcloud compute ssh l4-gpu-vm --zone us-west1-b --tunnel-through-iap
+gcloud compute ssh {machine name here} --zone {your zone here} --tunnel-through-iap
 ```
 
 ### 2. Monitor GPU Installation and Docker Startup
@@ -132,12 +132,12 @@ nvidia-smi
 ### 4. Check Bazel tooling
 Test compilation inside the active Docker container:
 ```bash
-sudo docker exec -it my-ai-app bazel --help
+sudo docker exec -it fhe-machine bazel --help
 ```
 
 You can run mlir files if you have it in your directory
 ```bash
-sudo docker exec -it my-ai-app bazel run //tools:heir-opt -- \
+sudo docker exec -it fhe-machine bazel run //tools:heir-opt -- \
   --mlir-to-cggi add_one_lut3.mlir \
   -o add_one_cggi.mlir
 ```
@@ -146,7 +146,7 @@ sudo docker exec -it my-ai-app bazel run //tools:heir-opt -- \
 Login into the docker instance
 
 ```bash
-sudo docker exec -it my-ai-app /bin/bash
+sudo docker exec -it fhe-machine /bin/bash
 ```
 
 Use Bazel to execute it
