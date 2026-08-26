@@ -154,9 +154,9 @@ resource "google_compute_instance" "gpu_vm" {
       IMAGE_URL="${var.artifact_registry_region}-docker.pkg.dev/${var.project_id}/${var.image_name}"
       docker pull $IMAGE_URL
 
-      # Run the container with all GPUs exposed, kept awake by sleep infinity
+      # Run the container with all GPUs exposed
       docker run -d \
-        --name my-ai-app \
+        --name fhe-machine \
         --gpus all \
         --entrypoint tail \
         --restart unless-stopped \
