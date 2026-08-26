@@ -59,5 +59,5 @@ RUN git clone https://github.com/google/heir.git /tmp/heir-repo \
     && rm -rf /tmp/heir-repo
 
 # Set the default execution command for the container
-ENTRYPOINT ["/usr/local/bin/heir-opt"]
+ENTRYPOINT ["/usr/local/bin/bazel"]
 CMD ["--help"]

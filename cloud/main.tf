@@ -52,21 +52,14 @@ resource "google_service_account" "gpu_vm_sa" {
   project      = var.project_id
 }
 
-resource "google_project_iam_member" "sa_logging" {
+resource "google_project_iam_member" "gpu_vm_sa_roles" {
+  for_each = toset([
+    "roles/logging.logWriter",
+    "roles/monitoring.metricWriter",
+    "roles/artifactregistry.reader"
+  ])
   project = var.project_id
-  role    = "roles/logging.logWriter"
-  member  = "serviceAccount:${google_service_account.gpu_vm_sa.email}"
-}
-
-resource "google_project_iam_member" "sa_monitoring" {
-  project = var.project_id
-  role    = "roles/monitoring.metricWriter"
-  member  = "serviceAccount:${google_service_account.gpu_vm_sa.email}"
-}
-
-resource "google_project_iam_member" "sa_registry" {
-  project = var.project_id
-  role    = "roles/artifactregistry.reader"
+  role    = each.value
   member  = "serviceAccount:${google_service_account.gpu_vm_sa.email}"
 }
 
@@ -161,13 +154,13 @@ resource "google_compute_instance" "gpu_vm" {
       IMAGE_URL="${var.artifact_registry_region}-docker.pkg.dev/${var.project_id}/${var.image_name}"
       docker pull $IMAGE_URL
 
-      # Run the container with all GPUs exposed
+      # Run the container with all GPUs exposed, kept awake by sleep infinity
       docker run -d \
         --name my-ai-app \
         --gpus all \
+        --entrypoint tail \
         --restart unless-stopped \
         --security-opt seccomp=unconfined \
-        -p 8080:8080 \
         $IMAGE_URL \
         -f /dev/null
 

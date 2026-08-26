@@ -129,14 +129,27 @@ Run `nvidia-smi` to confirm that the physical GPU is healthy and recognized:
 nvidia-smi
 ```
 
-### 4. Execute HEIR Compiler Tasks
+### 4. Check Bazel tooling
 Test compilation inside the active Docker container:
 ```bash
-sudo docker exec -it my-ai-app heir-opt --help
+sudo docker exec -it my-ai-app bazel --help
 ```
 
-### 4. Execute an example
-Use Bazel to install execute it
+You can run mlir files if you have it in your directory
+```bash
+sudo docker exec -it my-ai-app bazel run //tools:heir-opt -- \
+  --mlir-to-cggi add_one_lut3.mlir \
+  -o add_one_cggi.mlir
+```
+
+### 5. Execute an example
+Login into the docker instance
+
+```bash
+sudo docker exec -it my-ai-app /bin/bash
+```
+
+Use Bazel to execute it
 ```bash
 bazel run //tools:heir-opt -- \
   --mlir-to-cggi $(pwd)/tests/Examples/jaxite/add_one_lut3.mlir \
