@@ -1,0 +1,48 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Core GCP Settings
+project_id = ""
+region     = "us-west1"
+zone       = "us-west1-b"
+
+# VM Configuration
+instance_name  = ""
+boot_image     = "ubuntu-os-cloud/ubuntu-2204-lts"
+boot_disk_size = 250
+boot_disk_type = "pd-ssd"
+
+# Access Control (IAP secure tunneling)
+user_email = ""
+
+# Container & Compilation Settings
+artifact_registry_region = "us-central1"
+image_name               = "heir/heirimage:latest"
+
+enable_confidential_vm   = false
+
+# Option A: Cost-Effective / General Purpose (Highly compatible & cost-efficient)
+machine_type = "n1-standard-4"
+gpu_type     = "nvidia-tesla-t4"
+gpu_count    = 1
+
+# Option B: Mid-Range Next-Gen L4 (Uncomment to use G2 machines with L4 GPU)
+# machine_type = "g2-standard-4"
+# gpu_type     = "nvidia-l4"
+# gpu_count    = 1
+
+# Option C: Extreme Performance (Uncomment to use A3 machines with H100 GPUs)
+# machine_type = "a3-highgpu-8g"
+# gpu_type     = "nvidia-h100-80gb"
+# gpu_count    = 1
