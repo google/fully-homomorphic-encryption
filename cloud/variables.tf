@@ -49,7 +49,7 @@ The machine type used for the GPU VM.
 Must be compatible with the selected GPU accelerator.
 - For Tesla T4 (nvidia-tesla-t4): 'n1-standard-4' (or larger N1 types) is recommended.
 - For NVIDIA L4 (nvidia-l4): 'g2-standard-4' (or larger G2 types) is recommended.
-- For NVIDIA H100 (nvidia-h100-80gb): 'a3-highgpu-8g' is recommended.
+- For NVIDIA H100 (nvidia-h100-80gb): 'a3-highgpu-1g' is recommended.
 EOF
 }
 

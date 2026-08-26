@@ -43,6 +43,6 @@ gpu_count    = 1
 # gpu_count    = 1
 
 # Option C: Extreme Performance (Uncomment to use A3 machines with H100 GPUs)
-# machine_type = "a3-highgpu-8g"
+# machine_type = "a3-highgpu-1g"
 # gpu_type     = "nvidia-h100-80gb"
 # gpu_count    = 1
