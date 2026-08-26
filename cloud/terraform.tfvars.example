@@ -42,7 +42,7 @@ gpu_count    = 1
 # gpu_type     = "nvidia-l4"
 # gpu_count    = 1
 
-# Option C: Extreme Performance (Uncomment to use A3 machines with H100 GPUs)
+# Option C: Extreme Performance (Uncomment to use A3 machines with H100 GPUs) ONLY OPTION FOR CONFIDENTIAL COMPUTING
 # machine_type = "a3-highgpu-1g"
 # gpu_type     = "nvidia-h100-80gb"
 # gpu_count    = 1
