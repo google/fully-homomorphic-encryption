@@ -1,5 +1,6 @@
 """Encode raw Sparkov fraud data into the model-ready feature representation."""
 
+import argparse
 import json
 import os
 import pickle
@@ -92,12 +93,46 @@ def encode_dataframe(
 
 
 def main():
-  prepped_path = path_utils.resolve_path(
-      "demos/cc_fraud/data/sparkov_fraud_prepped.parquet"
+  parser = argparse.ArgumentParser(
+      description="Encode raw Sparkov fraud data into model-ready features."
   )
-  encoded_path = path_utils.resolve_path(
-      "demos/cc_fraud/data/sparkov_fraud_encoded.parquet"
+  parser.add_argument(
+      "--input",
+      type=str,
+      default="demos/cc_fraud/data/sparkov_fraud_prepped.parquet",
+      help="Path to input prepped parquet file",
   )
+  parser.add_argument(
+      "--output",
+      type=str,
+      default="demos/cc_fraud/data/sparkov_fraud_encoded.parquet",
+      help="Path to output encoded parquet file",
+  )
+  parser.add_argument(
+      "--mappings",
+      type=str,
+      default="demos/cc_fraud/data/encoder_mappings.json",
+      help="Path to encoder mappings JSON file",
+  )
+  parser.add_argument(
+      "--scaler",
+      type=str,
+      default="demos/cc_fraud/data/scaler.pkl",
+      help="Path to scaler pickle file",
+  )
+  parser.add_argument(
+      "--feature_cols",
+      type=str,
+      default="demos/cc_fraud/data/feature_cols.pkl",
+      help="Path to feature columns pickle file",
+  )
+  args = parser.parse_args()
+
+  prepped_path = path_utils.resolve_path(args.input)
+  encoded_path = path_utils.resolve_path(args.output)
+  mappings_path = path_utils.resolve_path(args.mappings)
+  scaler_path = path_utils.resolve_path(args.scaler)
+  feature_cols_path = path_utils.resolve_path(args.feature_cols)
 
   if not os.path.exists(prepped_path):
     print(f"Error: Prepped data not found at {prepped_path}", file=sys.stderr)
@@ -108,36 +143,13 @@ def main():
   print(f"  Raw shape: {raw.shape}")
 
   print("Encoding...")
-  encoded = encode_dataframe(raw)
-  print(f"  Encoded shape: {encoded.shape}")
-
-  # Verify against the supplied encoded reference if it exists
-  print()
-  ref_encoded_path = path_utils.resolve_path(
-      "demos/cc_fraud/data/sparkov_fraud_encoded.parquet"
+  encoded = encode_dataframe(
+      raw,
+      mappings_path=mappings_path,
+      scaler_path=scaler_path,
+      feature_cols_path=feature_cols_path,
   )
-  if os.path.exists(ref_encoded_path) and ref_encoded_path != encoded_path:
-    print(f"Verifying against reference at {ref_encoded_path}...")
-    reference = pd.read_parquet(ref_encoded_path)
-    if (
-        set(encoded.columns) == set(reference.columns)
-        and encoded.shape == reference.shape
-    ):
-      # Compare values within numerical tolerance
-      feature_cols = [c for c in encoded.columns if c != "is_fraud"]
-      diff = encoded[feature_cols].values - reference[feature_cols].values
-      max_abs = float(np.abs(diff).max())
-      print(f"  Shapes match: {encoded.shape}")
-      print(f"  Max absolute difference vs reference: {max_abs:.2e}")
-      if max_abs < 1e-3:
-        print(
-            "  PASS — encoded output matches the supplied reference (within"
-            " float precision)."
-        )
-      else:
-        print("  WARNING — encoded output deviates from supplied reference.")
-    else:
-      print("  Shape or column mismatch with reference.")
+  print(f"  Encoded shape: {encoded.shape}")
 
   # Save the encoded dataset
   print(f"Saving encoded dataset to {encoded_path}...")
