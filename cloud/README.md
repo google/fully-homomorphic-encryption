@@ -86,8 +86,84 @@ During refactoring, several key architectural optimizations were implemented:
 2. **Google Cloud SDK (gcloud)** authenticated with your GCP account.
 3. Sufficient **GCP GPU Quota** in your target region (e.g. `us-west1` for a `nvidia-tesla-t4` GPU).
 
+
+### Required Google Cloud APIs
+
+Before provisioning the infrastructure, enable all required Google Cloud APIs for your project:
+
+| API Service Name | Service Identifier | Purpose / Description |
+|---|---|---|
+| **Compute Engine API** | `compute.googleapis.com` | Provisions VPC networks, subnets, firewall rules, Cloud NAT/Router, and GPU Compute Engine VM instances. |
+| **Cloud Identity-Aware Proxy (IAP) API** | `iap.googleapis.com` | Manages secure TCP port 22 SSH tunneling to the private VM without exposing public IP addresses. |
+| **Artifact Registry API** | `artifactregistry.googleapis.com` | Stores and manages the HEIR Docker container images in Google Cloud. |
+| **Cloud Build API** | `cloudbuild.googleapis.com` | Builds and pushes the Docker container image directly to Artifact Registry during `terraform apply`. |
+| **Cloud IAM API** | `iam.googleapis.com` | Creates dedicated service accounts and configures fine-grained IAM policy bindings. |
+| **Cloud Logging API** | `logging.googleapis.com` | Collects startup script execution logs, system logs, and Cloud NAT logs. |
+| **Cloud Monitoring API** | `monitoring.googleapis.com` | Ingests VM health metrics, compute resource utilization, and GPU telemetry. |
+| **Service Usage API** | `serviceusage.googleapis.com` | Enables and manages service APIs and project quota inspection. |
+
+**Command to enable all required APIs:**
+```bash
+gcloud services enable \
+  compute.googleapis.com \
+  iap.googleapis.com \
+  artifactregistry.googleapis.com \
+  cloudbuild.googleapis.com \
+  iam.googleapis.com \
+  logging.googleapis.com \
+  monitoring.googleapis.com \
+  serviceusage.googleapis.com \
+  --project="<YOUR_PROJECT_ID>"
+```
+
+### Required IAM Roles & Permissions
+
+The deploying identity (user or CI/CD deployment service account) requires the following IAM roles to provision infrastructure, build container images, and manage access policies:
+
+| Role Name | Role Identifier | Purpose / Description |
+|---|---|---|
+| **Compute Admin** | `roles/compute.admin` | Full control over VPCs, subnets, firewall rules, Cloud Router/NAT, and GPU VM instances. |
+| **Artifact Registry Administrator** | `roles/artifactregistry.admin` | Full control over Artifact Registry repositories and container image management. |
+| **Cloud Build Editor** | `roles/cloudbuild.builds.editor` | Permission to submit and run container builds via `gcloud builds submit`. |
+| **Service Account Admin** | `roles/iam.serviceAccountAdmin` | Permission to create and manage the dedicated VM service account (`heir-gpu-vm-sa`). |
+| **Service Account User** | `roles/iam.serviceAccountUser` | Permission to attach the VM service account to the compute instance. |
+| **Project IAM Admin** | `roles/resourcemanager.projectIamAdmin` | Permission to assign project IAM roles to the VM service account and developer identity. |
+| **Service Usage Consumer** | `roles/serviceusage.serviceUsageConsumer` | Permission to consume project APIs and validate service quotas. |
+
+Additionally, developers/users connecting to the VM via SSH need:
+| Role Name | Role Identifier | Purpose / Description |
+|---|---|---|
+| **IAP-secured Tunnel User** | `roles/iap.tunnelResourceAccessor` | Connects through Google IAP TCP tunneling (also provisioned in `main.tf` for `var.user_email`). |
+| **Compute Viewer** | `roles/compute.viewer` | Reads instance metadata and discovers VM network endpoints for `gcloud compute ssh`. |
+
+**Command to grant all required IAM roles:**
+```bash
+PROJECT_ID="<YOUR_PROJECT_ID>"
+USER_EMAIL="<YOUR_USER_EMAIL>" # e.g. developer@example.com
+
+for ROLE in \
+  roles/compute.admin \
+  roles/artifactregistry.admin \
+  roles/cloudbuild.builds.editor \
+  roles/iam.serviceAccountAdmin \
+  roles/iam.serviceAccountUser \
+  roles/resourcemanager.projectIamAdmin \
+  roles/serviceusage.serviceUsageConsumer \
+  roles/iap.tunnelResourceAccessor \
+  roles/compute.viewer; do
+  gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+    --member="user:$USER_EMAIL" \
+    --role="$ROLE"
+done
+```
+
+---
+
 ### Step 1: Align Your Settings
-Open `terraform.tfvars.example` and edit the core parameters.
+Open `terraform.tfvars.example`, create your `terraform.tfvars` file, and edit the core parameters:
+```bash
+cp terraform.tfvars.example terraform.tfvars
+```
 
 ### Step 2: Initialize Terraform
 Initialize the project to download providers and configure the VPC local module:
