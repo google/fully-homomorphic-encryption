@@ -78,12 +78,11 @@ func main() {
 	ctZero5 := hotwordlattigotiming.Tcresnet8small__encrypt__zero__5(evaluator, params, ecd, encryptor)
 	ctZero6 := hotwordlattigotiming.Tcresnet8small__encrypt__zero__6(evaluator, params, ecd, encryptor)
 	ctZero7 := hotwordlattigotiming.Tcresnet8small__encrypt__zero__7(evaluator, params, ecd, encryptor)
-	ctZero8 := hotwordlattigotiming.Tcresnet8small__encrypt__zero__8(evaluator, params, ecd, encryptor)
 
 	// Note: decryptor is passed as 5th argument now (after ecd, before encryptedFeatures)
 	encryptedOutput := hotwordlattigotiming.Tcresnet8small__preprocessed(
 		btpEvaluator, evaluator, params, ecd, decryptor, encryptedFeatures,
-		ctZero0, ctZero1, ctZero2, ctZero3, ctZero4, ctZero5, ctZero6, ctZero7, ctZero8,
+		ctZero0, ctZero1, ctZero2, ctZero3, ctZero4, ctZero5, ctZero6, ctZero7,
 		preprocessedWeights,
 	)
 	fmt.Printf("  Took %v\n", time.Since(t0))

@@ -78,7 +78,6 @@ func main() {
 	ctZeros5 := make([]*rlwe.Ciphertext, numSamples)
 	ctZeros6 := make([]*rlwe.Ciphertext, numSamples)
 	ctZeros7 := make([]*rlwe.Ciphertext, numSamples)
-	ctZeros8 := make([]*rlwe.Ciphertext, numSamples)
 	for i := 0; i < numSamples; i++ {
 		encryptedInputs[i] = hotword_lattigo.Tcresnet8small__encrypt__arg0(evaluator, params, ecd, encryptor, allFeatures[i])
 		ctZeros0[i] = hotword_lattigo.Tcresnet8small__encrypt__zero__0(evaluator, params, ecd, encryptor)
@@ -89,7 +88,6 @@ func main() {
 		ctZeros5[i] = hotword_lattigo.Tcresnet8small__encrypt__zero__5(evaluator, params, ecd, encryptor)
 		ctZeros6[i] = hotword_lattigo.Tcresnet8small__encrypt__zero__6(evaluator, params, ecd, encryptor)
 		ctZeros7[i] = hotword_lattigo.Tcresnet8small__encrypt__zero__7(evaluator, params, ecd, encryptor)
-		ctZeros8[i] = hotword_lattigo.Tcresnet8small__encrypt__zero__8(evaluator, params, ecd, encryptor)
 	}
 	fmt.Printf("  Took %v\n", time.Since(t0))
 
@@ -108,7 +106,7 @@ func main() {
 			localBtpEvaluator := btpEvaluator.ShallowCopy()
 			encryptedOutputs[idx] = hotword_lattigo.Tcresnet8small__preprocessed(
 				localBtpEvaluator, localEvaluator, params, ecd, encryptedInputs[idx],
-				ctZeros0[idx], ctZeros1[idx], ctZeros2[idx], ctZeros3[idx], ctZeros4[idx], ctZeros5[idx], ctZeros6[idx], ctZeros7[idx], ctZeros8[idx],
+				ctZeros0[idx], ctZeros1[idx], ctZeros2[idx], ctZeros3[idx], ctZeros4[idx], ctZeros5[idx], ctZeros6[idx], ctZeros7[idx],
 				preprocessedWeights,
 			)
 		}(i)
