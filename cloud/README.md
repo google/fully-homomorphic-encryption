@@ -171,6 +171,12 @@ Initialize the project to download providers and configure the VPC local module:
 terraform init
 ```
 
+Authenticate with `gcloud`
+```bash
+  gcloud auth login
+  gcloud auth application-default login
+```
+
 ### Step 3: Run a Plan and Apply
 Run a speculative plan to audit what resources will be created:
 ```bash
