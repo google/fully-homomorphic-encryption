@@ -137,7 +137,7 @@ gcloud services enable \
 | **IAM Policy Management** | `roles/resourcemanager.projectIamAdmin` | `roles/resourcemanager.projectIamAdmin` *(or central pipeline)* | Required by Terraform to attach `roles/logging.logWriter`, `roles/monitoring.metricWriter`, and `roles/artifactregistry.reader` to the VM SA. |
 | **Service Usage** | `roles/serviceusage.serviceUsageAdmin` | `roles/serviceusage.serviceUsageConsumer` | Standard minimal permission to consume project APIs and inspect quotas. |
 | **Researcher SSH Access** | `roles/compute.admin` | `roles/iap.tunnelResourceAccessor` + `roles/compute.instanceAdmin.v1` *(or OS Login)* | Connects through Google Cloud IAP tunneling and injects user SSH public keys. (IAP tunnel role is automatically provisioned in `main.tf` for `var.user_email`). |
-| **Storage Access** | `roles/storage.admin` | `storage.objects.create`| Create bucket where the docker image will build
+| **Storage Access** | `roles/storage.objectAdmin` | `storage.objects.create`| Create bucket where the docker image will build
 
 
 #### Quickstart
@@ -157,7 +157,7 @@ for ROLE in \
   roles/serviceusage.serviceUsageAdmin \
   roles/iap.tunnelResourceAccessor \
   roles/resourcemanager.projectIamAdmin \
-  roles/storage.admin; do
+  roles/storage.objectAdmin; do
   gcloud projects add-iam-policy-binding "$PROJECT_ID" \
     --member="user:$USER_EMAIL" \
     --role="$ROLE"
