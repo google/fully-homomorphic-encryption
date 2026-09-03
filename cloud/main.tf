@@ -18,12 +18,6 @@ module "vpc" {
   region     = var.region
 }
 
-resource "google_project_iam_member" "iap_tunnel_user" {
-  project = var.project_id
-  role    = "roles/iap.tunnelResourceAccessor"
-  member  = "user:${var.user_email}"
-}
-
 resource "google_artifact_registry_repository" "heir_registry" {
   location      = var.artifact_registry_region
   repository_id = "heir"

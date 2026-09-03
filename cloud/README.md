@@ -118,28 +118,35 @@ gcloud services enable \
 
 ### Required IAM Roles & Permissions
 
-The deploying identity (user or CI/CD deployment service account) requires the following IAM roles to provision infrastructure, build container images, and manage access policies:
+>
+> **Disclaimer — IAM Permissions**
+> This repository is optimized for easy to use research, benchmarking, and POC experimentation with Fully Homomorphic Encryption (FHE) workloads. To facilitate the deployment and avoid permission roadblocks, the Quickstart guide bundles elevated roles (e.g., `roles/compute.admin`).
+>
+> **For Production & Enterprise Deployments:** If deploying in a shared, multi-tenant, or production GCP project, **do not grant broad project-wide administrator privileges to individual user accounts**. Instead, apply the **Principle of Least Privilege (PoLP)**:
 
-| Role Name | Role Identifier | Purpose / Description |
-|---|---|---|
-| **Compute Admin** | `roles/compute.admin` | Full control over VPCs, subnets, firewall rules, Cloud Router/NAT, and GPU VM instances. |
-| **Artifact Registry Administrator** | `roles/artifactregistry.admin` | Full control over Artifact Registry repositories and container image management. |
-| **Cloud Build Editor** | `roles/cloudbuild.builds.editor` | Permission to submit and run container builds via `gcloud builds submit`. |
-| **Service Account Admin** | `roles/iam.serviceAccountAdmin` | Permission to create and manage the dedicated VM service account (`heir-gpu-vm-sa`). |
-| **Service Account User** | `roles/iam.serviceAccountUser` | Permission to attach the VM service account to the compute instance. |
-| **Project IAM Admin** | `roles/resourcemanager.projectIamAdmin` | Permission to assign project IAM roles to the VM service account and developer identity. |
-| **Service Usage Consumer** | `roles/serviceusage.serviceUsageConsumer` | Permission to consume project APIs and validate service quotas. |
+#### 1. Persona Separation & Role Comparison
 
-Additionally, developers/users connecting to the VM via SSH need:
-| Role Name | Role Identifier | Purpose / Description |
-|---|---|---|
-| **IAP-secured Tunnel User** | `roles/iap.tunnelResourceAccessor` | Connects through Google IAP TCP tunneling (also provisioned in `main.tf` for `var.user_email`). |
-| **Compute Viewer** | `roles/compute.viewer` | Reads instance metadata and discovers VM network endpoints for `gcloud compute ssh`. |
+| Role Category | Quickstart / Research Role | Least Privilege (PoLP) Equivalent | Purpose / Scope Justification |
+|---|---|---|---|
+| **Networking** | `roles/compute.admin` | `roles/compute.networkAdmin` | Restricts network management to VPCs, subnets, NAT, and firewalls without full compute administrator rights. |
+| **Compute & VM** | `roles/compute.admin` | `roles/compute.instanceAdmin.v1` | Restricts VM management to compute instances, boot disks, and GPU accelerators. |
+| **Container Registry** | `roles/artifactregistry.admin` | `roles/artifactregistry.repoAdmin` | Grants repository and package administration without full project-level Artifact Registry admin powers. |
+| **Container Builds** | `roles/cloudbuild.builds.editor` | `roles/cloudbuild.builds.editor` | Minimal role required to submit builds via `gcloud builds submit` for the HEIR Docker container. |
+| **VM Service Account** | `roles/iam.serviceAccountAdmin` | `roles/iam.serviceAccountAdmin` *(or pre-provision SA)* | Required by Terraform to create `heir-gpu-vm-sa`. In production, pre-provisioning the SA eliminates this permission. |
+| **Service Account Usage** | `roles/iam.serviceAccountUser` *(project-wide)* | `roles/iam.serviceAccountUser` *(scoped to VM SA)* | **Do not grant project-wide.** Bind this role exclusively to `heir-gpu-vm-sa` to prevent unauthorized impersonation of other SAs. |
+| **IAM Policy Management** | `roles/resourcemanager.projectIamAdmin` | `roles/resourcemanager.projectIamAdmin` *(or central pipeline)* | Required by Terraform to attach `roles/logging.logWriter`, `roles/monitoring.metricWriter`, and `roles/artifactregistry.reader` to the VM SA. |
+| **Service Usage** | `roles/serviceusage.serviceUsageAdmin` | `roles/serviceusage.serviceUsageConsumer` | Standard minimal permission to consume project APIs and inspect quotas. |
+| **Researcher SSH Access** | `roles/compute.admin` | `roles/iap.tunnelResourceAccessor` + `roles/compute.instanceAdmin.v1` *(or OS Login)* | Connects through Google Cloud IAP tunneling and injects user SSH public keys. (IAP tunnel role is automatically provisioned in `main.tf` for `var.user_email`). |
+| **Storage Access** | `roles/storage.admin` | `storage.objects.create`| Create bucket where the docker image will build
 
-**Command to grant all required IAM roles:**
+
+#### Quickstart
+
+If you are evaluating this solution in a standalone, dedicated sandbox or research project, run the following command to configure all required roles on your user account:
+
 ```bash
 PROJECT_ID="<YOUR_PROJECT_ID>"
-USER_EMAIL="<YOUR_USER_EMAIL>" # e.g. developer@example.com
+USER_EMAIL="<YOUR_USER_EMAIL>" # e.g. researcher@example.com
 
 for ROLE in \
   roles/compute.admin \
@@ -147,17 +154,15 @@ for ROLE in \
   roles/cloudbuild.builds.editor \
   roles/iam.serviceAccountAdmin \
   roles/iam.serviceAccountUser \
-  roles/resourcemanager.projectIamAdmin \
-  roles/serviceusage.serviceUsageConsumer \
+  roles/serviceusage.serviceUsageAdmin \
   roles/iap.tunnelResourceAccessor \
-  roles/compute.viewer; do
+  roles/resourcemanager.projectIamAdmin \
+  roles/storage.admin; do
   gcloud projects add-iam-policy-binding "$PROJECT_ID" \
     --member="user:$USER_EMAIL" \
     --role="$ROLE"
 done
 ```
-
----
 
 ### Step 1: Align Your Settings
 Open `terraform.tfvars.example`, create your `terraform.tfvars` file, and edit the core parameters:
