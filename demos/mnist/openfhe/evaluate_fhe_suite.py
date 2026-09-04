@@ -67,13 +67,7 @@ def evaluate_suite(data_dir: str, num_samples: int) -> None:
       f" {(t_setup_end - t_setup_start)*1000:.2f} ms.\n"
   )
 
-  zero_encrypt_func_names = sorted(
-      [name for name in dir(mnist) if name.startswith("mnist__encrypt__zero__")]
-  )
-  zero_encrypt_funcs = [
-      getattr(mnist, name) for name in zero_encrypt_func_names
-  ]
-  ct_zeros = [func(crypto_context, public_key) for func in zero_encrypt_funcs]
+  ct_zeros = mnist.mnist__encrypt__zeros(crypto_context, public_key)
 
   print(f"Evaluating {num_samples} MNIST samples sequentially...")
   correct = 0
@@ -86,9 +80,10 @@ def evaluate_suite(data_dir: str, num_samples: int) -> None:
     input_encrypted = mnist.mnist__encrypt__arg0(
         crypto_context, input_vector, public_key
     )
+    input_enc_arg = input_encrypted[0] if isinstance(input_encrypted, list) else input_encrypted
 
     t_eval_start = time.perf_counter()
-    output_encrypted = mnist.mnist(crypto_context, input_encrypted, *ct_zeros)
+    output_encrypted = mnist.mnist(crypto_context, input_enc_arg, ct_zeros)
     t_eval_end = time.perf_counter()
 
     eval_time_s = t_eval_end - t_eval_start

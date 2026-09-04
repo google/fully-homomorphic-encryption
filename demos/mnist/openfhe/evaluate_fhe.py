@@ -65,23 +65,18 @@ def evaluate_single(data_dir: str, sample_idx: int) -> None:
   t3 = time.perf_counter()
   crypto_setup_ms = (t3 - t2) * 1000.0
 
-  zero_encrypt_func_names = sorted(
-      [name for name in dir(mnist) if name.startswith("mnist__encrypt__zero__")]
-  )
-  zero_encrypt_funcs = [
-      getattr(mnist, name) for name in zero_encrypt_func_names
-  ]
 
   t4 = time.perf_counter()
   input_encrypted = mnist.mnist__encrypt__arg0(
       crypto_context, input_vector, public_key
   )
-  ct_zeros = [func(crypto_context, public_key) for func in zero_encrypt_funcs]
+  input_enc_arg = input_encrypted[0] if isinstance(input_encrypted, list) else input_encrypted
+  ct_zeros = mnist.mnist__encrypt__zeros(crypto_context, public_key)
   t5 = time.perf_counter()
   encrypt_ms = (t5 - t4) * 1000.0
 
   t6 = time.perf_counter()
-  output_encrypted = mnist.mnist(crypto_context, input_encrypted, *ct_zeros)
+  output_encrypted = mnist.mnist(crypto_context, input_enc_arg, ct_zeros)
   t7 = time.perf_counter()
   eval_ms = (t7 - t6) * 1000.0
 

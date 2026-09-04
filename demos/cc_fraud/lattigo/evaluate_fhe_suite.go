@@ -44,12 +44,10 @@ func main() {
 	fmt.Println("Encrypting all input features and zero accumulators sequentially...")
 	t0 = time.Now()
 	encryptedInputs := make([][]*rlwe.Ciphertext, numRows)
-	ctZeros1 := make([]*rlwe.Ciphertext, numRows)
-	ctZeros2 := make([]*rlwe.Ciphertext, numRows)
+	ctZeros := make([][]*rlwe.Ciphertext, numRows)
 	for i := 0; i < numRows; i++ {
 		encryptedInputs[i] = fraud_model_lattigo.Cc_fraud__encrypt__arg0(evaluator, params, ecd, encryptor, allFeatures[i])
-		ctZeros1[i] = fraud_model_lattigo.Cc_fraud__encrypt__zero__0(evaluator, params, ecd, encryptor)
-		ctZeros2[i] = fraud_model_lattigo.Cc_fraud__encrypt__zero__1(evaluator, params, ecd, encryptor)
+		ctZeros[i] = fraud_model_lattigo.Cc_fraud__encrypt__zeros(evaluator, params, ecd, encryptor)
 	}
 	fmt.Printf("  Took %v\n", time.Since(t0))
 
@@ -67,7 +65,7 @@ func main() {
 			localEvaluator := evaluator.ShallowCopy()
 			encryptedOutputs[idx] = fraud_model_lattigo.Cc_fraud__preprocessed(
 				localEvaluator, params, ecd, encryptedInputs[idx],
-				ctZeros1[idx], ctZeros2[idx],
+				ctZeros[idx],
 				preprocessedWeights,
 			)
 		}(i)
