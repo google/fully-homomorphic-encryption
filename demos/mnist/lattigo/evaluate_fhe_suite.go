@@ -35,9 +35,7 @@ func main() {
 	fmt.Printf("Weight preprocessing completed in %.2f ms.\n\n", float64(tPreEnd.Sub(tPreStart).Microseconds())/1000.0)
 
 	fmt.Println("Encrypting zero constant vectors...")
-	ctZeros0 := mnist.Mnist__encrypt__zero__0(evaluator, params, encoder, encryptor)
-	ctZeros1 := mnist.Mnist__encrypt__zero__1(evaluator, params, encoder, encryptor)
-	ctZeros2 := mnist.Mnist__encrypt__zero__2(evaluator, params, encoder, encryptor)
+	ctZeros := mnist.Mnist__encrypt__zeros(evaluator, params, encoder, encryptor)
 
 	fmt.Printf("Evaluating %d MNIST samples sequentially...\n", *numSamples)
 	correct := 0
@@ -61,7 +59,7 @@ func main() {
 		ctInput := mnist.Mnist__encrypt__arg0(evaluator, params, encoder, encryptor, image)
 
 		tEvalStart := time.Now()
-		resCt := mnist.Mnist__preprocessed(evaluator, params, encoder, ctInput, ctZeros0, ctZeros1, ctZeros2, preprocessedWeights)
+		resCt := mnist.Mnist__preprocessed(evaluator, params, encoder, ctInput, ctZeros, preprocessedWeights)
 		evalDuration := time.Since(tEvalStart)
 		totalEvalDuration += evalDuration
 

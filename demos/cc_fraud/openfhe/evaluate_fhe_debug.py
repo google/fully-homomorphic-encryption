@@ -79,14 +79,13 @@ def main():
   # for debug)
   print("\n--- Starting FHE Evaluation (with Debug Callbacks) ---")
   t0 = time.time()
-  ct_zero_1 = fraud_model_pybind.cc_fraud__encrypt__zero__0(cc, public_key)
-  ct_zero_2 = fraud_model_pybind.cc_fraud__encrypt__zero__1(cc, public_key)
+  ct_zeros = fraud_model_pybind.cc_fraud__encrypt__zeros(cc, public_key)
+  ct_zeros = fraud_model_pybind.cc_fraud__encrypt__zeros(cc, public_key)
   encrypted_output = fraud_model_pybind.cc_fraud__preprocessed(
       cc,
       secret_key,
       encrypted_features,
-      ct_zero_1,
-      ct_zero_2,
+      ct_zeros,
       prep_struct,
   )
   print(f"--- FHE Evaluation Completed in {time.time() - t0:.4f} seconds ---\n")

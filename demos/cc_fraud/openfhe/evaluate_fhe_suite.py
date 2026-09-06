@@ -74,15 +74,14 @@ def main():
     encrypted_features = fraud_model_pybind.cc_fraud__encrypt__arg0(
         cc, features, public_key
     )
-    ct_zero_1 = fraud_model_pybind.cc_fraud__encrypt__zero__0(cc, public_key)
-    ct_zero_2 = fraud_model_pybind.cc_fraud__encrypt__zero__1(cc, public_key)
+    ct_zeros = fraud_model_pybind.cc_fraud__encrypt__zeros(cc, public_key)
+    ct_zeros = fraud_model_pybind.cc_fraud__encrypt__zeros(cc, public_key)
 
     # Call the FHE function (using preprocessed weights)
     encrypted_output = fraud_model_pybind.cc_fraud__preprocessed(
         cc,
         encrypted_features,
-        ct_zero_1,
-        ct_zero_2,
+        ct_zeros,
         prep_struct,
     )
 
