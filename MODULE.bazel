@@ -23,33 +23,10 @@ llvm.configure(
 use_repo(llvm, hermetic_llvm = "llvm-project")
 
 # Macros for building with HEIR
-bazel_dep(name = "rules_heir", version = "0.1.1")
+bazel_dep(name = "rules_heir", version = "0.1.2")
 
 heir_repos = use_extension("@rules_heir//heir:extensions.bzl", "heir_repositories")
-heir_repos.platform(
-    cpu = "x86_64",
-    heir_opt_sha256 = "919bca7b663e73ad4c550f0145cf3d66c70812d9d77adeabb23275f13874b0af",
-    heir_opt_url = "https://github.com/google/heir/releases/download/v2026.08.11.dev0/heir-opt-manylinux_2_28_x86_64",
-    heir_translate_sha256 = "5f184dcbe350ae0a2cfdfa3ca364a02cfa827bdebedab208ada3a529f8acab1d",
-    heir_translate_url = "https://github.com/google/heir/releases/download/v2026.08.11.dev0/heir-translate-manylinux_2_28_x86_64",
-    os = "linux",
-)
-heir_repos.platform(
-    cpu = "aarch64",
-    heir_opt_sha256 = "136d29bc519126ae1032789ffdccebd097b27bbcc54dbc02146d2e0ad1c4bcdf",
-    heir_opt_url = "https://github.com/google/heir/releases/download/v2026.08.11.dev0/heir-opt-manylinux_2_28_aarch64",
-    heir_translate_sha256 = "b71b17bf0548c48503d2c9ecc17e230f85bb679bb8d4fc62a7b4c05168e6d1f8",
-    heir_translate_url = "https://github.com/google/heir/releases/download/v2026.08.11.dev0/heir-translate-manylinux_2_28_aarch64",
-    os = "linux",
-)
-heir_repos.platform(
-    cpu = "arm64",
-    heir_opt_sha256 = "4a1490bcbb157d1437bc600c4a79790baa64069ee29fe0ba210401baa2de9543",
-    heir_opt_url = "https://github.com/google/heir/releases/download/v2026.08.11.dev0/heir-opt-macosx_11_0_arm64",
-    heir_translate_sha256 = "bc58ae375b9ead6b2259fcf6f3b1f43af49880f4019839db11ad6af199aaaaa2",
-    heir_translate_url = "https://github.com/google/heir/releases/download/v2026.08.11.dev0/heir-translate-macosx_11_0_arm64",
-    os = "macos",
-)
+heir_repos.config(nightly = True)
 use_repo(
     heir_repos,
     "heir_linux_aarch64",
