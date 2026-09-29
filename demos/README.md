@@ -4,6 +4,11 @@ This directory contains a set of demos using HEIR to compile pre-trained
 PyTorch models to FHE. All of the models are pre-compiled with scripts
 providing command to quickly run and assess model performance.
 
+**Note:** Occasionally the HEIR developers make API-backwards incompatible
+changes to the generated APIs, which will cause some of these examples
+to fail to compile until the following day, when HEIR's nightly build
+runs and produces a new binary.
+
 ## MNIST
 
 The classic [MNIST](https://en.wikipedia.org/wiki/MNIST_database) digit
