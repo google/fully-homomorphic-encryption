@@ -70,18 +70,11 @@ func main() {
 	// FHE evaluation
 	fmt.Println("Running FHE evaluation (preprocessed)...")
 	t0 = time.Now()
-	ctZero0 := hotword_lattigo.Tcresnet8small__encrypt__zero__0(evaluator, params, ecd, encryptor)
-	ctZero1 := hotword_lattigo.Tcresnet8small__encrypt__zero__1(evaluator, params, ecd, encryptor)
-	ctZero2 := hotword_lattigo.Tcresnet8small__encrypt__zero__2(evaluator, params, ecd, encryptor)
-	ctZero3 := hotword_lattigo.Tcresnet8small__encrypt__zero__3(evaluator, params, ecd, encryptor)
-	ctZero4 := hotword_lattigo.Tcresnet8small__encrypt__zero__4(evaluator, params, ecd, encryptor)
-	ctZero5 := hotword_lattigo.Tcresnet8small__encrypt__zero__5(evaluator, params, ecd, encryptor)
-	ctZero6 := hotword_lattigo.Tcresnet8small__encrypt__zero__6(evaluator, params, ecd, encryptor)
-	ctZero7 := hotword_lattigo.Tcresnet8small__encrypt__zero__7(evaluator, params, ecd, encryptor)
+	ctZeros := hotword_lattigo.Tcresnet8small__encrypt__zeros(evaluator, params, ecd, encryptor)
 
 	encryptedOutput := hotword_lattigo.Tcresnet8small__preprocessed(
 		btpEvaluator, evaluator, params, ecd, encryptedFeatures,
-		ctZero0, ctZero1, ctZero2, ctZero3, ctZero4, ctZero5, ctZero6, ctZero7,
+		ctZeros,
 		preprocessedWeights,
 	)
 	fmt.Printf("  Took %v\n", time.Since(t0))
