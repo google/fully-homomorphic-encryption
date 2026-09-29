@@ -2,7 +2,7 @@
 #map1 = affine_map<(d0, d1) -> (d1)>
 module {
   func.func @cc_fraud(%arg0: tensor<1x82xf32> {secret.secret}) -> tensor<1x2xf32> {
-    debug.validate %arg0 {name = "input", metadata = "input"} : tensor<1x82xf32>
+    debug.validate %arg0 <name = "input", metadata = "input"> : tensor<1x82xf32>
     %cst = arith.constant 0.000000e+00 : f32
     %cst_0 = arith.constant 1.000000e+00 : f32
     %cst_1 = arith.constant dense_resource<torch_tensor_2_torch.float32> : tensor<2xf32>
@@ -16,13 +16,13 @@ module {
     %1 = tensor.empty() : tensor<1x128xf32>
     %2 = linalg.fill ins(%cst : f32) outs(%1 : tensor<1x128xf32>) -> tensor<1x128xf32>
     %3 = linalg.matmul ins(%arg0, %transposed : tensor<1x82xf32>, tensor<82x128xf32>) outs(%2 : tensor<1x128xf32>) -> tensor<1x128xf32>
-    debug.validate %3 {name = "layer1_matmul", metadata = "layer1_matmul"} : tensor<1x128xf32>
+    debug.validate %3 <name = "layer1_matmul", metadata = "layer1_matmul"> : tensor<1x128xf32>
     %4 = linalg.generic {indexing_maps = [#map, #map1, #map], iterator_types = ["parallel", "parallel"]} ins(%3, %cst_6 : tensor<1x128xf32>, tensor<128xf32>) outs(%1 : tensor<1x128xf32>) {
     ^bb0(%in: f32, %in_9: f32, %out: f32):
       %17 = arith.addf %in, %in_9 : f32
       linalg.yield %17 : f32
     } -> tensor<1x128xf32>
-    debug.validate %4 {name = "layer1_bias", metadata = "layer1_bias"} : tensor<1x128xf32>
+    debug.validate %4 <name = "layer1_bias", metadata = "layer1_bias"> : tensor<1x128xf32>
     %5 = linalg.generic {degree = 3 : i32, domain_lower = -10.000000e+00 : f64, domain_upper = 10.000000e+00 : f64, indexing_maps = [#map, #map], iterator_types = ["parallel", "parallel"]} ins(%4 : tensor<1x128xf32>) outs(%1 : tensor<1x128xf32>) {
     ^bb0(%in: f32, %out: f32):
       %17 = arith.negf %in : f32
@@ -31,19 +31,19 @@ module {
       %20 = arith.divf %cst_0, %19 : f32
       linalg.yield %20 : f32
     } -> tensor<1x128xf32>
-    debug.validate %5 {name = "layer1_sigmoid", metadata = "layer1_sigmoid"} : tensor<1x128xf32>
+    debug.validate %5 <name = "layer1_sigmoid", metadata = "layer1_sigmoid"> : tensor<1x128xf32>
     %6 = tensor.empty() : tensor<128x64xf32>
     %transposed_7 = linalg.transpose ins(%cst_4 : tensor<64x128xf32>) outs(%6 : tensor<128x64xf32>) permutation = [1, 0] 
     %7 = tensor.empty() : tensor<1x64xf32>
     %8 = linalg.fill ins(%cst : f32) outs(%7 : tensor<1x64xf32>) -> tensor<1x64xf32>
     %9 = linalg.matmul ins(%5, %transposed_7 : tensor<1x128xf32>, tensor<128x64xf32>) outs(%8 : tensor<1x64xf32>) -> tensor<1x64xf32>
-    debug.validate %9 {name = "layer2_matmul", metadata = "layer2_matmul"} : tensor<1x64xf32>
+    debug.validate %9 <name = "layer2_matmul", metadata = "layer2_matmul"> : tensor<1x64xf32>
     %10 = linalg.generic {indexing_maps = [#map, #map1, #map], iterator_types = ["parallel", "parallel"]} ins(%9, %cst_3 : tensor<1x64xf32>, tensor<64xf32>) outs(%7 : tensor<1x64xf32>) {
     ^bb0(%in: f32, %in_9: f32, %out: f32):
       %17 = arith.addf %in, %in_9 : f32
       linalg.yield %17 : f32
     } -> tensor<1x64xf32>
-    debug.validate %10 {name = "layer2_bias", metadata = "layer2_bias"} : tensor<1x64xf32>
+    debug.validate %10 <name = "layer2_bias", metadata = "layer2_bias"> : tensor<1x64xf32>
     %11 = linalg.generic {degree = 3 : i32, domain_lower = -10.000000e+00 : f64, domain_upper = 10.000000e+00 : f64, indexing_maps = [#map, #map], iterator_types = ["parallel", "parallel"]} ins(%10 : tensor<1x64xf32>) outs(%7 : tensor<1x64xf32>) {
     ^bb0(%in: f32, %out: f32):
       %17 = arith.negf %in : f32
@@ -52,19 +52,19 @@ module {
       %20 = arith.divf %cst_0, %19 : f32
       linalg.yield %20 : f32
     } -> tensor<1x64xf32>
-    debug.validate %11 {name = "layer2_sigmoid", metadata = "layer2_sigmoid"} : tensor<1x64xf32>
+    debug.validate %11 <name = "layer2_sigmoid", metadata = "layer2_sigmoid"> : tensor<1x64xf32>
     %12 = tensor.empty() : tensor<64x2xf32>
     %transposed_8 = linalg.transpose ins(%cst_2 : tensor<2x64xf32>) outs(%12 : tensor<64x2xf32>) permutation = [1, 0] 
     %13 = tensor.empty() : tensor<1x2xf32>
     %14 = linalg.fill ins(%cst : f32) outs(%13 : tensor<1x2xf32>) -> tensor<1x2xf32>
     %15 = linalg.matmul ins(%11, %transposed_8 : tensor<1x64xf32>, tensor<64x2xf32>) outs(%14 : tensor<1x2xf32>) -> tensor<1x2xf32>
-    debug.validate %15 {name = "layer3_matmul", metadata = "layer3_matmul"} : tensor<1x2xf32>
+    debug.validate %15 <name = "layer3_matmul", metadata = "layer3_matmul"> : tensor<1x2xf32>
     %16 = linalg.generic {indexing_maps = [#map, #map1, #map], iterator_types = ["parallel", "parallel"]} ins(%15, %cst_1 : tensor<1x2xf32>, tensor<2xf32>) outs(%13 : tensor<1x2xf32>) {
     ^bb0(%in: f32, %in_9: f32, %out: f32):
       %17 = arith.addf %in, %in_9 : f32
       linalg.yield %17 : f32
     } -> tensor<1x2xf32>
-    debug.validate %16 {name = "layer3_bias", metadata = "layer3_bias"} : tensor<1x2xf32>
+    debug.validate %16 <name = "layer3_bias", metadata = "layer3_bias"> : tensor<1x2xf32>
     return %16 : tensor<1x2xf32>
   }
 }
