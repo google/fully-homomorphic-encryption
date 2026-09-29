@@ -3,7 +3,7 @@
 #map2 = affine_map<(d0, d1) -> (d1)>
 module {
   func.func @tcresnet8small(%arg0: tensor<1x10x48xf32> {secret.secret}) -> tensor<1x13xf32> {
-    debug.validate %arg0 {name = "input", metadata = "input"} : tensor<1x10x48xf32>
+    debug.validate %arg0 <name = "input", metadata = "input"> : tensor<1x10x48xf32>
     %cst = arith.constant 0.000000e+00 : f32
     %cst_0 = arith.constant dense_resource<torch_tensor_13_torch.float32> : tensor<13xf32>
     %cst_1 = arith.constant dense_resource<torch_tensor_13_48_torch.float32> : tensor<13x48xf32>
@@ -35,39 +35,39 @@ module {
     %0 = tensor.empty() : tensor<1x16x48xf32>
     %broadcasted = linalg.broadcast ins(%cst_21 : tensor<16xf32>) outs(%0 : tensor<1x16x48xf32>) dimensions = [0, 2]
     %1 = linalg.conv_1d_ncw_fcw {dilations = dense<1> : vector<1xi64>, strides = dense<1> : vector<1xi64>} ins(%padded, %cst_20 : tensor<1x10x50xf32>, tensor<16x10x3xf32>) outs(%broadcasted : tensor<1x16x48xf32>) -> tensor<1x16x48xf32>
-    debug.validate %1 {name = "conv1", metadata = "conv1"} : tensor<1x16x48xf32>
+    debug.validate %1 <name = "conv1", metadata = "conv1"> : tensor<1x16x48xf32>
     %2 = linalg.generic {indexing_maps = [#map, #map], iterator_types = ["parallel", "parallel", "parallel"]} ins(%1 : tensor<1x16x48xf32>) outs(%0 : tensor<1x16x48xf32>) attrs = {domain_lower = -6.7371 : f64, domain_upper = 7.2558 : f64, degree = 3 : i32} {
     ^bb0(%in: f32, %out: f32):
       %34 = arith.cmpf ugt, %in, %cst : f32
       %35 = arith.select %34, %in, %cst : f32
       linalg.yield %35 : f32
     } -> tensor<1x16x48xf32>
-    debug.validate %2 {name = "relu1", metadata = "relu1"} : tensor<1x16x48xf32>
+    debug.validate %2 <name = "relu1", metadata = "relu1"> : tensor<1x16x48xf32>
     %3 = tensor.empty() : tensor<1x24x24xf32>
     %broadcasted_23 = linalg.broadcast ins(%cst_18 : tensor<24xf32>) outs(%3 : tensor<1x24x24xf32>) dimensions = [0, 2]
     %4 = linalg.conv_1d_ncw_fcw {dilations = dense<1> : vector<1xi64>, strides = dense<2> : vector<1xi64>} ins(%2, %cst_19 : tensor<1x16x48xf32>, tensor<24x16x1xf32>) outs(%broadcasted_23 : tensor<1x24x24xf32>) -> tensor<1x24x24xf32>
-    debug.validate %4 {name = "conv2", metadata = "conv2"} : tensor<1x24x24xf32>
+    debug.validate %4 <name = "conv2", metadata = "conv2"> : tensor<1x24x24xf32>
     %padded_24 = tensor.pad %2 low[0, 0, 4] high[0, 0, 4] {
     ^bb0(%arg1: index, %arg2: index, %arg3: index):
       tensor.yield %cst : f32
     } : tensor<1x16x48xf32> to tensor<1x16x56xf32>
     %broadcasted_25 = linalg.broadcast ins(%cst_16 : tensor<24xf32>) outs(%3 : tensor<1x24x24xf32>) dimensions = [0, 2]
     %5 = linalg.conv_1d_ncw_fcw {dilations = dense<1> : vector<1xi64>, strides = dense<2> : vector<1xi64>} ins(%padded_24, %cst_17 : tensor<1x16x56xf32>, tensor<24x16x9xf32>) outs(%broadcasted_25 : tensor<1x24x24xf32>) -> tensor<1x24x24xf32>
-    debug.validate %5 {name = "conv3", metadata = "conv3"} : tensor<1x24x24xf32>
+    debug.validate %5 <name = "conv3", metadata = "conv3"> : tensor<1x24x24xf32>
     %6 = linalg.generic {indexing_maps = [#map, #map], iterator_types = ["parallel", "parallel", "parallel"]} ins(%5 : tensor<1x24x24xf32>) outs(%3 : tensor<1x24x24xf32>) attrs = {domain_lower = -7.3747 : f64, domain_upper = 6.4133 : f64, degree = 3 : i32} {
     ^bb0(%in: f32, %out: f32):
       %34 = arith.cmpf ugt, %in, %cst : f32
       %35 = arith.select %34, %in, %cst : f32
       linalg.yield %35 : f32
     } -> tensor<1x24x24xf32>
-    debug.validate %6 {name = "relu2", metadata = "relu2"} : tensor<1x24x24xf32>
+    debug.validate %6 <name = "relu2", metadata = "relu2"> : tensor<1x24x24xf32>
     %padded_26 = tensor.pad %6 low[0, 0, 4] high[0, 0, 4] {
     ^bb0(%arg1: index, %arg2: index, %arg3: index):
       tensor.yield %cst : f32
     } : tensor<1x24x24xf32> to tensor<1x24x32xf32>
     %broadcasted_27 = linalg.broadcast ins(%cst_14 : tensor<24xf32>) outs(%3 : tensor<1x24x24xf32>) dimensions = [0, 2]
     %7 = linalg.conv_1d_ncw_fcw {dilations = dense<1> : vector<1xi64>, strides = dense<1> : vector<1xi64>} ins(%padded_26, %cst_15 : tensor<1x24x32xf32>, tensor<24x24x9xf32>) outs(%broadcasted_27 : tensor<1x24x24xf32>) -> tensor<1x24x24xf32>
-    debug.validate %7 {name = "conv4", metadata = "conv4"} : tensor<1x24x24xf32>
+    debug.validate %7 <name = "conv4", metadata = "conv4"> : tensor<1x24x24xf32>
     %8 = linalg.generic {indexing_maps = [#map, #map, #map], iterator_types = ["parallel", "parallel", "parallel"]} ins(%7, %4 : tensor<1x24x24xf32>, tensor<1x24x24xf32>) outs(%3 : tensor<1x24x24xf32>) {
     ^bb0(%in: f32, %in_38: f32, %out: f32):
       %34 = arith.addf %in, %in_38 : f32
@@ -79,32 +79,32 @@ module {
       %35 = arith.select %34, %in, %cst : f32
       linalg.yield %35 : f32
     } -> tensor<1x24x24xf32>
-    debug.validate %9 {name = "relu3", metadata = "relu3"} : tensor<1x24x24xf32>
+    debug.validate %9 <name = "relu3", metadata = "relu3"> : tensor<1x24x24xf32>
     %10 = tensor.empty() : tensor<1x32x12xf32>
     %broadcasted_28 = linalg.broadcast ins(%cst_12 : tensor<32xf32>) outs(%10 : tensor<1x32x12xf32>) dimensions = [0, 2]
     %11 = linalg.conv_1d_ncw_fcw {dilations = dense<1> : vector<1xi64>, strides = dense<2> : vector<1xi64>} ins(%9, %cst_13 : tensor<1x24x24xf32>, tensor<32x24x1xf32>) outs(%broadcasted_28 : tensor<1x32x12xf32>) -> tensor<1x32x12xf32>
-    debug.validate %11 {name = "conv5", metadata = "conv5"} : tensor<1x32x12xf32>
+    debug.validate %11 <name = "conv5", metadata = "conv5"> : tensor<1x32x12xf32>
     %padded_29 = tensor.pad %9 low[0, 0, 4] high[0, 0, 4] {
     ^bb0(%arg1: index, %arg2: index, %arg3: index):
       tensor.yield %cst : f32
     } : tensor<1x24x24xf32> to tensor<1x24x32xf32>
     %broadcasted_30 = linalg.broadcast ins(%cst_10 : tensor<32xf32>) outs(%10 : tensor<1x32x12xf32>) dimensions = [0, 2]
     %12 = linalg.conv_1d_ncw_fcw {dilations = dense<1> : vector<1xi64>, strides = dense<2> : vector<1xi64>} ins(%padded_29, %cst_11 : tensor<1x24x32xf32>, tensor<32x24x9xf32>) outs(%broadcasted_30 : tensor<1x32x12xf32>) -> tensor<1x32x12xf32>
-    debug.validate %12 {name = "conv6", metadata = "conv6"} : tensor<1x32x12xf32>
+    debug.validate %12 <name = "conv6", metadata = "conv6"> : tensor<1x32x12xf32>
     %13 = linalg.generic {indexing_maps = [#map, #map], iterator_types = ["parallel", "parallel", "parallel"]} ins(%12 : tensor<1x32x12xf32>) outs(%10 : tensor<1x32x12xf32>) attrs = {domain_lower = -6.0429 : f64, domain_upper = 5.2103 : f64, degree = 3 : i32} {
     ^bb0(%in: f32, %out: f32):
       %34 = arith.cmpf ugt, %in, %cst : f32
       %35 = arith.select %34, %in, %cst : f32
       linalg.yield %35 : f32
     } -> tensor<1x32x12xf32>
-    debug.validate %13 {name = "relu4", metadata = "relu4"} : tensor<1x32x12xf32>
+    debug.validate %13 <name = "relu4", metadata = "relu4"> : tensor<1x32x12xf32>
     %padded_31 = tensor.pad %13 low[0, 0, 4] high[0, 0, 4] {
     ^bb0(%arg1: index, %arg2: index, %arg3: index):
       tensor.yield %cst : f32
     } : tensor<1x32x12xf32> to tensor<1x32x20xf32>
     %broadcasted_32 = linalg.broadcast ins(%cst_8 : tensor<32xf32>) outs(%10 : tensor<1x32x12xf32>) dimensions = [0, 2]
     %14 = linalg.conv_1d_ncw_fcw {dilations = dense<1> : vector<1xi64>, strides = dense<1> : vector<1xi64>} ins(%padded_31, %cst_9 : tensor<1x32x20xf32>, tensor<32x32x9xf32>) outs(%broadcasted_32 : tensor<1x32x12xf32>) -> tensor<1x32x12xf32>
-    debug.validate %14 {name = "conv7", metadata = "conv7"} : tensor<1x32x12xf32>
+    debug.validate %14 <name = "conv7", metadata = "conv7"> : tensor<1x32x12xf32>
     %15 = linalg.generic {indexing_maps = [#map, #map, #map], iterator_types = ["parallel", "parallel", "parallel"]} ins(%14, %11 : tensor<1x32x12xf32>, tensor<1x32x12xf32>) outs(%10 : tensor<1x32x12xf32>) {
     ^bb0(%in: f32, %in_38: f32, %out: f32):
       %34 = arith.addf %in, %in_38 : f32
@@ -116,32 +116,32 @@ module {
       %35 = arith.select %34, %in, %cst : f32
       linalg.yield %35 : f32
     } -> tensor<1x32x12xf32>
-    debug.validate %16 {name = "relu5", metadata = "relu5"} : tensor<1x32x12xf32>
+    debug.validate %16 <name = "relu5", metadata = "relu5"> : tensor<1x32x12xf32>
     %17 = tensor.empty() : tensor<1x48x6xf32>
     %broadcasted_33 = linalg.broadcast ins(%cst_6 : tensor<48xf32>) outs(%17 : tensor<1x48x6xf32>) dimensions = [0, 2]
     %18 = linalg.conv_1d_ncw_fcw {dilations = dense<1> : vector<1xi64>, strides = dense<2> : vector<1xi64>} ins(%16, %cst_7 : tensor<1x32x12xf32>, tensor<48x32x1xf32>) outs(%broadcasted_33 : tensor<1x48x6xf32>) -> tensor<1x48x6xf32>
-    debug.validate %18 {name = "conv8", metadata = "conv8"} : tensor<1x48x6xf32>
+    debug.validate %18 <name = "conv8", metadata = "conv8"> : tensor<1x48x6xf32>
     %padded_34 = tensor.pad %16 low[0, 0, 4] high[0, 0, 4] {
     ^bb0(%arg1: index, %arg2: index, %arg3: index):
       tensor.yield %cst : f32
     } : tensor<1x32x12xf32> to tensor<1x32x20xf32>
     %broadcasted_35 = linalg.broadcast ins(%cst_4 : tensor<48xf32>) outs(%17 : tensor<1x48x6xf32>) dimensions = [0, 2]
     %19 = linalg.conv_1d_ncw_fcw {dilations = dense<1> : vector<1xi64>, strides = dense<2> : vector<1xi64>} ins(%padded_34, %cst_5 : tensor<1x32x20xf32>, tensor<48x32x9xf32>) outs(%broadcasted_35 : tensor<1x48x6xf32>) -> tensor<1x48x6xf32>
-    debug.validate %19 {name = "conv9", metadata = "conv9"} : tensor<1x48x6xf32>
+    debug.validate %19 <name = "conv9", metadata = "conv9"> : tensor<1x48x6xf32>
     %20 = linalg.generic {indexing_maps = [#map, #map], iterator_types = ["parallel", "parallel", "parallel"]} ins(%19 : tensor<1x48x6xf32>) outs(%17 : tensor<1x48x6xf32>) attrs = {domain_lower = -5.4222 : f64, domain_upper = 4.1606 : f64, degree = 3 : i32} {
     ^bb0(%in: f32, %out: f32):
       %34 = arith.cmpf ugt, %in, %cst : f32
       %35 = arith.select %34, %in, %cst : f32
       linalg.yield %35 : f32
     } -> tensor<1x48x6xf32>
-    debug.validate %20 {name = "relu6", metadata = "relu6"} : tensor<1x48x6xf32>
+    debug.validate %20 <name = "relu6", metadata = "relu6"> : tensor<1x48x6xf32>
     %padded_36 = tensor.pad %20 low[0, 0, 4] high[0, 0, 4] {
     ^bb0(%arg1: index, %arg2: index, %arg3: index):
       tensor.yield %cst : f32
     } : tensor<1x48x6xf32> to tensor<1x48x14xf32>
     %broadcasted_37 = linalg.broadcast ins(%cst_2 : tensor<48xf32>) outs(%17 : tensor<1x48x6xf32>) dimensions = [0, 2]
     %21 = linalg.conv_1d_ncw_fcw {dilations = dense<1> : vector<1xi64>, strides = dense<1> : vector<1xi64>} ins(%padded_36, %cst_3 : tensor<1x48x14xf32>, tensor<48x48x9xf32>) outs(%broadcasted_37 : tensor<1x48x6xf32>) -> tensor<1x48x6xf32>
-    debug.validate %21 {name = "conv10", metadata = "conv10"} : tensor<1x48x6xf32>
+    debug.validate %21 <name = "conv10", metadata = "conv10"> : tensor<1x48x6xf32>
     %22 = linalg.generic {indexing_maps = [#map, #map, #map], iterator_types = ["parallel", "parallel", "parallel"]} ins(%21, %18 : tensor<1x48x6xf32>, tensor<1x48x6xf32>) outs(%17 : tensor<1x48x6xf32>) {
     ^bb0(%in: f32, %in_38: f32, %out: f32):
       %34 = arith.addf %in, %in_38 : f32
@@ -153,7 +153,7 @@ module {
       %35 = arith.select %34, %in, %cst : f32
       linalg.yield %35 : f32
     } -> tensor<1x48x6xf32>
-    debug.validate %23 {name = "relu7", metadata = "relu7"} : tensor<1x48x6xf32>
+    debug.validate %23 <name = "relu7", metadata = "relu7"> : tensor<1x48x6xf32>
     %24 = tensor.empty() : tensor<1x48x1xf32>
     %25 = linalg.fill ins(%cst : f32) outs(%24 : tensor<1x48x1xf32>) -> tensor<1x48x1xf32>
     %26 = tensor.empty() : tensor<6xf32>
@@ -174,7 +174,7 @@ module {
       %34 = arith.addf %in, %in_38 : f32
       linalg.yield %34 : f32
     } -> tensor<1x13xf32>
-    debug.validate %33 {name = "output", metadata = "output"} : tensor<1x13xf32>
+    debug.validate %33 <name = "output", metadata = "output"> : tensor<1x13xf32>
     return %33 : tensor<1x13xf32>
   }
 }
