@@ -42,13 +42,7 @@ func main() {
 
 	fmt.Println("Encrypting zeros...")
 	t0 = time.Now()
-	zero0 := criteo.Run_inference__encrypt__zero__0(evaluator, params, encoder, encryptor)
-	zero1 := criteo.Run_inference__encrypt__zero__1(evaluator, params, encoder, encryptor)
-	zero2 := criteo.Run_inference__encrypt__zero__2(evaluator, params, encoder, encryptor)
-	zero3 := criteo.Run_inference__encrypt__zero__3(evaluator, params, encoder, encryptor)
-	zero4 := criteo.Run_inference__encrypt__zero__4(evaluator, params, encoder, encryptor)
-	zero5 := criteo.Run_inference__encrypt__zero__5(evaluator, params, encoder, encryptor)
-	zero6 := criteo.Run_inference__encrypt__zero__6(evaluator, params, encoder, encryptor)
+	ctZeros := criteo.Run_inference__encrypt__zeros(evaluator, params, encoder, encryptor)
 	fmt.Printf("  Took %v\n", time.Since(t0))
 
 	fmt.Println("Running preprocessing...")
@@ -61,7 +55,7 @@ func main() {
 	encryptedOutput := criteo.Run_inference__preprocessed(
 		bootstrappingEvaluator, evaluator, params, encoder,
 		cts0, cts1, cts2,
-		zero0, zero1, zero2, zero3, zero4, zero5, zero6,
+		ctZeros,
 		preprocessedWeights,
 	)
 	fmt.Printf("  Took %v\n", time.Since(t0))
