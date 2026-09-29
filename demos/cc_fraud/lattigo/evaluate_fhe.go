@@ -55,11 +55,10 @@ func main() {
 	// FHE evaluation
 	fmt.Println("Running FHE evaluation (preprocessed)...")
 	t0 = time.Now()
-	ctZero1 := fraud_model_lattigo.Cc_fraud__encrypt__zero__0(evaluator, params, ecd, encryptor)
-	ctZero2 := fraud_model_lattigo.Cc_fraud__encrypt__zero__1(evaluator, params, ecd, encryptor)
+	ctZeros := fraud_model_lattigo.Cc_fraud__encrypt__zeros(evaluator, params, ecd, encryptor)
 	encryptedOutput := fraud_model_lattigo.Cc_fraud__preprocessed(
 		evaluator, params, ecd, encryptedFeatures,
-		ctZero1, ctZero2,
+		ctZeros,
 		preprocessedWeights,
 	)
 	fmt.Printf("  Took %v\n", time.Since(t0))
