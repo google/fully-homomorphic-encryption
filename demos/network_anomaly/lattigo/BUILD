@@ -5,7 +5,7 @@ package(default_visibility = ["//visibility:public"])
 
 HEIR_OPT_FLAGS = [
     "--annotate-module=backend=lattigo scheme=ckks",
-    "--torch-linalg-to-ckks=min-slot-count=8192 greedy-level-budget=15 greedy-modulus-switch-after-mul=true first-mod-bits=30 scaling-mod-bits=24",
+    "--torch-linalg-to-ckks=min-slot-count=8192 greedy-level-budget=17 greedy-modulus-switch-after-mul=true first-mod-bits=30 scaling-mod-bits=24",
     "--scheme-to-lattigo",
 ]
 
