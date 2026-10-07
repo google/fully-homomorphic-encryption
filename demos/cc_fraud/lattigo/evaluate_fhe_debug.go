@@ -53,7 +53,7 @@ func main() {
 	// Preprocessing
 	fmt.Println("Running preprocessing...")
 	t0 = time.Now()
-	preprocessedWeights := fraud_model_lattigo_debug_utils.Cc_fraud__preprocessing(params, ecd)
+	preprocessedLinearTransforms, preprocessedPlaintexts := fraud_model_lattigo_debug_utils.Cc_fraud__preprocessing(params, ecd)
 	fmt.Printf("  Took %v\n", time.Since(t0))
 
 	// FHE evaluation (with debug callbacks)
@@ -63,7 +63,8 @@ func main() {
 	encryptedOutput := fraud_model_lattigo_debug.Cc_fraud__preprocessed(
 		evaluator, params, ecd, decryptor, encryptedFeatures,
 		ctZeros,
-		preprocessedWeights,
+		preprocessedLinearTransforms,
+		preprocessedPlaintexts,
 	)
 	fmt.Printf("--- FHE Evaluation Completed in %v ---\n\n", time.Since(t0))
 

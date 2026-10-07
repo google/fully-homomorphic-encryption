@@ -30,7 +30,7 @@ func main() {
 
 	fmt.Println("Preprocessing weights...")
 	tPreStart := time.Now()
-	preprocessedWeights := mnist_utils.Mnist__preprocessing(params, encoder)
+	preprocessedPlaintexts, preprocessedLinearTransforms := mnist_utils.Mnist__preprocessing(params, encoder)
 	tPreEnd := time.Now()
 	fmt.Printf("Weight preprocessing completed in %.2f ms.\n\n", float64(tPreEnd.Sub(tPreStart).Microseconds())/1000.0)
 
@@ -59,7 +59,7 @@ func main() {
 		ctInput := mnist.Mnist__encrypt__arg0(evaluator, params, encoder, encryptor, image)
 
 		tEvalStart := time.Now()
-		resCt := mnist.Mnist__preprocessed(evaluator, params, encoder, ctInput, ctZeros, preprocessedWeights)
+		resCt := mnist.Mnist__preprocessed(evaluator, params, encoder, ctInput, ctZeros, preprocessedPlaintexts, preprocessedLinearTransforms)
 		evalDuration := time.Since(tEvalStart)
 		totalEvalDuration += evalDuration
 

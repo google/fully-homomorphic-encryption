@@ -52,7 +52,7 @@ func main() {
 
 	// 3. Weight Preprocessing
 	t0 = time.Now()
-	preprocessedPlaintexts := anomaly_model_lattigo_timing_utils.Main__preprocessing(params, encoder)
+	preprocessedPlaintexts, preprocessedLinearTransforms := anomaly_model_lattigo_timing_utils.Main__preprocessing(params, encoder)
 	prepDur := time.Since(t0)
 	fmt.Printf("[Phase 3] Weight Preprocessing:   %10v (%d plaintexts)\n",
 		prepDur, len(preprocessedPlaintexts))
@@ -70,7 +70,7 @@ func main() {
 
 		t0 = time.Now()
 		res0, _ := anomaly_model_lattigo_timing.Main__preprocessed(
-			evaluator, params, encoder, decryptor, encryptedInput, preprocessedPlaintexts,
+			evaluator, params, encoder, decryptor, encryptedInput, preprocessedPlaintexts, preprocessedLinearTransforms,
 		)
 		fheDur := time.Since(t0)
 		totalFhe += fheDur

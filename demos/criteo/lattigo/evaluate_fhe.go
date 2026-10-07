@@ -47,7 +47,7 @@ func main() {
 
 	fmt.Println("Running preprocessing...")
 	t0 = time.Now()
-	preprocessedWeights := criteo_utils.Run_inference__preprocessing(params, encoder)
+	preprocessedLinearTransforms, preprocessedPlaintexts := criteo_utils.Run_inference__preprocessing(params, encoder)
 	fmt.Printf("  Took %v\n", time.Since(t0))
 
 	fmt.Println("Running FHE evaluation (preprocessed)...")
@@ -56,7 +56,8 @@ func main() {
 		bootstrappingEvaluator, evaluator, params, encoder,
 		cts0, cts1, cts2,
 		ctZeros,
-		preprocessedWeights,
+		preprocessedLinearTransforms,
+		preprocessedPlaintexts,
 	)
 	fmt.Printf("  Took %v\n", time.Since(t0))
 

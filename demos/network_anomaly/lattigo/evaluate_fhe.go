@@ -55,7 +55,7 @@ func main() {
 	// 3. Preprocess Weights
 	fmt.Println("\n[3/5] Preprocessing model weights into plaintexts...")
 	t0 = time.Now()
-	preprocessedPlaintexts := anomaly_model_lattigo_utils.Main__preprocessing(params, encoder)
+	preprocessedPlaintexts, preprocessedLinearTransforms := anomaly_model_lattigo_utils.Main__preprocessing(params, encoder)
 	fmt.Printf("  Preprocessed %d weight plaintexts in %v\n", len(preprocessedPlaintexts), time.Since(t0))
 
 	// 4. Encrypt Input Features
@@ -68,7 +68,7 @@ func main() {
 	fmt.Println("\n[5/5] Executing FHE evaluation (Ensemble + Anomaly Detector AutoEncoders)...")
 	t0 = time.Now()
 	encryptedRes0, encryptedRes1 := anomaly_model_lattigo.Main__preprocessed(
-		evaluator, params, encoder, encryptedInput, preprocessedPlaintexts,
+		evaluator, params, encoder, encryptedInput, preprocessedPlaintexts, preprocessedLinearTransforms,
 	)
 	fheDuration := time.Since(t0)
 	fmt.Printf("  FHE Evaluation completed in %v\n", fheDuration)
