@@ -72,7 +72,7 @@ func main() {
 	// 4. Preprocess Weights
 	fmt.Println("\n[3/4] Preprocessing weights into plaintexts...")
 	t0 = time.Now()
-	preprocessedPlaintexts := anomaly_model_lattigo_utils.Main__preprocessing(params, encoder)
+	preprocessedPlaintexts, preprocessedLinearTransforms := anomaly_model_lattigo_utils.Main__preprocessing(params, encoder)
 	fmt.Printf("  Preprocessed %d weight plaintexts in %v\n", len(preprocessedPlaintexts), time.Since(t0))
 
 	// 5. Evaluate FHE Loop
@@ -85,7 +85,7 @@ func main() {
 		sampleStart := time.Now()
 		encryptedInput := anomaly_model_lattigo.Main__encrypt__arg0(evaluator, params, encoder, encryptor, allSamples[i])
 		res0, _ := anomaly_model_lattigo.Main__preprocessed(
-			evaluator, params, encoder, encryptedInput, preprocessedPlaintexts,
+			evaluator, params, encoder, encryptedInput, preprocessedPlaintexts, preprocessedLinearTransforms,
 		)
 		decryptedSSE := anomaly_model_lattigo.Main__decrypt__result0(evaluator, params, encoder, decryptor, res0)
 		rawSSE := float64(decryptedSSE[0])

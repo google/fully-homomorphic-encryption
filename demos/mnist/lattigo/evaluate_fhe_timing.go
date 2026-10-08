@@ -40,7 +40,7 @@ func main() {
 	fmt.Printf("Crypto Setup & KeyGen:   %.4f ms\n", float64(setupDuration.Microseconds())/1000.0)
 
 	tPreStart := time.Now()
-	preprocessedWeights := mnist_timing_utils.Mnist__preprocessing(params, encoder)
+	preprocessedPlaintexts, preprocessedLinearTransforms := mnist_timing_utils.Mnist__preprocessing(params, encoder)
 	preprocessDuration := time.Since(tPreStart)
 	fmt.Printf("Weight Preprocessing:    %.4f ms\n", float64(preprocessDuration.Microseconds())/1000.0)
 
@@ -52,7 +52,7 @@ func main() {
 
 	tEvalStart := time.Now()
 	// Pass decryptor for intermediate timing/debug callbacks
-	resCt := mnist_timing.Mnist__preprocessed(evaluator, params, encoder, decryptor, ctInput, ctZeros, preprocessedWeights)
+	resCt := mnist_timing.Mnist__preprocessed(evaluator, params, encoder, decryptor, ctInput, ctZeros, preprocessedPlaintexts, preprocessedLinearTransforms)
 	evalDuration := time.Since(tEvalStart)
 	fmt.Printf("Homomorphic Evaluation:  %.4f ms\n", float64(evalDuration.Microseconds())/1000.0)
 

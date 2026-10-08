@@ -37,7 +37,7 @@ func main() {
 	// Preprocessing (ONCE)
 	fmt.Println("Running preprocessing for model weights...")
 	t0 = time.Now()
-	preprocessedWeights := fraud_model_lattigo_utils.Cc_fraud__preprocessing(params, ecd)
+	preprocessedLinearTransforms, preprocessedPlaintexts := fraud_model_lattigo_utils.Cc_fraud__preprocessing(params, ecd)
 	fmt.Printf("  Took %v\n", time.Since(t0))
 
 	// 1. Sequential Encryption (Encryptor is typically not thread-safe)
@@ -66,7 +66,8 @@ func main() {
 			encryptedOutputs[idx] = fraud_model_lattigo.Cc_fraud__preprocessed(
 				localEvaluator, params, ecd, encryptedInputs[idx],
 				ctZeros[idx],
-				preprocessedWeights,
+				preprocessedLinearTransforms,
+				preprocessedPlaintexts,
 			)
 		}(i)
 	}
