@@ -40,14 +40,9 @@ func main() {
 	cts2 := criteo.Run_inference__encrypt__arg2(evaluator, params, encoder, encryptor, input2)
 	fmt.Printf("  Took %v\n", time.Since(t0))
 
-	fmt.Println("Encrypting zeros...")
-	t0 = time.Now()
-	ctZeros := criteo.Run_inference__encrypt__zeros(evaluator, params, encoder, encryptor)
-	fmt.Printf("  Took %v\n", time.Since(t0))
-
 	fmt.Println("Running preprocessing...")
 	t0 = time.Now()
-	preprocessedWeights := criteo_utils.Run_inference__preprocessing(params, encoder)
+	preprocessedLinearTransforms, preprocessedPlaintexts := criteo_utils.Run_inference__preprocessing(params, encoder)
 	fmt.Printf("  Took %v\n", time.Since(t0))
 
 	fmt.Println("Running FHE evaluation (preprocessed)...")
@@ -55,8 +50,8 @@ func main() {
 	encryptedOutput := criteo.Run_inference__preprocessed(
 		bootstrappingEvaluator, evaluator, params, encoder,
 		cts0, cts1, cts2,
-		ctZeros,
-		preprocessedWeights,
+		preprocessedLinearTransforms,
+		preprocessedPlaintexts,
 	)
 	fmt.Printf("  Took %v\n", time.Since(t0))
 

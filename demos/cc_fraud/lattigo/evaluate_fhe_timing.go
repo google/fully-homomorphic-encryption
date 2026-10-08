@@ -49,17 +49,16 @@ func main() {
 	// Preprocessing
 	fmt.Println("Running preprocessing...")
 	t0 = time.Now()
-	preprocessedWeights := fraud_model_lattigo_timing_utils.Cc_fraud__preprocessing(params, ecd)
+	preprocessedLinearTransforms, preprocessedPlaintexts := fraud_model_lattigo_timing_utils.Cc_fraud__preprocessing(params, ecd)
 	fmt.Printf("  Took %v\n", time.Since(t0))
 
 	// FHE evaluation (preprocessed with timing callbacks)
 	fmt.Println("Running FHE evaluation (preprocessed with timing callbacks)...")
 	t0 = time.Now()
-	ctZeros := fraud_model_lattigo_timing.Cc_fraud__encrypt__zeros(evaluator, params, ecd, encryptor)
 	encryptedOutput := fraud_model_lattigo_timing.Cc_fraud__preprocessed(
 		evaluator, params, ecd, decryptor, encryptedFeatures,
-		ctZeros,
-		preprocessedWeights,
+		preprocessedLinearTransforms,
+		preprocessedPlaintexts,
 	)
 	fmt.Printf("  Took %v\n", time.Since(t0))
 	fmt.Printf("  MaxLevel: %d, Output Level: %d\n", params.MaxLevel(), encryptedOutput[0].Level())
