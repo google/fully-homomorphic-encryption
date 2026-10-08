@@ -64,19 +64,18 @@ func main() {
 	// Preprocessing
 	fmt.Println("Running preprocessing...")
 	t0 = time.Now()
-	preprocessedWeights := hotwordlattigotiming_utils.Tcresnet8small__preprocessing(params, ecd)
+	preprocessedWeights, preprocessedLinearTransforms := hotwordlattigotiming_utils.Tcresnet8small__preprocessing(params, ecd)
 	fmt.Printf("  Took %v\n", time.Since(t0))
 
 	// FHE evaluation
 	fmt.Println("Running FHE evaluation (preprocessed with timing)...")
 	t0 = time.Now()
-	ctZeros := hotwordlattigotiming.Tcresnet8small__encrypt__zeros(evaluator, params, ecd, encryptor)
 
 	// Note: decryptor is passed as 5th argument now (after ecd, before encryptedFeatures)
 	encryptedOutput := hotwordlattigotiming.Tcresnet8small__preprocessed(
 		btpEvaluator, evaluator, params, ecd, decryptor, encryptedFeatures,
-		ctZeros,
 		preprocessedWeights,
+		preprocessedLinearTransforms,
 	)
 	fmt.Printf("  Took %v\n", time.Since(t0))
 

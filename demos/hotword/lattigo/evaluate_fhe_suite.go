@@ -63,17 +63,15 @@ func main() {
 	// Preprocessing (ONCE)
 	fmt.Println("Running preprocessing for model weights...")
 	t0 = time.Now()
-	preprocessedWeights := hotword_lattigo_utils.Tcresnet8small__preprocessing(params, ecd)
+	preprocessedWeights, preprocessedLinearTransforms := hotword_lattigo_utils.Tcresnet8small__preprocessing(params, ecd)
 	fmt.Printf("  Took %v\n", time.Since(t0))
 
 	// 1. Sequential Encryption
-	fmt.Println("Encrypting all input features and zero accumulators sequentially...")
+	fmt.Println("Encrypting all input features sequentially...")
 	t0 = time.Now()
 	encryptedInputs := make([][]*rlwe.Ciphertext, numSamples)
-	ctZeros := make([][]*rlwe.Ciphertext, numSamples)
 	for i := 0; i < numSamples; i++ {
 		encryptedInputs[i] = hotword_lattigo.Tcresnet8small__encrypt__arg0(evaluator, params, ecd, encryptor, allFeatures[i])
-		ctZeros[i] = hotword_lattigo.Tcresnet8small__encrypt__zeros(evaluator, params, ecd, encryptor)
 	}
 	fmt.Printf("  Took %v\n", time.Since(t0))
 
@@ -92,8 +90,8 @@ func main() {
 			localBtpEvaluator := btpEvaluator.ShallowCopy()
 			encryptedOutputs[idx] = hotword_lattigo.Tcresnet8small__preprocessed(
 				localBtpEvaluator, localEvaluator, params, ecd, encryptedInputs[idx],
-				ctZeros[idx],
 				preprocessedWeights,
+				preprocessedLinearTransforms,
 			)
 		}(i)
 	}
