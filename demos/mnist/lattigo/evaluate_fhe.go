@@ -39,18 +39,17 @@ func main() {
 	fmt.Printf("Crypto Setup & KeyGen:   %.4f ms\n", float64(setupDuration.Microseconds())/1000.0)
 
 	tPreStart := time.Now()
-	preprocessedPlaintexts, preprocessedLinearTransforms := mnist_utils.Mnist__preprocessing(params, encoder)
+	preprocessedLinearTransforms, preprocessedPlaintexts := mnist_utils.Mnist__preprocessing(params, encoder)
 	preprocessDuration := time.Since(tPreStart)
 	fmt.Printf("Weight Preprocessing:    %.4f ms\n", float64(preprocessDuration.Microseconds())/1000.0)
 
 	tEncStart := time.Now()
 	ctInput := mnist.Mnist__encrypt__arg0(evaluator, params, encoder, encryptor, image)
-	ctZeros := mnist.Mnist__encrypt__zeros(evaluator, params, encoder, encryptor)
 	encryptDuration := time.Since(tEncStart)
-	fmt.Printf("Input & Zero Encryption: %.4f ms\n", float64(encryptDuration.Microseconds())/1000.0)
+	fmt.Printf("Input Encryption:        %.4f ms\n", float64(encryptDuration.Microseconds())/1000.0)
 
 	tEvalStart := time.Now()
-	resCt := mnist.Mnist__preprocessed(evaluator, params, encoder, ctInput, ctZeros, preprocessedPlaintexts, preprocessedLinearTransforms)
+	resCt := mnist.Mnist__preprocessed(evaluator, params, encoder, ctInput, preprocessedLinearTransforms, preprocessedPlaintexts)
 	evalDuration := time.Since(tEvalStart)
 	fmt.Printf("Homomorphic Evaluation:  %.4f ms\n", float64(evalDuration.Microseconds())/1000.0)
 

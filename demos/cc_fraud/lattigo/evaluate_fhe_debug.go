@@ -59,10 +59,8 @@ func main() {
 	// FHE evaluation (with debug callbacks)
 	fmt.Println("\n--- Starting FHE Evaluation (with Debug Callbacks) ---")
 	t0 = time.Now()
-	ctZeros := fraud_model_lattigo_debug.Cc_fraud__encrypt__zeros(evaluator, params, ecd, encryptor)
 	encryptedOutput := fraud_model_lattigo_debug.Cc_fraud__preprocessed(
 		evaluator, params, ecd, decryptor, encryptedFeatures,
-		ctZeros,
 		preprocessedLinearTransforms,
 		preprocessedPlaintexts,
 	)

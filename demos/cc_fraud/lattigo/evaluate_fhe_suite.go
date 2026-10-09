@@ -41,13 +41,11 @@ func main() {
 	fmt.Printf("  Took %v\n", time.Since(t0))
 
 	// 1. Sequential Encryption (Encryptor is typically not thread-safe)
-	fmt.Println("Encrypting all input features and zero accumulators sequentially...")
+	fmt.Println("Encrypting all input features sequentially...")
 	t0 = time.Now()
 	encryptedInputs := make([][]*rlwe.Ciphertext, numRows)
-	ctZeros := make([][]*rlwe.Ciphertext, numRows)
 	for i := 0; i < numRows; i++ {
 		encryptedInputs[i] = fraud_model_lattigo.Cc_fraud__encrypt__arg0(evaluator, params, ecd, encryptor, allFeatures[i])
-		ctZeros[i] = fraud_model_lattigo.Cc_fraud__encrypt__zeros(evaluator, params, ecd, encryptor)
 	}
 	fmt.Printf("  Took %v\n", time.Since(t0))
 
@@ -65,7 +63,6 @@ func main() {
 			localEvaluator := evaluator.ShallowCopy()
 			encryptedOutputs[idx] = fraud_model_lattigo.Cc_fraud__preprocessed(
 				localEvaluator, params, ecd, encryptedInputs[idx],
-				ctZeros[idx],
 				preprocessedLinearTransforms,
 				preprocessedPlaintexts,
 			)

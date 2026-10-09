@@ -64,18 +64,17 @@ func main() {
 	// Preprocessing
 	fmt.Println("Running preprocessing...")
 	t0 = time.Now()
-	preprocessedWeights := hotword_lattigo_utils.Tcresnet8small__preprocessing(params, ecd)
+	preprocessedWeights, preprocessedLinearTransforms := hotword_lattigo_utils.Tcresnet8small__preprocessing(params, ecd)
 	fmt.Printf("  Took %v\n", time.Since(t0))
 
 	// FHE evaluation
 	fmt.Println("Running FHE evaluation (preprocessed)...")
 	t0 = time.Now()
-	ctZeros := hotword_lattigo.Tcresnet8small__encrypt__zeros(evaluator, params, ecd, encryptor)
 
 	encryptedOutput := hotword_lattigo.Tcresnet8small__preprocessed(
 		btpEvaluator, evaluator, params, ecd, encryptedFeatures,
-		ctZeros,
 		preprocessedWeights,
+		preprocessedLinearTransforms,
 	)
 	fmt.Printf("  Took %v\n", time.Since(t0))
 
