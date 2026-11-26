@@ -49,7 +49,7 @@ func main() {
 	}
 	fmt.Printf("  Took %v\n", time.Since(t0))
 
-	// 2. Parallel FHE Evaluation (Using ShallowCopy for thread safety)
+	// 2. Parallel FHE Evaluation (Lattigo >= v6.2.0 evaluators are safe for concurrent use)
 	fmt.Println("\nStarting parallel FHE evaluation suite...")
 	encryptedOutputs := make([][]*rlwe.Ciphertext, numRows)
 
@@ -60,9 +60,8 @@ func main() {
 	for i := 0; i < numRows; i++ {
 		go func(idx int) {
 			defer wg.Done()
-			localEvaluator := evaluator.ShallowCopy()
 			encryptedOutputs[idx] = fraud_model_lattigo.Cc_fraud__preprocessed(
-				localEvaluator, params, ecd, encryptedInputs[idx],
+				evaluator, params, ecd, encryptedInputs[idx],
 				preprocessedLinearTransforms,
 				preprocessedPlaintexts,
 			)
