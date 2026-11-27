@@ -75,7 +75,7 @@ func main() {
 	}
 	fmt.Printf("  Took %v\n", time.Since(t0))
 
-	// 2. Parallel FHE Evaluation
+	// 2. Parallel FHE Evaluation (Lattigo >= v6.2.0 evaluators are safe for concurrent use)
 	fmt.Println("\nStarting parallel FHE evaluation suite...")
 	encryptedOutputs := make([][]*rlwe.Ciphertext, numSamples)
 
@@ -86,10 +86,8 @@ func main() {
 	for i := 0; i < numSamples; i++ {
 		go func(idx int) {
 			defer wg.Done()
-			localEvaluator := evaluator.ShallowCopy()
-			localBtpEvaluator := btpEvaluator.ShallowCopy()
 			encryptedOutputs[idx] = hotword_lattigo.Tcresnet8small__preprocessed(
-				localBtpEvaluator, localEvaluator, params, ecd, encryptedInputs[idx],
+				btpEvaluator, evaluator, params, ecd, encryptedInputs[idx],
 				preprocessedWeights,
 				preprocessedLinearTransforms,
 			)
